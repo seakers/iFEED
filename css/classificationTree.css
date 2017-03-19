@@ -1,0 +1,39 @@
+
+/* 
+    Author     : bang
+*/
+
+
+/*
+
+#view4 g
+    
+    div #classification_tree_feature_status
+		div #classification_tree_applied_feature_div
+			div #classification_tree_applied_feature_expression
+		div #classification_tree_applied_feature_options
+			button #classification_tree_applied_feature_add_button
+        
+
+
+*/
+
+
+
+#classification_tree_feature_status{
+	width:90%;
+	margin-top:10px;
+	height:25px;
+	padding:15px;
+	background-color: #E0E0E0; 
+	float:left;
+}
+
+#classification_tree_applied_feature_div{
+	float:left;
+	margin-right:15px;
+}
+
+#classification_tree_applied_feature_options{
+	float:left;
+}
