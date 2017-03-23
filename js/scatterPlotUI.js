@@ -348,7 +348,7 @@ function show_all_archs(){
 
 function dot_mouseover(d) {
 
-	if(infoBox_active==true){
+	if(infoBox_active===true){
 		return;
 	}
 	
@@ -369,10 +369,7 @@ function dot_mouseover(d) {
     archInfoBox.append("p")
             .text("Cost: " + d.cost.toFixed(1));
 
-
     var bitString = booleanArray2String(d.bitString);
-
-
     draw_archBasicInfoTable(bitString);
 
     d3.select("[id=instrumentOptions]")
