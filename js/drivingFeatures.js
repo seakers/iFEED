@@ -56,7 +56,7 @@ function runDataMining() {
 
         sortedDFs = generateDrivingFeatures(selected,non_selected,support_threshold,confidence_threshold,lift_threshold,userdef_features,"lift");
         if(testType=="3" && turn_on_apriori==false){
-           jsonObj_tree = buildClassificationTree();
+           //jsonObj_tree = buildClassificationTree();
         }
         
         if(sortedDFs.length==0){
@@ -65,7 +65,7 @@ function runDataMining() {
         
         display_drivingFeatures(sortedDFs,"lift");
         if(testType=="3" && turn_on_apriori==false){
-        	display_classificationTree(jsonObj_tree);
+        	//display_classificationTree(jsonObj_tree);
         }
         selection_changed = false;
         
@@ -81,7 +81,7 @@ function generateDrivingFeatures(selected,non_selected,
 	
 	var output;
     $.ajax({
-        url: "IFEEDServlet",
+        url: "/server/ifeed/",
         type: "POST",
         data: {ID: "get_driving_features",
         	selected: JSON.stringify(selected),
@@ -98,7 +98,7 @@ function generateDrivingFeatures(selected,non_selected,
         	if(data=="[]"){
         		alert("No driving feature mined. Please try modifying the selection. (Try selecting more designs)");
         	}
-        	output = JSON.parse(data);
+        	output = data;
         },
         error: function (jqXHR, textStatus, errorThrown)
         {alert("error");}

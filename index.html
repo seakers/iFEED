@@ -25,7 +25,7 @@ and open the template in the editor.
             #scatterPlotFigure {
 			    border-style: solid;
 			    border-width: 3.3px;
-                width: 1220;
+                width: 960;
                 height: 540px;
                 float: left;
                 margin-right: 10px;
@@ -259,69 +259,69 @@ and open the template in the editor.
 		            
 		            <figure id="scatterPlotFigure"></figure>
 		            
-<!-- 		            <div id="OptionsPane" class="main_options" style="float:left; width: 250px; height: 540px;border: 1px black double;"> -->
-<!-- 		            	<div style="width:225px;height:535px;margin:auto;"> -->
+ 		            <div id="OptionsPane" class="main_options" style="float:left; width: 250px; height: 540px;border: 1px black double;">
+ 		            	<div style="width:225px;height:535px;margin:auto;">
 		            		
-<!-- 		            		<div style="float:left;width:190px;padding:15px;height:115px;background-color:#D9D9D9;margin-top:15px"> -->
-<!-- 			            		<div class="toggle-selection-option-div" style="height: 110px;float:left;"> -->
-<!-- 									<div style="font-size:18px;font-weight: bold;"> -->
-<!-- 										Mouse Selection -->
-<!-- 									</div> -->
-<!-- 									<div class="tooltip"> -->
-<!-- 										<span class="tooltiptext" style="right:230px;padding:11px;width:230px">Zoom/Pan: This option allows zooming/panning on the scatter plot</span> -->
-<!-- 										<div style="margin-top:3px" onclick="set_selection_option(1);"> -->
-<!-- 									    	Zoom/Pan: -->
-<!-- 									    	<input id="zoom-pan" type="radio" checked="True"/> -->
-<!-- 								    	</div> -->
-<!-- 									</div> -->
+ 		            		<div style="float:left;width:190px;padding:15px;height:115px;background-color:#D9D9D9;margin-top:15px"> 
+ 			            		<div class="toggle-selection-option-div" style="height: 110px;float:left;">
+									<div style="font-size:18px;font-weight: bold;">
+ 										Mouse Selection
+ 									</div>
+ 									<div class="tooltip">
+ 										<span class="tooltiptext" style="right:230px;padding:11px;width:230px">Zoom/Pan: This option allows zooming/panning on the scatter plot</span> 
+										<div style="margin-top:3px" onclick="set_selection_option(1);"> 
+ 									    	Zoom/Pan: 
+ 									    	<input id="zoom-pan" type="radio" checked="True"/> 
+								    	</div> 
+ 									</div> 
 								    
-<!-- 									<div class="tooltip"> -->
-<!-- 										<span class="tooltiptext" style="right:230px;padding:11px;width:230px">Drag-select: This option allows selecting designs by dragging over points</span> -->
-<!-- 									    <div onclick="set_selection_option(2);"> -->
-<!-- 									    	Drag-select: -->
-<!-- 									    	<input id="drag-select" type="radio"/> -->
-<!-- 								    	</div> -->
-<!-- 									</div> -->
+ 									<div class="tooltip"> 
+ 										<span class="tooltiptext" style="right:230px;padding:11px;width:230px">Drag-select: This option allows selecting designs by dragging over points</span> 
+ 									    <div onclick="set_selection_option(2);"> 
+ 									    	Drag-select: 
+ 									    	<input id="drag-select" type="radio"/> 
+ 								    	</div> 
+ 									</div> 
 								    
-<!-- 									<div class="tooltip"> -->
-<!-- 										<span class="tooltiptext" style="right:230px;padding:11px;width:230px">Deselect: This option allows de-selecting designs by dragging over points</span> -->
-<!-- 									    <div onclick="set_selection_option(3);"> -->
-<!-- 									    	Deselect: -->
-<!-- 									    	<input id="de-select" type="radio"/> -->
-<!-- 								    	</div> -->
-<!-- 									</div> -->
+ 									<div class="tooltip"> 
+ 										<span class="tooltiptext" style="right:230px;padding:11px;width:230px">Deselect: This option allows de-selecting designs by dragging over points</span> 
+ 									    <div onclick="set_selection_option(3);"> 
+ 									    	Deselect: 
+ 									    	<input id="de-select" type="radio"/> 
+ 								    	</div> 
+									</div>
 
 
-<!-- 			            		</div> -->
-<!-- 		            		</div> -->
+ 			            		</div> 
+ 		            		</div> 
 		
 		
 		
-<!-- 			                <div id="selection_option_div" style="float:left;width:220px;margin-top: 20px;"> -->
-<!-- 								<div style="margin:auto;width:200;padding:15px;background-color:#D9D9D9"> -->
-<!-- 									<div style="font-size:18px;font-weight: bold;margin-bottom:10px"> -->
-<!-- 										Range Selection -->
-<!-- 									</div> -->
-<!-- 				                    Cost range: <br/> -->
-<!-- 				                    <input id="selectArchsWithinRange_minCost" class="select_within_range_text_box" type="text" value="0"/>&nbsp; ~&nbsp; <input id="selectArchsWithinRange_maxCost" class="select_within_range_text_box" type="text" value="inf"/> -->
-<!-- 				                    <br/> Science Benefit range: <br/> -->
-<!-- 				                    <input id="selectArchsWithinRange_minScience" class="select_within_range_text_box" type="text" value="0"/>&nbsp; ~&nbsp; <input id="selectArchsWithinRange_maxScience" class="select_within_range_text_box" type="text" value="1"/> -->
-<!-- 				                    <br/> -->
-<!-- 			                    	<button type="button" id="selectArchsWithinRangeButton" style="margin-top:10px;margin-bottom:3px;width:170px" disabled="True">Select Designs</button> -->
+			                <div id="selection_option_div" style="float:left;width:220px;margin-top: 20px;">
+ 								<div style="margin:auto;width:200;padding:15px;background-color:#D9D9D9">
+ 									<div style="font-size:18px;font-weight: bold;margin-bottom:10px">
+ 										Range Selection
+ 									</div>
+					                    Cost range: <br/>
+ 				                    <input id="selectArchsWithinRange_minCost" class="select_within_range_text_box" type="text" value="0"/>&nbsp; ~&nbsp; <input id="selectArchsWithinRange_maxCost" class="select_within_range_text_box" type="text" value="inf"/>
+ 				                    <br/> Science Benefit range: <br/>
+ 				                    <input id="selectArchsWithinRange_minScience" class="select_within_range_text_box" type="text" value="0"/>&nbsp; ~&nbsp; <input id="selectArchsWithinRange_maxScience" class="select_within_range_text_box" type="text" value="1"/>
+ 				                    <br/> 
+ 			                    	<button type="button" id="selectArchsWithinRangeButton" style="margin-top:10px;margin-bottom:3px;width:170px" disabled="True">Select Designs</button>
 
-<!-- 								</div> -->
-<!--  			                    <button type="button"  id="hide_selection" disabled="True">Hide selections</button> --> 
-<!--  			                    <button type="button"  id="show_all_archs" disabled="True">Show all architectures</button> --> 
-<!--             				    <button type="button"  id="cancel_selection" disabled="True" style="width:220px;height:35px;margin-top:20px">Cancel all selections</button> -->
+ 								</div>
+  			                    <button type="button"  id="hide_selection" disabled="True" style="width:220px;height:35px;margin-top:10px">Hide selections</button>
+  			                    <button type="button"  id="show_all_archs" disabled="True" style="width:220px;height:35px;margin-top:5px">Show all architectures</button> 
+             				    <button type="button"  id="cancel_selection" disabled="True" style="width:220px;height:35px;margin-top:5px">Cancel all selections</button>
 			                	
 			                
-<!-- 			                </div> -->
+ 			                </div>
 
 
-<!-- 		            	</div> -->
+		            	</div>
 		            	
 		
-<!-- 		            </div> -->
+ 		            </div>
 		        </div>
 		
 		      
@@ -385,7 +385,7 @@ and open the template in the editor.
             
             
             var margin = {top: 20, right: 20, bottom: 30, left: 60},
-            width = 1220 - margin.left - margin.right,
+            width = 960 - margin.left - margin.right,
                     height = 540 - margin.top - margin.bottom;
             var json_arch;
             var svg,
@@ -446,42 +446,6 @@ and open the template in the editor.
             
 
 
-			
-            
-            function session_timeout(account_id){
-
-            	var out;
-                $.ajax(
-                        {
-                            url: "loginServlet",
-                            type: "POST", 
-                            data: {ID: "sessionTimeout", account_id: account_id, cnt_df:buttonClickCount_drivingFeatures,
-                            	cnt_ct:buttonClickCount_classificationTree,
-                            	cnt_fo:buttonClickCount_filterOptions,
-                            	cnt_af:buttonClickCount_applyFilter,
-                            	cnt_ud:buttonClickCount_addUserDefFilter,
-                            	cnt_ar:numOfArchViewed,
-                            	cnt_db:numOfDrivingFeatureViewed,
-                            	numArch_df: JSON.stringify(getDrivingFeatures_numOfArchs),
-                            	numArch_ct: JSON.stringify(getClassificationTree_numOfArchs),
-                            	threshold_df: JSON.stringify(getDrivingFeatures_thresholds),
-                            	userdef:JSON.stringify(userDefFilters)},
-                            async: false,
-                            success: function (data, textStatus, jqXHR)
-                            {
-								out = data;
-                            },
-                            error: function (jqXHR, textStatus, errorThrown)
-                            {
-                                alert("error");
-                            }
-                        }
-            	);
-                return out;
-            }
-            
- 
-
 
             function import_new_data(){
 				console.log('importing data...');
@@ -511,11 +475,7 @@ and open the template in the editor.
 				norb = orbitList.length;
 				ninstr = instrList.length;
             }
-            
 
-
-
-            
             
             function extractInfoFromBitString(bitString) {
                 var jsonObj_arch;
