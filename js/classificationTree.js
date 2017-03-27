@@ -9,7 +9,7 @@ function buildClassificationTree(){
 	
 	var output;
     $.ajax({
-        url: "IFEEDServlet",
+        url: "/server/ifeed",
         type: "POST",
         data: {ID: "build_classification_tree"},
         async: false,

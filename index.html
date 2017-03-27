@@ -480,7 +480,7 @@ and open the template in the editor.
             function extractInfoFromBitString(bitString) {
                 var jsonObj_arch;
                 $.ajax({
-                    url: "/server/ifeed/",
+                    url: "/server/vassar/",
                     type: "POST",
                     data: {ID: "extract_info_from_bitString", bitString: bitString},
                     async: false,
@@ -622,7 +622,7 @@ and open the template in the editor.
                 function getOrbitList() {
                     var orbitList;
                     $.ajax({
-                        url: "/server/ifeed/",
+                        url: "/server/vassar/",
                         type: "POST",
                         data: {ID: "get_orbit_list"},
                         async: false,
@@ -640,7 +640,7 @@ and open the template in the editor.
                 function getInstrumentList() {
                     var instrumentList;
                     $.ajax({
-                        url: "/server/ifeed/",
+                        url: "/server/vassar/",
                         type: "POST",
                         data: {ID: "get_instrument_list"},
                         async: false,

@@ -54,10 +54,15 @@ function runDataMining() {
             non_selected.push(id);
         }
 
-        sortedDFs = generateDrivingFeatures(selected,non_selected,support_threshold,confidence_threshold,lift_threshold,userdef_features,"lift");
+		
+		
+		var build_classification_tree = false;
         if(testType=="3" && turn_on_apriori==false){
+			build_classification_tree = true;
            //jsonObj_tree = buildClassificationTree();
         }
+        sortedDFs = generateDrivingFeatures(selected,non_selected,support_threshold,confidence_threshold,lift_threshold,userdef_features,"lift",build_classification_tree);
+
         
         if(sortedDFs.length==0){
         	return;
@@ -77,7 +82,7 @@ function runDataMining() {
 
 function generateDrivingFeatures(selected,non_selected,
 		support_threshold,confidence_threshold,lift_threshold,
-		userdef_features,sortBy){
+		userdef_features,sortBy,build_classification_tree){
 	
 	var output;
     $.ajax({
@@ -91,7 +96,8 @@ function generateDrivingFeatures(selected,non_selected,
         	lift:lift_threshold,
         	userDefFilters:JSON.stringify(userdef_features),
         	sortBy:sortBy,
-        	apriori:turn_on_apriori},
+        	apriori:turn_on_apriori,
+			build_classification_tree:build_classification_tree},
         async: false,
         success: function (data, textStatus, jqXHR)
         {
