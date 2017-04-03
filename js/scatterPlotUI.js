@@ -292,13 +292,11 @@ function selectArchsWithinRange() {
 
 function cancelDotSelections(){
 	remove_df_application_status();
-	
-    var selectedArchs = d3.selectAll("[status=selected_and_highlighted]");
-    selectedArchs.attr("status", "selected")
-            .style("fill","#19BAD7");
-    var highlightedArchs = d3.selectAll("[status=highlighted]");
-    highlightedArchs.attr("status", "default")
+    
+    d3.selectAll(".dot")
+            .attr("status", "default")
             .style("fill","#000000");
+
     d3.select("[id=instrumentOptions]")
             .select("table").remove();        
     d3.select("[id=numOfSelectedArchs_inputBox]").text(""+numOfSelectedArchs());

@@ -361,7 +361,9 @@ and open the template in the editor.
        <script src="js/drivingFeatures.js" type="text/javascript"></script>
        <script src="js/classificationTree.js" type="text/javascript"></script>
        <script src="js/relabel.js" type="text/javascript"></script>
-       
+       <script src="js/websocket.js" type="text/javascript"></script>
+	   
+	   
        <script>
 
 
@@ -453,9 +455,9 @@ and open the template in the editor.
                 var path = "/results/EOSS_data.csv";
 				$.ajax(
                         {
-                            url: "/server/ifeed/",
+                            url: "/server/ifeed/import-data/",
                             type: "POST",
-                            data: {ID: "import_new_data", path:path},
+                            data: {path:path},
                             async: true,
                             success: function (data, textStatus, jqXHR)
                             {
@@ -475,24 +477,25 @@ and open the template in the editor.
 				norb = orbitList.length;
 				ninstr = instrList.length;
             }
+			
+			
+			
 
-            
             function extractInfoFromBitString(bitString) {
-                var jsonObj_arch;
-                $.ajax({
-                    url: "/server/vassar/",
-                    type: "POST",
-                    data: {ID: "extract_info_from_bitString", bitString: bitString},
-                    async: false,
-                    success: function (data, textStatus, jqXHR)
-                    {
-                        jsonObj_arch = data;
-                    },
-                    error: function (jqXHR, textStatus, errorThrown)
-                    {
-                        alert("error");
-                    }
-                });
+                var jsonObj_arch=[];
+				for(var i=0;i<norb;i++){
+					orbit = orbitList[i];
+					assigned = [];
+					for(var j=0;j<ninstr;j++){
+						if(bitString[i*ninstr+j]=='1'){
+							instrument = instrList[j];
+							//Store the instrument names assigned to jth orbit
+							assigned.push(instrument);
+						}
+					}
+					// Store the name of the orbit and the assigned instruments
+					jsonObj_arch.push({orbit:orbit,children:assigned});
+				}
                 return jsonObj_arch;
             }
             
@@ -622,9 +625,8 @@ and open the template in the editor.
                 function getOrbitList() {
                     var orbitList;
                     $.ajax({
-                        url: "/server/vassar/",
+                        url: "/server/vassar/get-orbit-list/",
                         type: "POST",
-                        data: {ID: "get_orbit_list"},
                         async: false,
                         success: function (data, textStatus, jqXHR)
                         {
@@ -640,9 +642,8 @@ and open the template in the editor.
                 function getInstrumentList() {
                     var instrumentList;
                     $.ajax({
-                        url: "/server/vassar/",
+                        url: "/server/vassar/get-instrument-list/",
                         type: "POST",
-                        data: {ID: "get_instrument_list"},
                         async: false,
                         success: function (data, textStatus, jqXHR)
                         {
@@ -691,7 +692,7 @@ and open the template in the editor.
             import_new_data();
 
             
-            
+
             
 
 

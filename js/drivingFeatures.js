@@ -86,7 +86,7 @@ function generateDrivingFeatures(selected,non_selected,
 	
 	var output;
     $.ajax({
-        url: "/server/ifeed/",
+        url: "/server/data-mining/get-driving-features/",
         type: "POST",
         data: {ID: "get_driving_features",
         	selected: JSON.stringify(selected),
