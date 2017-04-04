@@ -660,19 +660,16 @@ function draw_venn_diagram(container,supp,conf,conf2){
 	var F_size = supp * 1/conf;
 	var S_size = supp * 1/conf2;
 		
-	// Radius range: 30 ~ 80
-	// Intersecting distance range: 0 ~ (r1+r2)
-	
-    radius_scale = d3.scale.pow()
-    				.exponent(0.5)
+    radius_scale = d3.scale.linear()
 					.domain([0,5])
 	    			.range([10, 150]);
+    // Selection has a fixed radius
     var r1 = radius_scale(1);
-    var	r2 = radius_scale(F_size/S_size);
-    
-    intersection_scale = d3.scale.linear()
-					.domain([0,1])
-					.range([r1+r2, 20+ r2-r1]);
+    // Feature 
+    var	r2 = radius_scale(Math.sqrt(F_size/S_size));
+    var a1 = Math.PI * Math.pow(r1,2);
+    //var a2 = Math.PI * Math.pow(r2,2);
+    var intersection = F_size/S_size * a1;
     
     var left_margin = 50;
     var c1x = left_margin + r1;
@@ -680,7 +677,22 @@ function draw_venn_diagram(container,supp,conf,conf2){
 	if (conf2 > 0.99){
 		c2x = c1x + r2 - r1;
     }else{
-    	c2x = c1x + intersection_scale(conf2);
+        var dist;
+        $.ajax({
+            url: "/server/ifeed/venn-diagram-distance/",
+            type: "POST",
+            data: {r1: r1,
+                   r2: r2,
+                   intersection: intersection},
+            async: false,
+            success: function (data, textStatus, jqXHR)
+            {
+                dist = + data;
+            },
+            error: function (jqXHR, textStatus, errorThrown)
+            {alert("error");}
+        });
+        c2x = c1x + dist;
     }
 	
 	svg_venn_diag
