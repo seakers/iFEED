@@ -656,33 +656,32 @@ function draw_venn_diagram(container,supp,conf,conf2){
 								.style('border-radius','40px')
 								.style('margin-top','10px')
 								.style('margin-bottom','10px'); 
-
-	var F_size = supp * 1/conf;
-	var S_size = supp * 1/conf2;
+    
+    var total = numOfArchs()
+	var F_size = supp * 1/conf * total;
+	var S_size = supp * 1/conf2 * total;
 		
-    radius_scale = d3.scale.linear()
-					.domain([0,5])
-	    			.range([10, 150]);
     // Selection has a fixed radius
-    var r1 = radius_scale(1);
+    var r1 = 70;
     // Feature 
-    var	r2 = radius_scale(Math.sqrt(F_size/S_size));
+    var	r2 = Math.sqrt(F_size/S_size)*r1;
     var a1 = Math.PI * Math.pow(r1,2);
-    //var a2 = Math.PI * Math.pow(r2,2);
-    var intersection = F_size/S_size * a1;
+    var a2 = Math.PI * Math.pow(r2,2);
+    // Conf(F->S) * |F| = P(FnS)
+    var intersection = supp * numOfArchs() * a1 / S_size;
     
     var left_margin = 50;
-    var c1x = left_margin + r1;
+    var c1x = 110;
     var c2x;
-	if (conf2 > 0.99){
+	if (conf2 > 0.999){
 		c2x = c1x + r2 - r1;
     }else{
         var dist;
         $.ajax({
             url: "/server/ifeed/venn-diagram-distance/",
             type: "POST",
-            data: {r1: r1,
-                   r2: r2,
+            data: {a1: a1,
+                   a2: a2,
                    intersection: intersection},
             async: false,
             success: function (data, textStatus, jqXHR)
@@ -716,29 +715,32 @@ function draw_venn_diagram(container,supp,conf,conf2){
 	
 	svg_venn_diag
 		.append("text")
+        .attr("id","venn_diag_int_text")
 		.attr("x",left_margin-10)
 		.attr("y",70-30)
 		.attr("font-family","sans-serif")
 		.attr("font-size","18px")
 		.attr("fill","black")
-		.text("Intersection: " + Math.round(supp * numOfArchs()));
+		.text("Intersection: " + Math.round(supp * total));
 	
 	svg_venn_diag
 		.append("text")
-		.attr("x",c1x-110)
+        .attr("id","venn_diag_c1_text")
+		.attr("x",c1x-90)
 		.attr("y",180+r1+50-30)
 		.attr("font-family","sans-serif")
 		.attr("font-size","18px")
 		.attr("fill","steelblue")
-		.text("Selected:" + numOfSelectedArchs() );
+		.text("Selected:" + Math.round(S_size) );
 	svg_venn_diag
 		.append("text")
-		.attr("x",c1x+30)
+        .attr("id","venn_diag_c2_text")
+		.attr("x",c1x+60)
 		.attr("y",180+r1+50-30)
 		.attr("font-family","sans-serif")
 		.attr("font-size","18px")
 		.attr("fill","brown")
-		.text("Features:" + Math.round(F_size * numOfArchs()) );
+		.text("Features:" + Math.round(F_size) );
 }
 
 
