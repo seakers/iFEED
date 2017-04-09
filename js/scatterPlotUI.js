@@ -163,12 +163,7 @@ function draw_scatterPlot(source) {
             .style("fill", "#000000");
 
 
-    dots.on("mouseover", dot_mouseover)
-            .on("mouseout", function (d) {
-//            	if(d3.select(this).attr('status')!='selected'){
-//            		d3.select(this).style("fill", "#000000");
-//            	}
-            });
+    dots.on("mouseover", dot_mouseover);
     dots.on("click", dot_click);
 
     initialize_tabs();
@@ -288,21 +283,55 @@ function selectArchsWithinRange() {
     selection_changed = true;
     initialize_tabs_driving_features();
     initialize_tabs_classification_tree();
+    update_feature_metric_chart();
 }
 
-function cancelDotSelections(){
-	remove_df_application_status();
+function cancelDotSelections(option){
     
-    d3.selectAll(".dot")
+    if(option==null){
+        d3.selectAll(".dot")
             .attr("status", "default")
             .style("fill","#000000");
-
-    d3.select("[id=instrumentOptions]")
-            .select("table").remove();        
+    }else if(option=='remove_selection'){
+        d3.selectAll('.dot')[0].forEach(function(d){
+            var status = d3.select(d).attr('status');
+            if(status=='selected'){
+                d3.select(d)
+                    .attr("status", "default")
+                    .style("fill","#000000");
+            }else if(status=='selected_and_highlighted'){
+                d3.select(d)
+                .attr('status','highlighted')
+                .style("fill", "#F75082");
+            }
+        })
+        selection_changed = true;
+        update_feature_metric_chart();
+        initialize_tabs_driving_features();
+        initialize_tabs_classification_tree();
+    }else if(option=='remove_highlighted'){
+        d3.selectAll('.dot')[0].forEach(function(d){
+            var status = d3.select(d).attr('status');
+            if(status=='highlighted'){
+                d3.select(d)
+                    .attr("status", "default")
+                    .style("fill","#000000");
+            }else if(status=='selected_and_highlighted'){
+                d3.select(d)
+                .attr('status','selected')
+                .style("fill", "#19BAD7");
+            }
+        })
+    }else{
+        selection_changed = true;
+        update_feature_metric_chart();
+        initialize_tabs_driving_features();
+        initialize_tabs_classification_tree();
+    }
+    
+  
     d3.select("[id=numOfSelectedArchs_inputBox]").text(""+numOfSelectedArchs());
-    selection_changed = true;
-    //initialize_tabs_driving_features();
-    //initialize_tabs_classification_tree();
+
 }
 
 function hideSelection(){
@@ -318,6 +347,7 @@ function hideSelection(){
     selection_changed = true;
     initialize_tabs_driving_features();
     initialize_tabs_classification_tree();
+    update_feature_metric_chart();
 }
 function show_all_archs(){
 
@@ -332,6 +362,7 @@ function show_all_archs(){
     selection_changed = true;
     initialize_tabs_driving_features();
     initialize_tabs_classification_tree();
+    update_feature_metric_chart();
 }
 
 
@@ -347,11 +378,6 @@ function dot_mouseover(d) {
 	
 	numOfArchViewed = numOfArchViewed+1;
 	
-	
-//    if (d3.select(this).attr("status") == "selected") {
-//    } else {
-//        d3.select(this).style("fill", "#D32020");
-//    }
 
     d3.select("[id=basicInfoBox_div]").select("[id=view1]").select("g").remove();
     var archInfoBox = d3.select("[id=basicInfoBox_div]").select("[id=view1]")
@@ -391,7 +417,7 @@ function dot_click(d) {
 function scatterPlot_option(selected_option){ // three options: zoom, drag_selection, drag_deselection
 
     if (selected_option=="1"){
-
+        // Zoom
     	
         translate_tmp_local[0] = translate_tmp[0];
         translate_tmp_local[1] = translate_tmp[1];
@@ -481,42 +507,40 @@ function scatterPlot_option(selected_option){ // three options: zoom, drag_selec
             .on( "mousemove", function() {
 
                 var s = svg_tmp.select("rect.selection");
-               if( !s.empty()) {
+                if( !s.empty()) {
                     var p = d3.mouse( this);
 
-                        b = {
-                            x       : parseInt( s.attr("x"),10),
-                            y       : parseInt( s.attr("y"), 10),
-                            x0       : parseInt( s.attr("x0"),10),
-                            y0       : parseInt( s.attr("y0"), 10),
-                            width   : parseInt( s.attr("width"),10),
-                            height  : parseInt( s.attr("height"), 10)
-                        },
-                        move = {
-                            x : p[0] - b.x0,
-                            y : p[1] - b.y0
-                        };
+                    var b = {
+                        x       : parseInt( s.attr("x"),10),
+                        y       : parseInt( s.attr("y"), 10),
+                        x0       : parseInt( s.attr("x0"),10),
+                        y0       : parseInt( s.attr("y0"), 10),
+                        width   : parseInt( s.attr("width"),10),
+                        height  : parseInt( s.attr("height"), 10)
+                    };
+                    var move = {
+                        x : p[0] - b.x0,
+                        y : p[1] - b.y0
+                    };
 
-                        if (move.x < 0){
-                            b.x = b.x0 + move.x;
+                    if (move.x < 0){
+                        b.x = b.x0 + move.x;
 
-                        } else{
-                            b.x = b.x0;
-                        }
-                        if (move.y < 0){
-                            b.y = b.y0 + move.y;
-                        } else {
-                            b.y = b.y0;
-                        }
-                        b.width = Math.abs(move.x);
-                        b.height = Math.abs(move.y);
+                    } else{
+                        b.x = b.x0;
+                    }
+                    if (move.y < 0){
+                        b.y = b.y0 + move.y;
+                    } else {
+                        b.y = b.y0;
+                    }
+                    b.width = Math.abs(move.x);
+                    b.height = Math.abs(move.y);
 
-                    s.attr( b);
-
-                    var dots;  
+                    s.attr(b);
 
                     if(option=="selection"){ // Make selection
-                        dots = d3.selectAll("[status=default]")[0].forEach(function(d,i){
+                        d3.selectAll("[status=default]")[0].forEach(function(d,i){
                             var sci = d.__data__.science;
                             var cost = d.__data__.cost;
                             var xCoord = xScale(sci);
@@ -526,16 +550,15 @@ function scatterPlot_option(selected_option){ // three options: zoom, drag_selec
                                 xCoord + margin.left>= b.x && xCoord + margin.left <= b.x+b.width && 
                                 yCoord + margin.top >= b.y && yCoord + margin.top  <= b.y+b.height
                             ) {
-                                d3.select(d).attr("status","selected")
+                                d3.select(d)
+                                        .attr("status","selected")
                                         .style("fill", "#19BAD7");      
                                 selection_changed = true;
-                                initialize_tabs_driving_features();
-                                initialize_tabs_classification_tree();
                             }
                         });
 
                     }else{	// De-select
-                        dots = d3.selectAll("[status=selected]")[0].forEach(function(d,i){
+                        d3.selectAll("[status=selected]")[0].forEach(function(d,i){
                             var sci = d.__data__.science;
                             var cost = d.__data__.cost;
                             var xCoord = xScale(sci);
@@ -548,24 +571,23 @@ function scatterPlot_option(selected_option){ // three options: zoom, drag_selec
                                 d3.select(d).attr("status","default")
                                         .style("fill", "#000000");      
                                 selection_changed = true;
-                                initialize_tabs_driving_features();
-                                initialize_tabs_classification_tree();
                             }
                         });
                     }
                     d3.select("[id=numOfSelectedArchs_inputBox]").text(""+numOfSelectedArchs());
+                }      
+            })
+            .on( "mouseup", function() {
+                unhighlight_basic_info_box();
+                var svg_tmp =  d3.select("[id=scatterPlotFigure]").select("svg")
 
-            }      
-    })
-    .on( "mouseup", function() {
-    	unhighlight_basic_info_box();
-        var svg_tmp =  d3.select("[id=scatterPlotFigure]")
-            .select("svg")
+                   // remove selection frame
+                svg_tmp.selectAll( "rect.selection").remove();
 
-           // remove selection frame
-        svg_tmp.selectAll( "rect.selection").remove();
-        
-    })
+                initialize_tabs_driving_features();
+                initialize_tabs_classification_tree();
+                update_feature_metric_chart(); 
+            })
     }               
 }
 
@@ -746,7 +768,6 @@ function initialize_tabs_driving_features(){
 	
 	
 	selection_changed=true;
-	remove_df_application_status();
 	
 	
 	d3.select("[id=basicInfoBox_div]").select("[id=view3]").select("g").remove();
@@ -834,13 +855,10 @@ function round_num_2_perc(num){
 
 
 function get_selected_arch_ids(){
-	var targets = [];
 	var target_string = "";
 	d3.selectAll('[status=selected]')[0].forEach(function(d){
-		targets.push(d.__data__.id);
 		target_string = target_string + "," + d.__data__.id;
 	});
-	//return targets;
 	return target_string.substring(1,target_string.length);
 }
 

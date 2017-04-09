@@ -9,25 +9,24 @@
 #view3 g
     
     
-    
-    div #df_application_status
-        div #df_application_status_title
-            div
-        div #applied_driving_feature_div
-            div .applied_driving_feature #applied_driving_feature_1
-                div .applied_driving_feature_expression
-                button .applied_driving_feature_delete_button
-        div .applied_driving_feature #applied_driving_feature_2
-        
-        div #df_application_options
-            button .df_application_options_button #df_application_options_add
-            button .df_application_options_button #df_application_options_cancel_selection
-            button .df_application_options_button #df_application_options_reset
-        
-    div #df_bar_chart
-        svg #df_svg
-    div #df_venn_diagram
+div #df_application_status
+    div #df_application_status_title
         div
+    div #applied_driving_feature_div
+        div .applied_driving_feature #applied_driving_feature_1
+            div .applied_driving_feature_expression
+            button .applied_driving_feature_delete_button
+    div .applied_driving_feature #applied_driving_feature_2
+
+    div #df_application_options
+        button .df_application_options_button #df_application_options_add
+        button .df_application_options_button #df_application_options_cancel_selection
+        button .df_application_options_button #df_application_options_reset
+
+div #df_bar_chart
+    svg #df_svg
+div #df_venn_diagram
+    div
 
         
 

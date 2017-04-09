@@ -1,0 +1,778 @@
+<!DOCTYPE html>
+<!--
+To change this license header, choose License Headers in Project Properties.
+To change this template file, choose Tools | Templates
+and open the template in the editor.
+-->
+<html>
+    <head>
+        <title>Feature Metric Chart</title>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+        <script src="js/lib/jquery.js" type="text/javascript"></script>
+        <script src="js/lib/d3.js"></script>
+	   
+	<style>
+        
+
+        body {
+            font: sans-serif;
+            font-size:18px;
+        }
+
+        .axis path,
+        .axis line {
+            fill: none;
+            stroke: #000;
+            shape-rendering: crispEdges;
+        }
+
+        .dot {
+            stroke: #000;
+        }
+        
+        .select_menu{
+            float:left;
+            height:25px;
+            margin-right: 10px;
+            margin-left: 10px;
+        }
+
+	</style>
+
+
+    </head>
+    <body>
+        
+        <div id='title_div' style='width:100%; margin-top:20px; margin-bottom:20px;'>
+            <h2 id='title', style='margin:auto'>Feature Metric Chart</h2>
+        </div>
+        <div id='options_panel_div' style='width:100%;'>
+            <div id='options_panel' style='margin:auto;'>
+                <div id='option_dropdown_menu' style='float:left'>
+                    <div id='plot_type_selection_div' style='float:left;'>
+                    </div>
+                    <div id='axis_selection_div_1' style='float:left;'></div>
+                    <div id='axis_selection_div_2' style='float:left;'></div>                    
+                </div>
+                
+                <button type="button"  id="reset_plot" style="width:140px;height:25px;margin-left:10px;float:left;">Reset plot</button>
+			                	
+            </div>
+        </div>
+        <div id='plot_div' style='width:100%;padding:20px'></div>
+        
+	    <script src="js/relabel.js" type="text/javascript"></script>
+        <script>
+
+            
+            
+var cScale = ['#000000','#151515','#6E6E6E','#848484','#A4A4A4','#BDBDBD','#E6E6E6'];  
+            
+            
+var plot_margin = {top: 20, right: 20, bottom: 30, left: 70};
+var plot_width = 800 - plot_margin.left - plot_margin.right;
+var plot_height = 400 - plot_margin.top - plot_margin.bottom;
+         
+            
+var plot_metrics = [];
+var metric_names = ["Confidence(F->S)", "Confidence(S->F)"];
+var features = [];
+
+            
+var plot_type_options = [
+    {value:'scatter',text:'Scatter plot'},
+    {value:'bar',text:'Bar plot'}
+]
+            
+                  
+function remove_plot(){
+    d3.select('#plot_div').select('svg').remove()
+} 
+function reset_plot(){
+    remove_plot();
+    features = [];
+}      
+            
+            
+function draw_scatter_plot(source){
+    var margin = plot_margin;
+    var width = plot_width;
+    var height = plot_height;
+    
+    var x = plot_metrics[0];
+    var y = plot_metrics[1];
+    
+    // setup x 
+    
+    // data -> value
+    xValue = function (d) {
+        return d.metrics[x];
+    }; 
+    // value -> display
+    xScale = d3.scale.linear().range([0, width]); 
+    
+    // don't want dots overlapping axis, so add in buffer to data domain 
+    xBuffer = (d3.max(source, xValue) - d3.min(source, xValue)) * 0.05;
+    
+    xScale.domain([d3.min(source, xValue) - xBuffer, d3.max(source, xValue) + xBuffer]);
+
+    // data -> display
+    xMap = function (d) {
+        return xScale(xValue(d));
+    }; 
+    xAxis = d3.svg.axis().scale(xScale).orient("bottom");
+
+
+    // setup y
+    // data -> value
+    yValue = function (d) {
+        return d.metrics[y];
+    };
+    // value -> display
+    yScale = d3.scale.linear().range([height, 0]); 
+
+    yBuffer = (d3.max(source, yValue) - d3.min(source, yValue)) * 0.05;
+    yScale.domain([d3.min(source, yValue) - yBuffer, d3.max(source, yValue) + yBuffer]);
+    // data -> display
+    yMap = function (d) {
+        return yScale(yValue(d));
+    }; 
+    yAxis = d3.svg.axis().scale(yScale).orient("left");
+
+    var color = d3.scale.category10();
+    
+
+    var svg = d3.select("#plot_div")
+        .append("svg")
+        .attr("width", width + margin.left + margin.right)
+        .attr("height", height + margin.top + margin.bottom)
+        .append("g")
+        .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
+
+    // x-axis
+    svg.append("g")
+            .attr("class", "x axis")
+            .attr("transform", "translate(0," + height + ")")
+            .call(xAxis)
+            .append("text")
+            .attr("class", "label")
+            .attr("x", width)
+            .attr("y", -6)
+            .style("text-anchor", "end")
+            .text(metric_names[x])
+            .style('font-size','15px');
+
+    // y-axis
+    svg.append("g")
+            .attr("class", "y axis")
+            .call(yAxis)
+            .append("text")
+            .attr("class", "label")
+            .attr("transform", "rotate(-90)")
+            .attr("y", 6)
+            .attr("dy", ".71em")
+            .style("text-anchor", "end")
+            .text(metric_names[y])
+            .style('font-size','15px');
+
+    objects = svg.append("svg")
+            .attr("class", "objects")
+            .attr("width", width)
+            .attr("height", height);
+
+    //Create main 0,0 axis lines:
+    objects.append("svg:line")
+            //.attr("class", "axisLine hAxisLine")
+            .attr("x1", 0)
+            .attr("y1", 0)
+            .attr("x2", width)
+            .attr("y2", 0)
+            .attr("transform", "translate(0," + (yScale(0)) + ")");
+    objects.append("svg:line")
+            //.attr("class", "axisLine vAxisLine")
+            .attr("x1", 0)
+            .attr("y1", 0)
+            .attr("x2", 0)
+            .attr("y2", height)
+            .attr("transform", "translate(" + (xScale(0)) + ",0)");
+
+    var dots = objects.selectAll(".dot")
+            .data(source)
+            .enter().append("circle")
+            .attr("class", "dot")
+            .attr("status","default")
+            .attr("r", 7.5)
+            .attr("transform", function (d) {
+                var xCoord = xMap(d);
+                var yCoord = yMap(d);
+                return "translate(" + xCoord + "," + yCoord + ")";
+            })
+            .style("fill", "#000000")
+            .style("stroke-width",0);;
+
+
+    dots.on("mouseover", feature_mouseover)
+        .on('mouseout', feature_mouseout);
+    
+    
+//            	if(d3.select(this).attr('status')!='selected'){
+//            		d3.select(this).style("fill", "#000000");
+//            	}
+ //           });
+//    dots.on("click", dot_click);
+            
+            
+            
+
+//    var legend = svg.selectAll(".legend")
+//      .data(color.domain())
+//    .enter().append("g")
+//      .attr("class", "legend")
+//      .attr("transform", function(d, i) { return "translate(0," + i * 20 + ")"; });
+//
+//    legend.append("rect")
+//      .attr("x", width - 18)
+//      .attr("width", 18)
+//      .attr("height", 18)
+//      .style("fill", color);
+//
+//    legend.append("text")
+//      .attr("x", width - 24)
+//      .attr("y", 9)
+//      .attr("dy", ".35em")
+//      .style("text-anchor", "end")
+//      .text(function(d) { return d; });
+ 
+}
+            
+
+            
+            
+            
+            
+
+    
+function draw_bar_plot(source){
+    
+    var i=0;
+    
+    var margin = plot_margin;
+    var width = plot_width;
+    var height = plot_height;
+    
+    var y = plot_metrics[0];
+    
+    // setup y
+    // data -> value
+    yValue = function (d) {
+        return d.metrics[y];
+    };
+    // value -> display
+    yScale = d3.scale.linear().range([height, 0]); 
+
+    yBuffer = (d3.max(source, yValue) - d3.min(source, yValue)) * 0.05;
+    yScale.domain([d3.min(source, yValue) - yBuffer, d3.max(source, yValue) + yBuffer]);
+    // data -> display
+    yMap = function (d) {
+        return yScale(yValue(d));
+    }; 
+    yAxis = d3.svg.axis().scale(yScale).orient("left");
+    
+    y_minVal = d3.min(source, yValue);
+    
+    // setup x
+    var size = source.length;
+    xScale = d3.scale.linear().range([0, width]); 
+    xBuffer = size * 0.05;
+    xScale.domain([0, size]);
+    
+    xAxis = d3.svg.axis().scale(xScale).orient("bottom")
+            .tickFormat(function (d) { return ''; });
+    
+    xMap = function (i) {
+        return xScale(i);
+    }; 
+    
+    
+    var svg = d3.select("#plot_div")
+        .append("svg")
+        .attr("width", width + margin.left + margin.right)
+        .attr("height", height + margin.top + margin.bottom)
+        .append("g")
+        .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
+    
+    // x-axis
+    svg.append("g")
+            .attr("class", "x axis")
+            .attr("transform", "translate(0," + height + ")")
+            .call(xAxis)
+            .append("text")
+            .attr("class", "label")
+            .attr("x", width)
+            .attr("y", -6)
+            .style("text-anchor", "end");
+
+    // y-axis
+    svg.append("g")
+            .attr("class", "y axis")
+            .call(yAxis)
+            .append("text")
+            .attr("class","label")
+            .attr("transform", "rotate(-90)")
+            .attr("y",-60)
+            .attr("x",-3)
+            .attr("dy", ".71em")
+            .style("text-anchor", "end")
+            .text(metric_names[y]);
+
+    var objects = svg.append("svg")
+            .attr('class','objects')
+            .attr("width",width)
+            .attr("height",height)
+            .style('margin-bottom','30px');
+
+    //Create main 0,0 axis lines:
+    objects.append("svg:line")
+            //.attr("class", "axisLine hAxisLine")
+            .attr("x1", 0)
+            .attr("y1", 0)
+            .attr("x2", width)
+            .attr("y2", 0)
+            .attr("transform", "translate(0," + (yScale(y_minVal)) + ")");
+    objects.append("svg:line")
+            //.attr("class", "axisLine vAxisLine")
+            .attr("x1", 0)
+            .attr("y1", 0)
+            .attr("x2", 0)
+            .attr("y2", height)
+            .attr("transform", "translate(" + (xScale(0)) + ",0)");
+
+    objects.selectAll(".bar")
+            .data(source, function(d){return (d.id = i++);})
+            .enter()
+            .append("rect")
+            .attr("class","bar")
+            .attr("x", function(d) {
+                return d.id;
+            })
+            .attr("width", xScale(1))
+            .attr("y", function(d) { 
+                    return yMap(d); 
+            })
+            .attr("height", function(d) { 
+                    return height - yMap(d); 
+            })
+            .attr("transform",function(d){
+                var xCoord = xScale(d.id);
+                return "translate(" + xCoord + "," + 0 + ")";
+            })
+            .style("stroke-width",0);
+            //.style("fill", function(d,i){return color_drivingFeatures(drivingFeatureTypes[i]);});
+ 
+    d3.selectAll('.bar')
+        .on("mouseover", feature_mouseover)
+        .on('mouseout', feature_mouseout);
+    
+    
+    
+
+//    // draw legend
+//    var legend_df = objects.selectAll(".legend")
+//                    .data(color_drivingFeatures.domain())
+//                    .enter().append("g")
+//                    .attr("class", "legend")
+//                    .attr("transform", function(d, i) { return "translate(0," + (i * 20) + ")"; });
+//
+//        // draw legend colored rectangles
+//    legend_df.append("rect")
+//            .attr("x", 655)
+//            .attr("width", 18)
+//            .attr("height", 18)
+//            .style("fill", color_drivingFeatures);
+//
+//        // draw legend text
+//    legend_df.append("text")
+//            .attr("x", 655)
+//            .attr("y", 9)
+//            .attr("dy", ".35em")
+//            .style("text-anchor", "end")
+//            .text(function(d) { return d;});
+    
+
+}   
+            
+
+function feature_mouseout(d){
+    
+d3.selectAll("#tooltip_g").remove();
+
+//var tmp= d.id;
+//d3.selectAll("[class=bar]").filter(function(d){
+//       if(d.id===tmp){
+//           return true;
+//       }else{
+//           return false;
+//       }
+//   }).style("stroke-width",function(d){
+//       if(selected_features.indexOf(d.id)==-1){
+//           return 0;
+//       }else{
+//           return 3;
+//       }
+//   });                    
+
+}
+            
+function feature_mouseover(d){
+    
+    
+    var margin = plot_margin;
+    var width = plot_width;
+    var height = plot_height;
+                	
+    var mouseLoc_x = d3.mouse(d3.select(".objects")[0][0])[0];
+    var mouseLoc_y = d3.mouse(d3.select(".objects")[0][0])[1];
+    
+    var tooltip_location = {x:0,y:0};
+    var tooltip_width = 360;
+    var tooltip_height = 150;
+    
+    var h_threshold = (width + margin.left + margin.right)*0.5;
+    var v_threshold = (height + margin.top + margin.bottom)*0.55;
+    
+
+    if(mouseLoc_x >= h_threshold){
+        tooltip_location.x = -10 - tooltip_width;
+    } else{
+        tooltip_location.x = 10;
+    }
+    if(mouseLoc_y < v_threshold){
+        tooltip_location.y = 10;
+    } else{
+        tooltip_location.y = -10 -tooltip_height;
+    }
+    
+    
+    var svg = d3.select(".objects");
+    var tooltip = svg.append("g")
+                    .attr("id","tooltip_g");
+                                
+
+
+    var expression = d.expression;
+    var metrics = d.metrics;
+    var id= d.id; 
+    
+    //console.log(expression);
+    
+//    d3.selectAll("[class=bar]").filter(function(d){
+//            if(d.id===tmp){
+//                return true;
+//            }else{
+//                return false;
+//            }
+//        }).style("stroke-width",1.5)
+//        .style("stroke","black");
+
+    tooltip.append("rect")
+                .attr("id","tooltip_rect")
+                .attr("transform", function(){
+                    var x = mouseLoc_x + tooltip_location.x;
+                    var y = mouseLoc_y + tooltip_location.y;
+                    return "translate(" + x + "," + y + ")";
+                 })
+                .attr("width",tooltip_width)
+                .attr("height",tooltip_height)
+                .style("fill","#4B4B4B")
+                .style("opacity", 0.92);    
+    
+    var fo = tooltip
+                    .append("foreignObject")
+                    .attr('id','tooltip_foreignObject')
+                    .attr("x",function(){
+                        return mouseLoc_x + tooltip_location.x;
+                    })
+                    .attr("y",function(){
+                       return mouseLoc_y + tooltip_location.y; 
+                    })
+                    .attr({
+                        'width':tooltip_width,
+                        'height':tooltip_height  
+                    })
+                    .data([{id:id, expression:expression, metrics:metrics}])
+                    .html(function(d){
+                        //console.log(d);
+                        var exp = d.expression;
+                        var output= "<p>" + d.id + ". " + exp + "</p>";
+                        return output;
+                    })
+                    .style("padding","8px")
+                    .style('color','#F7FF55')
+                    .style('word-wrap','break-word');                         
+}
+            
+            
+            
+    
+
+function plot(){
+    remove_plot();
+    var plot_type = d3.select('#plot_type_selection')[0][0].value;
+    if(plot_type=='scatter'){
+        // Two variables
+        var x_axis = d3.select('#axis_selection_x')[0][0].value;
+        var y_axis = d3.select('#axis_selection_y')[0][0].value;
+        var x_ind = metric_names.indexOf(x_axis);
+        var y_ind = metric_names.indexOf(y_axis);
+        plot_metrics = [x_ind, y_ind];
+        draw_scatter_plot(features);
+    }else if(plot_type=='bar'){
+        // Single variable
+        var y_axis = d3.select('#axis_selection_y')[0][0].value;
+        var y_ind = metric_names.indexOf(y_axis);
+        plot_metrics = [y_ind];
+        draw_bar_plot(features);
+    }
+    updateColorScale(cScale);
+}
+
+            
+function initialize_axes_selection(){
+    
+    d3.select('#axis_selection_x').remove();
+    d3.select('#axis_selection_y').remove();
+    d3.select('#axis_selection_div_1_label').remove();
+    d3.select('#axis_selection_div_2_label').remove();
+    
+    var type = d3.select('#plot_type_selection')[0][0].value;
+    
+    if(type=='scatter'){
+        
+        d3.select('#axis_selection_div_1')
+            .append('div')
+            .attr('id','axis_selection_div_1_label')
+            .style('float','left')
+            .style('margin-left','5px')
+            .text('X axis: ');
+        // Two variables
+        d3.select('#axis_selection_div_1')
+            .append('select')
+            .attr('class','select_menu')
+            .attr('id','axis_selection_x')
+            .selectAll('option')
+            .data(metric_names)
+            .enter()
+            .append('option')
+            .attr('value',function(d){
+                    return d;
+            })
+            .text(function(d){
+                    return d;
+            });
+        
+        d3.select('#axis_selection_div_2')
+            .append('div')
+            .attr('id','axis_selection_div_2_label')
+            .style('float','left')
+            .style('margin-left','5px')
+            .text('Y axis: ');
+        d3.select('#axis_selection_div_2')
+            .append('select')
+            .attr('class','select_menu')
+            .attr('id','axis_selection_y')
+            .selectAll('option')
+            .data(metric_names)
+            .enter()
+            .append('option')
+            .attr('value',function(d){
+                    return d;
+            })
+            .text(function(d){
+                    return d;
+            });
+
+    }else if(type=='bar'){
+        d3.select('#axis_selection_div_1')
+            .append('div')
+            .attr('id','axis_selection_div_1_label')
+            .style('float','left')
+            .style('margin-left','5px')
+            .text('Y axis: ');
+        // Single variable
+        d3.select('#axis_selection_div_1')
+            .append('select')
+            .attr('class','select_menu')
+            .attr('id','axis_selection_y')
+            .selectAll('option')
+            .data(metric_names)
+            .enter()
+            .append('option')
+            .attr('value',function(d){
+                    return d;
+            })
+            .text(function(d){
+                    return d;
+            });
+        //d3.select('#axis_selection_div_1')
+        //    .text('Y axis: ');
+    }
+    
+    d3.select('#axis_selection_x').on('change',plot);
+    d3.select('#axis_selection_y').on('change',plot);
+    plot();
+    
+}
+          
+            
+            
+            
+function initialize_plot_type_selection(){
+    d3.select('#plot_type_selection_div')
+        .append('div')
+        .style('float','left')
+        .text('Plot:  ');
+    d3.select('#plot_type_selection_div')
+        .append('select')
+        .attr('id','plot_type_selection')
+        .attr('class','select_menu')
+        .selectAll('option')
+        .data(plot_type_options)
+        .enter()
+        .append('option')
+        .attr('value',function(d){return d.value;})
+        .text(function(d){return d.text;});
+    d3.select('#plot_type_selection')
+        .on('change',initialize_axes_selection);     
+    d3.select('#reset_plot').on('click',reset_plot);
+}
+            
+
+initialize_plot_type_selection();
+initialize_axes_selection(); 
+plot();
+
+            
+            
+            
+var socket = new WebSocket("ws://127.0.0.1:8001/ifeed/feature/metric/");
+socket.onmessage = function(e){
+    
+    var text = e.data;
+    if(text=="reset"){
+        reset_plot();  
+        return;
+    }
+    
+    var data = JSON.parse(text);
+    
+    var expression = data.expression;
+    var conf_given_f = data.conf_given_f;
+    var conf_given_s = data.conf_given_s;
+    var lift = data.lift;    
+    
+    var metrics = [conf_given_f, conf_given_s];
+    var id = features.length;
+    var feature = {id:id,expression:expression, metrics:metrics};
+    
+    for(var i=0;i<features.length;i++){
+        if(features[i].expression==feature.expression || compare_metrics(features[i].metrics,feature.metrics)){
+            return;
+        }
+    }
+    features.push(feature);
+    plot();
+    
+};
+
+            
+            
+function compare_metrics(metrics1, metrics2){
+    var match=true;
+    for(var i=0;i<metrics1.length;i++){
+        if(metrics1[i]!=metrics2[i]){
+            match=false;
+            break;
+        }
+    }
+    return match;
+}
+            
+
+function updateColorScale(scale){
+    // Create color scale
+    var colorScale = d3.scale.linear()
+                .domain(linspace(features.length,0,scale.length))
+                .range(scale);
+    
+    d3.selectAll('.bar').style('fill', function(d){
+        return colorScale(d.id);
+    })  
+    d3.selectAll('.dot').style('fill', function(d){
+        return colorScale(d.id);
+    }) 
+}
+     
+            
+      
+
+function linspace(start, end, n) {
+    var out = [];
+    var delta = (end - start) / (n - 1);
+    var i = 0;
+    while(i < (n - 1)) {
+        out.push(start + (i * delta));
+        i++;
+    }
+    out.push(end);
+    return out;
+}
+     
+function getOrbitList() {
+    var orbitList;
+    $.ajax({
+        url: "/server/vassar/get-orbit-list/",
+        type: "POST",
+        async: false,
+        success: function (data, textStatus, jqXHR)
+        {
+            orbitList = data;
+        },
+        error: function (jqXHR, textStatus, errorThrown)
+        {
+            alert("error");
+        }
+    });
+    return orbitList;
+}
+            
+            
+function getInstrumentList() {
+    var instrumentList;
+    $.ajax({
+        url: "/server/vassar/get-instrument-list/",
+        type: "POST",
+        async: false,
+        success: function (data, textStatus, jqXHR)
+        {
+            instrumentList = data;
+        },
+        error: function (jqXHR, textStatus, errorThrown)
+        {
+            alert("error");
+        }
+    });
+    return instrumentList;
+}
+      
+            
+var orbitList = getOrbitList();
+var instrList = getInstrumentList(); 
+var norb = orbitList.length;
+var ninstr = instrList.length;
+            
+			
+        </script>
+    </body>
+</html>

@@ -20,16 +20,6 @@ function openFilterOptions(){
             .append("p")
             .text("Filter Setting");
 
-    var applied_filter_div = archInfoBox
-    		.append('div')
-            .attr('id','filter_application_status');
-    var filterApplicationStatusTitle = applied_filter_div.append('div')
-			.attr('id','applied_filter_title_div');
-    var filterApplicationStatus = applied_filter_div.append('div')
-    		.attr('id','applied_filter_div');
-    var filterApplicationStatusButton = applied_filter_div.append('div')
-    		.attr('id','applied_filter_button_div');
-
     var filterOptions = archInfoBox.append("div")
             .attr("id","filter_options");
     var filterInputs = archInfoBox.append("div")
@@ -62,17 +52,17 @@ function openFilterOptions(){
     d3.select("#filter_buttons").append("button")
             .attr("id","applyFilterButton_new")
             .attr("class","filter_options_button")
-            .text("Apply filter");
+            .text("Apply as a new filter");
 //    d3.select("#filter_buttons").append("button")
 //            .attr("class","filter_options_button")
 //            .attr("id","applyFilterButton_add")
 //            .style("margin-left","6px")
 //            .style("float","left")
-//            .text("Add to selection");
-//    d3.select("#filter_buttons").append("button")
-//            .attr("id","applyFilterButton_within")
-//            .attr("class","filter_options_button")
-//            .text("Search within selection");
+//            .text("Add to current filter");
+    d3.select("#filter_buttons").append("button")
+            .attr("id","applyFilterButton_within")
+            .attr("class","filter_options_button")
+            .text("Search within selection");
     
     d3.select("#filter_options_dropdown_1").on("change",filter_options_dropdown_preset_filters);    
 
@@ -422,19 +412,6 @@ function get_number_of_inputs(){
 
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
 function remove_outer_parentheses(expression){
 	
 	if(expression[0]!="(" || expression[expression.length-1]!=")"){
@@ -481,6 +458,8 @@ function get_nested_parenthesis_depth(expression){
 	}
 	return maxLevel;
 }
+
+
 function collapse_paren_into_symbol(expression){
 	var leng = expression.length;
 	var modified_expression = "";
@@ -528,9 +507,7 @@ function compareMatchedIDSets(logic,set1,set2){
 }
 
 
-
 //({absent[;9;]}&&{numOfInstruments[;11;1]}&&{emptyOrbit[2;;]}&&{emptyOrbit[3;;]})&&({numOfInstruments[;;2]}||{numOfInstruments[;;3]}||{numOfInstruments[;;4]}||{numOfInstruments[;;5]}||{numOfInstruments[;;6]})
-
 
 function processFilterExpression(expression, prev_matched, prev_logic, arch_info){
 
@@ -622,8 +599,6 @@ function processFilterExpression(expression, prev_matched, prev_logic, arch_info
     return current_matched;
 }
  
-
-
 
 
 
@@ -851,13 +826,7 @@ function applyPresetFilter(expression,bitString,rank){
 
 function applyFilter(option){
 
-
     var dropdown = d3.select("#filter_options_dropdown_1")[0][0].value;
-    
-	
-	
-	// Remove remaining traces of actions from driving features tab
-	remove_df_application_status();
 	
     buttonClickCount_applyFilter += 1;
     
@@ -945,7 +914,6 @@ function applyFilter(option){
         return;
     }
     filterExpression = "{" + filterExpression + "}";
-    update_filter_application_status(filterExpression,option);
 
     
     if(filterExpression.indexOf('paretoFront')!=-1){
@@ -953,13 +921,13 @@ function applyFilter(option){
     	applyParetoFilter(option,filterInput);
     }else{
         if(option==="new"){
-            cancelDotSelections();
+            cancelDotSelections('remove_highlighted');
             d3.selectAll('.dot')[0].forEach(function(d){
                 var bitString = d.__data__.bitString;
                 if(applyPresetFilter(filterExpression,bitString)){
                 	if(d3.select(d).attr('status')=='selected'){
                         d3.select(d).attr('status','selected_and_highlighted')
-                        	.style("fill", "#F75082");
+                        	.style("fill", "#A340F0");
                 	}else{
                         d3.select(d).attr('status','highlighted')
                         .style("fill", "#F75082");
@@ -972,7 +940,7 @@ function applyFilter(option){
                 if(applyPresetFilter(filterExpression,bitString)){
                 	if(d3.select(d).attr('status')=='selected'){
                         d3.select(d).attr('status','selected_and_highlighted')
-                        	.style("fill", "#F75082");
+                        	.style("fill", "#A340F0");
                 	}else{
                         d3.select(d).attr('status','highlighted')
                         .style("fill", "#F75082");
@@ -997,26 +965,25 @@ function applyFilter(option){
         }
     }
 
-
     if(wrong_arg){
     	alert("Invalid input argument");
     }
-    d3.select("[id=numOfSelectedArchs_inputBox]").text("" + numOfSelectedArchs());  
-
+    d3.select("[id=numOfSelectedArchs_inputBox]").text("" + numOfSelectedArchs()); 
+    
+    update_feature_application_status(filterExpression, option);
+    update_feature_metric_chart(expression);
 }
-
-
 
 
 function applyParetoFilter(option, arg){
     if(option==="new"){
-        cancelDotSelections();
+        cancelDotSelections('remove_highlighted');
         d3.selectAll(".dot")[0].forEach(function (d) {
             var rank = parseInt(d3.select(d).attr("paretoRank"));
             if (rank <= +arg && rank >= 0){
             	if(d3.select(d).attr('status')=='selected'){
                     d3.select(d).attr('status','selected_and_highlighted')
-                    	.style("fill", "#F75082");
+                    	.style("fill", "#A340F0");
             	}else{
                     d3.select(d).attr('status','highlighted')
                     .style("fill", "#F75082");
@@ -1029,7 +996,7 @@ function applyParetoFilter(option, arg){
             if (rank <= +arg && rank >= 0){
             	if(d3.select(d).attr('status')=='selected'){
                     d3.select(d).attr('status','selected_and_highlighted')
-                    	.style("fill", "#F75082");
+                    	.style("fill", "#A340F0");
             	}else{
                     d3.select(d).attr('status','highlighted')
                     .style("fill", "#F75082");
@@ -1055,29 +1022,16 @@ function applyParetoFilter(option, arg){
 }
 
 
-
-
-
 function applyComplexFilter(input_expression){
-	
-	// Remove remaining traces of actions from driving features tab
-	remove_df_application_status();
-	
-	
-    var filterExpression
-    
-    if(input_expression==null){
-    	filterExpression = parse_filter_application_status();
-    }else{
-    	filterExpression = input_expression;
-    }
+
+    var filterExpression = input_expression;
     
     if(filterExpression===""){
-        cancelDotSelections();
+        cancelDotSelections('remove_highlighted');
         return;
     }
-
-	cancelDotSelections();
+    
+	cancelDotSelections('remove_highlighted');
 
 	var ids = [];
 	var bitStrings = [];
@@ -1111,18 +1065,130 @@ function applyComplexFilter(input_expression){
             		.style("fill", "#F75082");
     		}else{
                 d3.select(d).attr('status','selected_and_highlighted')
-            		.style("fill", "#F75082");
+            		.style("fill", "#A340F0");
     		}
     	}
     });  
     
-    d3.select("[id=numOfSelectedArchs_inputBox]").text("" + numOfSelectedArchs());  
+    d3.select("[id=numOfSelectedArchs_inputBox]").text("" + numOfSelectedArchs()); 
+    update_feature_metric_chart(filterExpression);
 }
 
 
 
 
-function save_user_defined_filter(expression){
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+function request_feature_application_status(){
+    $.ajax({
+        url: "/server/ifeed/request-feature-application-status/",
+        type: "POST",
+        async: false,
+        error: function (jqXHR, textStatus, errorThrown)
+        {alert("Error in getting the feature application status");}
+    });
+}
+
+
+function update_feature_application_status(expression, option){
+    var url = '/server/ifeed/update-feature-application-status/';
+    if(option==null){
+        option="new";
+    }
+    
+    if(option=='new'){
+        current_feature_expression = expression;
+    }else if(option=='within'){
+        current_feature_expression = current_feature_expression + '&&' + expression;
+    }else if(option=='add'){
+        current_feature_expression = current_feature_expression + '||' + expression;
+    }else if(option=='deactivated'){
+        // pass
+    }else if(option=='remove'){
+        // Modify the expression after updating
+    }
+    
+    $.ajax({
+        url: url,
+        type: "POST",
+        data: {expression:expression, option:option},
+        async: false,
+        error: function (jqXHR, textStatus, errorThrown)
+        {alert("Error in updating feature application status");}
+    });
+    
+    if(option=='remove'){
+        request_feature_application_status();
+    }
+}
+
+
+
+
+
+function update_feature_metric_chart(expression){
+    
+    var url, supp, conf_given_f, conf_given_s, lift;
+    // If expression is null, reset the plots
+    if(expression==null){
+        url = "/server/ifeed/reset-feature-metric-chart/";
+        expression = "";
+    }else{
+        url = "/server/ifeed/update-feature-metric-chart/";
+        var total = numOfArchs();
+        var selected = d3.selectAll('[status=selected]')[0].length + d3.selectAll('[status=selected_and_highlighted]')[0].length;
+        var highlighted = d3.selectAll('[status=highlighted]')[0].length + d3.selectAll('[status=selected_and_highlighted]')[0].length;
+        var intersection = d3.selectAll('[status=selected_and_highlighted]')[0].length;
+
+        if(selected==0 || highlighted==0){
+            return;
+        }
+
+        var p_snf = intersection/total;
+        var p_s = selected/total;
+        var p_f = highlighted/total;
+
+        supp = p_snf;
+        conf_given_f = supp / p_f;
+        conf_given_s = supp / p_s;
+        lift = p_snf/(p_f*p_s); 
+    }
+    
+    $.ajax({
+        url: url,
+        type: "POST",
+        data: {expression:expression,
+               supp:supp,
+               conf_given_f:conf_given_f,
+               conf_given_s:conf_given_s,
+               lift:lift
+              },
+        async: false,
+        error: function (jqXHR, textStatus, errorThrown)
+        {alert("Error in updating feature metric chart");}
+    });
+}
+
+
+
+
+
+function save_user_defined_feature(expression){
 	var expression_to_save;
     if(expression){
         if(expression.substring(0,1)!=="{"){
@@ -1130,14 +1196,14 @@ function save_user_defined_filter(expression){
         }
         expression_to_save=expression;
     }else{
-        var filterExpression = parse_filter_application_status();        
+        var filterExpression = parse_feature_application_status();        
         expression_to_save=filterExpression;
     }
     
     if(userdef_features.indexOf(expression_to_save)==-1){
         userdef_features.push(expression_to_save);
     }
-    d3.select('#filter_application_save')
+    d3.select('#feature_application_status_save')
     		.attr('disabled',true)
     		.text('Current filter scheme saved');
 	
@@ -1147,264 +1213,3 @@ function save_user_defined_filter(expression){
 
 
 
-function update_filter_application_status(inputExpression,option){    
-    
-    var application_status = d3.select('#applied_filter_div');
-    var count = application_status.selectAll('.applied_filter').size();
-    
-    var thisFilter = application_status.append('div')
-            .attr('id',function(){
-                var num = count+1;
-                return 'applied_filter_' + num;
-            })
-            .attr('class','applied_filter');
-    
-    thisFilter.append('input')
-            .attr('type','checkbox')
-            .attr('class','filter_application_activate');
-    thisFilter.append('select')
-            .attr('class','filter_application_logical_connective')
-            .selectAll('option')
-            .data([{value:"&&",text:"AND"},{value:"||",text:"OR"}])
-            .enter()
-            .append("option")
-            .attr("value",function(d){
-                return d.value;
-            })
-            .text(function(d){
-                return d.text;
-            });
-    thisFilter.append('div')
-            .attr('class','filter_application_expression')
-            .attr('expression',function(d){
-            	return inputExpression;
-            })
-            .text(ppdf(inputExpression));
-    
-    thisFilter.append('img')
-            .attr('src','img/left_arrow.png')
-            .attr('id',function(){
-                var num = count+1;
-                return 'leftarrow_' + num;
-            })
-            .attr('width','20')
-            .attr('height','20')
-            .style('float','left')
-            .style('margin-left','13px');
-    thisFilter.append('img')
-            .attr('src','img/left_arrow.png')
-            .attr('id',function(){
-                var num = count+1;
-                return 'rightarrow_' + num;
-            })
-            .attr('class','img-hor-vert')
-            .attr('width','20')
-            .attr('height','20')
-            .style('float','left')
-            .style('margin-left','4px')
-            .style('margin-right','7px'); 
-    
-    
-    var num = count+1;
-    d3.selectAll("#leftarrow_"+num).on("click",function(d){
-    	click_left_arrow(num);
-    });
-    d3.selectAll("#rightarrow_"+num).on("click",function(d){
-    	click_right_arrow(num);
-    });
-    
-    thisFilter.append('button')
-            .attr('class','filter_application_delete')
-            .text('Remove');
-    
-    
-    if(option==="new"){
-        // Activate only the current filter
-        d3.selectAll('.filter_application_activate')[0].forEach(function(d){
-            d3.select(d)[0][0].checked=false;
-        })        
-        d3.selectAll('.filter_application_expression').style("color","#989898"); // gray
-        thisFilter.select('.filter_application_expression').style("color","#000000"); // black
-        thisFilter.select('.filter_application_activate')[0][0].checked=true;
-        thisFilter.select('.filter_application_logical_connective')[0][0].value="&&";
-    }else if(option==="add"){ // or
-        thisFilter.select('.filter_application_activate')[0][0].checked=true;
-        thisFilter.select('.filter_application_logical_connective')[0][0].value="||";
-    }else if(option==="within"){ // and
-        thisFilter.select('.filter_application_activate')[0][0].checked=true;
-        thisFilter.select('.filter_application_logical_connective')[0][0].value="&&";
-    }else if(option==="deactivated"){
-        thisFilter.select('.filter_application_activate')[0][0].checked=false;
-        thisFilter.select('.filter_application_logical_connective')[0][0].value="&&";
-        thisFilter.select('.filter_application_expression').style("color","#989898"); // gray        
-    }
-    
-    thisFilter.select(".filter_application_delete").on("click",function(d){
-        var activated = thisFilter.select('.filter_application_activate')[0][0].checked;
-        thisFilter.remove();
-        if(activated){
-            applyComplexFilter();
-        }
-        if(d3.selectAll('.applied_filter')[0].length===0){
-            d3.select('#filter_application_save').remove();
-        	d3.select('#applied_filter_title_div')
-    			.select('div').remove();
-        }
-    });
-    
-    thisFilter.select('.filter_application_activate').on("change",function(d){
-        var activated = thisFilter.select('.filter_application_activate')[0][0].checked;
-        thisFilter.select('.filter_application_expression').style("color",function(d){
-            if(activated){
-                return "#000000"; //black
-            }else{
-                return "#989898"; // gray
-            }
-        });
-        applyComplexFilter();
-    });
-    thisFilter.select('.filter_application_logical_connective').on("change",function(d){
-        applyComplexFilter();
-    });
-    
-    
-    if(d3.select('#filter_application_save')[0][0]){
-    	// If save button exists, activate it
-        d3.select('#filter_application_save')
-	    	.text("Save currently applied filter scheme");    
-    }else{
-    	// If save button does not exist, add it
-    	d3.select('#applied_filter_title_div')
-    		.append('div')
-    		.text('Filter application status');
-        d3.select("#applied_filter_button_div")
-        	.append("button")
-		    .attr("id","filter_application_save")
-		    .attr("class","filter_options_button")
-		    .text("Save currently applied filter scheme");
-    }
-    d3.select("#filter_application_save")[0][0].disabled = false;
-    d3.select('#filter_application_save')
-            .on('click',function(d){
-                save_user_defined_filter(null);
-            });        
-}
-
-
-var arrow_margin = 30;
-function click_right_arrow(n){
-	var id = "" + n;
-	var appliedFilter = d3.select("#applied_filter_"+id);
-	if(appliedFilter.attr('level')==null){
-		appliedFilter.attr('level',1);
-	}
-	else{
-		var level = +appliedFilter.attr('level');
-		appliedFilter.attr('level',function(){
-			return level+1;
-		});
-	}
-	var level = +appliedFilter.attr('level');
-	
-	appliedFilter.select('.filter_application_activate').style('margin-right',function(){
-		var margin = level*arrow_margin
-		return level*arrow_margin+"px";
-	});
-	applyComplexFilter();
-}
-function click_left_arrow(n){
-	var id = "" + n;
-	var appliedFilter = d3.select("#applied_filter_"+id);
-	if(appliedFilter.attr('level')==null){
-		appliedFilter.attr('level',0);
-	}else if(appliedFilter.attr('level')==0){
-		// do nothing
-	}else{
-		var level = +appliedFilter.attr('level');
-		appliedFilter.attr('level',function(){
-			return level-1;
-		});
-	}
-	var level = +appliedFilter.attr('level');
-	appliedFilter.select('.filter_application_activate').style('margin-right',function(){
-		var margin = level*arrow_margin
-		return level*arrow_margin+"px";
-	});
-	applyComplexFilter();
-}
-
-
-
-function parse_filter_application_status(){
-	
-    var application_status = d3.select('#applied_filter_div');
-    var count = application_status.selectAll('.applied_filter').size();
-    var filter_expressions = [];
-    var filter_logical_connective = [];
-    var filter_level = [];
-    
-    application_status.selectAll('.applied_filter')[0].forEach(function(d){
-    	
-        var activated = d3.select(d).select('.filter_application_activate')[0][0].checked;
-        var expression = d3.select(d).select('.filter_application_expression').attr('expression');
-        var logic = d3.select(d).select('.filter_application_logical_connective')[0][0].value;
-        var level = d3.select(d).attr('level');
-
-        if(activated){
-        	if(expression.indexOf('&&')!=-1 || expression.indexOf('||')!=-1){
-        		expression = '('+expression+')';
-        	}
-            filter_expressions.push(expression);
-            filter_logical_connective.push(logic);
-        	if(level==null){
-        		filter_level.push(0);
-        	}else{
-        		var levelNum = + level;
-        		filter_level.push(levelNum);
-        	}
-        }
-    });
-
-    
-    
-    var filterExpression = "";
-    var prev_level = 0;
-    for(var i=0;i<filter_expressions.length;i++){
-    	var level = filter_level[i];
-        if(i > 0){
-            if(level > prev_level){
-            	filterExpression = filterExpression + filter_logical_connective[i];
-            	while(prev_level != level){
-            		filterExpression = filterExpression + "(";
-            		prev_level++;
-            	}
-            }else if(level < prev_level){
-            	while(prev_level > level){
-            		filterExpression = filterExpression + ")";
-            		prev_level--;
-            	}
-            	filterExpression = filterExpression + filter_logical_connective[i];
-            }else{
-            	filterExpression = filterExpression + filter_logical_connective[i];
-            }
-        }else if(i==0){ // i=0
-            if(level > 0){
-            	while(prev_level < level){
-	            	filterExpression = filterExpression + "(";
-	            	prev_level++;
-            	}
-        	}
-        }
-        filterExpression = filterExpression + filter_expressions[i];
-    }
-    //console.log(prev_level);
-    if(prev_level>0){
-    	while(prev_level!=0){
-        	filterExpression = filterExpression + ")";
-        	prev_level--;
-    	}
-    }
-    
-    console.log(filterExpression);
-    return filterExpression;
-}

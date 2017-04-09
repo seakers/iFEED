@@ -1,18 +1,5 @@
 /*
 
-
-#filter_application_status (div)
-    #applied_filter_title_div
-        div
-    #applied_filter_div
-        #applied_filter_1 .applied_filter (div)
-            .filter_application_activate
-            .filter_application_logical_connective
-            .filter_application_expression
-            .filter_application_delete
-    #applied_filter_button_div
-        #filter_application_save
-    
 #filter_options (div)
     #filter_options_dropdown_1 (select)
     #filter_options_dropdown_2 (select)
@@ -58,53 +45,6 @@
     font-size: 18px;
 }
 
-/* Filter Application Status */
-
-#filter_application_status{
-    width:90%;
-    margin-bottom:15px;
-    padding:15px;
-	float:left;
-    background-color: #E0E0E0; 
-}
-
-#applied_filter_title_div{
-    margin-bottom: 18px;
-    margin-left: 3px;
-    font-size: 18px;
-    
-}
-#filter_application_save{
-    margin-top:13px;
-}
-
-.applied_filter{
-    width:100%;
-	margin-bottom: 4px;
-	float:left;
-}
-
-.filter_application_delete{
-    background-color: #FF5151;
-	float:left;
-}
-.filter_application_activate {
-	float:left;
-}
-.filter_application_logical_connective {
-	float: left;
-    margin-left: 4px;
-	margin-right:4px;
-}
-.filter_application_expression{
-	float: left;
-	margin-right:4px;
-}
-.filter_application_saveThis{
-    float:left;
-    margin-left:5px;
-    margin-right:5px;
-}
 
 
 
