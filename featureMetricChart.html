@@ -421,7 +421,8 @@ d3.selectAll("#tooltip_g").remove();
 //       }else{
 //           return 3;
 //       }
-//   });                    
+//   });     
+    apply_current_feature('');
 
 }
             
@@ -465,6 +466,10 @@ function feature_mouseover(d){
     var metrics = d.metrics;
     var id= d.id; 
     
+    
+    apply_current_feature(expression);
+    
+    
     //console.log(expression);
     
 //    d3.selectAll("[class=bar]").filter(function(d){
@@ -504,8 +509,13 @@ function feature_mouseover(d){
                     .data([{id:id, expression:expression, metrics:metrics}])
                     .html(function(d){
                         //console.log(d);
-                        var exp = d.expression;
-                        var output= "<p>" + d.id + ". " + exp + "</p>";
+                        var exp =ppdf(d.expression);
+                        var output= "<p>" + d.id + ". " + exp + "</p><p>";
+                        
+                        for(var i=0;i<metric_names.length;i++){
+                            output = output + metric_names[i] + ': ' + d.metrics[i].toFixed(3) + '<br/>';   
+                        }
+                        output = output+'</p>'
                         return output;
                     })
                     .style("padding","8px")
@@ -514,8 +524,7 @@ function feature_mouseover(d){
 }
             
             
-            
-    
+
 
 function plot(){
     remove_plot();
@@ -765,6 +774,23 @@ function getInstrumentList() {
     });
     return instrumentList;
 }
+            
+function apply_current_feature(expression){
+
+    $.ajax({
+        url: "/server/ifeed/apply-feature-expression/",
+        type: "POST",
+        data: {option:'apply',expression:expression,source:'feature_metric_chart'},
+        async: false,
+        success: function (data, textStatus, jqXHR)
+        {
+        },
+        error: function (jqXHR, textStatus, errorThrown)
+        {alert("Error in applying the current filter scheme");}
+    });
+    return;
+}
+        
       
             
 var orbitList = getOrbitList();

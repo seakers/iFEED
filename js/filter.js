@@ -525,6 +525,9 @@ function processFilterExpression(expression, prev_matched, prev_logic, arch_info
            e_collapsed=e; 
         }else{
         	// Single filter expression
+            if(e.indexOf('tempFeature') > -1){
+                return prev_matched;
+            }
         	var matched = [];
         	for(var i=0;i<prev_matched.length;i++){
         		var index = prev_matched[i];
@@ -581,15 +584,33 @@ function processFilterExpression(expression, prev_matched, prev_logic, arch_info
             e_collapsed = e_collapsed.substring(current_collapsed.length);
             e = e.substring(current_collapsed.length);
             if(prev=="||"){
-                var temp_matched = processFilterExpression(current,prev_matched,'&&',arch_info); 
-                current_matched = compareMatchedIDSets(prev, current_matched, temp_matched);
+                var skip = false;
+                if(current.indexOf('{tempFeature}')!=-1){
+                    if(remove_outer_parentheses(current)=='{tempFeature}'){
+                        // If the current filter is {tempFeature}, then skip processing it
+                        skip=true;
+                    }
+                }
+                if(!skip){
+                    var temp_matched = processFilterExpression(current,prev_matched,'&&',arch_info); 
+                    current_matched = compareMatchedIDSets(prev, current_matched, temp_matched);  
+                }
             }else{
                 current_matched = processFilterExpression(current,current_matched,prev,arch_info); 
             }
         }else{
             if(prev=="||"){
-                var temp_matched = processFilterExpression(e, prev_matched,'&&',arch_info); 
-                current_matched = compareMatchedIDSets(prev, current_matched, temp_matched);
+                var skip = false;
+                if(current.indexOf('{tempFeature}')!=-1){
+                    if(remove_outer_parentheses(current)=='{tempFeature}'){
+                        // If the current filter is {tempFeature}, then skip processing it
+                        skip=true;
+                    }
+                }
+                if(!skip){
+                    var temp_matched = processFilterExpression(current,prev_matched,'&&',arch_info); 
+                    current_matched = compareMatchedIDSets(prev, current_matched, temp_matched);  
+                }
             }else{
                 current_matched = processFilterExpression(e,current_matched,prev,arch_info); 
             }        	
@@ -971,7 +992,7 @@ function applyFilter(option){
     d3.select("[id=numOfSelectedArchs_inputBox]").text("" + numOfSelectedArchs()); 
     
     update_feature_application_status(filterExpression, option);
-    update_feature_metric_chart(expression);
+    update_feature_metric_chart(filterExpression);
 }
 
 
@@ -1056,6 +1077,10 @@ function applyComplexFilter(input_expression){
     	var index = matchedIndices[i];
     	matchedIDs.push(ids[index]);
     }
+    
+    if(filterExpression=='{tempFeature}'){
+        matchedIDs = [];
+    }
 
 
     d3.selectAll('.dot')[0].forEach(function(d){
@@ -1071,7 +1096,7 @@ function applyComplexFilter(input_expression){
     });  
     
     d3.select("[id=numOfSelectedArchs_inputBox]").text("" + numOfSelectedArchs()); 
-    update_feature_metric_chart(filterExpression);
+    
 }
 
 
@@ -1106,6 +1131,9 @@ function request_feature_application_status(){
 
 
 function update_feature_application_status(expression, option){
+    
+    var request_feature_update = false;
+    
     var url = '/server/ifeed/update-feature-application-status/';
     if(option==null){
         option="new";
@@ -1113,14 +1141,25 @@ function update_feature_application_status(expression, option){
     
     if(option=='new'){
         current_feature_expression = expression;
-    }else if(option=='within'){
+    }else if(option=='within' && current_feature_expression!=''){
         current_feature_expression = current_feature_expression + '&&' + expression;
-    }else if(option=='add'){
+    }else if(option=='add' && current_feature_expression!=''){
         current_feature_expression = current_feature_expression + '||' + expression;
     }else if(option=='deactivated'){
         // pass
     }else if(option=='remove'){
         // Modify the expression after updating
+        request_feature_update = true;
+    }else if(option=='temp'){
+        if(expression!=''){
+            request_feature_update=true;
+        }
+    }else{
+        current_feature_expression = expression;
+    }
+    
+    if(option!='temp'){
+        update_feature_metric_chart(current_feature_expression);
     }
     
     $.ajax({
@@ -1132,7 +1171,7 @@ function update_feature_application_status(expression, option){
         {alert("Error in updating feature application status");}
     });
     
-    if(option=='remove'){
+    if(request_feature_update){
         request_feature_application_status();
     }
 }
@@ -1186,30 +1225,6 @@ function update_feature_metric_chart(expression){
 
 
 
-
-
-function save_user_defined_feature(expression){
-	var expression_to_save;
-    if(expression){
-        if(expression.substring(0,1)!=="{"){
-            expression = "{" + expression + "}";
-        }
-        expression_to_save=expression;
-    }else{
-        var filterExpression = parse_feature_application_status();        
-        expression_to_save=filterExpression;
-    }
-    
-    if(userdef_features.indexOf(expression_to_save)==-1){
-        userdef_features.push(expression_to_save);
-    }
-    d3.select('#feature_application_status_save')
-    		.attr('disabled',true)
-    		.text('Current filter scheme saved');
-	
-    initialize_tabs_driving_features();
-    initialize_tabs_classification_tree();
-}
 
 
 

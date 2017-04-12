@@ -25,11 +25,14 @@ function runDataMining() {
 		}
 		return;
 	}
+    
+    cancelDotSelections('remove_highlighted');
 	
-    var selectedArchs = d3.selectAll("[status=selected]");
-    var nonSelectedArchs = d3.selectAll("[status=default]");
-    var numOfSelectedArchs = selectedArchs.size();
-    var numOfNonSelectedArchs = nonSelectedArchs.size();
+    var selectedArchs = d3.selectAll("[status=selected]")[0];
+    var nonSelectedArchs =  d3.selectAll("[status=default]")[0];
+    
+    var numOfSelectedArchs = selectedArchs.length;
+    var numOfNonSelectedArchs = nonSelectedArchs.length;
     
     if (numOfSelectedArchs==0){
     	alert("First select target solutions!");
@@ -45,11 +48,11 @@ function runDataMining() {
         non_selected.length=0;
 
         for (var i = 0; i < numOfSelectedArchs; i++) {
-            var id = selectedArchs[0][i].__data__.id;
+            var id = selectedArchs[i].__data__.id;
             selected.push(id);
         }
         for (var i = 0; i < numOfNonSelectedArchs; i++) {
-            var id = nonSelectedArchs[0][i].__data__.id;
+            var id = nonSelectedArchs[i].__data__.id;
             non_selected.push(id);
         }
 
@@ -72,6 +75,9 @@ function runDataMining() {
         	//display_classificationTree(jsonObj_tree);
         }
         selection_changed = false;
+        
+        
+        update_feature_application_status('', 'temp');
         
     }
 }
@@ -222,9 +228,7 @@ function display_drivingFeatures(source,sortby) {
         conf1s.push(source[i].metrics[2]);
         conf2s.push(source[i].metrics[3]);
         drivingFeatures.push(source[i]);
-        if(source[i].preset===true){
-            drivingFeatureTypes.push(ppdfType(source[i].name));
-        }
+        drivingFeatureTypes.push(ppdfType(source[i].name));
     }
 
 
@@ -452,8 +456,8 @@ function display_drivingFeatures(source,sortby) {
                     option='within';
                 }
                 
-                update_feature_application_status(expression, option);
-                
+                update_feature_application_status(expression, 'temp');
+                update_feature_metric_chart(expression);
             })
                 .on("mouseover",function(d){
 
@@ -544,15 +548,21 @@ function display_drivingFeatures(source,sortby) {
                     }).style("color", "#F7FF55")
                     .style('word-wrap','break-word');   
                     
+                    
                     if(current_feature_expression==''){
                         applyComplexFilter(expression);
                     }else{
-                        applyComplexFilter(current_feature_expression+'&&'+expression);
+                        if(current_feature_expression.indexOf('tempFeature')==-1){
+                            update_feature_application_status('', 'temp');
+                            current_feature_expression = current_feature_expression + "&&{tempFeature}"; 
+                        }
+                        var temp_expression = current_feature_expression.replace('{tempFeature}',expression);
+                        applyComplexFilter(temp_expression);
                     }
                     
                     var venn_diagram_container = d3.select('#df_venn_diagram').select('div');
                     draw_venn_diagram(venn_diagram_container);
-
+                    
                 })
                 .on("mouseout",function(d){
                     d3.select("[id=basicInfoBox_div]").select("[id=view3]").selectAll("[id=featureInfo_tooltip]").remove();
@@ -572,6 +582,10 @@ function display_drivingFeatures(source,sortby) {
                     	   }
                        });  
                     applyComplexFilter(current_feature_expression);
+                    
+                    var venn_diagram_container = d3.select('#df_venn_diagram').select('div');
+                    draw_venn_diagram(venn_diagram_container);
+                    
                 });
 
 
@@ -604,20 +618,10 @@ function display_drivingFeatures(source,sortby) {
     d3.select("[id=instrumentOptions]")
             .select("table").remove();
     
-    d3.select("[id=dfsort_options]").on("change",dfsort);
 }
                 
 
 
-function dfsort(){
-    var sortby = d3.select("[id=dfsort_options]")[0][0].value;
-//    "lift","supp","conf(ave)","conf(feature->selection)","conf(selection->feature)"
-
-    var sortedDrivingFeatures = sortDrivingFeatures(sortedDFs,sortby);
-    sortedDFs=sortedDrivingFeatures;
-    display_drivingFeatures(sortedDrivingFeatures,sortby);
-}
-            
 
 function draw_venn_diagram(container){
 
@@ -638,51 +642,13 @@ function draw_venn_diagram(container){
     var selected = d3.selectAll('[status=selected]')[0].length + intersection;
     var highlighted = d3.selectAll('[status=highlighted]')[0].length + intersection;
     
-    var p_snf = intersection/total;
-    var p_s = selected/total;
-    var p_f = highlighted/total;
-    
-    var supp = p_snf;
-    var conf = supp / p_f;
-    var conf2 = supp / p_s;
-    var lift = p_snf/(p_f*p_s); 
-    
-	var F_size = supp * 1/conf * total;
-	var S_size = supp * 1/conf2 * total;
-		
-    // Selection has a fixed radius
-    var r1 = 70;
-    // Feature 
-    var	r2 = Math.sqrt(F_size/S_size)*r1;
-    var a1 = Math.PI * Math.pow(r1,2);
-    var a2 = Math.PI * Math.pow(r2,2);
-    // Conf(F->S) * |F| = P(FnS)
-    var intersection = supp * numOfArchs() * a1 / S_size;
     
     var left_margin = 50;
     var c1x = 110;
-    var c2x;
-	if (conf2 > 0.999){
-		c2x = c1x + r2 - r1;
-    }else{
-        var dist;
-        $.ajax({
-            url: "/server/ifeed/venn-diagram-distance/",
-            type: "POST",
-            data: {a1: a1,
-                   a2: a2,
-                   intersection: intersection},
-            async: false,
-            success: function (data, textStatus, jqXHR)
-            {
-                dist = + data;
-            },
-            error: function (jqXHR, textStatus, errorThrown)
-            {alert("error");}
-        });
-        c2x = c1x + dist;
-    }
-	
+    // Selection has a fixed radius
+    var r1 = 70;
+    var S_size = selected;
+    
 	svg_venn_diag
 		.append("circle")
 		.attr("id","venn_diag_c1")
@@ -693,13 +659,77 @@ function draw_venn_diagram(container){
 	    .style("fill-opacity", ".5");
     
 	svg_venn_diag
-		.append("circle")
-		.attr("id","venn_diag_c2")
-	    .attr("cx", c2x)
-	    .attr("cy", 180-30)
-	    .attr("r", r2)
-	    .style("fill", "brown")
-	    .style("fill-opacity", ".5");
+		.append("text")
+        .attr("id","venn_diag_c1_text")
+		.attr("x",c1x-90)
+		.attr("y",180+r1+50-30)
+		.attr("font-family","sans-serif")
+		.attr("font-size","18px")
+		.attr("fill","steelblue")
+		.text("Selected:" + S_size );
+    
+    var supp, conf, conf2, lift;
+    
+    if(intersection==0){
+        var supp = 0;
+        var F_size = highlighted;
+    }else if(highlighted==0){
+        var supp = 0;
+        var F_size = 0;
+    }else{
+        
+        var p_snf = intersection/total;
+        var p_s = selected/total;
+        var p_f = highlighted/total;
+
+        supp = p_snf;
+        conf = supp / p_f;
+        conf2 = supp / p_s;
+        lift = p_snf/(p_f*p_s); 
+
+        var F_size = supp * 1/conf * total;
+        var S_size = supp * 1/conf2 * total;
+
+
+        // Feature 
+        var	r2 = Math.sqrt(F_size/S_size)*r1;
+        var a1 = Math.PI * Math.pow(r1,2);
+        var a2 = Math.PI * Math.pow(r2,2);
+        // Conf(F->S) * |F| = P(FnS)
+        var intersection = supp * numOfArchs() * a1 / S_size;
+        
+        var c2x;
+        if (conf2 > 0.999){
+            c2x = c1x + r2 - r1;
+        }else{
+            var dist;
+            $.ajax({
+                url: "/server/ifeed/venn-diagram-distance/",
+                type: "POST",
+                data: {a1: a1,
+                       a2: a2,
+                       intersection: intersection},
+                async: false,
+                success: function (data, textStatus, jqXHR)
+                {
+                    dist = + data;
+                },
+                error: function (jqXHR, textStatus, errorThrown)
+                {alert("error");}
+            });
+            c2x = c1x + dist;
+        }
+        
+        svg_venn_diag
+            .append("circle")
+            .attr("id","venn_diag_c2")
+            .attr("cx", c2x)
+            .attr("cy", 180-30)
+            .attr("r", r2)
+            .style("fill", "brown")
+            .style("fill-opacity", ".5");
+        
+    }
 	
 	
 	svg_venn_diag
@@ -712,15 +742,7 @@ function draw_venn_diagram(container){
 		.attr("fill","black")
 		.text("Intersection: " + Math.round(supp * total));
 	
-	svg_venn_diag
-		.append("text")
-        .attr("id","venn_diag_c1_text")
-		.attr("x",c1x-90)
-		.attr("y",180+r1+50-30)
-		.attr("font-family","sans-serif")
-		.attr("font-size","18px")
-		.attr("fill","steelblue")
-		.text("Selected:" + Math.round(S_size) );
+
 	svg_venn_diag
 		.append("text")
         .attr("id","venn_diag_c2_text")
@@ -733,7 +755,28 @@ function draw_venn_diagram(container){
 }
 
 
+function add_current_feature_to_DF_plot(){
+    if(!selection_changed && sortedDFs.length!=0){
+        var id = sortedDFs.length;
+        var total = numOfArchs();
+        var intersection = d3.selectAll('[status=selected_and_highlighted]')[0].length;
+        var selected = d3.selectAll('[status=selected]')[0].length + intersection;
+        var highlighted = d3.selectAll('[status=highlighted]')[0].length + intersection;
 
+        var p_snf = intersection/total;
+        var p_s = selected/total;
+        var p_f = highlighted/total;
 
+        var supp = p_snf;
+        var conf = supp / p_f;
+        var conf2 = supp / p_s;
+        var lift = p_snf/(p_f*p_s); 
+        var metrics = [supp, lift, conf, conf2];
+        var current_feature = {id:id,name:current_feature_expression,expression:current_feature_expression,metrics:metrics};
+        sortedDFs.push(current_feature);
+        sortedDFs = sortDrivingFeatures(sortedDFs,'lift')
+        display_drivingFeatures(sortedDFs,'lift');
+    }
+}
 
 

@@ -503,6 +503,11 @@ function scatterPlot_option(selected_option){ // three options: zoom, drag_selec
                         })
                         .style("background-color", "#EEEEEE")
                         .style("opacity", 0.18);
+            
+                initialize_tabs_driving_features();
+                initialize_tabs_classification_tree();
+                update_feature_metric_chart(); 
+            
             })
             .on( "mousemove", function() {
 
@@ -540,6 +545,7 @@ function scatterPlot_option(selected_option){ // three options: zoom, drag_selec
                     s.attr(b);
 
                     if(option=="selection"){ // Make selection
+                        
                         d3.selectAll("[status=default]")[0].forEach(function(d,i){
                             var sci = d.__data__.science;
                             var cost = d.__data__.cost;
@@ -556,7 +562,22 @@ function scatterPlot_option(selected_option){ // three options: zoom, drag_selec
                                 selection_changed = true;
                             }
                         });
+                        d3.selectAll("[status=highlighted]")[0].forEach(function(d,i){
+                            var sci = d.__data__.science;
+                            var cost = d.__data__.cost;
+                            var xCoord = xScale(sci);
+                            var yCoord = yScale(cost);
 
+                            if( 
+                                xCoord + margin.left>= b.x && xCoord + margin.left <= b.x+b.width && 
+                                yCoord + margin.top >= b.y && yCoord + margin.top  <= b.y+b.height
+                            ) {
+                                d3.select(d)
+                                        .attr("status","selected_and_highlighted")
+                                        .style("fill", "#A340F0");      
+                                selection_changed = true;
+                            }
+                        });
                     }else{	// De-select
                         d3.selectAll("[status=selected]")[0].forEach(function(d,i){
                             var sci = d.__data__.science;
@@ -573,6 +594,21 @@ function scatterPlot_option(selected_option){ // three options: zoom, drag_selec
                                 selection_changed = true;
                             }
                         });
+                        d3.selectAll("[status=selected_and_highlighted]")[0].forEach(function(d,i){
+                            var sci = d.__data__.science;
+                            var cost = d.__data__.cost;
+                            var xCoord = xScale(sci);
+                            var yCoord = yScale(cost);
+
+                            if( 
+                                xCoord + margin.left>= b.x && xCoord + margin.left <= b.x+b.width && 
+                                yCoord + margin.top >= b.y && yCoord + margin.top  <= b.y+b.height
+                            ) {
+                                d3.select(d).attr("status","highlighted")
+                                        .style("fill", "#F75082");      
+                                selection_changed = true;
+                            }
+                        });
                     }
                     d3.select("[id=numOfSelectedArchs_inputBox]").text(""+numOfSelectedArchs());
                 }      
@@ -584,9 +620,7 @@ function scatterPlot_option(selected_option){ // three options: zoom, drag_selec
                    // remove selection frame
                 svg_tmp.selectAll( "rect.selection").remove();
 
-                initialize_tabs_driving_features();
-                initialize_tabs_classification_tree();
-                update_feature_metric_chart(); 
+
             })
     }               
 }
@@ -792,6 +826,8 @@ function initialize_tabs_driving_features(){
 			.style("font-size","19px")
 			.text("Run data mining");
 	d3.selectAll("[id=getDrivingFeaturesButton]").on("click", runDataMining);
+    
+    
 }
 
 function initialize_tabs_classification_tree(){

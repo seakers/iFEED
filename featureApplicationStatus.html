@@ -119,9 +119,139 @@ and open the template in the editor.
 
 var features_activation_store = [];
             
+      
             
             
-            
+function add_temp_feature(inputExpression){
+    
+
+    if(inputExpression!=''){
+        var temp_feature = d3.select('[status=temp]')
+                                .attr('status','added');
+        temp_feature.select('.feature_application_expression')
+                .attr('expression',inputExpression)
+                .text(ppdf(inputExpression))
+                .style("color","#000000");
+    }
+    
+
+    if(d3.select('[status=temp]')[0][0]){
+        return;
+    }
+
+
+    var applied_features = d3.select('#applied_feature_div');
+    var count = applied_features.selectAll('.applied_feature').size();
+    var num = count+1;
+    var this_feature = applied_features.append('div')
+            .attr('id',function(){
+                return 'applied_feature_' + num;
+            })
+            .attr('class','applied_feature')
+            .attr('status','temp');
+
+    this_feature.append('input')
+            .attr('type','checkbox')
+            .attr('class','feature_application_activate');
+    this_feature.append('select')
+            .attr('class','feature_application_logical_connective')
+            .selectAll('option')
+            .data([{value:"&&",text:"AND"},{value:"||",text:"OR"}])
+            .enter()
+            .append("option")
+            .attr("value",function(d){
+                return d.value;
+            })
+            .text(function(d){
+                return d.text;
+            });
+    this_feature.append('div')
+            .attr('class','feature_application_expression')
+            .attr('expression',function(d){
+                return '{tempFeature}';
+            })
+            .text('New driving feature to be added')
+            .style("color","#989898");
+
+    this_feature.append('img')
+            .attr('src','img/left_arrow.png')
+            .attr('id',function(){
+                var num = count+1;
+                return 'leftarrow_' + num;
+            })
+            .attr('width','20')
+            .attr('height','20')
+            .style('float','left')
+            .style('margin-left','13px')
+            .on("click",function(d){
+               click_left_arrow(num);
+            });;
+    this_feature.append('img')
+            .attr('src','img/left_arrow.png')
+            .attr('id',function(){
+                var num = count+1;
+                return 'rightarrow_' + num;
+            })
+            .attr('class','img-hor-vert')
+            .attr('width','20')
+            .attr('height','20')
+            .style('float','left')
+            .style('margin-left','4px')
+            .style('margin-right','7px')
+            .on("click",function(d){
+               click_right_arrow(num);
+            });
+
+    this_feature.append('button')
+            .attr('class','feature_application_delete')
+            .text('Remove');
+    this_feature.select('.feature_application_activate')[0][0].checked=true;
+    this_feature.select('.feature_application_logical_connective')[0][0].value="&&";
+
+
+    this_feature.select(".feature_application_delete").on("click",function(d){
+        var activated = this_feature.select('.feature_application_activate')[0][0].checked;
+        this_feature.remove();
+
+        if(activated){
+            apply_current_feature_scheme('apply');
+        }
+    });
+
+
+    this_feature.select('.feature_application_activate').on("change",function(d){
+
+        var id = this_feature.attr('id');
+        var n = id.substring(id.length-1);
+        if(n < features_activation_store.length){
+            reset_feature_activation();
+        }
+
+        var activated = this_feature.select('.feature_application_activate')[0][0].checked;
+        this_feature.select('.feature_application_expression').style("color",function(d){
+            if(activated){
+                return "#000000"; //black
+            }else{
+                return "#989898"; // gray
+            }
+        });
+        apply_current_feature_scheme('apply');
+    });
+
+
+    this_feature.select('.feature_application_logical_connective').on("change",function(d){
+        apply_current_feature_scheme('apply');
+    });
+
+
+    d3.select('#save_current_feature_scheme')
+            .on('click',function(d){
+                save_current_feature_scheme();
+            });  
+
+
+}
+                                                
 
 function add_feature(inputExpression,option){    
     
@@ -331,6 +461,7 @@ function parse_feature_application_status(){
         var expression = d3.select(d).select('.feature_application_expression').attr('expression');
         var logic = d3.select(d).select('.feature_application_logical_connective')[0][0].value;
         var level = d3.select(d).attr('level');
+        
 
         if(activated){
         	if(expression.indexOf('&&')!=-1 || expression.indexOf('||')!=-1){
@@ -401,7 +532,7 @@ function apply_current_feature_scheme(option){
     $.ajax({
         url: "/server/ifeed/apply-feature-expression/",
         type: "POST",
-        data: {option:option,expression:expression},
+        data: {option:option,expression:expression,source:'feature_application_status'},
         async: false,
         success: function (data, textStatus, jqXHR)
         {
@@ -509,8 +640,10 @@ socket.onmessage = function(e){
     if(option=='remove'){
         remove_feature(expression);
         apply_current_feature_scheme('apply');
+    }else if(option=='temp'){
+        add_temp_feature(expression);
     }else{
-       add_feature(expression,option); 
+        add_feature(expression,option); 
     }
     
     

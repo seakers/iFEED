@@ -422,10 +422,7 @@ and open the template in the editor.
                 {value:"numOfInstruments",text:"Number of instruments"},
                 {value:"subsetOfInstruments",text:"Num of instruments in a subset"}];
             
-           	
             var userdef_features = [];
-           
-           
             var current_feature_expression="";
 
            
@@ -453,10 +450,12 @@ and open the template in the editor.
 
 
 
-            function import_new_data(){
+            function import_new_data(path){
 				console.log('importing data...');
                 //var path = "/results/1.rs,/results/3.rs";
-                var path = "/results/EOSS_data.csv";
+                if(path==null){
+                    path = "/results/EOSS_data.csv";
+                }
 				$.ajax(
                         {
                             url: "/server/ifeed/import-data/",
@@ -503,6 +502,7 @@ and open the template in the editor.
                 return jsonObj_arch;
             }
             
+           
             function booleanArray2String(bitString) {
                 var bitString_string = "";
                 for (var i = 0; i < bitString.length; i++) {
@@ -516,6 +516,8 @@ and open the template in the editor.
                 }
                 return bitString_string;
             }
+           
+           
             function string2BooleanArray(bitString_string) {
                 var bitString = [];
                 bitString.length = 0;
