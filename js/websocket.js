@@ -1,24 +1,19 @@
 
-var socket = new WebSocket("ws://127.0.0.1:8001/ifeed/");
+
+
+var socket = new WebSocket("ws://127.0.0.1:8001/ifeed/"+key);
 
 socket.onmessage = function(e){
     
     var text = e.data;
     var data = JSON.parse(text);
     
-    if(text=="apply_pareto_filter"){
-        applyComplexFilter("{paretoFront[8]}");
-        return;
-    }
-    else if(text=="cancel_selections"){
-        cancelDotSelections();
-        return;
-    }
+    // If the target is not feature application status page, return.
+    if(data.target!='ifeed') return;
     
-    
-    
-    if(data.id=='apply_feature_expression'){
-        
+    var expression = data.expression;
+
+    if(data.id=='apply_feature'){
         if(data.source=='feature_application_status'){
             if(data.expression==""){
                 cancelDotSelections('remove_highlighted');
@@ -35,9 +30,9 @@ socket.onmessage = function(e){
             }
         }
     }
-    else if(data.id=='update_feature_expression'){
+    
+    else if(data.id=='update_feature'){
         current_feature_expression = data.expression;
-        update_feature_metric_chart(current_feature_expression);
     }
     
     

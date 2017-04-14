@@ -60,7 +60,6 @@ and open the template in the editor.
 
         body {
             font: sans-serif;
-            font-size:18px;
         }
 
         
@@ -88,7 +87,7 @@ and open the template in the editor.
         
         
         <div id='title_div' style='width:100%; margin-top:20px; margin-bottom:20px;'>
-            <h2 id='title', style='margin:auto'>Feature Application Status</h2>
+            <h2 id='title', style='margin:auto;font-size:18px'>Feature Application Status</h2>
         </div>
         
         <div id='options_panel_div' style='width:100%; float:left; margin-top:10px; margin-bottom:20px;'>
@@ -116,6 +115,11 @@ and open the template in the editor.
         <script src="js/relabel.js" type="text/javascript"></script>
         <script>
 
+            
+var key = window.location.search;
+key = key.substring(1);            
+
+            
 
 var features_activation_store = [];
             
@@ -528,25 +532,28 @@ function parse_feature_application_status(){
 function apply_current_feature_scheme(option){
 
     var expression = parse_feature_application_status();
+   
+    var data = {
+        key:key,
+        source:'feature_application_status',
+        expression:expression,
+        option:option
+    }
 
     $.ajax({
         url: "/server/ifeed/apply-feature-expression/",
         type: "POST",
-        data: {option:option,expression:expression,source:'feature_application_status'},
+        data: data,
         async: false,
-        success: function (data, textStatus, jqXHR)
-        {
-        },
-        error: function (jqXHR, textStatus, errorThrown)
-        {alert("Error in applying the current filter scheme");}
+        error: function (jqXHR, textStatus, errorThrown){
+            alert("Error in applying the current filter scheme");
+        }
     });
     return;
 }
             
             
-            
-
-            
+      
 function getOrbitList() {
     var orbitList;
     $.ajax({
@@ -621,32 +628,30 @@ function reset_feature_activation(){
 
             
             
-var socket = new WebSocket("ws://127.0.0.1:8001/ifeed/feature/status/");
+var socket = new WebSocket("ws://127.0.0.1:8001/ifeed/"+key);
 socket.onmessage = function(e){
     
     var text = e.data;
+    var data = JSON.parse(text);
     
-    console.log(text);
+    // If the target is not feature application status page, return.
+    if(data.target!='ifeed.feature_application_status') return;
     
-    if(text=="request_feature_status"){
+    if(data.id=='request'){
         apply_current_feature_scheme('update');
         return;
+    }else if(data.id=='update'){
+        var expression = data.expression;
+        var option = data.option;
+        if(option=='remove'){
+            remove_feature(expression);
+            apply_current_feature_scheme('apply');
+        }else if(option=='temp'){
+            add_temp_feature(expression);
+        }else{ // {'new','add','within'}
+            add_feature(expression,option); 
+        }
     }
-
-    var data = JSON.parse(text);
-    var expression = data.expression;
-    var option = data.option;
-    
-    if(option=='remove'){
-        remove_feature(expression);
-        apply_current_feature_scheme('apply');
-    }else if(option=='temp'){
-        add_temp_feature(expression);
-    }else{
-        add_feature(expression,option); 
-    }
-    
-    
 };   
             
 

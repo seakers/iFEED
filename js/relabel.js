@@ -215,7 +215,7 @@ function ppdf(expression){
 	    }
 	    var featureName = exp.split("[")[0];
 	    
-	    if(featureName==="paretoFront"){return expression;}
+	    if(featureName==="paretoFront" || featureName==='tempFeature'){return expression;}
 	    
 	    if(featureName[0]=='~'){
 	    	featureName = 'NOT '+ featureName.substring(1);

@@ -1123,6 +1123,7 @@ function request_feature_application_status(){
     $.ajax({
         url: "/server/ifeed/request-feature-application-status/",
         type: "POST",
+        data: {key:key},
         async: false,
         error: function (jqXHR, textStatus, errorThrown)
         {alert("Error in getting the feature application status");}
@@ -1135,9 +1136,6 @@ function update_feature_application_status(expression, option){
     var request_feature_update = false;
     
     var url = '/server/ifeed/update-feature-application-status/';
-    if(option==null){
-        option="new";
-    }
     
     if(option=='new'){
         current_feature_expression = expression;
@@ -1158,14 +1156,13 @@ function update_feature_application_status(expression, option){
         current_feature_expression = expression;
     }
     
-    if(option!='temp'){
-        update_feature_metric_chart(current_feature_expression);
-    }
-    
+
     $.ajax({
         url: url,
         type: "POST",
-        data: {expression:expression, option:option},
+        data: {key:key,
+               expression:expression,
+               option:option},
         async: false,
         error: function (jqXHR, textStatus, errorThrown)
         {alert("Error in updating feature application status");}
@@ -1183,12 +1180,13 @@ function update_feature_application_status(expression, option){
 function update_feature_metric_chart(expression){
     
     var url, supp, conf_given_f, conf_given_s, lift;
+    
     // If expression is null, reset the plots
     if(expression==null){
-        url = "/server/ifeed/reset-feature-metric-chart/";
         expression = "";
-    }else{
-        url = "/server/ifeed/update-feature-metric-chart/";
+        supp = 0; conf_given_f =0; conf_given_s = 0; lift = 0;
+    }
+    else{
         var total = numOfArchs();
         var selected = d3.selectAll('[status=selected]')[0].length + d3.selectAll('[status=selected_and_highlighted]')[0].length;
         var highlighted = d3.selectAll('[status=highlighted]')[0].length + d3.selectAll('[status=selected_and_highlighted]')[0].length;
@@ -1209,9 +1207,10 @@ function update_feature_metric_chart(expression){
     }
     
     $.ajax({
-        url: url,
+        url: "/server/ifeed/update-feature-metric-chart/",
         type: "POST",
-        data: {expression:expression,
+        data: {key:key,
+               expression:expression,
                supp:supp,
                conf_given_f:conf_given_f,
                conf_given_s:conf_given_s,

@@ -18,7 +18,6 @@ and open the template in the editor.
 
         body {
             font: sans-serif;
-            font-size:18px;
         }
 
         .axis path,
@@ -46,7 +45,7 @@ and open the template in the editor.
     <body>
         
         <div id='title_div' style='width:100%; margin-top:20px; margin-bottom:20px;'>
-            <h2 id='title', style='margin:auto'>Feature Metric Chart</h2>
+            <h2 id='title', style='margin:auto; font-size:18px'>Feature Metric Chart</h2>
         </div>
         <div id='options_panel_div' style='width:100%;'>
             <div id='options_panel' style='margin:auto;'>
@@ -85,7 +84,14 @@ var plot_type_options = [
     {value:'scatter',text:'Scatter plot'},
     {value:'bar',text:'Bar plot'}
 ]
-            
+    
+var key = window.location.search;
+key = key.substring(1);    
+
+
+
+
+
                   
 function remove_plot(){
     d3.select('#plot_div').select('svg').remove()
@@ -665,34 +671,37 @@ plot();
             
             
             
-var socket = new WebSocket("ws://127.0.0.1:8001/ifeed/feature/metric/");
+var socket = new WebSocket("ws://127.0.0.1:8001/ifeed/"+key);
 socket.onmessage = function(e){
     
     var text = e.data;
-    if(text=="reset"){
-        reset_plot();  
-        return;
-    }
-    
     var data = JSON.parse(text);
     
+    // If the target is not feature application status page, return.
+    if(data.target!='ifeed.feature_metric_chart') return;
+    
     var expression = data.expression;
-    var conf_given_f = data.conf_given_f;
-    var conf_given_s = data.conf_given_s;
-    var lift = data.lift;    
     
-    var metrics = [conf_given_f, conf_given_s];
-    var id = features.length;
-    var feature = {id:id,expression:expression, metrics:metrics};
-    
-    for(var i=0;i<features.length;i++){
-        if(features[i].expression==feature.expression || compare_metrics(features[i].metrics,feature.metrics)){
-            return;
+    if(expression==""){
+        reset_plot();  
+        return;
+    }else{
+        var conf_given_f = data.conf_given_f;
+        var conf_given_s = data.conf_given_s;
+        var lift = data.lift;    
+
+        var metrics = [conf_given_f, conf_given_s];
+        var id = features.length;
+        var feature = {id:id,expression:expression, metrics:metrics};
+
+        for(var i=0;i<features.length;i++){
+            if(features[i].expression==feature.expression || compare_metrics(features[i].metrics,feature.metrics)){
+                return;
+            }
         }
+        features.push(feature);
+        plot();        
     }
-    features.push(feature);
-    plot();
-    
 };
 
             
@@ -777,10 +786,17 @@ function getInstrumentList() {
             
 function apply_current_feature(expression){
 
+    var data = {
+        key:key,
+        source:'feature_metric_chart',
+        expression:expression,
+        option:'apply'
+    }
+    
     $.ajax({
         url: "/server/ifeed/apply-feature-expression/",
         type: "POST",
-        data: {option:'apply',expression:expression,source:'feature_metric_chart'},
+        data: data,
         async: false,
         success: function (data, textStatus, jqXHR)
         {
