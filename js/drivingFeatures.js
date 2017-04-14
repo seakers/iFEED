@@ -91,7 +91,7 @@ function generateDrivingFeatures(selected,non_selected,
 	
 	var output;
     $.ajax({
-        url: "/server/data-mining/get-driving-features/",
+        url: "/api/data-mining/get-driving-features/",
         type: "POST",
         data: {ID: "get_driving_features",
         	selected: JSON.stringify(selected),
@@ -704,7 +704,7 @@ function draw_venn_diagram(container){
         }else{
             var dist;
             $.ajax({
-                url: "/server/ifeed/venn-diagram-distance/",
+                url: "/api/ifeed/venn-diagram-distance/",
                 type: "POST",
                 data: {a1: a1,
                        a2: a2,

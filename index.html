@@ -458,7 +458,7 @@ and open the template in the editor.
                 }
 				$.ajax(
                         {
-                            url: "/server/ifeed/import-data/",
+                            url: "/api/ifeed/import-data/",
                             type: "POST",
                             data: {path:path},
                             async: true,
@@ -631,7 +631,7 @@ and open the template in the editor.
                 function getOrbitList() {
                     var orbitList;
                     $.ajax({
-                        url: "/server/vassar/get-orbit-list/",
+                        url: "/api/vassar/get-orbit-list/",
                         type: "POST",
                         async: false,
                         success: function (data, textStatus, jqXHR)
@@ -648,7 +648,7 @@ and open the template in the editor.
                 function getInstrumentList() {
                     var instrumentList;
                     $.ajax({
-                        url: "/server/vassar/get-instrument-list/",
+                        url: "/api/vassar/get-instrument-list/",
                         type: "POST",
                         async: false,
                         success: function (data, textStatus, jqXHR)

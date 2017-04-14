@@ -750,7 +750,7 @@ function linspace(start, end, n) {
 function getOrbitList() {
     var orbitList;
     $.ajax({
-        url: "/server/vassar/get-orbit-list/",
+        url: "/api/vassar/get-orbit-list/",
         type: "POST",
         async: false,
         success: function (data, textStatus, jqXHR)
@@ -769,7 +769,7 @@ function getOrbitList() {
 function getInstrumentList() {
     var instrumentList;
     $.ajax({
-        url: "/server/vassar/get-instrument-list/",
+        url: "/api/vassar/get-instrument-list/",
         type: "POST",
         async: false,
         success: function (data, textStatus, jqXHR)
@@ -794,7 +794,7 @@ function apply_current_feature(expression){
     }
     
     $.ajax({
-        url: "/server/ifeed/apply-feature-expression/",
+        url: "/api/ifeed/apply-feature-expression/",
         type: "POST",
         data: data,
         async: false,

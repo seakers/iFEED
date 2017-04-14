@@ -1121,7 +1121,7 @@ function applyComplexFilter(input_expression){
 
 function request_feature_application_status(){
     $.ajax({
-        url: "/server/ifeed/request-feature-application-status/",
+        url: "/api/ifeed/request-feature-application-status/",
         type: "POST",
         data: {key:key},
         async: false,
@@ -1135,7 +1135,7 @@ function update_feature_application_status(expression, option){
     
     var request_feature_update = false;
     
-    var url = '/server/ifeed/update-feature-application-status/';
+    var url = '/api/ifeed/update-feature-application-status/';
     
     if(option=='new'){
         current_feature_expression = expression;
@@ -1207,7 +1207,7 @@ function update_feature_metric_chart(expression){
     }
     
     $.ajax({
-        url: "/server/ifeed/update-feature-metric-chart/",
+        url: "/api/ifeed/update-feature-metric-chart/",
         type: "POST",
         data: {key:key,
                expression:expression,
