@@ -179,7 +179,7 @@ function DisplayName2ActualName(name,type){
 //}
 
 
-function ppdfType(expression){
+function pp_feature_type(expression){
 	if(expression.indexOf('[')==-1){
 		return expression;
 	}
@@ -197,54 +197,79 @@ function ppdfType(expression){
 	return type;
 }
 
-function ppdf(expression){
 
-	if(expression.indexOf("&&")>-1){
-		var output = "";
-		var spl = expression.split("&&");
-		for(var i=0;i<spl.length;i++){
-			var exp = spl[i];
-			if(i>0) output = output + " && ";
-			output = output+ppdf(exp);
-		}
-		return output;
-	}else{
-		var exp = expression;
-	    if(exp[0]==="{"){
-	        exp = exp.substring(1,exp.length-1);
-	    }
-	    var featureName = exp.split("[")[0];
-	    
-	    if(featureName==="paretoFront" || featureName==='tempFeature'){return expression;}
-	    
-	    if(featureName[0]=='~'){
-	    	featureName = 'NOT '+ featureName.substring(1);
-	    }
-	    
-	    var featureArg = exp.split("[")[1];
-	    featureArg = featureArg.substring(0,featureArg.length-1);
-	    
-	    var orbits = featureArg.split(";")[0].split(",");
-	    var instruments = featureArg.split(";")[1].split(",");
-	    var numbers = featureArg.split(";")[2];
-	    
-	    var pporbits="";
-	    var ppinstruments="";
-	    for(var i=0;i<orbits.length;i++){
-	        if(orbits[i].length===0){
-	            continue;
-	        }
-	        if(i>0){pporbits = pporbits + ",";}
-	        pporbits = pporbits + Index2DisplayName(orbits[i], "orbit");
-	    }
-	    for(var i=0;i<instruments.length;i++){
-	        if(instruments[i].length===0){
-	            continue;
-	        }
-	        if(i>0){ppinstruments = ppinstruments + ",";}
-	        ppinstruments = ppinstruments + Index2DisplayName(instruments[i], "instrument");
-	    }
-	    var ppexpression = featureName + "[" + pporbits + ";" + ppinstruments + ";" + numbers + "]";
-	    return ppexpression;
-    }   
+
+function pp_feature_single(expression){
+    var exp = expression;
+    if(exp[0]==="{"){
+        exp = exp.substring(1,exp.length-1);
+    }
+    var featureName = exp.split("[")[0];
+
+    if(featureName==="paretoFront" || featureName==='tempFeature'){return expression;}
+
+    if(featureName[0]=='~'){
+        featureName = 'NOT '+ featureName.substring(1);
+    }
+
+    var featureArg = exp.split("[")[1];
+    featureArg = featureArg.substring(0,featureArg.length-1);
+
+    var orbits = featureArg.split(";")[0].split(",");
+    var instruments = featureArg.split(";")[1].split(",");
+    var numbers = featureArg.split(";")[2];
+
+    var pporbits="";
+    var ppinstruments="";
+    for(var i=0;i<orbits.length;i++){
+        if(orbits[i].length===0){
+            continue;
+        }
+        if(i>0){pporbits = pporbits + ",";}
+        pporbits = pporbits + Index2DisplayName(orbits[i], "orbit");
+    }
+    for(var i=0;i<instruments.length;i++){
+        if(instruments[i].length===0){
+            continue;
+        }
+        if(i>0){ppinstruments = ppinstruments + ",";}
+        ppinstruments = ppinstruments + Index2DisplayName(instruments[i], "instrument");
+    }
+    var ppexpression = featureName + "[" + pporbits + ";" + ppinstruments + ";" + numbers + "]";
+    return ppexpression;
+}
+
+
+function pp_feature(expression){
+    
+    var output = '';
+    
+    if(expression.indexOf('{tempFeature}')>-1){
+        expression=expression.replace('&&{tempFeature}','');
+        expression=expression.replace('||{tempFeature}','');
+        expression=expression.replace('{tempFeature}&&','');
+        expression=expression.replace('{tempFeature}||','');
+    }
+    
+    var save = false;
+    var savedString = '';
+    
+    for(var i=0;i<expression.length;i++){
+        if(expression[i]=='{'){
+            save = true;
+            savedString = '{';
+        }else if(expression[i]=='}'){
+            save = false;
+            savedString = savedString + '}';
+            feature_expression = savedString;
+            output = output + '{' + pp_feature_single(feature_expression) + '}';
+        }else{
+            if(save){
+                savedString = savedString + expression[i];
+            }else{
+                output = output + expression[i];
+            }
+        }
+    }
+    return output;
 }

@@ -444,7 +444,7 @@ function feature_mouseover(d){
     
     var tooltip_location = {x:0,y:0};
     var tooltip_width = 360;
-    var tooltip_height = 150;
+    var tooltip_height = 200;
     
     var h_threshold = (width + margin.left + margin.right)*0.5;
     var v_threshold = (height + margin.top + margin.bottom)*0.55;
@@ -515,7 +515,7 @@ function feature_mouseover(d){
                     .data([{id:id, expression:expression, metrics:metrics}])
                     .html(function(d){
                         //console.log(d);
-                        var exp =ppdf(d.expression);
+                        var exp =pp_feature(d.expression);
                         var output= "<p>" + d.id + ". " + exp + "</p><p>";
                         
                         for(var i=0;i<metric_names.length;i++){

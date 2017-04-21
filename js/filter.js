@@ -510,7 +510,7 @@ function compareMatchedIDSets(logic,set1,set2){
 //({absent[;9;]}&&{numOfInstruments[;11;1]}&&{emptyOrbit[2;;]}&&{emptyOrbit[3;;]})&&({numOfInstruments[;;2]}||{numOfInstruments[;;3]}||{numOfInstruments[;;4]}||{numOfInstruments[;;5]}||{numOfInstruments[;;6]})
 
 function processFilterExpression(expression, prev_matched, prev_logic, arch_info){
-
+    
 	var e=expression;
     // Remove outer parenthesis
 	e = remove_outer_parentheses(e);
@@ -550,7 +550,7 @@ function processFilterExpression(expression, prev_matched, prev_logic, arch_info
         
         if(first){
             // The first filter in a series to be applied
-            prev = '&&'
+            prev = '&&';
             current_matched = prev_matched;
             first = false;
         }else{
@@ -583,6 +583,7 @@ function processFilterExpression(expression, prev_matched, prev_logic, arch_info
             var current = e.substring(0,current_collapsed.length);
             e_collapsed = e_collapsed.substring(current_collapsed.length);
             e = e.substring(current_collapsed.length);
+            
             if(prev=="||"){
                 var skip = false;
                 if(current.indexOf('{tempFeature}')!=-1){
@@ -598,17 +599,17 @@ function processFilterExpression(expression, prev_matched, prev_logic, arch_info
             }else{
                 current_matched = processFilterExpression(current,current_matched,prev,arch_info); 
             }
-        }else{
+        }else{            
             if(prev=="||"){
                 var skip = false;
-                if(current.indexOf('{tempFeature}')!=-1){
-                    if(remove_outer_parentheses(current)=='{tempFeature}'){
+                if(e.indexOf('{tempFeature}')>-1){
+                    if(remove_outer_parentheses(e)=='{tempFeature}'){
                         // If the current filter is {tempFeature}, then skip processing it
                         skip=true;
                     }
                 }
                 if(!skip){
-                    var temp_matched = processFilterExpression(current,prev_matched,'&&',arch_info); 
+                    var temp_matched = processFilterExpression(e,prev_matched,'&&',arch_info); 
                     current_matched = compareMatchedIDSets(prev, current_matched, temp_matched);  
                 }
             }else{
@@ -992,7 +993,6 @@ function applyFilter(option){
     d3.select("[id=numOfSelectedArchs_inputBox]").text("" + numOfSelectedArchs()); 
     
     update_feature_application_status(filterExpression, option);
-    update_feature_metric_chart(filterExpression);
 }
 
 
@@ -1103,22 +1103,6 @@ function applyComplexFilter(input_expression){
 
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 function request_feature_application_status(){
     $.ajax({
         url: "/api/ifeed/request-feature-application-status/",
@@ -1129,6 +1113,8 @@ function request_feature_application_status(){
         {alert("Error in getting the feature application status");}
     });
 }
+
+
 
 
 function update_feature_application_status(expression, option){
@@ -1220,6 +1206,8 @@ function update_feature_metric_chart(expression){
         error: function (jqXHR, textStatus, errorThrown)
         {alert("Error in updating feature metric chart");}
     });
+    
+    //add_current_feature_to_DF_plot();
 }
 
 

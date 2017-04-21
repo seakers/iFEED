@@ -21,7 +21,6 @@ socket.onmessage = function(e){
                 applyComplexFilter(data.expression);
             }
             current_feature_expression = data.expression;
-            update_feature_metric_chart(current_feature_expression);
         }else if(data.source=='feature_metric_chart'){
             if(data.expression==""){
                 applyComplexFilter(current_feature_expression);
@@ -30,9 +29,13 @@ socket.onmessage = function(e){
             }
         }
     }
-    
     else if(data.id=='update_feature'){
         current_feature_expression = data.expression;
+    }
+    else if(data.id=='test_feature'){
+        applyComplexFilter(data.expression);
+        current_feature_expression = data.expression;
+        update_feature_metric_chart(current_feature_expression);
     }
     
     

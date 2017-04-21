@@ -228,7 +228,7 @@ function display_drivingFeatures(source,sortby) {
         conf1s.push(source[i].metrics[2]);
         conf2s.push(source[i].metrics[3]);
         drivingFeatures.push(source[i]);
-        drivingFeatureTypes.push(ppdfType(source[i].name));
+        drivingFeatureTypes.push(pp_feature_type(source[i].name));
     }
 
 
@@ -417,6 +417,8 @@ function display_drivingFeatures(source,sortby) {
                 return "translate(" + xCoord + "," + 0 + ")";
             })
             .style("fill", function(d,i){return color_drivingFeatures(drivingFeatureTypes[i]);});
+    
+    
     dfbar_width = d3.select("[class=bar]").attr("width");
 
     var bars = d3.selectAll("[class=bar]")
@@ -457,7 +459,6 @@ function display_drivingFeatures(source,sortby) {
                 }
                 
                 update_feature_application_status(expression, 'temp');
-                update_feature_metric_chart(expression);
             })
                 .on("mouseover",function(d){
 
@@ -540,13 +541,24 @@ function display_drivingFeatures(source,sortby) {
                             .append("div")
                             .style("padding","15px");
                    
+//                    textdiv.html(function(d){
+//                        var output= "" + pp_feature(d.expression) + "<br><br> The % of designs in the intersection out of all designs: " + round_num_2_perc(d.supp) + 
+//                        "% <br> The % of selected designs among designs with the feature: " + round_num_2_perc(d.conf) + 
+//                        "%<br> The % of designs with the feature among selected designs: " + round_num_2_perc(d.conf2) +"%";
+//                        return output;
+//                    }).style("color", "#F7FF55")
+//                    .style('word-wrap','break-word'); 
+                    
+                    
                     textdiv.html(function(d){
-                        var output= "" + ppdf(d.expression) + "<br><br> The % of designs in the intersection out of all designs: " + round_num_2_perc(d.supp) + 
-                        "% <br> The % of selected designs among designs with the feature: " + round_num_2_perc(d.conf) + 
-                        "%<br> The % of designs with the feature among selected designs: " + round_num_2_perc(d.conf2) +"%";
+                        var output= "" + pp_feature(d.expression) + "<br><br> lift: " + round_num_fourth_dec(d.lift) + 
+                        "<br> Support: " + round_num_fourth_dec(d.supp) + 
+                        "<br> Confidence(F->S): " + round_num_fourth_dec(d.conf) + 
+                        "<br> Confidence(S->F): " + round_num_fourth_dec(d.conf2) +"";
                         return output;
                     }).style("color", "#F7FF55")
                     .style('word-wrap','break-word');   
+                    
                     
                     
                     if(current_feature_expression==''){
@@ -772,8 +784,13 @@ function add_current_feature_to_DF_plot(){
         var conf2 = supp / p_s;
         var lift = p_snf/(p_f*p_s); 
         var metrics = [supp, lift, conf, conf2];
-        var current_feature = {id:id,name:current_feature_expression,expression:current_feature_expression,metrics:metrics};
+        var current_feature = {id:id,name:current_feature_expression,expression:current_feature_expression,metrics:metrics,added:added_features.length};
         sortedDFs.push(current_feature);
+        
+        //d3.selectAll('.bar').attr('adde')
+        added_features.push(current_feature);
+        
+        
         sortedDFs = sortDrivingFeatures(sortedDFs,'lift')
         display_drivingFeatures(sortedDFs,'lift');
     }

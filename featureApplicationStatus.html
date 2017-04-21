@@ -95,11 +95,10 @@ and open the template in the editor.
                 <button id='toggle_feature_scheme' class='application_options_button'>
                     Deactivate all features
                 </button>
-<!--
-                <button id='save_current_feature_scheme' class='application_options_button'>
-                    Save current feature scheme
+          
+                <button id='test_feature_scheme' class='application_options_button'>
+                    Test current feature
                 </button>
--->
                 
                 
 
@@ -122,8 +121,10 @@ key = key.substring(1);
             
 
 var features_activation_store = [];
-            
+var featureID = 0;    
       
+            
+
             
             
 function add_temp_feature(inputExpression){
@@ -134,7 +135,7 @@ function add_temp_feature(inputExpression){
                                 .attr('status','added');
         temp_feature.select('.feature_application_expression')
                 .attr('expression',inputExpression)
-                .text(ppdf(inputExpression))
+                .text(pp_feature(inputExpression))
                 .style("color","#000000");
     }
     
@@ -145,11 +146,10 @@ function add_temp_feature(inputExpression){
 
 
     var applied_features = d3.select('#applied_feature_div');
-    var count = applied_features.selectAll('.applied_feature').size();
-    var num = count+1;
+    var id = featureID++;
     var this_feature = applied_features.append('div')
             .attr('id',function(){
-                return 'applied_feature_' + num;
+                return 'applied_feature_' + id;
             })
             .attr('class','applied_feature')
             .attr('status','temp');
@@ -180,21 +180,19 @@ function add_temp_feature(inputExpression){
     this_feature.append('img')
             .attr('src','img/left_arrow.png')
             .attr('id',function(){
-                var num = count+1;
-                return 'leftarrow_' + num;
+                return 'leftarrow_' + id;
             })
             .attr('width','20')
             .attr('height','20')
             .style('float','left')
             .style('margin-left','13px')
             .on("click",function(d){
-               click_left_arrow(num);
+               click_left_arrow(id);
             });;
     this_feature.append('img')
             .attr('src','img/left_arrow.png')
             .attr('id',function(){
-                var num = count+1;
-                return 'rightarrow_' + num;
+                return 'rightarrow_' + id;
             })
             .attr('class','img-hor-vert')
             .attr('width','20')
@@ -203,7 +201,7 @@ function add_temp_feature(inputExpression){
             .style('margin-left','4px')
             .style('margin-right','7px')
             .on("click",function(d){
-               click_right_arrow(num);
+               click_right_arrow(id);
             });
 
     this_feature.append('button')
@@ -260,12 +258,11 @@ function add_temp_feature(inputExpression){
 function add_feature(inputExpression,option){    
     
     var applied_features = d3.select('#applied_feature_div');
-    var count = applied_features.selectAll('.applied_feature').size();
-    var num = count+1;
+    var id = featureID++;
     
     var this_feature = applied_features.append('div')
             .attr('id',function(){
-                return 'applied_feature_' + num;
+                return 'applied_feature_' + id;
             })
             .attr('class','applied_feature');
     
@@ -289,26 +286,24 @@ function add_feature(inputExpression,option){
             .attr('expression',function(d){
             	return inputExpression;
             })
-            .text(ppdf(inputExpression));
+            .text(pp_feature(inputExpression));
     
     this_feature.append('img')
             .attr('src','img/left_arrow.png')
             .attr('id',function(){
-                var num = count+1;
-                return 'leftarrow_' + num;
+                return 'leftarrow_' + id;
             })
             .attr('width','20')
             .attr('height','20')
             .style('float','left')
             .style('margin-left','13px')
             .on("click",function(d){
-    	       click_left_arrow(num);
+    	       click_left_arrow(id);
             });;
     this_feature.append('img')
             .attr('src','img/left_arrow.png')
             .attr('id',function(){
-                var num = count+1;
-                return 'rightarrow_' + num;
+                return 'rightarrow_' + id;
             })
             .attr('class','img-hor-vert')
             .attr('width','20')
@@ -317,7 +312,7 @@ function add_feature(inputExpression,option){
             .style('margin-left','4px')
             .style('margin-right','7px')
             .on("click",function(d){
-               click_right_arrow(num);
+               click_right_arrow(id);
             });
     
     this_feature.append('button')
@@ -426,6 +421,8 @@ function click_right_arrow(n){
 	});
 	apply_current_feature_scheme('apply');
 }
+            
+            
 function click_left_arrow(n){
 	var id = "" + n;
 	var appliedFilter = d3.select("#applied_feature_"+id);
@@ -592,6 +589,20 @@ function getInstrumentList() {
 }
            
             
+function test_feature(){
+    	
+    var application_status = d3.select('#applied_feature_div');
+    var count = application_status.selectAll('.applied_feature').size();
+    var status = d3.select('.applied_feature').attr('status');
+    
+    if(count==0){
+        return;
+    }else if(count==1 && status=='temp'){
+        return;
+    }else{
+        apply_current_feature_scheme('test');
+    }
+}
 
 function toggle_feature_activation(){
 
@@ -662,7 +673,7 @@ var ninstr = instrList.length;
 
             
 d3.select('#toggle_feature_scheme').on('click',toggle_feature_activation);
-         
+d3.select('#test_feature_scheme').on('click',test_feature);     
             
         </script>
     </body>
