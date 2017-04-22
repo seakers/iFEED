@@ -307,12 +307,12 @@ and open the template in the editor.
  				                    <br/> Science Benefit range: <br/>
  				                    <input id="selectArchsWithinRange_minScience" class="select_within_range_text_box" type="text" value="0"/>&nbsp; ~&nbsp; <input id="selectArchsWithinRange_maxScience" class="select_within_range_text_box" type="text" value="1"/>
  				                    <br/> 
- 			                    	<button type="button" id="selectArchsWithinRangeButton" style="margin-top:10px;margin-bottom:3px;width:170px" disabled="True">Select Designs</button>
+ 			                    	<button type="button" id="selectArchsWithinRangeButton" style="margin-top:10px;margin-bottom:3px;width:170px" >Select Designs</button>
 
  								</div>
-  			                    <button type="button"  id="hide_selection" disabled="True" style="width:220px;height:35px;margin-top:10px">Hide selections</button>
-  			                    <button type="button"  id="show_all_archs" disabled="True" style="width:220px;height:35px;margin-top:5px">Show all architectures</button> 
-             				    <button type="button"  id="cancel_selection" disabled="True" style="width:220px;height:35px;margin-top:5px">Cancel all selections</button>
+  			                    <button type="button"  id="hide_selection" style="width:220px;height:35px;margin-top:10px">Hide selections</button>
+  			                    <button type="button"  id="show_all_archs" style="width:220px;height:35px;margin-top:5px">Show all architectures</button> 
+             				    <button type="button"  id="cancel_selection" style="width:220px;height:35px;margin-top:5px">Cancel all selections</button>
 			                	
 			                
  			                </div>
@@ -329,7 +329,7 @@ and open the template in the editor.
 		        <div id="secondLineOfFigs" style="float:left;margin-top: 5px; width: 100%;">
 		        
 		        
-				    <div id="basicInfoBox_div" style="width: 1212px; margin: 0 auto; float:left;border-style: solid;
+				    <div id="supportPanel" style="width: 1212px; margin: 0 auto; float:left;border-style: solid;
 				    					border-width: 1px;
 				    					hbmargin-left: 0px;font-family: 'Helvetica Neue', Helvetica; 
 		              					font-weight: 300; 
@@ -379,33 +379,57 @@ and open the template in the editor.
             var testType = -1;
             var remainingTime;
             
+           
+           
+           
             // Scatter plot variables
-           	var architectures; // old: jsonObj_scatterPlot
-            var newArchs = [];  newArchs.length = 0;    
-            var infoBox_active = false;
+           	var architectures; 
+            var newArchs = [];  
+            newArchs.length = 0;   
+           
+            var supportPanel_active = false;
             var selection_changed = true;   
-            
-            
-            var margin = {top: 20, right: 20, bottom: 30, left: 60},
-            width = 960 - margin.left - margin.right,
-                    height = 540 - margin.top - margin.bottom;
             var json_arch;
-            var svg,
-                    objects;
-            var xValue, xScale, xMap, xAxis, xBuffer, yBuffer,
-                    yValue, yScale, yMap, yAxis;
+            
+            var ScatterPlot_margin = {top: 20, right: 20, bottom: 30, left: 60};
+            var ScatterPlot_width = 960 - ScatterPlot_margin.left - ScatterPlot_margin.right;
+            var ScatterPlot_height = 540 - ScatterPlot_margin.top - ScatterPlot_margin.bottom;
+            
+            var ScatterPlot_xScale;
+            var ScatterPlot_xMap;
+            var ScatterPlot_xAxis;
+            var ScatterPlot_yScale;
+            var ScatterPlot_yMap;
+            var ScatterPlot_yAxis;
                	
-            var translate_tmp = [0,0];
-            var scale_tmp = 0;
-            var translate_tmp_local = [0,0];
-            var scale_tmp_local = 0;            
+            var ScatterPlot_translate = [0,0];
+            var ScatterPlot_scale = 0;
+            var ScatterPlot_translate_local = [0,0];
+            var ScatterPlot_scale_local = 0;            
             
+            var defaultColor = "#000000";
+            var selectedColor = "#19BAD7";
+            var highlightedColor = "#F86591";
+            var overlapColor = "#A340F0";
             
+            var defaultColor_mouseover = "#BABABA";
+            var highlightedColor_mouseover = "#FFDEE8";
+
             // Driving features variables
-            
+            var DrivingFeaturePlot_xScale;
+            var DrivingFeaturePlot_yScale;
+            var DrivingFeaturePlot_xAxis;
+            var DrivingFeaturePlot_yAxis;
+           
+            var DrivingFeaturePlot_margin = {top: 20, right: 20, bottom: 30, left:65};
+            var DrivingFeaturePlot_width = 770 - 35 - DrivingFeaturePlot_margin.left - DrivingFeaturePlot_margin.right;
+            var DrivingFeaturePlot_height = 430 - 20 - DrivingFeaturePlot_margin.top - DrivingFeaturePlot_margin.bottom;
+           
             var turn_on_apriori = false;
+           
             var color_drivingFeatures = d3.scale.category20();        
             var color_drivingFeatures2 = ['#CF3333','#CF5B33','#CF8433','#CFA533','#CFC133','#BACF33','#97CF33','#6CCF33','#3FCF33',];  
+           
            
             var i_drivingFeatures=0;
 			var sortedDFs=null;
@@ -415,6 +439,9 @@ and open the template in the editor.
             var selected_features = [];
 			var selected_features_expressions = [];           	
            	
+            
+           
+           
            	// Filter option variables
             var preset_filter_options = [{value:"not_selected",text:"Preset Filters"},{value:"paretoFront",text:"Pareto front"},
                 {value:"present",text:"Present"},{value:"absent",text:"Absent"},{value:"inOrbit",text:"In orbit"},
@@ -447,12 +474,14 @@ and open the template in the editor.
             var getDrivingFeatures_numOfArchs = [];
             var getClassificationTree_numOfArchs = [];
             var getDrivingFeatures_thresholds = [];
-
 			var task_number = 0;
             
 
 
-
+       /*
+            Imports a new data from a file
+            @param path: a string path to the file
+       */
             function import_new_data(path){
 				console.log('importing data...');
                 //var path = "/results/1.rs,/results/3.rs";
@@ -470,7 +499,7 @@ and open the template in the editor.
 								architectures = data;
                             },
                             complete: function () {
-                            	reset_drawing_scatterPlot();
+                            	reset_scatterPlot();
                             	draw_scatterPlot(architectures);                                 
                             },
                             error: function (jqXHR, textStatus, errorThrown)
@@ -521,6 +550,8 @@ and open the template in the editor.
             }
            
            
+           
+           
             function string2BooleanArray(bitString_string) {
                 var bitString = [];
                 bitString.length = 0;
@@ -534,7 +565,10 @@ and open the template in the editor.
                 return bitString;
             }
 
-            function draw_archBasicInfoTable(bitString) {
+           
+           
+           
+           function display_arch_info(bitString) {
             	
             	document.getElementById('tab1').click();
 
@@ -551,13 +585,13 @@ and open the template in the editor.
                     }
                 }
 
-                d3.select("[id=basicInfoBox_div]").select("[id=view1]")
+                d3.select("#supportPanel").select("[id=view1]")
                         .select("g").select("table").remove();
 
-                var archInfoBox = d3.select("[id=basicInfoBox_div]").select("[id=view1]")
+                var supportPanel = d3.select("#supportPanel").select("[id=view1]")
                         .select("g");
 
-                var table = archInfoBox.append("table")
+                var table = supportPanel.append("table")
                         .attr("id", "archInfoTable");
 
                 var columns = [];
@@ -628,68 +662,92 @@ and open the template in the editor.
                         	return ActualName2DisplayName(d.content,"instrument");
                         })
                         .style("font-size", "13px");
-
-
             }
-                function getOrbitList() {
-                    var orbitList;
-                    $.ajax({
-                        url: "/api/vassar/get-orbit-list/",
-                        type: "POST",
-                        async: false,
-                        success: function (data, textStatus, jqXHR)
-                        {
-                            orbitList = data;
-                        },
-                        error: function (jqXHR, textStatus, errorThrown)
-                        {
-                            alert("error");
-                        }
-                    });
-                    return orbitList;
-                }
-                function getInstrumentList() {
-                    var instrumentList;
-                    $.ajax({
-                        url: "/api/vassar/get-instrument-list/",
-                        type: "POST",
-                        async: false,
-                        success: function (data, textStatus, jqXHR)
-                        {
-                            instrumentList = data;
-                        },
-                        error: function (jqXHR, textStatus, errorThrown)
-                        {
-                            alert("error");
-                        }
-                    });
-                    return instrumentList;
-                }
-
-
-                function getNinstr() {
-                	if(instrList.length===0){
-                		instrList = getInstrumentList();
-                	}
-                	return instrList.length;
-                }
-                function getNorb() {
-                    if(orbitList.length===0){
-                    	orbitList = getOrbitList();
+           
+           
+       /*
+            Returns the list of orbits
+            @return orbitList: a string list containing the names of orbits
+       */
+            function getOrbitList() {
+                var orbitList;
+                $.ajax({
+                    url: "/api/vassar/get-orbit-list/",
+                    type: "POST",
+                    async: false,
+                    success: function (data, textStatus, jqXHR)
+                    {
+                        orbitList = data;
+                    },
+                    error: function (jqXHR, textStatus, errorThrown)
+                    {
+                        alert("error");
                     }
-                    return orbitList.length;
+                });
+                return orbitList;
+            }
+           
+       /*
+            Returns the list of instruments
+            @return instrumentList: a string list containing the names of instruments
+       */
+            function getInstrumentList() {
+                var instrumentList;
+                $.ajax({
+                    url: "/api/vassar/get-instrument-list/",
+                    type: "POST",
+                    async: false,
+                    success: function (data, textStatus, jqXHR)
+                    {
+                        instrumentList = data;
+                    },
+                    error: function (jqXHR, textStatus, errorThrown)
+                    {
+                        alert("error");
+                    }
+                });
+                return instrumentList;
+            }
+
+           
+       /*
+            Returns the number of instruments
+       */
+            function getNinstr() {
+                if(instrList.length===0){
+                    instrList = getInstrumentList();
                 }
+                return instrList.length;
+            }
+           
+       /*
+            Returns the number of orbits
+       */
+            function getNorb() {
+                if(orbitList.length===0){
+                    orbitList = getOrbitList();
+                }
+                return orbitList.length;
+            }
 
-            
+        /*
+            Counts the number of all archs displayed
+            @return: the number of dots
+        */
             function numOfArchs(){
-                return d3.selectAll(".dot").size();
+                return d3.selectAll(".dot.archPlot").size();
             }
+       /*
+            Counts the number of selected archs
+            @ return: the number of dots selected
+       */
             function numOfSelectedArchs(){
-                var n1= d3.selectAll("[status=selected]").size();
-                var n2 = d3.selectAll("[status=selected_and_highlighted]").size();
-                return n1+n2;
+                return d3.selectAll(".dot.archPlot.selected").size();
             }
 
+           
+           
+           
 
 //			var cred = window.location.search;
 //			if(cred){
@@ -703,15 +761,12 @@ and open the template in the editor.
 
             
            
-           
-           
 
             var key = "";
             for(var i=0;i<20;i++){
                 key = key + Math.floor(Math.random()*10);
             }
-           
-            window.open("featureMetricChart.html?"+key,"","width=640,height=380");
+            //window.open("featureMetricChart.html?"+key,"","width=640,height=380");
             window.open("featureApplicationStatus.html?"+key,"","width=500,height=400");
 			
         </script>

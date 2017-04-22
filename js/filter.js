@@ -12,23 +12,23 @@ function openFilterOptions(){
     buttonClickCount_filterOptions += 1;
     
     document.getElementById('tab2').click();
-    d3.select("[id=basicInfoBox_div]").select("[id=view2]").select("g").remove();
+    d3.select("#supportPanel").select("[id=view2]").select("g").remove();
 
-    var archInfoBox = d3.select("[id=basicInfoBox_div]").select("[id=view2]").append("g");
-    archInfoBox.append("div")
+    var supportPanel = d3.select("#supportPanel").select("[id=view2]").append("g");
+    supportPanel.append("div")
             .attr("id","filter_title")
             .append("p")
             .text("Filter Setting");
 
-    var filterOptions = archInfoBox.append("div")
+    var filterOptions = supportPanel.append("div")
             .attr("id","filter_options");
-    var filterInputs = archInfoBox.append("div")
+    var filterInputs = supportPanel.append("div")
             .attr('id','filter_inputs');
-    var filterAppendSlots = archInfoBox.append("div")
+    var filterAppendSlots = supportPanel.append("div")
             .attr('id','filter_inputs_append_slots');
-    var filterHints = archInfoBox.append('div')
+    var filterHints = supportPanel.append('div')
             .attr('id','filter_hints');
-    var filterButtons = archInfoBox.append('div')
+    var filterButtons = supportPanel.append('div')
             .attr('id','filter_buttons');
     
     var filterDropdownMenu = d3.select("#filter_options")
@@ -53,12 +53,10 @@ function openFilterOptions(){
             .attr("id","applyFilterButton_new")
             .attr("class","filter_options_button")
             .text("Apply as a new filter");
-//    d3.select("#filter_buttons").append("button")
-//            .attr("class","filter_options_button")
-//            .attr("id","applyFilterButton_add")
-//            .style("margin-left","6px")
-//            .style("float","left")
-//            .text("Add to current filter");
+    d3.select("#filter_buttons").append("button")
+            .attr("class","filter_options_button")
+            .attr("id","applyFilterButton_add")
+            .text("Add to current filter");
     d3.select("#filter_buttons").append("button")
             .attr("id","applyFilterButton_within")
             .attr("class","filter_options_button")
@@ -76,7 +74,7 @@ function openFilterOptions(){
         applyFilter("within");
     });
     
-    highlight_basic_info_box()
+    highlight_support_panel()
 }
 
 
@@ -943,47 +941,60 @@ function applyFilter(option){
     	applyParetoFilter(option,filterInput);
     }else{
         if(option==="new"){
+            
             cancelDotSelections('remove_highlighted');
-            d3.selectAll('.dot')[0].forEach(function(d){
+            
+            d3.selectAll('.dot.archPlot')[0].forEach(function(d){
+                
                 var bitString = d.__data__.bitString;
                 if(applyPresetFilter(filterExpression,bitString)){
-                	if(d3.select(d).attr('status')=='selected'){
-                        d3.select(d).attr('status','selected_and_highlighted')
-                        	.style("fill", "#A340F0");
+                    
+                    var dot = d3.select(d);
+                    dot.classed('highlighted',true);
+                    
+                	if(dot.classed('selected')){
+                        // highlighted and selected
+                        dot.style("fill", overlapColor);
                 	}else{
-                        d3.select(d).attr('status','highlighted')
-                        .style("fill", "#F75082");
+                        // not selected
+                        dot.style("fill", highlightedColor);
                     }
                 }
             });
         }else if(option==="add"){
-            d3.selectAll('.dot')[0].forEach(function(d){
+            d3.selectAll('.dot.archPlot:not(.highlighted)')[0].forEach(function(d){
                 var bitString = d.__data__.bitString;
                 if(applyPresetFilter(filterExpression,bitString)){
-                	if(d3.select(d).attr('status')=='selected'){
-                        d3.select(d).attr('status','selected_and_highlighted')
-                        	.style("fill", "#A340F0");
+                    
+                    var dot = d3.select(d);
+                    dot.classed('highlighted',true);
+                    
+                	if(dot.classed('selected')){
+                        // highlighted and selected
+                        dot.style("fill", overlapColor);
                 	}else{
-                        d3.select(d).attr('status','highlighted')
-                        .style("fill", "#F75082");
+                        // not selected
+                        dot.style("fill", highlightedColor);
                     }
                 }
             });
         }else if(option==="within"){
-            d3.selectAll('[status=highlighted]')[0].forEach(function(d){
+            d3.selectAll('.dot.archPlot.highlighted')[0].forEach(function(d){
                 var bitString = d.__data__.bitString;
                 if(!applyPresetFilter(filterExpression,bitString)){
-                    d3.select(d).attr('status','default')
-                    	.style("fill", function (d) {return "#000000";});   
+                    
+                    var dot = d3.select(d);
+                    dot.classed('highlighted',false);
+                    
+                    if(dot.classed('selected')){
+                        // selected
+                        dot.style("fill", function (d) {return selectedColor;}); 
+                    }else{
+                        // not selected
+                        dot.style("fill", function (d) {return defaultColor;});   
+                    }                      
                 }
-            }); 
-            d3.selectAll('[status=selected_and_highlighted]')[0].forEach(function(d){
-                var bitString = d.__data__.bitString;
-                if(!applyPresetFilter(filterExpression,bitString)){
-                    d3.select(d).attr('status','selected')
-                    	.style("fill", function (d) {return "#19BAD7";});   
-                }
-            });              
+            });           
         }
     }
 
@@ -999,44 +1010,53 @@ function applyFilter(option){
 function applyParetoFilter(option, arg){
     if(option==="new"){
         cancelDotSelections('remove_highlighted');
-        d3.selectAll(".dot")[0].forEach(function (d) {
+        d3.selectAll(".dot.archPlot")[0].forEach(function (d) {
             var rank = parseInt(d3.select(d).attr("paretoRank"));
             if (rank <= +arg && rank >= 0){
-            	if(d3.select(d).attr('status')=='selected'){
-                    d3.select(d).attr('status','selected_and_highlighted')
-                    	.style("fill", "#A340F0");
-            	}else{
-                    d3.select(d).attr('status','highlighted')
-                    .style("fill", "#F75082");
+                
+                var dot = d3.select(d);
+                dot.classed('highlighted',true);
+                
+                if(dot.classed('selected')){
+                    // selected and highlighted
+                    dot.style("fill", overlapColor);
+                }else{
+                    // not selected
+                    dot.style("fill", highlightedColor);
                 }
             }
         });  
     }else if(option==="add"){
-        d3.selectAll(".dot")[0].forEach(function (d) {
+        d3.selectAll(".dot.archPlot:not(.highlighted)")[0].forEach(function (d) {
             var rank = parseInt(d3.select(d).attr("paretoRank"));
             if (rank <= +arg && rank >= 0){
-            	if(d3.select(d).attr('status')=='selected'){
-                    d3.select(d).attr('status','selected_and_highlighted')
-                    	.style("fill", "#A340F0");
-            	}else{
-                    d3.select(d).attr('status','highlighted')
-                    .style("fill", "#F75082");
+                
+                var dot = d3.select(d);
+                dot.classed('highlighted',true);
+                if(dot.classed('selected')){
+                    // selected and highlighted
+                    dot.style("fill", overlapColor);
+                }else{
+                    // not selected
+                    dot.style("fill", highlightedColor);
                 }
             }
         });  
     }else if(option==="within"){
-        d3.selectAll("[status=highlighted]")[0].forEach(function (d) {
+        d3.selectAll(".dot.archPlot.highlighted")[0].forEach(function (d) {
             var rank = parseInt(d3.select(d).attr("paretoRank"));
             if (rank > +arg || rank < 0){
-                d3.select(d).attr('status','default')
-                	.style("fill", "#000000");
-            }
-        }); 
-        d3.selectAll("[status=selected_and_highlighted]")[0].forEach(function (d) {
-            var rank = parseInt(d3.select(d).attr("paretoRank"));
-            if (rank > +arg || rank < 0){
-                d3.select(d).attr('status','selected')
-                	.style("fill", "#19BAD7");
+                
+                var dot = d3.select(d);
+                dot.classed('highlighted',false);
+                
+                if(dot.classed('selected')){
+                    // was selected and highlighted
+                    dot.style("fill", selectedColor);
+                }else{
+                    // was not selected
+                    dot.style("fill", defaultColor);
+                }	
             }
         }); 
     }
@@ -1057,7 +1077,7 @@ function applyComplexFilter(input_expression){
 	var ids = [];
 	var bitStrings = [];
 	var paretoRankings = [];
-    d3.selectAll('.dot')[0].forEach(function(d){
+    d3.selectAll('.dot.archPlot')[0].forEach(function(d){
     	ids.push(d.__data__.id);
     	bitStrings.push(d.__data__.bitString);
         paretoRankings.push(parseInt(d3.select(d).attr("paretoRank")));
@@ -1083,14 +1103,18 @@ function applyComplexFilter(input_expression){
     }
 
 
-    d3.selectAll('.dot')[0].forEach(function(d){
+    d3.selectAll('.dot.archPlot')[0].forEach(function(d){
     	if(matchedIDs.indexOf(d.__data__.id)>-1){
-    		if(d3.select(d).attr('status')=='default'){
-                d3.select(d).attr('status','highlighted')
-            		.style("fill", "#F75082");
+            
+            var dot = d3.select(d);
+            dot.classed('highlighted',true);
+            
+    		if(dot.classed('selected')){
+                // selected and highlighted
+                dot.style("fill", overlapColor);
     		}else{
-                d3.select(d).attr('status','selected_and_highlighted')
-            		.style("fill", "#A340F0");
+                // not selected
+                dot.style("fill", highlightedColor);            		
     		}
     	}
     });  
@@ -1174,9 +1198,9 @@ function update_feature_metric_chart(expression){
     }
     else{
         var total = numOfArchs();
-        var selected = d3.selectAll('[status=selected]')[0].length + d3.selectAll('[status=selected_and_highlighted]')[0].length;
-        var highlighted = d3.selectAll('[status=highlighted]')[0].length + d3.selectAll('[status=selected_and_highlighted]')[0].length;
-        var intersection = d3.selectAll('[status=selected_and_highlighted]')[0].length;
+        var selected = d3.selectAll('.dot.archPlot.selected')[0].length;
+        var highlighted = d3.selectAll('.dot.archPlot.highlighted')[0].length;
+        var intersection = d3.selectAll('.dot.archPlot.selected.highlighted')[0].length;
 
         if(selected==0 || highlighted==0){
             return;

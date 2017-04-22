@@ -7,141 +7,46 @@
 /*
 
 #view3 g
-    
-    
-div #df_application_status
-    div #df_application_status_title
-        div
-    div #applied_driving_feature_div
-        div .applied_driving_feature #applied_driving_feature_1
-            div .applied_driving_feature_expression
-            button .applied_driving_feature_delete_button
-    div .applied_driving_feature #applied_driving_feature_2
-
-    div #df_application_options
-        button .df_application_options_button #df_application_options_add
-        button .df_application_options_button #df_application_options_cancel_selection
-        button .df_application_options_button #df_application_options_reset
-
-div #df_bar_chart
-    svg #df_svg
-div #df_venn_diagram
-    div
-
+    div #dfplot_div
+        svg $dfplot_svg
+            g .x.axis.dfplot
+            g .y.axis.dfplot
+            svg .objects.dfplot
+                circle .dot.dfplot
+                g #tooltip_g
+                    rect #tooltip_rect
+                    foreignObject #tooltip_foreignObject
+                    
+    div #dfplot_venn_diagram
         
-
+    
 
 */
 
 
-/*#df_application_status_title{
-    float:left;
-    margin: 90%;
-    font-size: 15px;
-}*/
-
-#df_bar_chart{
-    float:left;
-}
-#df_svg{
+#dfplot_div{
     float:left;
 }
 
 
-#df_application_status{
-    width:90%;
-    margin-top: 15px;
-    margin-bottom:15px;
-    padding: 15px;
-	float:left;
-    background-color: #E0E0E0; 
-}
-
-#df_application_status_title_div{
-    margin-bottom: 18px;
-    margin-left: 3px;
-    font-size: 20px;
-}
-
-
-#df_venn_diagram{
+#dfplot_venn_diagram{
     float:left;
     background-color:#E7E7E7;
     height:350px;
+    width: 340px;
+    margin-left: 50px;
     margin-top: 15px;
     padding:15px;
-    width: 340px;
+    
 }
-#df_venn_diagram div{
+
+#dfplot_venn_diagram div{
     font-family:sans-serif;
     margin-left: 3px;
     font-size: 18px;
     width:100%;
 }
 
-#df_application_options{
-    float:left;
-    width:100%;
-    margin-bottom: 10px;
-}
 
-
-/* Buttons */
-
-.df_application_options_button{
-    float:left;
-    margin-top: 13px;
-    margin-right: 8px;
-}
-
-
-
-/* Driving Feature Application Status */
-
-#df_application_status{
-    width:90%;
-    margin-bottom:10px;
-	float:left;
-    background-color: #E0E0E0; 
-}
-
-.applied_driving_feature{
-    width:100%;
-	margin-bottom: 4px;
-	float:left;
-}
-
-.applied_driving_feature_delete_button{
-    background-color: #FF5151;
-	float:left;
-}
-
-.applied_driving_feature_expression{
-	float: left;
-	margin-right:4px;
-}
-
-
-/* Threshold setup */
-
-#df_threshold_setup_div{
-    width:100%;
-    float:left;
-    margin-top: 15px;
-}
-
-.df_threshold_setup{
-    float:left;
-    margin-left: 20px;
-    margin-top:15px;
-    width:80%;
-}
-.df_threshold_setup div{
-    float:left;
-}
-.df_threshold_setup input{
-    float:left;
-    margin-left: 15px;
-}
 
 
