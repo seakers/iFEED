@@ -355,12 +355,12 @@ and open the template in the editor.
 			</div>
 		</div>
 		
-		
-       <script src="js/filter.js" type="text/javascript"></script>
-       <script src="js/scatterPlotUI.js" type="text/javascript"></script>
-       <script src="js/drivingFeatures.js" type="text/javascript"></script>
-       <script src="js/classificationTree.js" type="text/javascript"></script>
-       <script src="js/relabel.js" type="text/javascript"></script>
+        <script src="js/util.js" type="text/javascript"></script>
+        <script src="js/filter.js" type="text/javascript"></script>
+        <script src="js/scatterPlotUI.js" type="text/javascript"></script>
+        <script src="js/drivingFeatures.js" type="text/javascript"></script>
+        <script src="js/classificationTree.js" type="text/javascript"></script>
+        <script src="js/relabel.js" type="text/javascript"></script>
        
 	   
 	   
@@ -428,8 +428,9 @@ and open the template in the editor.
             var turn_on_apriori = false;
            
             var color_drivingFeatures = d3.scale.category20();        
-            var color_drivingFeatures2 = ['#CF3333','#CF5B33','#CF8433','#CFA533','#CFC133','#BACF33','#97CF33','#6CCF33','#3FCF33',];  
-           
+            var color_drivingFeatures2 = ['#CF3333','#CF5B33','#CF8433','#CFA533','#CFC133','#BACF33','#97CF33','#6CCF33','#3FCF33'];  
+            var color_drivingFeatures3 = ['#7AF866','#C3F866','#E7F866','#F8DD66','#F8B666','#F88166','#F86666','#F86591'];
+            var DrivingFeaturePlot_colorScale = color_drivingFeatures;
            
             var i_drivingFeatures=0;
 			var sortedDFs=null;
@@ -451,7 +452,7 @@ and open the template in the editor.
                 {value:"numOfInstruments",text:"Number of instruments"},
                 {value:"subsetOfInstruments",text:"Num of instruments in a subset"}];
             
-            var added_features = [];
+            var added_features = [];           
             var userdef_features = [];
             var current_feature_expression="";
 

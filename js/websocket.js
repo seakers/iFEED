@@ -35,7 +35,7 @@ socket.onmessage = function(e){
     else if(data.id=='test_feature'){
         applyComplexFilter(data.expression);
         current_feature_expression = data.expression;
-        update_feature_metric_chart(current_feature_expression);
+        add_current_feature_to_DF_plot();
     }
     
     

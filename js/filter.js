@@ -409,80 +409,6 @@ function get_number_of_inputs(){
 
 
 
-
-function remove_outer_parentheses(expression){
-	
-	if(expression[0]!="(" || expression[expression.length-1]!=")"){
-		// Return if the expression does not start with "(" or ")".
-		return expression;
-	}else{
-		var leng = expression.length;
-		var level = 0;
-		var paren_end = -1;
-		for(var i=0;i<leng;i++){
-			if(expression[i]==="("){
-				level++;
-			}
-			else if(expression[i]===")"){
-				level--;
-				if(level==0){
-					paren_end = i;
-					break;
-				}
-			}
-		}
-		if(paren_end == leng-1){
-			var new_expression = expression.substring(1,leng-1);
-			return remove_outer_parentheses(new_expression);
-		}else{
-			return expression;
-		}
-	}
-}
-
-
-function get_nested_parenthesis_depth(expression){
-	var leng = expression.length;
-	var level = 0;
-	var maxLevel = 0;
-	for(var i=0;i<leng;i++){
-		if(expression[i]==="("){
-			level++;
-			if(level>maxLevel) maxLevel=level;
-		}
-		else if(expression[i]===")"){
-			level--;
-		}
-	}
-	return maxLevel;
-}
-
-
-function collapse_paren_into_symbol(expression){
-	var leng = expression.length;
-	var modified_expression = "";
-	var level = 0;
-	for(var i=0;i<leng;i++){
-
-		if(expression[i]==="("){
-			level++;
-		}
-		else if(expression[i]===")"){
-			level--;
-		}
-		if(expression[i]==="(" && level==1){
-			modified_expression=modified_expression + expression[i];
-		}
-		else if(level>=1){
-			modified_expression=modified_expression + "X";
-		}else{
-			modified_expression=modified_expression + expression[i];
-		}
-	}
-	return modified_expression;
-}
-
-
 function compareMatchedIDSets(logic,set1,set2){
 	var output = [];
     if(logic=="&&"){
@@ -1147,6 +1073,7 @@ function update_feature_application_status(expression, option){
     
     var url = '/api/ifeed/update-feature-application-status/';
     
+    
     if(option=='new'){
         current_feature_expression = expression;
     }else if(option=='within' && current_feature_expression!=''){
@@ -1158,10 +1085,10 @@ function update_feature_application_status(expression, option){
     }else if(option=='remove'){
         // Modify the expression after updating
         request_feature_update = true;
-    }else if(option=='temp'){
-        if(expression!=''){
-            request_feature_update=true;
-        }
+    }else if(option=='create_placeholder'){
+        request_feature_update=true;
+    }else if(option=='update_placeholder'){
+         request_feature_update = true;
     }else{
         current_feature_expression = expression;
     }
