@@ -488,9 +488,6 @@ function updateDrivingFeatureColorScale(scale){
         if(added==null || isNaN(added)){
             added = 0;
         }
-        else{
-            console.log(added);
-        }
         
         d3.select(d).style('fill',function(d){
             return DrivingFeaturePlot_colorScale(added);
@@ -506,35 +503,35 @@ function feature_click(d){
     var expression = d.expression;
     var option;
 
-    var was_selected = false;
-    for(var i=0;i<selected_features.length;i++){
-        if(selected_features[i]===id){
-            selected_features.splice(i,1);
-            selected_features_expressions.splice(i,1);
-            was_selected = true;
-        }
-    }
-    if(was_selected){
-        d3.selectAll("[class=bar]").filter(function(d){
-            if(d.id===id){
-                return true;
-            }else{
-                return false;
-            }
-        }).style("stroke-width",0);
-        option='remove';
-    }else{
-        d3.selectAll("[class=bar]").filter(function(d){
-            if(d.id===id){
-                return true;
-            }else{
-                return false;
-            }
-        }).style("stroke-width",3); 
-        selected_features.push(id);
-        selected_features_expressions.push(expression);
-        option='within';
-    }
+//    var was_selected = false;
+//    for(var i=0;i<selected_features.length;i++){
+//        if(selected_features[i]===id){
+//            selected_features.splice(i,1);
+//            selected_features_expressions.splice(i,1);
+//            was_selected = true;
+//        }
+//    }
+//    if(was_selected){
+//        d3.selectAll("[class=bar]").filter(function(d){
+//            if(d.id===id){
+//                return true;
+//            }else{
+//                return false;
+//            }
+//        }).style("stroke-width",0);
+//        option='remove';
+//    }else{
+//        d3.selectAll("[class=bar]").filter(function(d){
+//            if(d.id===id){
+//                return true;
+//            }else{
+//                return false;
+//            }
+//        }).style("stroke-width",3); 
+//        selected_features.push(id);
+//        selected_features_expressions.push(expression);
+//        option='within';
+//    }
 
     update_feature_application_status(expression, 'update_placeholder');    
 }
@@ -626,20 +623,15 @@ function feature_mouseover(d){
                     .style('color','#F7FF55')
                     .style('word-wrap','break-word');   
     
-    console.log(expression);
-    applyComplexFilter(expression);
-    
     // If the placeholder is not included in the current feature expression, create one
     if(current_feature_expression.indexOf('tempFeature')==-1){
        update_feature_application_status('', 'create_placeholder');
     }
     
-    var venn_diagram_container = d3.select('#dfplot_venn_diagram').select('div');
-    draw_venn_diagram(venn_diagram_container);           
+    applyComplexFilter(current_feature_expression.replace('{tempFeature}','('+expression+')'));
+    
+    draw_venn_diagram();           
 }
-
-
-
 
 
 function feature_mouseout(d){
@@ -663,19 +655,18 @@ function feature_mouseout(d){
     
     applyComplexFilter(current_feature_expression);
     
-    var venn_diagram_container = d3.select('#df_venn_diagram').select('div');
-    draw_venn_diagram(venn_diagram_container);
+    draw_venn_diagram();
 }
 
 
+function draw_venn_diagram(){
 
-
-
-
-function draw_venn_diagram(container){
-
-	container.select("svg").remove();
-	var svg_venn_diag = container
+    var venn_diagram_container = d3.select('#dfplot_venn_diagram').select('div');
+    if(venn_diagram_container[0][0]==null) return;
+    
+    
+	venn_diagram_container.select("svg").remove();
+	var svg_venn_diag = venn_diagram_container
 								.append("svg")
 					    		.style('width','320px')  			
 								.style('border-width','3px')
@@ -833,12 +824,15 @@ function add_current_feature_to_DF_plot(){
         }
         if(matchFound) return;
         
-
         var current_feature = {id:id,name:current_feature_expression,expression:current_feature_expression,metrics:metrics,added:added_features.length+1};
         
         sortedDFs.push(current_feature);
         added_features.push(current_feature);
-        //sortedDFs = sortDrivingFeatures(sortedDFs,'lift')
+        
+        document.getElementById('tab3').click();
+        highlight_support_panel()
+        
+        // Display the driving features with newly added feature
         display_drivingFeatures(sortedDFs,'lift');
     }
 }

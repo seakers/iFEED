@@ -102,11 +102,11 @@ function draw_scatterPlot(source) {
                                 return "translate(" + xCoord + "," + yCoord + ")";
                             });
                     
-                    svg.selectAll("[class=paretoFrontier]")
-                            .attr("transform", function (d) {
-                                return "translate(" + d3.event.translate + ")scale(" + d3.event.scale + ")";
-                            })
-                            .attr("stroke-width",1.5/d3.event.scale);
+//                    svg.selectAll("[class=paretoFrontier]")
+//                            .attr("transform", function (d) {
+//                                return "translate(" + d3.event.translate + ")scale(" + d3.event.scale + ")";
+//                            })
+//                            .attr("stroke-width",1.5/d3.event.scale);
 
                     ScatterPlot_translate = d3.event.translate;
                     ScatterPlot_scale = d3.event.scale;
@@ -218,7 +218,7 @@ function draw_scatterPlot(source) {
     }
 
     calculateParetoRanking();
-    drawParetoFront();
+    //drawParetoFront();
     
     selection_changed = true;
     

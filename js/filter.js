@@ -433,12 +433,15 @@ function compareMatchedIDSets(logic,set1,set2){
 
 //({absent[;9;]}&&{numOfInstruments[;11;1]}&&{emptyOrbit[2;;]}&&{emptyOrbit[3;;]})&&({numOfInstruments[;;2]}||{numOfInstruments[;;3]}||{numOfInstruments[;;4]}||{numOfInstruments[;;5]}||{numOfInstruments[;;6]})
 
-function processFilterExpression(expression, prev_matched, prev_logic, arch_info){
-    
+// processFilterExpression(filterExpression, indices, "&&", arch_info);
+
+function processFilterExpression(expression, prev_matched_ids, prev_logic, arch_info){
+
 	var e=expression;
     // Remove outer parenthesis
 	e = remove_outer_parentheses(e);
-    var current_matched = [];
+    
+    var current_matched_ids = [];
     var first = true;
     var e_collapsed;
         
@@ -450,18 +453,19 @@ function processFilterExpression(expression, prev_matched, prev_logic, arch_info
         }else{
         	// Single filter expression
             if(e.indexOf('tempFeature') > -1){
-                return prev_matched;
+                // Skip matching if the current feature is a tempFeature
+                return prev_matched_ids;
             }
         	var matched = [];
-        	for(var i=0;i<prev_matched.length;i++){
-        		var index = prev_matched[i];
+        	for(var i=0;i<prev_matched_ids.length;i++){
+        		var index = prev_matched_ids[i];
         		//archInfo = {bitStrings:bitStrings,paretoRankings:paretoRankings};
         		if(applyPresetFilter(e,arch_info.bitStrings[index],arch_info.paretoRankings[index])){
         			matched.push(index);
         		}
         	}
-        	current_matched = matched;
-            return compareMatchedIDSets(prev_logic, current_matched, prev_matched);
+        	current_matched_ids = matched;
+            return compareMatchedIDSets(prev_logic, current_matched_ids, prev_matched_ids);
         }
     }else{
         // Removes the nested structure
@@ -470,15 +474,15 @@ function processFilterExpression(expression, prev_matched, prev_logic, arch_info
 
     while(true){
         var current_collapsed;
-        var prev;
+        var current_logic;
         
         if(first){
             // The first filter in a series to be applied
-            prev = '&&';
-            current_matched = prev_matched;
+            current_logic = '&&';
+            current_matched_ids = prev_matched_ids;
             first = false;
         }else{
-            prev = e_collapsed.substring(0,2);
+            current_logic = e_collapsed.substring(0,2);
             e_collapsed = e_collapsed.substring(2);
             e = e.substring(2);
         }
@@ -504,11 +508,12 @@ function processFilterExpression(expression, prev_matched, prev_logic, arch_info
             }else{
                 current_collapsed = e_collapsed.split("&&",1)[0];
             }
+            
             var current = e.substring(0,current_collapsed.length);
             e_collapsed = e_collapsed.substring(current_collapsed.length);
             e = e.substring(current_collapsed.length);
             
-            if(prev=="||"){
+            if(current_logic=="||"){
                 var skip = false;
                 if(current.indexOf('{tempFeature}')!=-1){
                     if(remove_outer_parentheses(current)=='{tempFeature}'){
@@ -517,14 +522,15 @@ function processFilterExpression(expression, prev_matched, prev_logic, arch_info
                     }
                 }
                 if(!skip){
-                    var temp_matched = processFilterExpression(current,prev_matched,'&&',arch_info); 
-                    current_matched = compareMatchedIDSets(prev, current_matched, temp_matched);  
+                    var temp_matched = processFilterExpression(current,prev_matched_ids,'&&',arch_info); 
+                    current_matched_ids = compareMatchedIDSets(current_logic, current_matched_ids, temp_matched);  
                 }
             }else{
-                current_matched = processFilterExpression(current,current_matched,prev,arch_info); 
+                current_matched_ids = processFilterExpression(current,current_matched_ids,current_logic,arch_info); 
             }
-        }else{            
-            if(prev=="||"){
+        }else{       
+            // Last expression in a series
+            if(current_logic=="||"){
                 var skip = false;
                 if(e.indexOf('{tempFeature}')>-1){
                     if(remove_outer_parentheses(e)=='{tempFeature}'){
@@ -533,16 +539,16 @@ function processFilterExpression(expression, prev_matched, prev_logic, arch_info
                     }
                 }
                 if(!skip){
-                    var temp_matched = processFilterExpression(e,prev_matched,'&&',arch_info); 
-                    current_matched = compareMatchedIDSets(prev, current_matched, temp_matched);  
+                    var temp_matched = processFilterExpression(e,prev_matched_ids,'&&',arch_info); 
+                    current_matched_ids = compareMatchedIDSets(current_logic, current_matched_ids, temp_matched);  
                 }
             }else{
-                current_matched = processFilterExpression(e,current_matched,prev,arch_info); 
+                current_matched_ids = processFilterExpression(e,current_matched_ids,current_logic,arch_info); 
             }        	
             break;
         }
     }
-    return current_matched;
+    return current_matched_ids;
 }
  
 

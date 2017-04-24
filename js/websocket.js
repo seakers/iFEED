@@ -20,20 +20,24 @@ socket.onmessage = function(e){
             }else{
                 applyComplexFilter(data.expression);
             }
+            
+            // Draw venn diagram
+            draw_venn_diagram();
+            
             current_feature_expression = data.expression;
-        }else if(data.source=='feature_metric_chart'){
-            if(data.expression==""){
-                applyComplexFilter(current_feature_expression);
-            }else{
-                applyComplexFilter(data.expression);
-            }
+            
         }
     }
     else if(data.id=='update_feature'){
         current_feature_expression = data.expression;
     }
     else if(data.id=='test_feature'){
+        // Add a new feature to the driving feature plot
         applyComplexFilter(data.expression);
+        
+        // Draw venn diagram
+        draw_venn_diagram();
+        
         current_feature_expression = data.expression;
         add_current_feature_to_DF_plot();
     }

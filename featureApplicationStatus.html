@@ -69,6 +69,23 @@ and open the template in the editor.
             -webkit-transform: scale(-1, -1);
             transform: scale(-1, -1);
         }
+        
+        .img-rot-90-deg {
+            -webkit-transform: rotate(90deg);
+            -moz-transform: rotate(90deg);
+            -o-transform: rotate(90deg);
+            -ms-transform: rotate(90deg);
+            transform: rotate(90deg);
+        }
+        
+        .img-rot-270-deg {
+            -webkit-transform: rotate(270deg);
+            -moz-transform: rotate(270deg);
+            -o-transform: rotate(270deg);
+            -ms-transform: rotate(270deg);
+            transform: rotate(270deg);
+        }
+        
 
 	</style>
 
@@ -127,6 +144,8 @@ var featureID = 0;
       
 function create_feature_placeholder(){
 
+    var is_tempFeature = true;
+    
     // If the placeholder already exists, return
     if(d3.select('.applied_feature.placeholder')[0][0]){
         return;
@@ -161,8 +180,9 @@ function create_feature_placeholder(){
                 return '{tempFeature}';
             })
             .text('New driving feature to be added')
-            // Gray color by default
-            .style("color","#989898");
+            // Pink color by default
+            .style("color","#F67C9B");
+
 
     this_feature.append('img')
             .attr('src','img/left_arrow.png')
@@ -175,7 +195,34 @@ function create_feature_placeholder(){
             .style('margin-left','13px')
             .on("click",function(d){
                click_left_arrow(id);
-            });;
+            });
+    
+    this_feature.append('img')
+            .attr('src','img/left_arrow.png')
+            .attr('id',function(){
+                return 'downarrow_' + id;
+            })
+            .attr('class','img-rot-270-deg')
+            .attr('width','20')
+            .attr('height','20')
+            .style('float','left')
+            .on("click",function(d){
+    	       click_down_arrow(id);
+            });
+    
+    this_feature.append('img')
+            .attr('src','img/left_arrow.png')
+            .attr('id',function(){
+                return 'uparrow_' + id;
+            })
+            .attr('class','img-rot-90-deg')
+            .attr('width','20')
+            .attr('height','20')
+            .style('float','left')
+            .on("click",function(d){
+    	       click_up_arrow(id);
+            });
+    
     this_feature.append('img')
             .attr('src','img/left_arrow.png')
             .attr('id',function(){
@@ -185,7 +232,7 @@ function create_feature_placeholder(){
             .attr('width','20')
             .attr('height','20')
             .style('float','left')
-            .style('margin-left','4px')
+            .style('margin-left','0px')
             .style('margin-right','7px')
             .on("click",function(d){
                click_right_arrow(id);
@@ -217,6 +264,8 @@ function create_feature_placeholder(){
         this_feature.select('.feature_application_expression').style("color",function(d){
             if(activated){
                 return "#000000"; //black
+            }else if(is_tempFeature){
+                return '#FFB8CA';
             }else{
                 return "#989898"; // gray
             }
@@ -268,7 +317,7 @@ function decompose_feature(input_level, input_logic, input_expression, feature_l
         }else{
         	// Single filter expression
             if(e.indexOf('tempFeature') > -1){
-                return null;
+                return feature_list;
             }else{
                 feature_list.push({level:l,logic:lo,expression:e}); 
                 return feature_list;
@@ -331,15 +380,17 @@ function decompose_feature(input_level, input_logic, input_expression, feature_l
 
             
             
-function add_feature(input_level, input_logic, input_expression, activation, replace_placeholder){    
+function add_feature(input_level, input_logic, input_expression, activation, placeholder_selector){    
+    
+    var is_tempFeature = false;
     
     var applied_features = d3.select('#applied_feature_div');
     var id = featureID++;
     var this_feature;
     
-    if(replace_placeholder){
+    if(placeholder_selector){
         this_feature = applied_features
-                .insert('div','.applied_feature.placeholder');
+                .insert('div', placeholder_selector);
     }else{
         this_feature = applied_features
                 .append('div');
@@ -367,13 +418,26 @@ function add_feature(input_level, input_logic, input_expression, activation, rep
                 return d.text;
             });
     
-    this_feature.append('div')
-            .attr('class','feature_application_expression')
-            .attr('expression',function(d){
-            	return input_expression;
-            })
-            .text(pp_feature(input_expression));
+    if(input_expression=='{tempFeature}'){
+        is_tempFeature = true;
+        this_feature.append('div')
+                .attr('class','feature_application_expression')
+                .attr('expression',function(d){
+                    return '{tempFeature}';
+                })
+                .text('New driving feature to be added')
+                // Gray color by default
+                .style("color","#FFB8CA");
+    }else{
+        this_feature.append('div')
+                .attr('class','feature_application_expression')
+                .attr('expression',function(d){
+                    return input_expression;
+                })
+                .text(pp_feature(input_expression));
+    }
     
+
     this_feature.append('img')
             .attr('src','img/left_arrow.png')
             .attr('id',function(){
@@ -385,7 +449,34 @@ function add_feature(input_level, input_logic, input_expression, activation, rep
             .style('margin-left','13px')
             .on("click",function(d){
     	       click_left_arrow(id);
-            });;
+            });
+    
+    this_feature.append('img')
+            .attr('src','img/left_arrow.png')
+            .attr('id',function(){
+                return 'downarrow_' + id;
+            })
+            .attr('class','img-rot-270-deg')
+            .attr('width','20')
+            .attr('height','20')
+            .style('float','left')
+            .on("click",function(d){
+    	       click_down_arrow(id);
+            });
+    
+    this_feature.append('img')
+            .attr('src','img/left_arrow.png')
+            .attr('id',function(){
+                return 'uparrow_' + id;
+            })
+            .attr('class','img-rot-90-deg')
+            .attr('width','20')
+            .attr('height','20')
+            .style('float','left')
+            .on("click",function(d){
+    	       click_up_arrow(id);
+            });
+    
     this_feature.append('img')
             .attr('src','img/left_arrow.png')
             .attr('id',function(){
@@ -395,7 +486,7 @@ function add_feature(input_level, input_logic, input_expression, activation, rep
             .attr('width','20')
             .attr('height','20')
             .style('float','left')
-            .style('margin-left','4px')
+            .style('margin-left','0px')
             .style('margin-right','7px')
             .on("click",function(d){
                click_right_arrow(id);
@@ -428,13 +519,15 @@ function add_feature(input_level, input_logic, input_expression, activation, rep
         this_feature.select('.feature_application_expression').style("color",function(d){
             if(activated){
                 return "#000000"; //black
+            }else if(is_tempFeature){
+                return '#FFB8CA';
             }else{
                 return "#989898"; // gray
             }
         });
         apply_current_feature_scheme('apply');
     });
-    
+
     
     this_feature.select('.feature_application_logical_connective').on("change",function(d){
         apply_current_feature_scheme('apply');
@@ -474,8 +567,6 @@ function remove_feature(expression){
             this_feature.remove();
         }
     });
-
-    apply_current_feature_scheme('update');
 }
             
             
@@ -501,6 +592,91 @@ function click_right_arrow(n){
 	});
 	apply_current_feature_scheme('apply');
 }
+                     
+            
+function click_up_arrow(n){
+	var source_selector_id = "applied_feature_" + n;
+    var target_selector_id = null;
+    var temp_id = null;
+    
+    var applied_features = d3.selectAll('.applied_feature')[0];
+    
+    applied_features.forEach(function(d){
+        var this_id = d3.select(d).attr('id');
+        if(source_selector_id == this_id){
+            target_selector_id = temp_id;
+        }else{
+            temp_id = this_id;
+        }
+    })
+    
+    // If the target selector is null, that means it cannot go further up
+    if(target_selector_id==null){
+        return;
+    }
+    
+    var target_selector_id = '#' + target_selector_id;
+    var source_feature = d3.select('#'+source_selector_id);
+    
+    var activated = source_feature.select('.feature_application_activate')[0][0].checked;
+    var expression = source_feature.select('.feature_application_expression').attr('expression');
+    var logic = source_feature.select('.feature_application_logical_connective')[0][0].value;
+    var level = source_feature.attr('level');
+        
+    add_feature(level,logic,expression,activated,target_selector_id);
+    
+    d3.select('#'+source_selector_id).remove();
+    
+	apply_current_feature_scheme('apply');
+}   
+            
+            
+function click_down_arrow(n){
+	var source_selector_id = "applied_feature_" + n;
+    var target_selector_id = null;
+
+    var source_found = false;
+    var target_found = false;
+    
+    var applied_features = d3.selectAll('.applied_feature')[0];
+    
+    applied_features.forEach(function(d){
+        
+        var this_id = d3.select(d).attr('id');
+                
+        if(source_selector_id == this_id){
+            source_found = true;
+        }
+        else if(source_found && !target_found){
+            // element right after the source
+            target_found = true;
+            target_selector_id = this_id;
+        }
+    })
+    
+    
+    
+    // If the target selector is null, that means it cannot go further down
+    if(target_selector_id==null){
+        return;
+    }
+    
+    
+    //http://stackoverflow.com/questions/28249941/how-to-insert-after-a-sibling-element-in-d3-js
+    var target_selector_id = '#' + target_selector_id + '+ *';
+    var source_feature = d3.select('#'+source_selector_id);
+    
+    var activated = source_feature.select('.feature_application_activate')[0][0].checked;
+    var expression = source_feature.select('.feature_application_expression').attr('expression');
+    var logic = source_feature.select('.feature_application_logical_connective')[0][0].value;
+    var level = source_feature.attr('level');
+        
+    add_feature(level,logic,expression,activated,target_selector_id);
+    
+    d3.select('#'+source_selector_id).remove();
+    
+	apply_current_feature_scheme('apply');
+}     
             
             
 function click_left_arrow(n){
@@ -610,7 +786,7 @@ function parse_feature_application_status(){
     	}
     }
     
-    console.log(filterExpression);
+    //console.log(filterExpression);
     return filterExpression;
 }     
             
@@ -742,42 +918,47 @@ socket.onmessage = function(e){
     if(data.target!='ifeed.feature_application_status') return;
     
     if(data.id=='request'){
+        // Request to update the current feature to the main ifeed GUI
         apply_current_feature_scheme('update');
         return;
+        
     }else if(data.id=='update'){
+        // Request to update the feature application status
         
         var expression = data.expression;
         var option = data.option;
         
         if(option=='remove'){
-            
+            // Remove a given feature from the application list
             remove_feature(expression);
             apply_current_feature_scheme('apply');
          
         }else if(option=='create_placeholder'){
-                 
+            // Newly create a new placeholder if it doesn't exist already
             create_feature_placeholder();
             
         }else if(option=='update_placeholder'){
-            
+            // Replace the placeholder with the actual feature expression
+                        
             var placeholder = d3.select('.applied_feature.placeholder');
             var replace_placeholder = true;
-            
+            var individual_features;
+                        
             if(placeholder[0][0]==null){
-
-                var individual_features = decompose_feature(0, '&&', expression, []);
+                // If the placeholder does not exist, simply add a new feature using conjunction
+                individual_features = decompose_feature(0, '&&', expression, []);
                 var first_logic = '&&';
                 var last_feature_level = 0;
                 var activation = true;
                 replace_placeholder = false;
                 
             }else{
-                
+                // If the placeholder exists, define new features in the placeholder's position
                 var placeholder_logic = placeholder.select('.feature_application_logical_connective')[0][0].value;
                 var placeholder_level = placeholder.attr('level');
                 var placeholder_activated = placeholder.select('.feature_application_activate')[0][0].checked;
 
-                var individual_features = decompose_feature(0, '&&', expression, []);
+                individual_features = decompose_feature(0, '&&', expression, []);
                 var first_logic;
                 var last_feature_level = placeholder_level;
                 var activation = placeholder_activated;
@@ -788,20 +969,28 @@ socket.onmessage = function(e){
                     first_logic = '||';
                 }
             }
-
+            
             // Add individual features
             for(var i=0;i<individual_features.length;i++){
                 var logic = individual_features[i].logic;
                 if(i==0) logic = first_logic;
                 var level = individual_features[i].level + last_feature_level;
                 var exp = individual_features[i].expression;
-                add_feature(level,logic,exp,activation,replace_placeholder);
+                
+                if(replace_placeholder){
+                    var placeholder_selector = '.applied_feature.placeholder';
+                }
+                
+                add_feature(level,logic,exp,activation,placeholder_selector);
             }
             
             placeholder.remove();
             create_feature_placeholder();
             
-        }else{ // option: {'new','add','within','deactivated'}
+        }else{ 
+            // Add a new preset feature from the filter settings
+            
+            // option: {'new','add','within','deactivated'}
             
             var individual_features = decompose_feature(0, '&&', expression, []);
             var first_logic = '&&';
@@ -828,7 +1017,8 @@ socket.onmessage = function(e){
                     activation=false;
                     break;
                 default:
-                    // 
+                    // Do nothing
+                    break;
             }
             
             // Add individual features
