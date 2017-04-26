@@ -17,67 +17,32 @@ and open the template in the editor.
         <link href="css/filter.css" rel="stylesheet" type="text/css"/>
         <link href="css/drivingFeatures.css" rel="stylesheet" type="text/css"/>
         <link href="css/classificationTree.css" rel="stylesheet" type="text/css"/>
+        <link href="css/featureApplication.css" rel="stylesheet" type="text/css"/>
 	   
         <script src="https://apis.google.com/js/platform.js" async defer></script>
         <meta name="google-signin-client_id" content="564804694787-lnsp9md3u0q8086nftbamu43drid6d4t.apps.googleusercontent.com">
 
 	<style>
-            #scatterPlotFigure {
-			    border-style: solid;
-			    border-width: 3.3px;
-                width: 960;
-                height: 540px;
-                float: left;
-                margin-right: 10px;
-                margin-left:0px;
-                margin-top:0px;
-            }
-			.select_within_range_text_box{
-                margin-top: 3px;
-                margin-bottom: 3px;
-                width: 65px;
-			}
 
-
-            #dropdown_presetDesignFeatures{
-                margin-top: 7px;
-            }
 
             .main_options button{
             	margin-top: 3px;
             	margin-bottom: 3px;
                 width: 170px;
             }
-            #data_mining_option_div button{
+        
+            #selection_option_div button{
             	margin-top: 3px;
             	margin-bottom: 3px;
                 width: 170px;
-            }
-            selection_option_div button{
-            	margin-top: 3px;
-            	margin-bottom: 3px;
-                width: 170px;
-            }           
-			                
-
-            
-			.node circle {
-			  cursor: pointer;
-			  fill: #fff;
-			  stroke: steelblue;
-			  stroke-width: 0px;
+            }     
+        
+			.select_within_range_text_box{
+                margin-top: 3px;
+                margin-bottom: 3px;
+                width: 65px;
 			}
-			
-			.node text {
-			  font-size: 11px;
-			}
-			
-			path.treeLink {
-			  fill: none;
-			  stroke: #ccc;
-			  stroke-width: 1.5px;
-			}
-
+        
             .axis path,
             .axis line {
                 fill: none;
@@ -90,20 +55,13 @@ and open the template in the editor.
                 stroke-width: 0;
             }
 
-            .grid .tick {
-                stroke: lightgrey;
-                opacity: 0.7;
-            }
-            .grid path {
-                stroke-width: 0;
-            }
-
 
             #arch_cell{ 
                 border: 1px solid black;
                 padding: 10px;
                 vertical-align: central;
             }
+        
             #inst_cell{
                 border: 1px solid black;
                 padding: 3px;
@@ -113,49 +71,9 @@ and open the template in the editor.
                 font-family: 'Helvetica Neue', Helvetica; font-weight: 300; padding: 5px;
                 font-size: 15px;
             }
-            #evalNewArch{
-                margin-top: 4px;
-                margin-bottom: 14px;
-            }
+        
 
 
-            #filter_inputs{
-                width:95%;
-                float:left;
-                margin-left: 2px;
-                margin-top: 8px;
-            }
-            
-            #filter_input1_textBox{
-                width:180px;
-                margin-left:5px;
-                margin-right:2px;
-                margin-top: 10px;
-                margin-bottom:10px;
-            }
-            #filter_input2_textBox{
-                width:180px;
-                margin-left:5px;
-                margin-right:2px;
-                margin-top: 10px;
-            }
-            #filter_input3_textBox{
-                width:180px;
-                margin-left:5px;
-                margin-right:2px;
-                margin-top: 10px;
-            }
-            
-            #filter_expression{
-                color: black;
-                border: 1px black solid;
-                height: 60px;
-                width: 80%;
-                float: left;
-                margin-left: 5px;
-                overflow:scroll;
-            }
-            
 			#clockdiv{
 			    font-family: sans-serif;
 			    color: #fff;
@@ -181,12 +99,7 @@ and open the template in the editor.
 			    display: inline-block;
 			}
 			
-			.smalltext{
-				color: #787878;
-			    padding-top: 5px;
-			    font-size: 16px;
-			}
-            
+
             .toggle-selection-option-div div{
             	width:100%;
             	height:25px;
@@ -216,7 +129,6 @@ and open the template in the editor.
 			    opacity: 0;
 			    transition: opacity 0.3s;
 			}
-	
 			
 			
 			/* Show the tooltip text when you mouse over the tooltip container */
@@ -225,8 +137,8 @@ and open the template in the editor.
 			    visibility: visible;
 			}
             
-            
-	
+
+
 	</style>
 
 
@@ -237,12 +149,10 @@ and open the template in the editor.
         </div>
 
 		
-		
-		<div style="float:left;width:100%; height:1400px; margin-top: 20px">
-			<div style="width:1300px; margin:auto">
+		<div style="float:left; width:100%; height:1400px; margin-top: 20px">
+			<div style="width:1740px; margin:auto;">
 
-		        <div id="StatusBar" style="width: 100%; float:left; margin-top:10px; margin-bottom:5px;
-		                height: 30px;">
+		        <div id="StatusBar" style="width: 100%; float:left; margin-top:10px; margin-bottom:5px; margin-left:510px;height: 30px;">
 		           <div id="numOfArchs" style="float:left;width:210px;height:25px;">
 		               <div style="font-size:18px; line-height:25px;height: 25px; float:left;margin-left: 1px;">Number of designs:</div>
 		               <div id="numOfArchs_inputBox" style="width:50px;text-align: center;line-height:25px;margin-left:3px;font-size:18px; height: 25px; float:left;background-color: #D5D5D5;"></div>
@@ -254,11 +164,44 @@ and open the template in the editor.
 		           
 		        </div>
 		
-		
-		        <div id="firstLineOfFigs" style="margin-bottom: 10px;width: 100%%;height: 540px;float: left;">
+                
+                
+                <div id='panel_1' style='float:left; width:500px; height:1050px;'>
+                    <div style='width:450px; height: 1050px; border-style:solid; border-width:1px; margin-right:15px; float:right'>
+                        <div id='featureApplicationStatusPanel' style='float:left;
+                                                                       width:450px;
+                                                                       height:1050px;
+                                                                       padding:20px;
+                                                                       overflow:scroll;
+                                                                       background-color;#E0E0E0;'>
+                        
+                        
+                            <div id='feature_application_options_panel' style="width:100%;">
+                                <button id='toggle_feature_scheme' class='feature_application_options_button'>Deactivate all features</button>
+                                <button id='test_feature_scheme' class='feature_application_options_button'>Test current feature</button>
+                            </div>
+                            
+                            <div id='feature_application_status' style='width:100%; padding:5px; float:left;'>
+                                <div id='applied_feature_div'></div>
+                        
+
+                            </div>
+                        
+                        </div>
+                    </div>
+
+                </div>
+		        <div id="panel_2" style="margin-bottom: 10px;width: 1240px ;height: 540px;float: left;">
 		            
-		            <figure id="scatterPlotFigure"></figure>
-		            
+		            <figure id="scatterPlotFigure" style="border-style: solid;
+                                                          border-width: 3.3px;
+                                                          width: 960;
+                                                          height: 540px;
+                                                          float: left;
+                                                          margin-right: 10px;
+                                                          margin-left:0px;
+                                                          margin-top:0px;"></figure>
+                    
  		            <div id="OptionsPane" class="main_options" style="float:left; width: 250px; height: 540px;border: 1px black double;">
  		            	<div style="width:225px;height:535px;margin:auto;">
 		            		
@@ -323,16 +266,18 @@ and open the template in the editor.
 		
  		            </div>
 		        </div>
+                
 		
-		      
-		
-		        <div id="secondLineOfFigs" style="float:left;margin-top: 5px; width: 100%;">
+		        <div id="panel_3" style="float:left; margin-top: 5px; width:1240px;">
 		        
 		        
-				    <div id="supportPanel" style="width: 1212px; margin: 0 auto; float:left;border-style: solid;
+				    <div id="supportPanel" style="width: 1212px; margin: 0 auto; 
+                                        float:left;
+                                        border-style: solid;
 				    					border-width: 1px;
 				    					hbmargin-left: 0px;font-family: 'Helvetica Neue', Helvetica; 
 		              					font-weight: 300; 
+                                        min-height: 480px;
 		              					overflow-y: scroll;
 		              					padding: 5px;"> 
 								
@@ -340,13 +285,13 @@ and open the template in the editor.
 				            <li><a id="tab1" href="#view1">Inspect Design</a></li>
 				            <li><a id="tab2" href="#view2">Filter Setting</a></li>
 				            <li><a id="tab3" href="#view3">Driving Features</a></li>
-				            <li><a id="tab4" href="#view4">Classification Tree</a></li>
+                            <!--<li><a id="tab4" href="#view4">Classification Tree</a></li>-->
 				        </ul>
 				        <div class="tabcontents">
 				            <div id="view1"></div>
 				            <div id="view2"></div>
 				            <div id="view3"></div>
-				            <div id="view4"></div>
+                            <!-- <div id="view4"></div>-->
 				        </div>
 				    </div>
 		        
@@ -359,9 +304,9 @@ and open the template in the editor.
         <script src="js/filter.js" type="text/javascript"></script>
         <script src="js/scatterPlotUI.js" type="text/javascript"></script>
         <script src="js/drivingFeatures.js" type="text/javascript"></script>
-        <script src="js/classificationTree.js" type="text/javascript"></script>
+        <!-- <script src="js/classificationTree.js" type="text/javascript"></script>-->
         <script src="js/relabel.js" type="text/javascript"></script>
-       
+        <script src="js/featureApplication.js" type="text/javascript"></script>
 	   
 	   
        <script>
@@ -415,6 +360,8 @@ and open the template in the editor.
             var defaultColor_mouseover = "#BABABA";
             var highlightedColor_mouseover = "#FFDEE8";
 
+           
+           
             // Driving features variables
             var DrivingFeaturePlot_xScale;
             var DrivingFeaturePlot_yScale;

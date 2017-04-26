@@ -1,155 +1,10 @@
-<!DOCTYPE html>
-<!--
-To change this license header, choose License Headers in Project Properties.
-To change this template file, choose Tools | Templates
-and open the template in the editor.
--->
-<html>
-    <head>
-        <title>Feature Application Status</title>
-        <meta charset="UTF-8">
-        <meta name="viewport" content="width=device-width, initial-scale=1.0">
-
-        <script src="js/lib/jquery.js" type="text/javascript"></script>
-        <script src="js/lib/d3.js"></script>
-	   
-	<style>
-
-
-        #title{
-            margin-bottom: 18px;
-            margin-left: 3px;
-            font-size: 18px;
-        }
-        
-        #application_status{
-            width:850px;
-            padding:20px;
-            background-color: #E0E0E0; 
-            float:left;
-        }
-        
-        .application_options_button{
-            margin-left: 10px;
-            float:left;
-        }
-
-        .applied_feature{
-            width:100%;
-            margin-bottom: 4px;
-            float:left;
-        }
-
-        .feature_application_delete{
-            background-color: #FF5151;
-            float:left;
-            margin-top:13px;
-        }
-        .feature_application_activate {
-            float:left;
-            margin-right:12px;
-            margin-top:14px;
-        }
-        .feature_application_logical_connective {
-            float: left;
-            margin-right:4px;
-        }
-        .feature_application_expression{
-            float: left;
-            margin-right:4px;
-            margin-top:13px
-        }
-        .arrow{
-            margin-top:13px;
-        }
-
-
-        body {
-            font: sans-serif;
-        }
-
-        
-        .img-hor-vert {
-            -moz-transform: scale(-1, -1);
-            -o-transform: scale(-1, -1);
-            -webkit-transform: scale(-1, -1);
-            transform: scale(-1, -1);
-        }
-        
-        .img-rot-90-deg {
-            -webkit-transform: rotate(90deg);
-            -moz-transform: rotate(90deg);
-            -o-transform: rotate(90deg);
-            -ms-transform: rotate(90deg);
-            transform: rotate(90deg);
-        }
-        
-        .img-rot-270-deg {
-            -webkit-transform: rotate(270deg);
-            -moz-transform: rotate(270deg);
-            -o-transform: rotate(270deg);
-            -ms-transform: rotate(270deg);
-            transform: rotate(270deg);
-        }
-        
-
-	</style>
-
-
-    </head>
-    <body>
-<!--
-    #application_status (div)
-        #applied_feature_div
-            #applied_feature_1 .applied_feature (div)
-                .feature_application_activate
-                .feature_application_logical_connective
-                .feature_application_expression
-                .feature_application_delete
--->
-        
-        
-        <div id='title_div' style='width:100%; margin-top:20px; margin-bottom:20px;'>
-            <h2 id='title', style='margin:auto;font-size:18px'>Feature Application Status</h2>
-        </div>
-        
-        <div id='options_panel_div' style='width:100%; float:left; margin-top:10px; margin-bottom:20px;'>
-            <div id='options_panel' style='margin-left: 10px;'>
-                <button id='toggle_feature_scheme' class='application_options_button'>
-                    Deactivate all features
-                </button>
-          
-                <button id='test_feature_scheme' class='application_options_button'>
-                    Test current feature
-                </button>
-                
-                
-
-            </div>
-        </div>
-        
-        <div id='application_status'>
-            <div id='applied_feature_div'></div>
-        </div>
-        
-        <script src="js/util.js" type="text/javascript"></script>
-        <script src="js/relabel.js" type="text/javascript"></script>
-        <script>
-
-            
-var key = window.location.search;
-key = key.substring(1);            
-
-            
 
 var features_activation_store = [];
 var featureID = 0;    
       
             
-
-            
-         
-            
+     
+ 
 
 function decompose_feature(input_level, input_logic, input_expression, feature_list){
     
@@ -236,10 +91,7 @@ function decompose_feature(input_level, input_logic, input_expression, feature_l
     return feature_list;
 }
 
-     
-            
-  
-       
+
       
 function create_feature_placeholder(){
     // If the placeholder already exists, return
@@ -390,7 +242,7 @@ function add_feature(input_level, input_logic, input_expression, activation, pla
         adjust_margin_logical_connective();
         
         if(activated){
-            apply_current_feature_scheme('apply');
+            apply_current_feature_scheme();
         }
     });
     
@@ -411,12 +263,12 @@ function add_feature(input_level, input_logic, input_expression, activation, pla
                 return "#989898"; // gray
             }
         });
-        apply_current_feature_scheme('apply');
+        apply_current_feature_scheme();
     });
 
     
     this_feature.select('.feature_application_logical_connective').on("change",function(d){
-        apply_current_feature_scheme('apply');
+        apply_current_feature_scheme();
     });
     
 
@@ -481,7 +333,7 @@ function click_right_arrow(n){
 		var margin = 12 + level*arrow_margin;
 		return margin+"px";
 	});
-	apply_current_feature_scheme('apply');
+	apply_current_feature_scheme();
 }
                      
             
@@ -520,7 +372,7 @@ function click_up_arrow(n){
     
     adjust_margin_logical_connective();
     
-	apply_current_feature_scheme('apply');
+	apply_current_feature_scheme();
 }   
             
             
@@ -552,7 +404,7 @@ function click_down_arrow(n){
         return;
     }
     
-    
+    // Copy the source selector and locate it right after the target selector
     //http://stackoverflow.com/questions/28249941/how-to-insert-after-a-sibling-element-in-d3-js
     var target_selector_id = '#' + target_selector_id + '+ *';
     var source_feature = d3.select('#'+source_selector_id);
@@ -568,7 +420,7 @@ function click_down_arrow(n){
     
     adjust_margin_logical_connective();
     
-	apply_current_feature_scheme('apply');
+	apply_current_feature_scheme();
 }     
             
             
@@ -590,7 +442,7 @@ function click_left_arrow(n){
 		var margin = 12 + level*arrow_margin;
 		return margin+"px";
 	});
-	apply_current_feature_scheme('apply');
+	apply_current_feature_scheme();
 }
         
             
@@ -692,73 +544,26 @@ function parse_feature_application_status(){
 }     
             
             
-            
-            
-function apply_current_feature_scheme(option){
+
+// Apply the current feature scheme
+function apply_current_feature_scheme(){
 
     var expression = parse_feature_application_status();
-   
-    var data = {
-        key:key,
-        source:'feature_application_status',
-        expression:expression,
-        option:option
+    
+    if(expression==""){
+        cancelDotSelections('remove_highlighted');
+    }else{
+        applyComplexFilter(expression);
     }
+    // Draw venn diagram
+    draw_venn_diagram();
+    current_feature_expression = expression;
+}
+                
 
-    $.ajax({
-        url: "/api/ifeed/apply-feature-expression/",
-        type: "POST",
-        data: data,
-        async: false,
-        error: function (jqXHR, textStatus, errorThrown){
-            alert("Error in applying the current filter scheme");
-        }
-    });
-    return;
-}
-            
-            
-      
-function getOrbitList() {
-    var orbitList;
-    $.ajax({
-        url: "/api/vassar/get-orbit-list/",
-        type: "POST",
-        async: false,
-        success: function (data, textStatus, jqXHR)
-        {
-            orbitList = data;
-        },
-        error: function (jqXHR, textStatus, errorThrown)
-        {
-            alert("error");
-        }
-    });
-    return orbitList;
-}
-            
-            
-function getInstrumentList() {
-    var instrumentList;
-    $.ajax({
-        url: "/api/vassar/get-instrument-list/",
-        type: "POST",
-        async: false,
-        success: function (data, textStatus, jqXHR)
-        {
-            instrumentList = data;
-        },
-        error: function (jqXHR, textStatus, errorThrown)
-        {
-            alert("error");
-        }
-    });
-    return instrumentList;
-}
-           
             
 function test_feature(){
-    	
+
     var application_status = d3.select('#applied_feature_div');
     var count = application_status.selectAll('.applied_feature').size();
     var first_expression = application_status
@@ -770,9 +575,13 @@ function test_feature(){
     }else if(count==1 && first_expression.indexOf('tempFeature')>-1){
         return;
     }else{
-        apply_current_feature_scheme('test');
+        apply_current_feature_scheme();
+        add_current_feature_to_DF_plot();
     }
 }
+
+
+
 
 function toggle_feature_activation(){
 
@@ -798,7 +607,7 @@ function toggle_feature_activation(){
         });
         reset_feature_activation();
     }
-    apply_current_feature_scheme('apply');
+    apply_current_feature_scheme();
 }
 
             
@@ -807,9 +616,9 @@ function reset_feature_activation(){
     features_activation_store = [];
 }         
 
-            
-            
-var socket = new WebSocket("ws://127.0.0.1:8001/ifeed/"+key);
+
+
+
 socket.onmessage = function(e){
     
     var text = e.data;
@@ -935,23 +744,7 @@ socket.onmessage = function(e){
 };   
             
 
-var orbitList = getOrbitList();
-var instrList = getInstrumentList(); 
-var norb = orbitList.length;
-var ninstr = instrList.length;
 
             
 d3.select('#toggle_feature_scheme').on('click',toggle_feature_activation);
 d3.select('#test_feature_scheme').on('click',test_feature);     
-            
-        </script>
-    </body>
-</html>
-
-
-
-
-
-    
-    
-    

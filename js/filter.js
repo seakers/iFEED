@@ -52,15 +52,15 @@ function openFilterOptions(){
     d3.select("#filter_buttons").append("button")
             .attr("id","applyFilterButton_new")
             .attr("class","filter_options_button")
-            .text("Apply as a new filter");
+            .text("Apply new feature");
     d3.select("#filter_buttons").append("button")
             .attr("class","filter_options_button")
             .attr("id","applyFilterButton_add")
-            .text("Add to current filter");
+            .text("Apply OR");
     d3.select("#filter_buttons").append("button")
             .attr("id","applyFilterButton_within")
             .attr("class","filter_options_button")
-            .text("Search within selection");
+            .text("Apply AND");
     
     d3.select("#filter_options_dropdown_1").on("change",filter_options_dropdown_preset_filters);    
 

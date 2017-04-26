@@ -20,9 +20,6 @@ function runDataMining() {
     // If the target selection hasn't changed, then use previously obtained driving features to display
     if(selection_changed == false && sortedDFs != null){
 		display_drivingFeatures(sortedDFs,"lift");
-		if(testType=="3"){
-			display_classificationTree(jsonObj_tree);
-		}
 		return;
 	}
     
@@ -62,16 +59,15 @@ function runDataMining() {
 
 		
 		var build_classification_tree = false;
-        if(testType=="3" && turn_on_apriori==false){
-			build_classification_tree = true;
-           //jsonObj_tree = buildClassificationTree();
-        }
+//        if(testType=="3" && turn_on_apriori==false){
+//			build_classification_tree = true;
+//           //jsonObj_tree = buildClassificationTree();
+//        }
         
         
         sortedDFs = generateDrivingFeatures(selected,non_selected,support_threshold,confidence_threshold,lift_threshold,userdef_features,"lift",build_classification_tree);
         
         sortedDFs = sortedDFs.concat(added_features);
-        build_classification_treedDFs = sortDrivingFeatures(sortedDFs,'lift')
 
         
         if(sortedDFs.length==0){
@@ -81,12 +77,7 @@ function runDataMining() {
         
         display_drivingFeatures(sortedDFs,"lift");
         
-        // Display classification tree
-        if(testType=="3" && turn_on_apriori==false){
-        	//display_classificationTree(jsonObj_tree);
-        }
-        
-        
+
         selection_changed = false;
         update_feature_application_status('', 'create_placeholder');
     }

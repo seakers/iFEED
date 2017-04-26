@@ -1,0 +1,60 @@
+
+
+
+.application_options_button{
+    margin-left: 10px;
+    float:left;
+}
+
+.applied_feature{
+    width:100%;
+    margin-bottom: 4px;
+    float:left;
+}
+
+.feature_application_delete{
+    background-color: #FF5151;
+    float:left;
+    margin-top:13px;
+}
+.feature_application_activate {
+    float:left;
+    margin-right:12px;
+    margin-top:14px;
+}
+.feature_application_logical_connective {
+    float: left;
+    margin-right:4px;
+}
+.feature_application_expression{
+    float: left;
+    margin-right:4px;
+    margin-top:13px
+}
+.arrow{
+    margin-top:13px;
+}
+
+
+.img-hor-vert {
+    -moz-transform: scale(-1, -1);
+    -o-transform: scale(-1, -1);
+    -webkit-transform: scale(-1, -1);
+    transform: scale(-1, -1);
+}
+
+.img-rot-90-deg {
+    -webkit-transform: rotate(90deg);
+    -moz-transform: rotate(90deg);
+    -o-transform: rotate(90deg);
+    -ms-transform: rotate(90deg);
+    transform: rotate(90deg);
+}
+
+.img-rot-270-deg {
+    -webkit-transform: rotate(270deg);
+    -moz-transform: rotate(270deg);
+    -o-transform: rotate(270deg);
+    -ms-transform: rotate(270deg);
+    transform: rotate(270deg);
+}

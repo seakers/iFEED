@@ -48,6 +48,7 @@
 
 
 
+
 #filter_options{
     width: 100%;
     float: left;
@@ -127,6 +128,9 @@
 
 
 
+
+
+
 /* Filter Hints */
 
 .filter_hints_div{
@@ -135,9 +139,3 @@
     color: #696969;    
 }
 
-.img-hor-vert {
-    -moz-transform: scale(-1, -1);
-    -o-transform: scale(-1, -1);
-    -webkit-transform: scale(-1, -1);
-    transform: scale(-1, -1);
-}
