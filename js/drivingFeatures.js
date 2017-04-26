@@ -523,8 +523,10 @@ function feature_click(d){
 //        selected_features_expressions.push(expression);
 //        option='within';
 //    }
-
-    update_feature_application_status(expression, 'update_placeholder');    
+    
+    
+    update_feature_application_status(expression, 'update_placeholder'); 
+    draw_venn_diagram();  
 }
             
 
@@ -620,7 +622,6 @@ function feature_mouseover(d){
     }
     
     applyComplexFilter(current_feature_expression.replace('{tempFeature}','('+expression+')'));
-    
     draw_venn_diagram();           
 }
 

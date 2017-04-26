@@ -936,6 +936,7 @@ function applyFilter(option){
     d3.select("[id=numOfSelectedArchs_inputBox]").text("" + numOfSelectedArchs()); 
     
     update_feature_application_status(filterExpression, option);
+    draw_venn_diagram();  
 }
 
 
@@ -1058,114 +1059,6 @@ function applyComplexFilter(input_expression){
 
 
 
-
-function request_feature_application_status(){
-    $.ajax({
-        url: "/api/ifeed/request-feature-application-status/",
-        type: "POST",
-        data: {key:key},
-        async: false,
-        error: function (jqXHR, textStatus, errorThrown)
-        {alert("Error in getting the feature application status");}
-    });
-}
-
-
-
-
-function update_feature_application_status(expression, option){
-    
-    var request_feature_update = false;
-    
-    var url = '/api/ifeed/update-feature-application-status/';
-    
-    
-    if(option=='new'){
-        current_feature_expression = expression;
-    }else if(option=='within' && current_feature_expression!=''){
-        current_feature_expression = current_feature_expression + '&&' + expression;
-    }else if(option=='add' && current_feature_expression!=''){
-        current_feature_expression = current_feature_expression + '||' + expression;
-    }else if(option=='deactivated'){
-        // pass
-    }else if(option=='remove'){
-        // Modify the expression after updating
-        request_feature_update = true;
-    }else if(option=='create_placeholder'){
-        request_feature_update=true;
-    }else if(option=='update_placeholder'){
-         request_feature_update = true;
-    }else{
-        current_feature_expression = expression;
-    }
-    
-
-    $.ajax({
-        url: url,
-        type: "POST",
-        data: {key:key,
-               expression:expression,
-               option:option},
-        async: false,
-        error: function (jqXHR, textStatus, errorThrown)
-        {alert("Error in updating feature application status");}
-    });
-    
-    if(request_feature_update){
-        request_feature_application_status();
-    }
-}
-
-
-
-
-
-function update_feature_metric_chart(expression){
-    
-    var url, supp, conf_given_f, conf_given_s, lift;
-    
-    // If expression is null, reset the plots
-    if(expression==null){
-        expression = "";
-        supp = 0; conf_given_f =0; conf_given_s = 0; lift = 0;
-    }
-    else{
-        var total = numOfArchs();
-        var selected = d3.selectAll('.dot.archPlot.selected')[0].length;
-        var highlighted = d3.selectAll('.dot.archPlot.highlighted')[0].length;
-        var intersection = d3.selectAll('.dot.archPlot.selected.highlighted')[0].length;
-
-        if(selected==0 || highlighted==0){
-            return;
-        }
-
-        var p_snf = intersection/total;
-        var p_s = selected/total;
-        var p_f = highlighted/total;
-
-        supp = p_snf;
-        conf_given_f = supp / p_f;
-        conf_given_s = supp / p_s;
-        lift = p_snf/(p_f*p_s); 
-    }
-    
-    $.ajax({
-        url: "/api/ifeed/update-feature-metric-chart/",
-        type: "POST",
-        data: {key:key,
-               expression:expression,
-               supp:supp,
-               conf_given_f:conf_given_f,
-               conf_given_s:conf_given_s,
-               lift:lift
-              },
-        async: false,
-        error: function (jqXHR, textStatus, errorThrown)
-        {alert("Error in updating feature metric chart");}
-    });
-    
-    //add_current_feature_to_DF_plot();
-}
 
 
 

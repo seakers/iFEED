@@ -2,9 +2,7 @@
 var features_activation_store = [];
 var featureID = 0;    
       
-            
-     
- 
+
 
 function decompose_feature(input_level, input_logic, input_expression, feature_list){
     
@@ -619,131 +617,113 @@ function reset_feature_activation(){
 
 
 
-socket.onmessage = function(e){
-    
-    var text = e.data;
-    var data = JSON.parse(text);
-    
-    // If the target is not feature application status page, return.
-    if(data.target!='ifeed.feature_application_status') return;
-    
-    if(data.id=='request'){
-        // Request to update the current feature to the main ifeed GUI
-        apply_current_feature_scheme('update');
-        return;
-        
-    }else if(data.id=='update'){
-        // Request to update the feature application status
-        
-        var expression = data.expression;
-        var option = data.option;
-        
-        if(option=='remove'){
-            // Remove a given feature from the application list
-            remove_feature(expression);
-            apply_current_feature_scheme('apply');
-         
-        }else if(option=='create_placeholder'){
-            // Newly create a new placeholder if it doesn't exist already
-            create_feature_placeholder();
-            
-        }else if(option=='update_placeholder'){
-            // Replace the placeholder with the actual feature expression
-                        
-            var placeholder = d3.select('.applied_feature.placeholder');
-            var replace_placeholder = true;
-            var individual_features;
-                        
-            if(placeholder[0][0]==null){
-                // If the placeholder does not exist, simply add a new feature using conjunction
-                individual_features = decompose_feature(0, '&&', expression, []);
-                var first_logic = '&&';
-                var last_feature_level = 0;
-                var activation = true;
-                replace_placeholder = false;
-                
-            }else{
-                // If the placeholder exists, define new features in the placeholder's position
-                var placeholder_logic = placeholder.select('.feature_application_logical_connective')[0][0].value;
-                var placeholder_level = placeholder.attr('level');
-                var placeholder_activated = placeholder.select('.feature_application_activate')[0][0].checked;
 
-                individual_features = decompose_feature(0, '&&', expression, []);
-                var first_logic;
-                var last_feature_level = placeholder_level;
-                var activation = placeholder_activated;
 
-                if(placeholder_logic=='&&'){
-                    first_logic = '&&';
-                }else{
-                    first_logic = '||';
-                }
-            }
-            
-            // Add individual features
-            for(var i=0;i<individual_features.length;i++){
-                var logic = individual_features[i].logic;
-                if(i==0) logic = first_logic;
-                var level = individual_features[i].level + last_feature_level;
-                var exp = individual_features[i].expression;
-                
-                if(replace_placeholder){
-                    var placeholder_selector = '.applied_feature.placeholder';
-                }
-                
-                add_feature(level,logic,exp,activation,placeholder_selector);
-            }
-            
-            placeholder.remove();
-            create_feature_placeholder();
-            
-        }else{ 
-            // Add a new preset feature from the filter settings
-            
-            // option: {'new','add','within','deactivated'}
-            
-            var individual_features = decompose_feature(0, '&&', expression, []);
+function update_feature_application_status(expression,option){
+
+    if(option=='remove'){
+        // Remove a given feature from the application list
+        remove_feature(expression);
+
+    }else if(option=='create_placeholder'){
+        // Newly create a new placeholder if it doesn't exist already
+        create_feature_placeholder();
+
+    }else if(option=='update_placeholder'){
+        // Replace the placeholder with the actual feature expression
+
+        var placeholder = d3.select('.applied_feature.placeholder');
+        var replace_placeholder = true;
+        var individual_features;
+
+        if(placeholder[0][0]==null){
+            // If the placeholder does not exist, simply add a new feature using conjunction
+            individual_features = decompose_feature(0, '&&', expression, []);
             var first_logic = '&&';
             var last_feature_level = 0;
             var activation = true;
-            
-            // Different configuration depending on what option is used
-            switch(option) {
-                case 'new':
-                    // Activate only the current filter
-                    d3.selectAll('.feature_application_activate')[0].forEach(function(d){
-                        d3.select(d)[0][0].checked=false;
-                    })
-                    d3.selectAll('.feature_application_expression').style("color","#989898"); // gray
-                    break;
-                case 'add':
-                    first_logic = '||';
-                    last_feature_level = get_last_feature_level();
-                    break;
-                case 'within':
-                    last_feature_level = get_last_feature_level();
-                    break;
-                case 'deactivated':
-                    activation=false;
-                    break;
-                default:
-                    // Do nothing
-                    break;
-            }
-            
-            // Add individual features
-            for(var i=0;i<individual_features.length;i++){
-                var logic = individual_features[i].logic;
-                if(i==0) logic = first_logic;
-                var level = individual_features[i].level + last_feature_level;
-                var exp = individual_features[i].expression;
-                add_feature(level,logic,exp,activation);
+            replace_placeholder = false;
+
+        }else{
+            // If the placeholder exists, define new features in the placeholder's position
+            var placeholder_logic = placeholder.select('.feature_application_logical_connective')[0][0].value;
+            var placeholder_level = placeholder.attr('level');
+            var placeholder_activated = placeholder.select('.feature_application_activate')[0][0].checked;
+
+            individual_features = decompose_feature(0, '&&', expression, []);
+            var first_logic;
+            var last_feature_level = placeholder_level;
+            var activation = placeholder_activated;
+
+            if(placeholder_logic=='&&'){
+                first_logic = '&&';
+            }else{
+                first_logic = '||';
             }
         }
-    }
-};   
-            
 
+        // Add individual features
+        for(var i=0;i<individual_features.length;i++){
+            var logic = individual_features[i].logic;
+            if(i==0) logic = first_logic;
+            var level = individual_features[i].level + last_feature_level;
+            var exp = individual_features[i].expression;
+
+            if(replace_placeholder){
+                var placeholder_selector = '.applied_feature.placeholder';
+            }
+
+            add_feature(level,logic,exp,activation,placeholder_selector);
+        }
+
+        placeholder.remove();
+        create_feature_placeholder();
+
+    }else{ 
+        // Add a new preset feature from the filter settings
+        // option: {'new','add','within','deactivated'}
+
+        var individual_features = decompose_feature(0, '&&', expression, []);
+        var first_logic = '&&';
+        var last_feature_level = 0;
+        var activation = true;
+
+        // Different configuration depending on what option is used
+        switch(option) {
+            case 'new':
+                // Activate only the current filter
+                d3.selectAll('.feature_application_activate')[0].forEach(function(d){
+                    d3.select(d)[0][0].checked=false;
+                })
+                d3.selectAll('.feature_application_expression').style("color","#989898"); // gray
+                break;
+            case 'add':
+                first_logic = '||';
+                last_feature_level = get_last_feature_level();
+                break;
+            case 'within':
+                last_feature_level = get_last_feature_level();
+                break;
+            case 'deactivated':
+                activation=false;
+                break;
+            default:
+                // Do nothing
+                break;
+        }
+
+        // Add individual features
+        for(var i=0;i<individual_features.length;i++){
+            var logic = individual_features[i].logic;
+            if(i==0) logic = first_logic;
+            var level = individual_features[i].level + last_feature_level;
+            var exp = individual_features[i].expression;
+            add_feature(level,logic,exp,activation);
+        }
+    }   
+    
+    current_feature_expression = parse_feature_application_status();
+}
 
             
 d3.select('#toggle_feature_scheme').on('click',toggle_feature_activation);
