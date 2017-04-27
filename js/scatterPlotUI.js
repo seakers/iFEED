@@ -398,52 +398,102 @@ function show_all_archs(){
 
 
 function arch_mouseover(d) {
-
-	if(supportPanel_active===true){
+    
+    // The support panel is active, disable hovering 
+	if(supportPanel_active){
 		return;
 	}
 	
 	numOfArchViewed = numOfArchViewed+1;
 	
     
+    check_satisfied_features(d.bitString);
+    
+    // Change the color of the dot temporarily
     var id = d.id;
-    d3.selectAll('.dot.dfplot')[0].forEach(function(d){
+    
+    d3.selectAll('.dot.archPlot')[0].forEach(function(d){
         if(d.__data__.id==id){
             d3.select(d).style("fill", defaultColor_mouseover);
         }
     });
     
-
+    // Remove the previous info
     d3.select("#supportPanel").select("[id=view1]").select("g").remove();
     var supportPanel = d3.select("#supportPanel").select("[id=view1]")
             .append("g");
 
+    // Display the current architecture info
     supportPanel.append("p")
             .text("Benefit: " + d.science.toFixed(4));
     supportPanel.append("p")
             .text("Cost: " + d.cost.toFixed(1));
-
+    
     var bitString = booleanArray2String(d.bitString);
     display_arch_info(bitString);
+    
+    
 }
 
 
-
-
-function arch_mouseout(d) {
-    var id = d.id;
-    d3.selectAll('.dot.dfplot')[0].forEach(function(d){
-        if(d.__data__.id==id){
-            d3.select(d).style("fill", defaultColor);
+function check_satisfied_features(bitString){
+    
+    // If the input bitString is not given, use default colors
+    if(bitString==null){
+        d3.selectAll('.applied_feature')[0].forEach(function(d){
+            
+            var this_feature = d3.select(d);
+            var activated = this_feature.select('.feature_application_activate')[0][0].checked;
+            this_feature.select('.feature_application_expression').style("color",function(d){
+                if(activated){
+                    return "#000000"; //black
+                }else{
+                    return "#989898"; // gray
+                }
+            });
+        });
+        return;
+    }
+        
+    // Selectively highlight features that do not apply to the given bitString
+    d3.selectAll('.applied_feature')[0].forEach(function(d){
+        var this_feature = d3.select(d);
+        var expression = this_feature.select('.feature_application_expression').attr('expression');
+        
+        if(expression.indexOf('{tempFeature}')!=-1){
+            return;
+        }
+        
+        if(!applyPresetFilter(expression,bitString)){
+            // highlight the feature  
+            this_feature.select('.feature_application_expression').style('color','red');            
         }
     });
 }
 
 
+function arch_mouseout(d) {
+    var id = d.id;
+    d3.selectAll('.dot.archPlot')[0].forEach(function(d){
+        if(d.__data__.id==id){
+            var dot = d3.select(d);
+            if(dot.classed('selected') && dot.classed('highlighted')){
+                dot.style('fill',overlapColor);
+            }else if(dot.classed('selected')){
+                dot.style('fill',selectedColor);  
+            }else if(dot.classed('highlighted')){
+                dot.style('fill',highlightedColor);
+            }else{
+                d3.select(d).style("fill", defaultColor);
+            }
+        }
+    });
+    check_satisfied_features();
+}
 
 
 
-function scatterPlot_option(selected_option){ // three options: zoom, drag_selection, drag_deselection
+function scatterPlot_selection_option(selected_option){ // three options: zoom, drag_selection, drag_deselection
 
     var margin=ScatterPlot_margin;
     var width=ScatterPlot_width;
@@ -544,7 +594,6 @@ function scatterPlot_option(selected_option){ // three options: zoom, drag_selec
                         .style("opacity", 0.18);
             
                 initialize_tabs_driving_features();
-                initialize_tabs_classification_tree();
             
             })
             .on( "mousemove", function() {
@@ -791,6 +840,8 @@ function highlight_support_panel(){
 		.style("border-width","3.3px");
 	supportPanel_active=true;
 }
+
+
 function unhighlight_support_panel(){
 
     d3.select("[id=scatterPlotFigure]")
@@ -799,10 +850,6 @@ function unhighlight_support_panel(){
 			.style("border-width","1px");
 	supportPanel_active=false;
 }
-
-
-
-
 
 
 function initialize_tabs(){
@@ -916,7 +963,7 @@ function set_selection_option(selected_option){
 		d3.select("#drag-select")[0][0].checked=false;
 		d3.select("#de-select")[0][0].checked=true;
 	}
-	scatterPlot_option(selected_option)
+	scatterPlot_selection_option(selected_option)
 }
 
 

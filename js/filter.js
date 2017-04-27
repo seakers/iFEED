@@ -478,7 +478,7 @@ function processFilterExpression(expression, prev_matched_ids, prev_logic, arch_
         
         if(first){
             // The first filter in a series to be applied
-            current_logic = '&&';
+            current_logic = prev_logic;
             current_matched_ids = prev_matched_ids;
             first = false;
         }else{
@@ -553,9 +553,18 @@ function processFilterExpression(expression, prev_matched_ids, prev_logic, arch_
  
 
 
-
+/*
+    Compares the preset filter to a single architecture
+    @param expression: A filter expression string
+    @param bitString: A string representing a binary array
+    @param rank: The pareto ranking of the architecture
+    
+    @return: A boolean indicating whether the input architecture passes the filter
+*/
 function applyPresetFilter(expression,bitString,rank){
 	
+    expression = remove_outer_parentheses(expression);
+    
 	// Preset filter: {presetName[orbits;instruments;numbers]}   
 	expression = expression.substring(1,expression.length-1);
 	
@@ -639,11 +648,26 @@ function applyPresetFilter(expression,bitString,rank){
     	}
     	break;
     case "notInOrbit":
-    	resu=true;
-        if(bitString[orbit*ninstr + instr]===true){
-        	resu=false;
-        }
-        break;
+    	var instrument_temp = instr + '';
+    	if(instrument_temp.indexOf(',')==-1){
+    		// One instrument
+        	resu=true;
+            if(bitString[orbit*ninstr + instr]===true){
+            	resu=false;
+            }
+            break;    		
+    	}else{
+    		// Multiple instruments
+        	resu=true;
+        	var instruments = instrument_temp.split(",");
+    		for(var j=0;j<instruments.length;j++){
+    			var temp = +instruments[j];
+    			if(bitString[orbit*ninstr + temp]===true){
+    				resu= false;break;
+    			}
+    		}    		
+    	}
+    	break; 
     case "together":
     	resu=false;
     	var instruments = instr.split(",");

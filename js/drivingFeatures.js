@@ -487,49 +487,12 @@ function updateDrivingFeatureColorScale(scale){
     })
 }
 
-     
 
 function feature_click(d){
-    var id = d.id;
-    var expression = d.expression;
-    var option;
-
-//    var was_selected = false;
-//    for(var i=0;i<selected_features.length;i++){
-//        if(selected_features[i]===id){
-//            selected_features.splice(i,1);
-//            selected_features_expressions.splice(i,1);
-//            was_selected = true;
-//        }
-//    }
-//    if(was_selected){
-//        d3.selectAll("[class=bar]").filter(function(d){
-//            if(d.id===id){
-//                return true;
-//            }else{
-//                return false;
-//            }
-//        }).style("stroke-width",0);
-//        option='remove';
-//    }else{
-//        d3.selectAll("[class=bar]").filter(function(d){
-//            if(d.id===id){
-//                return true;
-//            }else{
-//                return false;
-//            }
-//        }).style("stroke-width",3); 
-//        selected_features.push(id);
-//        selected_features_expressions.push(expression);
-//        option='within';
-//    }
-    
-    
-    update_feature_application_status(expression, 'update_placeholder'); 
-    draw_venn_diagram();  
+    // Replaces the current feature expression with the stashed expression
+    current_feature_expression = remove_outer_parentheses(stashed_feature_expression);
 }
             
-
 
 
 function feature_mouseover(d){
@@ -616,13 +579,20 @@ function feature_mouseover(d){
                     .style('color','#F7FF55')
                     .style('word-wrap','break-word');   
     
+    
     // If the placeholder is not included in the current feature expression, create one
     if(current_feature_expression.indexOf('tempFeature')==-1){
        update_feature_application_status('', 'create_placeholder');
     }
     
-    applyComplexFilter(current_feature_expression.replace('{tempFeature}','('+expression+')'));
+    // Replace the placeholder with the driving feature and stash the expression
+    stashed_feature_expression = current_feature_expression.replace('{tempFeature}','('+expression+')')
+    
+    // Update the feature application status
+    update_feature_application_status(stashed_feature_expression, 'temp_update');
+    applyComplexFilter(stashed_feature_expression);
     draw_venn_diagram();           
+    
 }
 
 
@@ -630,6 +600,7 @@ function feature_mouseout(d){
     
     var id = d.id;
     
+    // Changing the color back to what it was
     d3.selectAll('.dot.dfplot')[0].forEach(function(d){
         
         if(d.__data__.id==id){
@@ -639,16 +610,22 @@ function feature_mouseout(d){
             d3.select(d).style('fill',function(d){
                 return DrivingFeaturePlot_colorScale(added);
             });
-        
         }
     });
     
+    // Remove the tooltip
     d3.selectAll("#tooltip_g").remove();
     
+    // Remove all the features created temporarily
+    d3.selectAll('.applied_feature').remove();
+    // Bring back the previously stored feature expression
+    update_feature_application_status(current_feature_expression, 'new');
     applyComplexFilter(current_feature_expression);
-    
     draw_venn_diagram();
+    // Erase the stashed expression
+    stashed_feature_expression = '';
 }
+
 
 
 function draw_venn_diagram(){

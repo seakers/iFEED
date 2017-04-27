@@ -28,12 +28,12 @@ function decompose_feature(input_level, input_logic, input_expression, feature_l
            e_collapsed=e; 
         }else{
         	// Single filter expression
-            if(e.indexOf('tempFeature') > -1){
-                return feature_list;
-            }else{
+//            if(e.indexOf('tempFeature') > -1){
+//                return feature_list;
+//            }else{
                 feature_list.push({level:l,logic:lo,expression:e}); 
                 return feature_list;
-            }
+//            }
         }
     }else{
         // Removes the nested structure
@@ -46,7 +46,7 @@ function decompose_feature(input_level, input_logic, input_expression, feature_l
         
         if(first){
             // The first filter in a series to be applied
-            prev = '&&';
+            prev = input_logic;
             first = false;
         }else{
             prev = e_collapsed.substring(0,2);
@@ -78,10 +78,8 @@ function decompose_feature(input_level, input_logic, input_expression, feature_l
             var current = e.substring(0,current_collapsed.length);
             e_collapsed = e_collapsed.substring(current_collapsed.length);
             e = e.substring(current_collapsed.length);
-            
             feature_list = decompose_feature(l,prev,current,feature_list);
-            
-        }else{            
+        }else{         
             feature_list = decompose_feature(l,prev,e,feature_list);
             break;
         }
@@ -90,7 +88,6 @@ function decompose_feature(input_level, input_logic, input_expression, feature_l
 }
 
 
-      
 function create_feature_placeholder(){
     // If the placeholder already exists, return
     if(d3.select('.applied_feature.placeholder')[0][0]){
@@ -116,14 +113,17 @@ function add_feature(input_level, input_logic, input_expression, activation, pla
     var id = featureID++;
     var this_feature;
     
+    // If the placeholder selector is given, insert the new entry there
     if(placeholder_selector){
         this_feature = applied_features
                 .insert('div', placeholder_selector);
     }else{
+        // If the placeholder is not given, create a new entry
         this_feature = applied_features
                 .append('div');
     }
     
+    // Define new feature id
     this_feature.attr('id',function(){
                 return 'applied_feature_' + id;
             })
@@ -146,12 +146,14 @@ function add_feature(input_level, input_logic, input_expression, activation, pla
                 return d.text;
             }); 
 
+    
     var first_feature_id = d3.select('.applied_feature').attr('id'); 
     if('applied_feature_'+id==first_feature_id){
-        // this feature is the first feature set the margin-top
+        // If this feature is the first feature, adjust the margin of the logical connective
         this_feature.select('.feature_application_logical_connective').style('margin-top','13px');
     }
     
+    // If the current feature is a temp feature
     if(input_expression=='{tempFeature}'){
         this_feature.append('div')
                 .attr('class','feature_application_expression')
@@ -272,7 +274,22 @@ function add_feature(input_level, input_logic, input_expression, activation, pla
 
     // Adjust the indentation
     for(var i=0;i<input_level;i++){
-        click_right_arrow(id);
+        
+        if(this_feature.attr('level')==null){
+            this_feature.attr('level',1);
+        }
+        else{
+            var level = +this_feature.attr('level');
+            this_feature.attr('level',function(){
+                return level+1;
+            });
+        }
+        var level = +this_feature.attr('level');
+
+        this_feature.select('.feature_application_activate').style('margin-right',function(){
+            var margin = 12 + level*arrow_margin;
+            return margin+"px";
+        });
     }
     
     // Set logical connective
@@ -620,7 +637,7 @@ function reset_feature_activation(){
 
 
 function update_feature_application_status(expression,option){
-
+    
     if(option=='remove'){
         // Remove a given feature from the application list
         remove_feature(expression);
@@ -679,6 +696,27 @@ function update_feature_application_status(expression,option){
         placeholder.remove();
         create_feature_placeholder();
 
+    }else if(option=='temp_update'){
+             
+        var individual_features = decompose_feature(0, '&&', expression, []);
+        var first_logic = '&&';
+        var last_feature_level = 0;
+        var activation = true;
+
+        d3.selectAll('.applied_feature').remove();
+        
+        // Add individual features
+        for(var i=0;i<individual_features.length;i++){
+            var logic = individual_features[i].logic;
+            if(i==0) logic = first_logic;
+            var level = individual_features[i].level + last_feature_level;
+            var exp = individual_features[i].expression;
+            add_feature(level,logic,exp,activation);
+        }
+                
+        // New feature is not stored
+        return;
+        
     }else{ 
         // Add a new preset feature from the filter settings
         // option: {'new','add','within','deactivated'}
@@ -720,10 +758,12 @@ function update_feature_application_status(expression,option){
             var exp = individual_features[i].expression;
             add_feature(level,logic,exp,activation);
         }
-    }   
+    }
     
     current_feature_expression = parse_feature_application_status();
 }
+
+
 
             
 d3.select('#toggle_feature_scheme').on('click',toggle_feature_activation);
