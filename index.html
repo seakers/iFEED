@@ -275,6 +275,15 @@ and open the template in the editor.
 
             <div id='panel_2' style='width:660px; height:1050px; float:left;'>
                 <div style='width:660px; height: 1050px; border-style:solid; border-width:1px; float:left'>
+                    <div id='featureApplicationExpressionPanel' style='float:left;
+                                                                       width:620px;
+                                                                       height:80px;
+                                                                       padding:20px;
+                                                                       overflow:scroll;
+                                                                       border-style:solid;
+                                                                       border-width:0.5px;
+                                                                       font-size:20px'>
+                    </div>
                     <div id='featureApplicationStatusPanel' style='float:left;
                                                                    width:620px;
                                                                    height:1010px;
@@ -403,13 +412,18 @@ and open the template in the editor.
                 {value:"emptyOrbit",text:"Empty orbit"},{value:"numOrbits",text:"Number of orbit used"},
                 {value:"numOfInstruments",text:"Number of instruments"},
                 {value:"subsetOfInstruments",text:"Num of instruments in a subset"}];
-            
-            var added_features = [];           
+   
             var userdef_features = [];
-            var current_feature_expression="";
-            var stashed_feature_expression="";
+
            
+            // Feature Application Status
             
+            var current_feature_application = [];
+            var stashed_feature_application = [];
+            var added_features = [];  
+
+            
+           
             // Classification Tree variables
             var classificationTree_window;
             var jsonObj_tree=null;

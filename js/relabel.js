@@ -206,7 +206,7 @@ function pp_feature_single(expression){
     }
     var featureName = exp.split("[")[0];
 
-    if(featureName==="paretoFront" || featureName==='tempFeature'){return expression;}
+    if(featureName==="paretoFront" || featureName==='FeatureToBeAdded'){return expression;}
 
     if(featureName[0]=='~'){
         featureName = 'NOT '+ featureName.substring(1);
@@ -244,12 +244,12 @@ function pp_feature(expression){
     
     var output = '';
     
-    if(expression.indexOf('{tempFeature}')>-1){
-        expression=expression.replace('&&{tempFeature}','');
-        expression=expression.replace('||{tempFeature}','');
-        expression=expression.replace('{tempFeature}&&','');
-        expression=expression.replace('{tempFeature}||','');
-    }
+//    if(expression.indexOf('{FeatureToBeAdded}')>-1){
+//        expression=expression.replace('&&{FeatureToBeAdded}','');
+//        expression=expression.replace('||{FeatureToBeAdded}','');
+//        expression=expression.replace('{FeatureToBeAdded}&&','');
+//        expression=expression.replace('{FeatureToBeAdded}||','');
+//    }
     
     var save = false;
     var savedString = '';

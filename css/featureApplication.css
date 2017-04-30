@@ -15,12 +15,12 @@
 .feature_application_delete{
     background-color: #FF5151;
     float:left;
-    margin-top:13px;
+    margin-top:15px;
 }
 .feature_application_activate {
     float:left;
     margin-right:12px;
-    margin-top:14px;
+    margin-top:17px;
 }
 .feature_application_logical_connective {
     float: left;
@@ -29,10 +29,10 @@
 .feature_application_expression{
     float: left;
     margin-right:4px;
-    margin-top:13px
+    margin-top:15px
 }
 .arrow{
-    margin-top:13px;
+    margin-top:15px;
 }
 
 

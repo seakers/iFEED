@@ -490,7 +490,8 @@ function updateDrivingFeatureColorScale(scale){
 
 function feature_click(d){
     // Replaces the current feature expression with the stashed expression
-    current_feature_expression = remove_outer_parentheses(stashed_feature_expression);
+    update_feature_application_status('', 'replace_placeholder');
+    
 }
             
 
@@ -580,17 +581,10 @@ function feature_mouseover(d){
                     .style('word-wrap','break-word');   
     
     
-    // If the placeholder is not included in the current feature expression, create one
-    if(current_feature_expression.indexOf('tempFeature')==-1){
-       update_feature_application_status('', 'create_placeholder');
-    }
+    // Update the placeholder with the driving feature and stash the expression
+    update_feature_application_status(expression,'update_placeholder');
     
-    // Replace the placeholder with the driving feature and stash the expression
-    stashed_feature_expression = current_feature_expression.replace('{tempFeature}','('+expression+')')
-    
-    // Update the feature application status
-    update_feature_application_status(stashed_feature_expression, 'temp_update');
-    applyComplexFilter(stashed_feature_expression);
+    applyComplexFilter(get_feature_application_expression(stashed_feature_application));
     draw_venn_diagram();           
     
 }
@@ -618,12 +612,12 @@ function feature_mouseout(d){
     
     // Remove all the features created temporarily
     d3.selectAll('.applied_feature').remove();
+    
     // Bring back the previously stored feature expression
-    update_feature_application_status(current_feature_expression, 'new');
-    applyComplexFilter(current_feature_expression);
+    update_feature_application_status('','update_placeholder');
+    
+    applyComplexFilter(get_feature_application_expression());
     draw_venn_diagram();
-    // Erase the stashed expression
-    stashed_feature_expression = '';
 }
 
 
@@ -787,13 +781,13 @@ function add_current_feature_to_DF_plot(){
         
         for(var i=0;i<sortedDFs.length;i++){
             var matchFound = false;
-            if(sortedDFs[i].expression==current_feature_expression){
+            if(sortedDFs[i].expression==get_feature_application_expression()){
                 matchFound = true;
             }
         }
         if(matchFound) return;
         
-        var current_feature = {id:id,name:current_feature_expression,expression:current_feature_expression,metrics:metrics,added:added_features.length+1};
+        var current_feature = {id:id,name:get_feature_application_expression(),expression:get_feature_application_expression(),metrics:metrics,added:added_features.length+1};
         
         sortedDFs.push(current_feature);
         added_features.push(current_feature);
