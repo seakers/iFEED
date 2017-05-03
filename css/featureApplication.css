@@ -13,19 +13,22 @@
 }
 
 .feature_application_delete{
-    background-color: #FF5151;
     float:left;
     margin-top:15px;
 }
+
+
 .feature_application_activate {
     float:left;
     margin-right:12px;
     margin-top:17px;
 }
+
 .feature_application_logical_connective {
     float: left;
     margin-right:4px;
 }
+
 .feature_application_expression{
     float: left;
     margin-right:4px;

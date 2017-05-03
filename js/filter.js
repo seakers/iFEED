@@ -135,12 +135,12 @@ function filter_input_preset(selectedOption,userDefOption){
                 .text("(Hint: Designs that have the specified instruments inside the chosen orbit are selected)");
     }
     else if (selectedOption=="notInOrbit"){
-        append_filterInputField_orbitAndInstInput();
+        append_filterInputField_orbitAndMultipleInstInput();
         d3.select("#filter_hints")
                 .append("div")
                 .attr("id","filter_hints_div_1")
                 .attr('class','filter_hints_div')
-                .text("(Hint: Designs that do not have the specified instrument inside the chosen orbit are selected)");    
+                .text("(Hint: Designs that do not have the specified instruments inside the chosen orbit are selected)");    
     }
     else if (selectedOption=="together"){
         append_filterInputField_multipleInstInput();
@@ -190,9 +190,17 @@ function filter_input_preset(selectedOption,userDefOption){
                 .attr("id","filter_hints_div_1")
                 .attr('class','filter_hints_div')
                 .text("(Hint: The specified orbit should contain at least m number and at maximum M number of instruments from the specified instrument set. m is the first entry and M is the second entry in the second field)");  
-    } else if(selectedOption=="defineNewFilter"){
+        
+    } else if(selectedOption=="ifInstrumentExists"){
     	
-    } else if(selectedOption=="paretoFront"){
+        append_filterInputField_ifInstrumentExists();
+        d3.select("#filter_hints")
+                .append("div")
+                .attr("id","filter_hints_div_1")
+                .attr('class','filter_hints_div')
+                .text("(Hint: The specified instrument may not be used. If it is present, it must be assigned to one of the specified orbits)"); 
+        
+    }else if(selectedOption=="paretoFront"){
         d3.select('#filter_inputs')
 	        .append("div")
 	        .attr("id","filter_inputs_div_1")
@@ -401,6 +409,42 @@ function append_filterInputField_subsetOfInstruments(){
 }
 
 
+
+function append_filterInputField_ifInstrumentExists(){
+    
+        d3.select('#filter_inputs')
+                .append("div")
+                .attr("id","filter_inputs_div_1")
+                .attr('class','filter_inputs_div')
+                .append('div')
+                .attr('class','filter_inputs_supporting_comments_begin')
+                .text("Input a single instrument name: ");
+        d3.select('#filter_inputs_div_1')
+                .append("input")
+                .attr("class","filter_inputs_textbox")
+                .attr("type","text");
+
+        d3.select('#filter_inputs')
+                .append("div")
+                .attr("id","filter_inputs_div_2")
+                .attr('class','filter_inputs_div')
+                .append('div')
+                .attr('class','filter_inputs_supporting_comments_begin')
+                .text("Input orbit name (for multiple orbit inputs, separate using comma): ");
+
+        d3.select('#filter_inputs_div_2')
+                .append("input")
+                .attr("class","filter_inputs_textbox")
+                .attr("type","text");
+    
+}
+
+
+
+
+
+
+
 function get_number_of_inputs(){
     return d3.selectAll('.filter_inputs_div')[0].length;
 }
@@ -561,9 +605,9 @@ function processFilterExpression(expression, prev_matched_ids, prev_logic, arch_
     
     @return: A boolean indicating whether the input architecture passes the filter
 */
-function applyPresetFilter(expression,bitString,rank){
+function applyPresetFilter(input_expression,bitString,rank){
 	
-    expression = remove_outer_parentheses(expression);
+    var expression = remove_outer_parentheses(input_expression);
     
 	// Preset filter: {presetName[orbits;instruments;numbers]}   
 	expression = expression.substring(1,expression.length-1);
@@ -585,32 +629,17 @@ function applyPresetFilter(expression,bitString,rank){
 	var condition = expression.substring(0,expression.length-1).split("[")[1];
 	var condSplit = condition.split(";");
 	var orbit, instr, numb;
-	if(condSplit[0].length > 0){
-		orbit = +condSplit[0];
-	}else{
-		orbit = condSplit[0];
-	}
-	if(condSplit[1].length > 0){
-		if(condSplit[1].indexOf(",")==-1){
-			instr = +condSplit[1];
-		}else{
-			instr = condSplit[1];
-		}
-	}else{
-		instr = condSplit[1];
-	}
-	if(condSplit[2].length > 0){
-		if(condSplit[2].length==1) numb = +condSplit[2];
-		else numb = condSplit[2];
-	}else{
-		numb = condSplit[2];
-	}
+
+    orbit = condSplit[0];
+    instr = condSplit[1];
+    numb = condSplit[2];
 
 	var resu;
 	switch(type) {
     case "present":
-    	if(instr==-1) return false;
+    	if(instr=='-1') return false;
     	resu=false;
+        instr = +instr;
         for(var i=0;i<norb;i++){
             if(bitString[ninstr*i+instr]===true){
                 resu=true;break;
@@ -620,6 +649,7 @@ function applyPresetFilter(expression,bitString,rank){
     case "absent":
     	if(instr==-1) return false;
     	resu=true;
+        instr = + instr;
         for(var i=0;i<norb;i++){
             if(bitString[ninstr*i+instr]===true){
                 resu=false;break;
@@ -627,10 +657,11 @@ function applyPresetFilter(expression,bitString,rank){
         }
         break;
     case "inOrbit":
-    	var instrument_temp = instr + '';
-    	if(instrument_temp.indexOf(',')==-1){
+        orbit = + orbit;
+        if(instr.indexOf(',')==-1){
     		// One instrument
         	resu=false;
+            instr = + instr;
             if(bitString[orbit*ninstr + instr]===true){
             	resu=true;
             }
@@ -638,7 +669,7 @@ function applyPresetFilter(expression,bitString,rank){
     	}else{
     		// Multiple instruments
         	resu=true;
-        	var instruments = instrument_temp.split(",");
+        	var instruments = instr.split(",");
     		for(var j=0;j<instruments.length;j++){
     			var temp = +instruments[j];
     			if(bitString[orbit*ninstr + temp]===false){
@@ -648,9 +679,10 @@ function applyPresetFilter(expression,bitString,rank){
     	}
     	break;
     case "notInOrbit":
-    	var instrument_temp = instr + '';
-    	if(instrument_temp.indexOf(',')==-1){
+    	orbit = + orbit;
+    	if(instr.indexOf(',')==-1){
     		// One instrument
+            instr = + instr;
         	resu=true;
             if(bitString[orbit*ninstr + instr]===true){
             	resu=false;
@@ -659,7 +691,7 @@ function applyPresetFilter(expression,bitString,rank){
     	}else{
     		// Multiple instruments
         	resu=true;
-        	var instruments = instrument_temp.split(",");
+        	var instruments = instr.split(",");
     		for(var j=0;j<instruments.length;j++){
     			var temp = +instruments[j];
     			if(bitString[orbit*ninstr + temp]===true){
@@ -704,6 +736,7 @@ function applyPresetFilter(expression,bitString,rank){
 
     case "emptyOrbit":
     	resu=true;
+        orbit = +orbit;
     	for(var i=0;i<ninstr;i++){
     		if(bitString[orbit*ninstr+i]===true){
     			resu= false;break;
@@ -714,6 +747,7 @@ function applyPresetFilter(expression,bitString,rank){
     case "numOrbits":
     	var count=0;
     	resu=false;
+        numb = + numb;
     	for(var i=0;i<norb;i++){
     		for(var j=0;j<ninstr;j++){
     			if(bitString[i*ninstr+j]===true){
@@ -730,9 +764,9 @@ function applyPresetFilter(expression,bitString,rank){
     case "subsetOfInstruments":
     	var count = 0;    	
     	var instruments = instr.split(",");
-    	var numbers = "" + numb;
-    	var numbers = numbers.split(",");
-    	resu=false;
+    	var numbers = numb.split(",");
+    	orbit = +orbit;
+        resu=false;
     	
 		for(var j=0;j<instruments.length;j++){
 			var temp = +instruments[j];
@@ -754,6 +788,8 @@ function applyPresetFilter(expression,bitString,rank){
     case "numOfInstruments":
     	var count=0;
     	resu=false;
+        numb = +numb;
+        
     	if(orbit===""){
 			// num of instruments across all orbits
     		if(instr===""){
@@ -764,6 +800,7 @@ function applyPresetFilter(expression,bitString,rank){
     				}
     			}
     		}else{
+                instr = +instr;
     			// num of all instruments
     			for(var i=0;i<norb;i++){
     				if(bitString[i*ninstr+instr]===true){
@@ -772,6 +809,7 @@ function applyPresetFilter(expression,bitString,rank){
     			}
     		}
     	}else{
+            orbit = +orbit;
     		// number of instruments in a specified orbit
     		for(var i=0;i<ninstr;i++){
     			if(bitString[orbit*ninstr+i]===true){
@@ -779,8 +817,30 @@ function applyPresetFilter(expression,bitString,rank){
     			}
     		}
     	}
-		if(count===+numb) resu= true;
+		if(count===numb) resu= true;
         break;
+    
+    case "ifInstrumentExists":
+        
+        
+        var absent = applyPresetFilter('{absent[;'+instr+';]}',bitString,rank);
+        if(orbit.indexOf(',')==-1){
+            //Single orbit
+            var inOrbit = applyPresetFilter('{inOrbit['+orbit+';'+instr+';]}',bitString,rank);
+            resu = absent || inOrbit;
+            
+        }else{
+            // Multiple orbits
+            resu = absent;
+            var orbitSplit = orbit.split(',');
+            for(var i=0;i<orbitSplit.length;i++){
+                var inOrbit = applyPresetFilter('{inOrbit['+orbitSplit[i]+';'+instr+';]}',bitString,rank);
+                // If the instrument is assigned to any of the orbits, return true
+                resu = resu || inOrbit;
+            }
+        }
+        
+        break;    
     	
     default:
     	return false;
@@ -820,13 +880,16 @@ function applyFilter(option){
     inputObj.forEach(function(d,i){
         var textboxObj = d3.select(d).select('.filter_inputs_textbox')[0][0];
         var selectObj = d3.select(d).select('.filter_inputs_select')[0][0];
+        
         if(textboxObj!==null){
         	// Remove all white spaces
         	var input = textboxObj.value.replace(/\s+/g, "");
             input_textbox.push(input);
         }else{
+            // If textbox is empty, push null
             input_textbox.push(null);
         }
+        
         if(selectObj!==null){
             input_select.push(selectObj.value);
         }else{
@@ -885,6 +948,12 @@ function applyFilter(option){
         // To be implemented    
         var filterInput = d3.select("#filter_inputs_div_1").select('.filter_inputs_textbox')[0][0].value;
         filterExpression = "paretoFront["+filterInput+"]";
+    }else if(dropdown==='ifInstrumentExists'){
+        
+        var instrument = input_textbox[0].trim();
+        var orbit = input_textbox[1].trim().replace(/\s+/g, "");
+        filterExpression = "ifInstrumentExists["+ DisplayName2Index(orbit,"orbit") + ";" + DisplayName2Index(instrument.toUpperCase(),"instrument")+ ";]"; 
+        
     }
     else{// not selected
         return;

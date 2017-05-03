@@ -104,7 +104,7 @@ function create_feature_placeholder(){
     var feature = {activation:true, expression:'{FeatureToBeAdded}', logic:'&&', level:0};
     features.push(feature);
     display_feature_application_status(feature);
-    update_feautre_expression();
+    update_feature_expression();
 }
      
 
@@ -183,7 +183,7 @@ function add_feature(input_level, input_logic, input_expression, activation){
     
 
     this_feature.append('img')
-            .attr('src','img/left_arrow.png')
+            .attr('src','img/left.png')
             .attr('id',function(){
                 return 'left_arrow_' + id;
             })
@@ -197,70 +197,73 @@ function add_feature(input_level, input_logic, input_expression, activation){
             });
     
     this_feature.append('img')
-            .attr('src','img/left_arrow.png')
+            .attr('src','img/down.png')
             .attr('id',function(){
                 return 'down_arrow_' + id;
             })
-            .attr('class','img-rot-270-deg down_arrow arrow')
+            .attr('class','down_arrow arrow')
             .attr('width','20')
             .attr('height','20')
-            .style('margin-left','5px')
+            .style('margin-left','4px')
             .style('float','left')
             .on("click",function(d){
     	       click_down_arrow(id);
             });
     
     this_feature.append('img')
-            .attr('src','img/left_arrow.png')
+            .attr('src','img/up.png')
             .attr('id',function(){
                 return 'up_arrow_' + id;
             })
-            .attr('class','img-rot-90-deg up_arrow arrow')
+            .attr('class','up_arrow arrow')
             .attr('width','20')
             .attr('height','20')
-            .style('margin-left','5px')
+            .style('margin-left','4px')
             .style('float','left')
             .on("click",function(d){
     	       click_up_arrow(id);
             });
     
     this_feature.append('img')
-            .attr('src','img/left_arrow.png')
+            .attr('src','img/right.png')
             .attr('id',function(){
                 return 'right_arrow_' + id;
             })
-            .attr('class','img-hor-vert right_arrow arrow')
+            .attr('class','right_arrow arrow')
             .attr('width','20')
             .attr('height','20')
-            .style('margin-left','5px')
+            .style('margin-left','4px')
             .style('float','left')
-            .style('margin-right','7px')
             .on("click",function(d){
                click_right_arrow(id);
             });
     
-    this_feature.append('button')
+    this_feature.append('img')
+            .attr('src','img/minus.png')
+            .attr('id',function(){
+                return 'minus_' + id;
+            })
             .attr('class','feature_application_delete')
-            .text('Remove');
+            .attr('width','20')
+            .attr('height','20')
+            .style('margin-left','5px')
+            .style('float','left')
+            .on("click",function(d){
+        
+                var activated = this_feature.select('.feature_application_activate')[0][0].checked;
+                this_feature.remove();
 
-    
-    // Clicking remove button
-    this_feature.select(".feature_application_delete").on("click",function(d){
-        
-        var activated = this_feature.select('.feature_application_activate')[0][0].checked;
-        this_feature.remove();
-        
-        current_feature_application = get_feature_application_status();
+                current_feature_application = get_feature_application_status();
 
-        adjust_logical_connective();
-        
-        // Re-apply the current feature scheme if the feature to be deleted was activated
-        if(activated){
-            apply_current_feature_scheme();
-        }
-        
-        update_feautre_expression();
-    });
+                adjust_logical_connective();
+
+                // Re-apply the current feature scheme if the feature to be deleted was activated
+                if(activated){
+                    apply_current_feature_scheme();
+                }
+
+                update_feature_expression();
+            });
     
 
     this_feature.select('.feature_application_activate').on("change",function(d){
@@ -282,7 +285,7 @@ function add_feature(input_level, input_logic, input_expression, activation){
         current_feature_application = get_feature_application_status();
         apply_current_feature_scheme();
         
-        update_feautre_expression();
+        update_feature_expression();
     });
 
     
@@ -291,7 +294,7 @@ function add_feature(input_level, input_logic, input_expression, activation){
         current_feature_application = get_feature_application_status();
         apply_current_feature_scheme();
         
-        update_feautre_expression();
+        update_feature_expression();
         
     });
     
@@ -346,7 +349,7 @@ function remove_feature(expression){
         }
     }
     
-    update_feautre_expression();
+    update_feature_expression();
 }
             
             
@@ -377,7 +380,7 @@ function click_right_arrow(n){
     current_feature_application = get_feature_application_status();
 	apply_current_feature_scheme();
     
-    update_feautre_expression();
+    update_feature_expression();
 }
                      
             
@@ -409,7 +412,7 @@ function click_up_arrow(n){
     adjust_logical_connective();
 	apply_current_feature_scheme();
     
-    update_feautre_expression();
+    update_feature_expression();
 }   
             
             
@@ -441,7 +444,7 @@ function click_down_arrow(n){
     adjust_logical_connective();
 	apply_current_feature_scheme();
     
-    update_feautre_expression();
+    update_feature_expression();
 }     
             
             
@@ -473,7 +476,7 @@ function click_left_arrow(n){
     current_feature_application = get_feature_application_status(current_feature_application);
 	apply_current_feature_scheme();
     
-    update_feautre_expression();
+    update_feature_expression();
 }
         
             
@@ -528,7 +531,7 @@ function adjust_logical_connective(){
         }
     }
     
-    update_feautre_expression();
+    update_feature_expression();
 }
             
             
@@ -727,7 +730,7 @@ function toggle_feature_activation(){
     }
     apply_current_feature_scheme();
     
-    update_feautre_expression();
+    update_feature_expression();
 }
 
             
@@ -738,8 +741,10 @@ function reset_feature_activation(){
 
 
 
-function update_feautre_expression(features){
+function update_feature_expression(features){
     
+    var logic_color = "#FF9500";
+    var bracket_color = "#FF0000";
     var expression;
     if(features==null){
         features = current_feature_application;
@@ -749,10 +754,13 @@ function update_feautre_expression(features){
     expression = pp_feature(expression);
     expression = expression.replace(/{/g,'');
     expression = expression.replace(/}/g,'');
-    expression = expression.replace(/&&/g,' AND ');
-    expression = expression.replace(/\|\|/g,' OR ');
     
-    d3.select('#featureApplicationExpressionPanel').text(expression);
+    expression = expression.replace(/\(/g,'<span style="color:'+bracket_color+';font-weight:bold">(</span>');
+    expression = expression.replace(/\)/g,'<span style="color:'+bracket_color+';font-weight:bold">)</span>');
+    expression = expression.replace(/&&/g,' <span style="color:'+logic_color+';">AND</span> ');
+    expression = expression.replace(/\|\|/g,' <span style="color:'+logic_color+';">OR</span> ');
+    
+    d3.select('#featureApplicationExpressionPanel').html("<p>"+expression+"</p>");
     
 }
 
@@ -792,7 +800,7 @@ function update_feature_application_status(expression,option){
         if(expression==''){
             stashed_feature_application = [];
             display_feature_application_status(current_feature_application);
-            update_feautre_expression(current_feature_application);
+            update_feature_expression(current_feature_application);
             return;
         }
         
@@ -830,7 +838,7 @@ function update_feature_application_status(expression,option){
         for(var i=0;i<individual_features.length;i++){
             var logic = individual_features[i].logic;
             var level = +individual_features[i].level;
-            level = +last_feature_level+1;
+            level = +last_feature_level;
             var exp = individual_features[i].expression;
             if(i==0){
                 logic = first_logic;
@@ -845,7 +853,7 @@ function update_feature_application_status(expression,option){
         d3.selectAll('.applied_feature').remove();
         display_feature_application_status(stashed_feature_application);
         
-        update_feautre_expression(stashed_feature_application);
+        update_feature_expression(stashed_feature_application);
         return;
         
     }else{ 
@@ -896,7 +904,7 @@ function update_feature_application_status(expression,option){
         d3.selectAll('.applied_feature').remove();
         display_feature_application_status(current_feature_application);
         
-        update_feautre_expression();
+        update_feature_expression();
         return;
     }
     
