@@ -23,7 +23,6 @@
 
 .feature_application_activate {
     float:left;
-    margin-right:12px;
 }
 
 .feature_application_logical_connective {
@@ -33,12 +32,13 @@
 .feature_application_expression{
     float: left;
     margin-right:10px;
+    margin-left:12px;
 }
 
 .feature_application_logical_connective {
     float:left;
     margin-left:28px;
-    margin-right: 12px;
+    margin-right: 10px;
 }
 
 .arrow{

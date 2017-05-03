@@ -1,10 +1,14 @@
 
 var features_activation_store = [];
 var featureID = 0;    
-var arrow_margin = 30;
+var indentation_margin = 30;
 
+//
+//var x = '({present[;0;]})&&({present[;11;]})';
+//var y = '({present[;0;]}&&{present[;11;]})';
+//var z = '({present[;0;]}||{absent[;3;]})&&({present[;11;]})';
 
-function decompose_feature(input_level, input_logic, input_expression, feature_list){
+function decompose_feature(input_level, input_logic, input_expression, feature_list, logic_indent_levels){
     
     //var individual_feature = {level:null,logic:null,expression:null};
     
@@ -17,7 +21,6 @@ function decompose_feature(input_level, input_logic, input_expression, feature_l
     e = paren_removed.expression;
     l = +paren_removed.level;
     
-    
     var first = true;
     var e_collapsed;
         
@@ -25,15 +28,10 @@ function decompose_feature(input_level, input_logic, input_expression, feature_l
         // Given expression does not have a nested structure
         if(e.indexOf("&&")>-1 || e.indexOf("||")>-1){
         	// Logical connectives are present
-           e_collapsed=e; 
+            e_collapsed=e; 
         }else{
-        	// Single filter expression
-//            if(e.indexOf('FeatureToBeAdded') > -1){
-//                return feature_list;
-//            }else{
-                feature_list.push({level:l,logic:lo,expression:e}); 
-                return feature_list;
-//            }
+            feature_list.push({level:l,logic:lo,expression:e}); 
+            return {features:feature_list,logic_indent_levels:logic_indent_levels};
         }
     }else{
         // Removes the nested structure
@@ -49,6 +47,7 @@ function decompose_feature(input_level, input_logic, input_expression, feature_l
             prev = input_logic;
             first = false;
         }else{
+            logic_indent_levels.push(l);
             prev = e_collapsed.substring(0,2);
             e_collapsed = e_collapsed.substring(2);
             e = e.substring(2);
@@ -78,13 +77,15 @@ function decompose_feature(input_level, input_logic, input_expression, feature_l
             var current = e.substring(0,current_collapsed.length);
             e_collapsed = e_collapsed.substring(current_collapsed.length);
             e = e.substring(current_collapsed.length);
-            feature_list = decompose_feature(l,prev,current,feature_list);
+            out = decompose_feature(l,prev,current,feature_list,logic_indent_levels);
+            feature_list = out.features;
         }else{         
-            feature_list = decompose_feature(l,prev,e,feature_list);
+            out = decompose_feature(l,prev,e,feature_list,logic_indent_levels);
+            feature_list = out.features;
             break;
         }
     }
-    return feature_list;
+    return {features:feature_list,logic_indent_levels:logic_indent_levels};
 }
 
 
@@ -102,7 +103,7 @@ function create_feature_placeholder(){
     }
     
     // Add a new feature
-    var feature = {activation:true, expression:'{FeatureToBeAdded}', logic:'&&', level:0};
+    var feature = {activation:true, expression:'{FeatureToBeAdded}', logic:'&&', level:0, logic_indent_level:0};
     features.push(feature);
     display_feature_application_status(feature);
     update_feature_expression();
@@ -110,17 +111,7 @@ function create_feature_placeholder(){
      
 
 
-
-
-
-
-
-
-
-
-
-
-function add_feature(input_level, input_logic, input_expression, activation){    
+function add_feature(input_level, input_logic, input_expression, activation, logic_indent_level){    
         
     var applied_features = d3.select('#applied_feature_div');
     var id = featureID++;
@@ -327,9 +318,15 @@ function add_feature(input_level, input_logic, input_expression, activation){
     
 
     // Adjust the indentation
-    this_feature.attr('level',+input_level);
-    this_feature.select('.feature_application_activate').style('margin-right',function(){
-        var margin = 12 + input_level*arrow_margin;
+    logical_connective.attr('level',+logic_indent_level);
+    feature_expression.attr('level',+input_level);
+    
+    this_feature.select('.feature_application_logical_connective').style('margin-left',function(){
+        var margin = 28 + logic_indent_level*indentation_margin;
+        return margin+"px";
+    });
+    this_feature.select('.feature_application_expression').style('margin-left',function(){
+        var margin = 10 + input_level*indentation_margin;
         return margin+"px";
     });
 
@@ -363,16 +360,13 @@ function remove_feature(expression){
         current_feature_application = [];
         return;
     }
-    
     var features = current_feature_application;
-    
     for(var i=0;i<features.length;i++){
         if(features[i].expression==expression){
             // Remove the feature
             features.splice(i,1);
         }
     }
-    
     update_feature_expression();
 }
             
@@ -380,43 +374,49 @@ function remove_feature(expression){
 
 
 function click_left_arrow(node){
-//    
-//    var this_feature = d3.select(node.parentNode);
-//    
-//    if(d3.select(node).classed('logical_connective')){
-//        // logical connective
-//        console.log('logical_connective');
-//        
-//        
-//    }else{
-//        
-//        console.log('feature_expression');
-//    }
-//    
-//    var level = null;
-//	if(this_feature.attr('level')==null){
-//		this_feature.attr('level',0);
-//        level = 0;
-//	}else if(this_feature.attr('level')==0){
-//        // Do nothing
-//        return;
-//    }else{
-//		var l = +this_feature.attr('level');
-//		this_feature.attr('level',function(){
-//			return l-1;
-//		});
-//        level = l-1;
-//	}
-//	
-//	this_feature.select('.feature_application_activate').style('margin-right',function(){
-//		var margin = 12 + level*arrow_margin;
-//		return margin+"px";
-//	});
-//    
-//    current_feature_application = get_feature_application_status(current_feature_application);
-//	apply_current_feature_scheme();
-//    
-//    update_feature_expression();
+    
+    var this_feature = d3.select(node.parentNode);
+    
+    var level = d3.select(node).attr('level');
+    if(level==0){
+        // Do nothing
+        return;
+    }else{
+        level = l-1;
+        d3.select(node).attr('level',level);
+    }
+    
+    if(d3.select(node).classed('logical_connective')){
+        // logical connective
+
+        
+        this_feature.select('.feature_application_logical_connective').style('margin-left',function(){
+            var margin = 28 + level*indentation_margin;
+            return margin+"px";
+        });
+
+    }else{
+        
+        // feature expression
+        var level = d3.select(node).attr('level');
+        if(level==0){
+            // Do nothing
+            return;
+        }else{
+            level = l-1;
+            d3.select(node).attr('level',level);
+        }
+        
+        this_feature.select('.feature_application_logical_connective').style('margin-left',function(){
+            var margin = 28 + level*indentation_margin;
+            return margin+"px";
+        });
+    }
+    
+    current_feature_application = get_feature_application_status(current_feature_application);
+	apply_current_feature_scheme();
+    
+    update_feature_expression();
 }
         
 
@@ -437,7 +437,7 @@ function click_right_arrow(n){
 	}
 	
 	this_feature.select('.feature_application_activate').style('margin-right',function(){
-		var margin = 12 + level*arrow_margin;
+		var margin = 12 + level*indentation_margin;
 		return margin+"px";
 	});
     
@@ -523,30 +523,17 @@ function adjust_logical_connective(){
     var second_feature_select = d3.select(all_features[1]).select('.feature_application_logical_connective');
     
     if(first_feature_select[0][0]){ 
-        if(first_feature_select.selectAll('option')[0].length==2){
-
-            first_feature_select.selectAll('option').remove();
-            first_feature_select    
-                .selectAll('option')
-                .data([{value:'N/A',text:'N/A'}])
-                .enter()
-                .append("option")
-                .attr("value",function(d){
-                    return d.value;
-                })
-                .text(function(d){
-                    return d.text;
-                }); 
-            first_feature_select.style('margin-top','15px');
-        }
+        // If the first feature has a logical connective, remove it
+        first_feature_select.remove();
     }
     
-
-    if(second_feature_select[0][0]){
-        if(second_feature_select.selectAll('option')[0].length==1){
-
-            second_feature_select.selectAll('option').remove();
-            second_feature_select      
+    if(second_feature_select[0][0]==null){
+        
+        var logical_connective_div = d3.select(all_features[1]).select('.logical_connective');
+        
+        // If the second feature does not contain a logical connective, add it
+        logical_connective_div.append('select')
+                .attr('class','feature_application_logical_connective')
                 .selectAll('option')
                 .data([{value:"&&",text:"AND"},{value:"||",text:"OR"}])
                 .enter()
@@ -556,12 +543,32 @@ function adjust_logical_connective(){
                 })
                 .text(function(d){
                     return d.text;
-                }).on("change",function(d){
-                    current_feature_application = get_feature_application_status();
-                    apply_current_feature_scheme();
+                }); 
+        
+        // Append arrows for adjusting the location of each expression
+        logical_connective_div.append('img')
+                .attr('src','img/left.png')
+                .attr('id',function(){
+                    return 'left_arrow_' + id;
+                })
+                .attr('class','left_arrow arrow')
+                .attr('width','20')
+                .attr('height','17')
+                .on("click",function(d){
+                    click_left_arrow(this.parentNode);
                 });
-            second_feature_select.style('margin-top','0px');
-        }
+
+        logical_connective_div.append('img')
+                .attr('src','img/right.png')
+                .attr('id',function(){
+                    return 'right_arrow_' + id;
+                })
+                .attr('class','right_arrow arrow')
+                .attr('width','20')
+                .attr('height','17')
+                .on("click",function(d){
+                   click_right_arrow(this.parentNode);
+                });
     }
     
     update_feature_expression();
@@ -590,9 +597,13 @@ function get_feature_application_status(){
         if(logic=='N/A'){
             logic = '&&';
         }
-        var level = +d3.select(d).attr('level');
+        var level = +d3.select(d).select('.feature_expression').attr('level');
+        var logic_level = +d3.select(d).select('.logical_connective').attr('level');
+        if(logic_level==null){
+            logic_level = level;
+        }
         
-        out.push({activation:activated, expression:expression, logic:logic, level:level});
+        out.push({activation:activated, expression:expression, logic:logic, level:level, logic_indent_level:logic_level});
     });
     
     return out;
@@ -610,7 +621,13 @@ function display_feature_application_status(features){
         var expression = features[i].expression;
         var logic = features[i].logic;
         var level = +features[i].level;
-        add_feature(level, logic, expression, activation)
+        var logic_indent_level;
+        if(i==0){
+            logic_indent_level = level;
+        }else{
+            logic_indent_level = features[i].logic_indent_lvel;
+        }
+        add_feature(level, logic, expression, activation, logic_indent_level)
     }
 }
 
@@ -624,13 +641,15 @@ function get_feature_application_expression(features){
     var expressions = [];
     var logical_connectives = [];
     var levels = [];
+    var logic_levels = [];
     
     for(var i=0;i<features.length;i++){
         var activation = features[i].activation;
         var expression = features[i].expression;
         var logic = features[i].logic;
         var level = +features[i].level;
-
+        var logic_levels; 
+            
         if(activation){
         	if(expression.indexOf('&&')!=-1 || expression.indexOf('||')!=-1){
         		expression = '('+expression+')';
@@ -640,8 +659,7 @@ function get_feature_application_expression(features){
         	if(level==null){
         		levels.push(0);
         	}else{
-        		var levelNum = + level;
-        		levels.push(levelNum);
+        		levels.push(level);
         	}
         }
     }
@@ -865,19 +883,26 @@ function update_feature_application_status(expression,option){
         var last_feature_level = +placeholder.level;
         var activation = placeholder.activation;
         
-        var individual_features = decompose_feature(0, '&&', expression, []);
-
+        var logic_indent_levels = [];
+        var decomposed = decompose_feature(0, '&&', expression, [], logic_indent_levels);
+        var individual_features = decomposed.features;
+        logic_indent_levels = decomposed.logic_indent_levels;
+        
         // Add individual features
         for(var i=0;i<individual_features.length;i++){
-            var logic = individual_features[i].logic;
-            var level = +individual_features[i].level;
-            level = +last_feature_level;
+            
             var exp = individual_features[i].expression;
+            var level, logic, logic_level;
+            var level = +individual_features[i].level;
+            level = level+last_feature_level;
             if(i==0){
                 logic = first_logic;
-                features.splice(placeholder_index,1,{activation:true, expression:exp, logic:logic, level:level});
+                logic_level = last_feature_level;
+                features.splice(placeholder_index,1,{activation:true, expression:exp, logic:logic, level:level, logic_indent_level:logic_level});
             }else{
-                features.splice(placeholder_index+i,0,{activation:true, expression:exp, logic:logic, level:level});
+                logic = individual_features[i].logic;
+                logic_level = logic_indent_levels[i-1];
+                features.splice(placeholder_index+i,0,{activation:true, expression:exp, logic:logic, level:level, logic_indent_lvel:logic_level});
             }
         }
         
@@ -895,7 +920,11 @@ function update_feature_application_status(expression,option){
         
         var features = current_feature_application;
         
-        var individual_features = decompose_feature(0, '&&', expression, []);
+        var logic_indent_levels;
+        var decomposed = decompose_feature(0, '&&', expression, [], logic_indent_levels);
+        var individual_features = decomposed.features;
+        logic_indent_levels = decomposed.logic_indent_levels;
+        
         var first_logic = '&&';
         var last_feature_level = 0;
         var activation = true;
@@ -925,18 +954,26 @@ function update_feature_application_status(expression,option){
 
         // Add individual features
         for(var i=0;i<individual_features.length;i++){
-            var logic = individual_features[i].logic;
-            if(i==0) logic = first_logic;
+            var logic;
+            if(i==0){
+                logic = first_logic;
+                logic_level = last_feature_level;
+            }else{
+                logic = individual_features[i].logic;
+                logic_level = logic_indent_levels[i-1];
+            }
             var level = individual_features[i].level + last_feature_level;
             var exp = individual_features[i].expression;
-
-            var feature = {activation:activation, expression:exp, logic:logic, level:level};
+            
+            var feature = {activation:activation, expression:exp, logic:logic, level:level, logic_indent_lvel:logic_level};
             features.push(feature);
         }
         
+        // Remove all curently shown features
         d3.selectAll('.applied_feature').remove();
+        // Display features
         display_feature_application_status(current_feature_application);
-        
+        // Update the displayed expression
         update_feature_expression();
         return;
     }
