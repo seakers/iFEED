@@ -1,7 +1,7 @@
 
 var features_activation_store = [];
 var featureID = 0;    
-      
+var arrow_margin = 30;
 
 
 function decompose_feature(input_level, input_logic, input_expression, feature_list){
@@ -88,6 +88,7 @@ function decompose_feature(input_level, input_logic, input_expression, feature_l
 }
 
 
+
 function create_feature_placeholder(){
 
     var features = current_feature_application;
@@ -109,6 +110,16 @@ function create_feature_placeholder(){
      
 
 
+
+
+
+
+
+
+
+
+
+
 function add_feature(input_level, input_logic, input_expression, activation){    
         
     var applied_features = d3.select('#applied_feature_div');
@@ -126,170 +137,186 @@ function add_feature(input_level, input_logic, input_expression, activation){
             })
             .attr('class','applied_feature');
     
-    this_feature.append('input')
+    var logical_connective = this_feature.append('div')
+                                .attr('class','logical_connective');
+    
+    var feature_expression = this_feature.append('div')
+                                .attr('class','feature_expression');
+    
+    // Append activation checkbox
+    feature_expression
+            .append('input')
             .attr('type','checkbox')
-            .attr('class','feature_application_activate');
+            .attr('class','feature_application_activate')
+            .on("change",function(d){
+
+                // If the checkbox is checked, color it black. Otherwise, make it gray
+                var activated = this_feature.select('.feature_application_activate')[0][0].checked;
+        
+                this_feature.select('.feature_application_expression').style("color",function(d){
+                    if(activated){
+                        return "#000000"; //black
+                    }else{
+                        return "#989898"; // gray
+                    }
+                });
+                
+                // Store the change in the variable
+                current_feature_application = get_feature_application_status();
+                
+                // Reflect the change in the scatter plot
+                apply_current_feature_scheme();
+                
+                // Reflect the change in the displayed expression
+                update_feature_expression();
+            });
     
-    
+
     var is_first_feature = null;
-    var logical_connectives_options = [];
     
     if(d3.selectAll('.applied_feature')[0].length==1){
-
-        logical_connectives_options = [{value:'N/A',text:'N/A'}];
+        // This is the first feature to be added
+        // Skip adding the logical connective
         is_first_feature = true;
     }else{
-        logical_connectives_options = [{value:"&&",text:"AND"},{value:"||",text:"OR"}];
         is_first_feature = false;
-    }
-    
-    this_feature.append('select')
-            .attr('class','feature_application_logical_connective')
-            .selectAll('option')
-            .data(logical_connectives_options)
-            .enter()
-            .append("option")
-            .attr("value",function(d){
-                return d.value;
-            })
-            .text(function(d){
-                return d.text;
-            }); 
-    
-    if(is_first_feature){
-        this_feature.select('.feature_application_logical_connective').style('margin-top','15px');
-    }
-    
+        
+        logical_connective.append('select')
+                .attr('class','feature_application_logical_connective')
+                .selectAll('option')
+                .data([{value:"&&",text:"AND"},{value:"||",text:"OR"}])
+                .enter()
+                .append("option")
+                .attr("value",function(d){
+                    return d.value;
+                })
+                .text(function(d){
+                    return d.text;
+                }); 
+        
+        // Append arrows for adjusting the location of each expression
+        logical_connective.append('img')
+                .attr('src','img/left.png')
+                .attr('id',function(){
+                    return 'left_arrow_' + id;
+                })
+                .attr('class','left_arrow arrow')
+                .attr('width','20')
+                .attr('height','17')
+                .on("click",function(d){
+                    click_left_arrow(this.parentNode);
+                });
 
-    // If the current feature is a temp feature
+        logical_connective.append('img')
+                .attr('src','img/right.png')
+                .attr('id',function(){
+                    return 'right_arrow_' + id;
+                })
+                .attr('class','right_arrow arrow')
+                .attr('width','20')
+                .attr('height','17')
+                .on("click",function(d){
+                   click_right_arrow(this.parentNode);
+                });
+    }
+
+    var displayed_text = "";
     if(input_expression=='{FeatureToBeAdded}'){
-        this_feature.append('div')
-                .attr('class','feature_application_expression')
-                .attr('expression',function(d){
-                    return '{FeatureToBeAdded}';
-                })
-                .text('Placeholder for new feature')
-                // Gray color by default
-                .style("color","#FFB8CA");
-                
+        // If the current feature is a temp feature, display some pre-defined text
+        displayed_text='Placeholder for new feature';
     }else{
-        this_feature.append('div')
-                .attr('class','feature_application_expression')
-                .attr('expression',function(d){
-                    return input_expression;
-                })
-                .text(pp_feature(input_expression));
+        // For normal feature expression, convert the variable indices into actual names
+        displayed_text = pp_feature(input_expression);
     }
     
-
-    this_feature.append('img')
+    
+    feature_expression.append('div')
+            .attr('class','feature_application_expression')
+            .attr('expression',function(d){
+                return input_expression;
+            })
+            .text(displayed_text);
+    
+    
+    
+    // Append arrows for adjusting the location of each expression
+    feature_expression.append('img')
             .attr('src','img/left.png')
             .attr('id',function(){
                 return 'left_arrow_' + id;
             })
             .attr('class','left_arrow arrow')
             .attr('width','20')
-            .attr('height','20')
-            .style('float','left')
-            .style('margin-left','13px')
+            .attr('height','17')
             .on("click",function(d){
-    	       click_left_arrow(id);
+    	       click_left_arrow(this.parentNode);
             });
     
-    this_feature.append('img')
+    feature_expression.append('img')
             .attr('src','img/down.png')
             .attr('id',function(){
                 return 'down_arrow_' + id;
             })
             .attr('class','down_arrow arrow')
             .attr('width','20')
-            .attr('height','20')
-            .style('margin-left','4px')
-            .style('float','left')
+            .attr('height','17')
             .on("click",function(d){
-    	       click_down_arrow(id);
+    	       click_down_arrow(this.parentNode);
             });
     
-    this_feature.append('img')
+    feature_expression.append('img')
             .attr('src','img/up.png')
             .attr('id',function(){
                 return 'up_arrow_' + id;
             })
             .attr('class','up_arrow arrow')
             .attr('width','20')
-            .attr('height','20')
-            .style('margin-left','4px')
-            .style('float','left')
+            .attr('height','17')
             .on("click",function(d){
-    	       click_up_arrow(id);
+    	       click_up_arrow(this.parentNode);
             });
     
-    this_feature.append('img')
+    feature_expression.append('img')
             .attr('src','img/right.png')
             .attr('id',function(){
                 return 'right_arrow_' + id;
             })
             .attr('class','right_arrow arrow')
             .attr('width','20')
-            .attr('height','20')
-            .style('margin-left','4px')
-            .style('float','left')
+            .attr('height','17')
             .on("click",function(d){
-               click_right_arrow(id);
+               click_right_arrow(this.parentNode);
             });
     
-    this_feature.append('img')
+    feature_expression.append('img')
             .attr('src','img/minus.png')
             .attr('id',function(){
                 return 'minus_' + id;
             })
-            .attr('class','feature_application_delete')
+            .attr('class','delete_feature arrow')
             .attr('width','20')
-            .attr('height','20')
-            .style('margin-left','5px')
-            .style('float','left')
+            .attr('height','17')
             .on("click",function(d){
-        
-                var activated = this_feature.select('.feature_application_activate')[0][0].checked;
+                
+                var activated = d3.select(this.parentNode).select('.feature_application_activate')[0][0].checked;
+                // Remove the current feature
                 this_feature.remove();
-
+                // Store the change in the variable
                 current_feature_application = get_feature_application_status();
-
+                // If the removed feature was the first feature, then the next feature needs to have logical connective removed
                 adjust_logical_connective();
 
                 // Re-apply the current feature scheme if the feature to be deleted was activated
                 if(activated){
+                    // Reflect the change in the scatter plot
                     apply_current_feature_scheme();
+                    // Update the displayed expression
+                    update_feature_expression();
                 }
-
-                update_feature_expression();
             });
     
 
-    this_feature.select('.feature_application_activate').on("change",function(d){
-        
-        var expression = this_feature.select('.feature_application_expression').attr('expression');
-        if(features_activation_store.indexOf(expression)!=-1){
-            reset_feature_activation();
-        }
-        
-        var activated = this_feature.select('.feature_application_activate')[0][0].checked;
-        this_feature.select('.feature_application_expression').style("color",function(d){
-            if(activated){
-                return "#000000"; //black
-            }else{
-                return "#989898"; // gray
-            }
-        });
-        
-        current_feature_application = get_feature_application_status();
-        apply_current_feature_scheme();
-        
-        update_feature_expression();
-    });
-
-    
-    this_feature.select('.feature_application_logical_connective').on("change",function(d){
+    logical_connective.select('.feature_application_logical_connective').on("change",function(d){
         
         current_feature_application = get_feature_application_status();
         apply_current_feature_scheme();
@@ -305,7 +332,6 @@ function add_feature(input_level, input_logic, input_expression, activation){
         var margin = 12 + input_level*arrow_margin;
         return margin+"px";
     });
-    
 
     
     // Set logical connective
@@ -316,7 +342,6 @@ function add_feature(input_level, input_logic, input_expression, activation){
             this_feature.select('.feature_application_logical_connective')[0][0].value="||";
         }   
     }
-    
     
     // Set activation
     if(activation){
@@ -332,7 +357,6 @@ function add_feature(input_level, input_logic, input_expression, activation){
             
             
         
-            
 function remove_feature(expression){
     
     if(expression==null){
@@ -354,7 +378,47 @@ function remove_feature(expression){
             
             
 
-var arrow_margin = 30;
+
+function click_left_arrow(node){
+//    
+//    var this_feature = d3.select(node.parentNode);
+//    
+//    if(d3.select(node).classed('logical_connective')){
+//        // logical connective
+//        console.log('logical_connective');
+//        
+//        
+//    }else{
+//        
+//        console.log('feature_expression');
+//    }
+//    
+//    var level = null;
+//	if(this_feature.attr('level')==null){
+//		this_feature.attr('level',0);
+//        level = 0;
+//	}else if(this_feature.attr('level')==0){
+//        // Do nothing
+//        return;
+//    }else{
+//		var l = +this_feature.attr('level');
+//		this_feature.attr('level',function(){
+//			return l-1;
+//		});
+//        level = l-1;
+//	}
+//	
+//	this_feature.select('.feature_application_activate').style('margin-right',function(){
+//		var margin = 12 + level*arrow_margin;
+//		return margin+"px";
+//	});
+//    
+//    current_feature_application = get_feature_application_status(current_feature_application);
+//	apply_current_feature_scheme();
+//    
+//    update_feature_expression();
+}
+        
 
 function click_right_arrow(n){
 	var id = "" + n;
@@ -448,37 +512,6 @@ function click_down_arrow(n){
 }     
             
             
-function click_left_arrow(n){
-
-	var id = "" + n;
-	var this_feature = d3.select("#applied_feature_"+id);
-    var level = null;
-    
-	if(this_feature.attr('level')==null){
-		this_feature.attr('level',0);
-        level = 0;
-	}else if(this_feature.attr('level')==0){
-        // Do nothing
-        return;
-    }else{
-		var l = +this_feature.attr('level');
-		this_feature.attr('level',function(){
-			return l-1;
-		});
-        level = l-1;
-	}
-	
-	this_feature.select('.feature_application_activate').style('margin-right',function(){
-		var margin = 12 + level*arrow_margin;
-		return margin+"px";
-	});
-    
-    current_feature_application = get_feature_application_status(current_feature_application);
-	apply_current_feature_scheme();
-    
-    update_feature_expression();
-}
-        
             
 
             

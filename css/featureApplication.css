@@ -1,42 +1,57 @@
 
 
 
-.application_options_button{
-    margin-left: 10px;
-    float:left;
-}
 
+=
 .applied_feature{
     width:100%;
+    margin-bottom: 10px;
+    float:left;
+}
+
+.logical_connective{
+    float:left;
+    width:100%;
     margin-bottom: 4px;
-    float:left;
+    margin-top: 6px;
 }
 
-.feature_application_delete{
+.feature_expression{
     float:left;
-    margin-top:15px;
+    width:100%;
 }
-
 
 .feature_application_activate {
     float:left;
     margin-right:12px;
-    margin-top:17px;
 }
 
 .feature_application_logical_connective {
     float: left;
-    margin-right:4px;
 }
 
 .feature_application_expression{
     float: left;
-    margin-right:4px;
-    margin-top:15px
+    margin-right:10px;
 }
+
+.feature_application_logical_connective {
+    float:left;
+    margin-left:28px;
+    margin-right: 12px;
+}
+
 .arrow{
-    margin-top:15px;
+    width:20px;
+    height:20px;
+    float:left;
+    margin-left:3px;
 }
+
+
+
+
+
 
 
 .img-hor-vert {
