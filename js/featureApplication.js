@@ -8,6 +8,7 @@ var indentation_margin = 30;
 //var y = '({present[;0;]}&&{present[;11;]})';
 //var z = '({present[;0;]}||{absent[;3;]})&&({present[;11;]})';
 
+
 function decompose_feature(input_level, input_logic, input_expression, feature_list, logic_indent_levels){
     
     //var individual_feature = {level:null,logic:null,expression:null};
@@ -105,7 +106,9 @@ function create_feature_placeholder(){
     // Add a new feature
     var feature = {activation:true, expression:'{FeatureToBeAdded}', logic:'&&', level:0, logic_indent_level:0};
     features.push(feature);
-    display_feature_application_status(feature);
+    
+    // Make an update to the display
+    display_feature_application_status([feature]);
     update_feature_expression();
 }
      
@@ -352,25 +355,7 @@ function add_feature(input_level, input_logic, input_expression, activation, log
     return this_feature;
 }
             
-            
-        
-function remove_feature(expression){
-    
-    if(expression==null){
-        current_feature_application = [];
-        return;
-    }
-    var features = current_feature_application;
-    for(var i=0;i<features.length;i++){
-        if(features[i].expression==expression){
-            // Remove the feature
-            features.splice(i,1);
-        }
-    }
-    update_feature_expression();
-}
-            
-            
+       
 
 
 function click_left_arrow(node){
@@ -382,64 +367,77 @@ function click_left_arrow(node){
         // Do nothing
         return;
     }else{
-        level = l-1;
+        level = level-1;
         d3.select(node).attr('level',level);
     }
     
     if(d3.select(node).classed('logical_connective')){
         // logical connective
-
-        
         this_feature.select('.feature_application_logical_connective').style('margin-left',function(){
             var margin = 28 + level*indentation_margin;
             return margin+"px";
         });
 
     }else{
-        
         // feature expression
-        var level = d3.select(node).attr('level');
-        if(level==0){
-            // Do nothing
-            return;
-        }else{
-            level = l-1;
-            d3.select(node).attr('level',level);
-        }
-        
-        this_feature.select('.feature_application_logical_connective').style('margin-left',function(){
-            var margin = 28 + level*indentation_margin;
+        this_feature.select('.feature_application_expression').style('margin-left',function(){
+            var margin = 12 + level*indentation_margin;
             return margin+"px";
         });
     }
     
-    current_feature_application = get_feature_application_status(current_feature_application);
-	apply_current_feature_scheme();
+    current_feature_application = get_feature_application_status();
+
+    adjust_logical_connective();
+    
+    apply_current_feature_scheme();
     
     update_feature_expression();
 }
         
 
-function click_right_arrow(n){
-	var id = "" + n;
-	var this_feature = d3.select("#applied_feature_"+id);
-    var level = null;
+function click_right_arrow(node){
     
-	if(this_feature.attr('level')==null){
-		this_feature.attr('level',1);
-        level = 1;
-	}else{
-		var l = +this_feature.attr('level');
-		this_feature.attr('level',function(){
-			return l+1;
-		});
-        level = l+1;
-	}
-	
-	this_feature.select('.feature_application_activate').style('margin-right',function(){
-		var margin = 12 + level*indentation_margin;
-		return margin+"px";
-	});
+    var this_feature = d3.select(node.parentNode);
+    var level = +d3.select(node).attr('level');
+
+    if(d3.select(node).classed('logical_connective')){
+
+        var all_features = d3.selectAll('.applied_feature')
+        var this_id = d3.select(node.parentNode).attr('id');
+        var index = -1;
+        all_features[0].forEach(function(d,i){
+            if(d3.select(d).attr('id')==this_id){
+                index = i;
+            }
+        });
+        
+        var prev_feature_level = +current_feature_application[index-1].level;
+        var this_feature_level = +current_feature_application[index].level;
+        
+        // The indentation level of logical connectives cannot be higher than the neighboring feature indentation levels
+        // They should smaller or equal to the neighboring feature indentation levels
+        if(Math.min(prev_feature_level,this_feature_level)==level){
+            return;
+        }
+
+        level = level+1;
+        d3.select(node).attr('level',level);
+        // logical connective
+        this_feature.select('.feature_application_logical_connective').style('margin-left',function(){
+            var margin = 28 + level*indentation_margin;
+            return margin+"px";
+        });
+
+    }else{
+        level = level+1;
+        d3.select(node).attr('level',level);
+        // feature expression
+        this_feature.select('.feature_application_expression').style('margin-left',function(){
+            var margin = 12 + level*indentation_margin;
+            return margin+"px";
+        });
+    }
     
     current_feature_application = get_feature_application_status();
 	apply_current_feature_scheme();
@@ -448,51 +446,58 @@ function click_right_arrow(n){
 }
                      
             
-function click_up_arrow(n){
+function click_up_arrow(node){
     
-	var source_selector_id = "applied_feature_" + n;
+    var all_features = d3.selectAll('.applied_feature')
+	var source_id = d3.select(node.parentNode).attr('id');
     
-    var applied_features = d3.selectAll('.applied_feature')[0];
     var index = -1;
-    
-    applied_features.forEach(function(d,i){
-        if(d3.select(d).attr('id')==source_selector_id){
+    all_features[0].forEach(function(d,i){
+        if(d3.select(d).attr('id')==source_id){
             index = i;
         }
     });
-    
+        
     if(index==0){
         return;
     }
-    
+
     var features = current_feature_application;
     var target_copy = features[index-1];
     features[index-1] = features[index];
     features[index] = target_copy;
     
+    
     d3.selectAll('.applied_feature').remove();
+    
     display_feature_application_status(current_feature_application);
-    
+
     adjust_logical_connective();
+
 	apply_current_feature_scheme();
-    
+
     update_feature_expression();
 }   
+
+
+
+
+
             
             
-function click_down_arrow(n){
+function click_down_arrow(node){
 	
-    var source_selector_id = "applied_feature_" + n;
+    var all_features = d3.selectAll('.applied_feature')
+	var source_id = d3.select(node.parentNode).attr('id');
     
-    var applied_features = d3.selectAll('.applied_feature')[0];
     var index = -1;
     
-    applied_features.forEach(function(d,i){
-        if(d3.select(d).attr('id')==source_selector_id){
+    all_features[0].forEach(function(d,i){
+        if(d3.select(d).attr('id')==source_id){
             index = i;
         }
     });
-    
+        
     if(index==-1 || index==current_feature_application.length-1){
         return;
     }
@@ -503,6 +508,7 @@ function click_down_arrow(n){
     features[index] = target_copy;
     
     d3.selectAll('.applied_feature').remove();
+    
     display_feature_application_status(current_feature_application);
     
     adjust_logical_connective();
@@ -519,17 +525,25 @@ function adjust_logical_connective(){
     
     var all_features = d3.selectAll('.applied_feature')[0];
     
-    var first_feature_select = d3.select(all_features[0]).select('.feature_application_logical_connective');
-    var second_feature_select = d3.select(all_features[1]).select('.feature_application_logical_connective');
+    var first_feature = d3.select(all_features[0]);
+    var second_feature = d3.select(all_features[1]);
     
-    if(first_feature_select[0][0]){ 
+    if(first_feature[0][0]==null){
+        return;
+    }else if(first_feature.select('.feature_application_logical_connective')[0][0]){ 
         // If the first feature has a logical connective, remove it
-        first_feature_select.remove();
+        first_feature.select('.feature_application_logical_connective').remove();
+        first_feature.select('.logical_connective').selectAll('.arrow').remove();
     }
     
-    if(second_feature_select[0][0]==null){
+    if(second_feature[0][0]==null){
+        return;
+    }else if(second_feature.select('.feature_application_logical_connective')[0][0]==null){
         
-        var logical_connective_div = d3.select(all_features[1]).select('.logical_connective');
+        var logical_connective_div = second_feature.select('.logical_connective');
+        
+        var level = +second_feature.select('.feature_expression').attr('level');
+        logical_connective_div.attr('level',level);
         
         // If the second feature does not contain a logical connective, add it
         logical_connective_div.append('select')
@@ -570,7 +584,27 @@ function adjust_logical_connective(){
                    click_right_arrow(this.parentNode);
                 });
     }
+
     
+    for(var i=1;i<all_features.length;i++){
+        
+        var this_feature = all_features[i];
+        var index = i;
+
+        var prev_feature_level = +current_feature_application[index-1].level;
+        var this_feature_level = +current_feature_application[index].level;
+        var this_feature_logic_indent_level = +current_feature_application[index].logic_indent_level;
+
+        var min_level = Math.min(prev_feature_level,this_feature_level);
+        if( this_feature_logic_indent_level > min_level ){
+            
+            var diff = this_feature_logic_indent_level - min_level;
+            for(var j=0;j<diff;j++){
+                click_left_arrow(d3.select(this_feature).select('.logical_connective')[0][0]);
+            }
+        }
+    }
+
     update_feature_expression();
 }
             
@@ -593,12 +627,15 @@ function get_feature_application_status(){
     	
         var activated = d3.select(d).select('.feature_application_activate')[0][0].checked;
         var expression = d3.select(d).select('.feature_application_expression').attr('expression');
-        var logic = d3.select(d).select('.feature_application_logical_connective')[0][0].value; 
-        if(logic=='N/A'){
+        var logic;
+        if(d3.select(d).select('.feature_application_logical_connective')[0][0]){
+            logic = d3.select(d).select('.feature_application_logical_connective')[0][0].value; 
+        }else{
             logic = '&&';
         }
         var level = +d3.select(d).select('.feature_expression').attr('level');
         var logic_level = +d3.select(d).select('.logical_connective').attr('level');
+        
         if(logic_level==null){
             logic_level = level;
         }
@@ -613,7 +650,7 @@ function get_feature_application_status(){
 function display_feature_application_status(features){
     
     if(features==null){
-        features = get_feature_application_status();
+        features = current_feature_application;
     }
     
     for(var i=0;i<features.length;i++){
@@ -623,11 +660,11 @@ function display_feature_application_status(features){
         var level = +features[i].level;
         var logic_indent_level;
         if(i==0){
-            logic_indent_level = level;
+            logic_indent_level = +level;
         }else{
-            logic_indent_level = features[i].logic_indent_lvel;
+            logic_indent_level = +features[i].logic_indent_level;
         }
-        add_feature(level, logic, expression, activation, logic_indent_level)
+        add_feature(level, logic, expression, activation, logic_indent_level);
     }
 }
 
@@ -641,50 +678,56 @@ function get_feature_application_expression(features){
     var expressions = [];
     var logical_connectives = [];
     var levels = [];
-    var logic_levels = [];
+    var logic_indent_levels = [];
     
     for(var i=0;i<features.length;i++){
         var activation = features[i].activation;
         var expression = features[i].expression;
         var logic = features[i].logic;
         var level = +features[i].level;
-        var logic_levels; 
+        var logic_indent_level = +features[i].logic_indent_level; 
             
         if(activation){
         	if(expression.indexOf('&&')!=-1 || expression.indexOf('||')!=-1){
         		expression = '('+expression+')';
         	}
+            
             expressions.push(expression);
             logical_connectives.push(logic);
-        	if(level==null){
-        		levels.push(0);
-        	}else{
-        		levels.push(level);
-        	}
+            levels.push(level);
+            logic_indent_levels.push(logic_indent_level);
         }
     }
 
+    
     var filterExpression = "";
     var prev_level = 0;
     
     for(var i=0;i<expressions.length;i++){
     	var level = +levels[i];
+        var logic_indent_level = +logic_indent_levels[i];
+        
         if(i > 0){
-            if(level > prev_level){
-            	filterExpression = filterExpression + logical_connectives[i];
-            	while(prev_level != level){
-            		filterExpression = filterExpression + "(";
-            		prev_level++;
-            	}
-            }else if(level < prev_level){
-            	while(prev_level > level){
+            
+            if(logic_indent_level < prev_level){
+                var diff = prev_level-logic_indent_level;
+            	for(var j=0;j<diff;j++){
             		filterExpression = filterExpression + ")";
-            		prev_level--;
             	}
-            	filterExpression = filterExpression + logical_connectives[i];
+                filterExpression = filterExpression + logical_connectives[i];
             }else{
-            	filterExpression = filterExpression + logical_connectives[i];
+                // logic_indent_level == prev_level 
+                filterExpression = filterExpression + logical_connectives[i];
             }
+            
+            if(logic_indent_level < level){
+                var diff = level - logic_indent_level;
+            	for(var j=0;j<diff;j++){
+            		filterExpression = filterExpression + "(";
+            	}
+            }
+            prev_level = level;
+            
         }else if(i==0){ // i=0
             if(level > 0){
             	while(prev_level < level){
@@ -693,6 +736,7 @@ function get_feature_application_expression(features){
             	}
         	}
         }
+        
         filterExpression = filterExpression + expressions[i];
     }
 
@@ -751,36 +795,35 @@ function test_feature(){
 function toggle_feature_activation(){
 
     if(features_activation_store.length==0){
+        
         d3.selectAll('.applied_feature')[0].forEach(function(d,i){
             var activation = d3.select(d).select('.feature_application_activate')[0][0].checked;
             var expression = d3.select(d).select('.feature_application_expression').attr('expression');
             
             features_activation_store.push(expression);
-            
             if(activation && expression.indexOf('FeatureToBeAdded')==-1){
-                // Deactivate the activated features. If the feature is FeatureToBeAdded, don't deactivate it
+                // Deactivate the activated features. If the feature is the placeholder, don't deactivate it
                 d3.select(d).select('.feature_application_activate')[0][0].checked = false;
                 d3.select(d).select('.feature_application_expression').style('color',"#989898");
-                current_feature_application[i].activation = false;
             }
         });
         d3.select('#toggle_feature_scheme').text('Restore all features');
+        
     }else{
         
         d3.selectAll('.applied_feature')[0].forEach(function(d,i){
-            
             var expression = d3.select(d).select('.feature_application_expression').attr('expression');
             
             if(features_activation_store.indexOf(expression)!=-1){
                 d3.select(d).select('.feature_application_activate')[0][0].checked = true;
                 d3.select(d).select('.feature_application_expression').style('color',"#000000");
-                current_feature_application[i].activation = true;
             }
         });
         reset_feature_activation();
     }
-    apply_current_feature_scheme();
     
+    current_feature_application = get_feature_application_status();
+    apply_current_feature_scheme();
     update_feature_expression();
 }
 
@@ -806,24 +849,19 @@ function update_feature_expression(features){
     expression = expression.replace(/{/g,'');
     expression = expression.replace(/}/g,'');
     
-    expression = expression.replace(/\(/g,'<span style="color:'+bracket_color+';font-weight:bold">(</span>');
-    expression = expression.replace(/\)/g,'<span style="color:'+bracket_color+';font-weight:bold">)</span>');
+    expression = expression.replace(/\(/g,'<span style="color:'+bracket_color+';font-weight:bold;font-size:28px">(</span>');
+    expression = expression.replace(/\)/g,'<span style="color:'+bracket_color+';font-weight:bold;font-size:28px">)</span>');
     expression = expression.replace(/&&/g,' <span style="color:'+logic_color+';">AND</span> ');
     expression = expression.replace(/\|\|/g,' <span style="color:'+logic_color+';">OR</span> ');
     
-    d3.select('#featureApplicationExpressionPanel').html("<p>"+expression+"</p>");
+    d3.select('#featureApplicationExpressionPanel_body').html("<p>"+expression+"</p>");
     
 }
 
 
 function update_feature_application_status(expression,option){
     
-    if(option=='remove'){
-        // Remove a given feature from the application list
-        remove_feature(expression);
-        return;
-        
-    }else if(option=='create_placeholder'){
+    if(option=='create_placeholder'){
         // Newly create a new placeholder if it doesn't exist already
         create_feature_placeholder();
         return;
@@ -841,9 +879,9 @@ function update_feature_application_status(expression,option){
         if(min_level > 0){
             for(var i=0;i<current_feature_application.length;i++){
                 current_feature_application[i].level = current_feature_application[i].level-min_level;
+                current_feature_application[i].logic_indent_level = current_feature_application[i].logic_indent_level-min_level;
             }
         }
-        
         return;
         
     }else if(option=='update_placeholder'){
@@ -855,8 +893,10 @@ function update_feature_application_status(expression,option){
             return;
         }
         
-        // Deep copy of the feature application, since the change is temporary
+        // Create a new placeholder if it does not exist
+        create_feature_placeholder();
         
+        // Deep copy of the feature application, since the change is temporary
         var features = JSON.parse(JSON.stringify(current_feature_application));
         
         var placeholder = null;
@@ -870,18 +910,10 @@ function update_feature_application_status(expression,option){
             }
         }
         
-        
-        if(!placeholder){
-            // If placeholder does not exist, simply add it using conjunction at level 0
-            placeholder = {activation:true, expression:'{FeatureToBeAdded}', logic:'&&', level:0};
-            placeholder_index = features.length;
-            features.push(placeholder);
-            current_feature_application.push(placeholder);
-        }
-        
         var first_logic = placeholder.logic;
         var last_feature_level = +placeholder.level;
         var activation = placeholder.activation;
+        var last_feature_logic_level = +placeholder.logic_indent_level;
         
         var logic_indent_levels = [];
         var decomposed = decompose_feature(0, '&&', expression, [], logic_indent_levels);
@@ -895,20 +927,22 @@ function update_feature_application_status(expression,option){
             var level, logic, logic_level;
             var level = +individual_features[i].level;
             level = level+last_feature_level;
+            
             if(i==0){
                 logic = first_logic;
-                logic_level = last_feature_level;
+                logic_level = last_feature_logic_level;
                 features.splice(placeholder_index,1,{activation:true, expression:exp, logic:logic, level:level, logic_indent_level:logic_level});
             }else{
                 logic = individual_features[i].logic;
-                logic_level = logic_indent_levels[i-1];
-                features.splice(placeholder_index+i,0,{activation:true, expression:exp, logic:logic, level:level, logic_indent_lvel:logic_level});
+                logic_level = logic_indent_levels[i-1] + last_feature_level;
+                features.splice(placeholder_index+i,0,{activation:true, expression:exp, logic:logic, level:level, logic_indent_level:logic_level});
             }
         }
         
         stashed_feature_application = features;
         
         d3.selectAll('.applied_feature').remove();
+        
         display_feature_application_status(stashed_feature_application);
         
         update_feature_expression(stashed_feature_application);
@@ -919,16 +953,17 @@ function update_feature_application_status(expression,option){
         // option: {'new','add','within','deactivated'}
         
         var features = current_feature_application;
-        
-        var logic_indent_levels;
+
+        var logic_indent_levels = [];
         var decomposed = decompose_feature(0, '&&', expression, [], logic_indent_levels);
         var individual_features = decomposed.features;
-        logic_indent_levels = decomposed.logic_indent_levels;
-        
+        var logic_indent_levels = decomposed.logic_indent_levels;
+
         var first_logic = '&&';
         var last_feature_level = 0;
         var activation = true;
 
+        
         // Different configuration depending on what option is used
         switch(option) {
             case 'new':
@@ -957,24 +992,26 @@ function update_feature_application_status(expression,option){
             var logic;
             if(i==0){
                 logic = first_logic;
-                logic_level = last_feature_level;
+                logic_level = +last_feature_level;
             }else{
                 logic = individual_features[i].logic;
-                logic_level = logic_indent_levels[i-1];
+                logic_level = +logic_indent_levels[i-1] + last_feature_level;
             }
             var level = individual_features[i].level + last_feature_level;
             var exp = individual_features[i].expression;
             
-            var feature = {activation:activation, expression:exp, logic:logic, level:level, logic_indent_lvel:logic_level};
+            var feature = {activation:activation, expression:exp, logic:logic, level:level, logic_indent_level:logic_level};
             features.push(feature);
         }
-        
+                
         // Remove all curently shown features
         d3.selectAll('.applied_feature').remove();
         // Display features
-        display_feature_application_status(current_feature_application);
+        display_feature_application_status(features);
         // Update the displayed expression
         update_feature_expression();
+        
+        adjust_logical_connective();
         return;
     }
     
@@ -982,6 +1019,18 @@ function update_feature_application_status(expression,option){
 
 
 
-            
+d3.select('#clear_deactivated_features').on('click',function(){
+    d3.selectAll('.applied_feature')[0].forEach(function(d){
+        var activation = d3.select(d).select('.feature_application_activate')[0][0].checked;
+        var expression = d3.select(d).select('.feature_application_expression').attr('expression');
+        if(!activation&& expression.indexOf('FeatureToBeAdded')==-1){
+            d3.select(d).remove();
+        }
+    });
+    current_feature_application = get_feature_application_status();
+    apply_current_feature_scheme();
+    adjust_logical_connective();
+    update_feature_expression();
+});
 d3.select('#toggle_feature_scheme').on('click',toggle_feature_activation);
 d3.select('#test_feature_scheme').on('click',test_feature);     

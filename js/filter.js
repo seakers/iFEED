@@ -52,15 +52,23 @@ function openFilterOptions(){
     d3.select("#filter_buttons").append("button")
             .attr("id","applyFilterButton_new")
             .attr("class","filter_options_button")
-            .text("Apply new feature");
+            .text("Apply as new feature");
+    
     d3.select("#filter_buttons").append("button")
             .attr("class","filter_options_button")
             .attr("id","applyFilterButton_add")
             .text("Apply OR");
+    
     d3.select("#filter_buttons").append("button")
             .attr("id","applyFilterButton_within")
             .attr("class","filter_options_button")
             .text("Apply AND");
+    
+    d3.select("#filter_buttons").append("button")
+            .attr("id","applyFilterButton_placeholder")
+            .attr("class","filter_options_button")
+            .text("Replace the placeholder");
+    
     
     d3.select("#filter_options_dropdown_1").on("change",filter_options_dropdown_preset_filters);    
 
@@ -72,6 +80,9 @@ function openFilterOptions(){
     });
     d3.select("#applyFilterButton_within").on("click",function(d){
         applyFilter("within");
+    });
+    d3.select("#applyFilterButton_placeholder").on("click",function(d){
+        applyFilter("replace_placeholder");
     });
     
     highlight_support_panel()
@@ -945,10 +956,14 @@ function applyFilter(option){
             filterExpression=presetFilter + "[" + DisplayName2Index(orbit,"orbit") + ";;" + number + "]";
         }
     } else if(dropdown==="paretoFront"){
+        
         // To be implemented    
         var filterInput = d3.select("#filter_inputs_div_1").select('.filter_inputs_textbox')[0][0].value;
         filterExpression = "paretoFront["+filterInput+"]";
+        
     }else if(dropdown==='ifInstrumentExists'){
+        
+        // Currently not used
         
         var instrument = input_textbox[0].trim();
         var orbit = input_textbox[1].trim().replace(/\s+/g, "");
@@ -965,71 +980,22 @@ function applyFilter(option){
     	var filterInput = d3.select("#filter_inputs_div_1").select('.filter_inputs_textbox')[0][0].value;
     	applyParetoFilter(option,filterInput);
     }else{
-        if(option==="new"){
-            
-            cancelDotSelections('remove_highlighted');
-            
-            d3.selectAll('.dot.archPlot')[0].forEach(function(d){
-                
-                var bitString = d.__data__.bitString;
-                if(applyPresetFilter(filterExpression,bitString)){
-                    
-                    var dot = d3.select(d);
-                    dot.classed('highlighted',true);
-                    
-                	if(dot.classed('selected')){
-                        // highlighted and selected
-                        dot.style("fill", overlapColor);
-                	}else{
-                        // not selected
-                        dot.style("fill", highlightedColor);
-                    }
-                }
-            });
-        }else if(option==="add"){
-            d3.selectAll('.dot.archPlot:not(.highlighted)')[0].forEach(function(d){
-                var bitString = d.__data__.bitString;
-                if(applyPresetFilter(filterExpression,bitString)){
-                    
-                    var dot = d3.select(d);
-                    dot.classed('highlighted',true);
-                    
-                	if(dot.classed('selected')){
-                        // highlighted and selected
-                        dot.style("fill", overlapColor);
-                	}else{
-                        // not selected
-                        dot.style("fill", highlightedColor);
-                    }
-                }
-            });
-        }else if(option==="within"){
-            d3.selectAll('.dot.archPlot.highlighted')[0].forEach(function(d){
-                var bitString = d.__data__.bitString;
-                if(!applyPresetFilter(filterExpression,bitString)){
-                    
-                    var dot = d3.select(d);
-                    dot.classed('highlighted',false);
-                    
-                    if(dot.classed('selected')){
-                        // selected
-                        dot.style("fill", function (d) {return selectedColor;}); 
-                    }else{
-                        // not selected
-                        dot.style("fill", function (d) {return defaultColor;});   
-                    }                      
-                }
-            });           
+        
+        if(option==="new" || option==="add" || option==="within" || option==="deactivated"){
+            update_feature_application_status(filterExpression, option);
+            apply_current_feature_scheme();
+        }else if(option==="replace_placeholder"){
+            update_feature_application_status(filterExpression, 'update_placeholder');
+            update_feature_application_status(filterExpression, 'replace_placeholder');
+            update_feature_application_status(filterExpression, 'create_placeholder');
         }
+    
     }
 
     if(wrong_arg){
     	alert("Invalid input argument");
     }
-    d3.select("[id=numOfSelectedArchs_inputBox]").text("" + numOfSelectedArchs()); 
-    
-    update_feature_application_status(filterExpression, option);
-    draw_venn_diagram();  
+        
 }
 
 

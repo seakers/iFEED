@@ -276,24 +276,32 @@ and open the template in the editor.
             <div id='panel_2' style='width:660px; height:1050px; float:left;'>
                 <div style='width:660px; height: 1050px; border-style:solid; border-width:1px; float:left'>
                     <div id='featureApplicationExpressionPanel' style='float:left;
-                                                                       width:620px;
-                                                                       height:80px;
-                                                                       padding:20px;
-                                                                       overflow:scroll;
+                                                                       width:630px;
+                                                                       height:150px;
+                                                                       padding:15px;
                                                                        border-style:solid;
                                                                        border-width:0.5px;
                                                                        font-size:20px'>
+                        <div id='featureApplicationExpressionPanel_title' style='width:100%;height:30px;float:left;margin-bottom:0px'>
+                            <div style='float:left; margin-right:10px;font-weight:bold;'>Currently Applied Feature Expression</div>
+                            <button id='test_feature_scheme' class='feature_application_options_button' style='float:left;'>Test current feature</button>
+                        </div>
+                        <div id='featureApplicationExpressionPanel_body' style='overflow:scroll; height:115px; width:100%'>
+                            
+                        </div>
+                        
                     </div>
+                    
                     <div id='featureApplicationStatusPanel' style='float:left;
                                                                    width:620px;
-                                                                   height:1010px;
+                                                                   height:820px;
                                                                    padding:20px;
                                                                    overflow:scroll;'>
 
 
                         <div id='feature_application_options_panel' style="width:100%;">
                             <button id='toggle_feature_scheme' class='feature_application_options_button'>Deactivate all features</button>
-                            <button id='test_feature_scheme' class='feature_application_options_button'>Test current feature</button>
+                            <button id='clear_deactivated_features' class='feature_application_options_button'>Clear deactivated features</button>
                         </div>
 
                         <div id='feature_application_status' style='width:100%; padding:5px; float:left;'>
