@@ -3,11 +3,6 @@ var features_activation_store = [];
 var featureID = 0;    
 var indentation_margin = 30;
 
-//
-//var x = '({present[;0;]})&&({present[;11;]})';
-//var y = '({present[;0;]}&&{present[;11;]})';
-//var z = '({present[;0;]}||{absent[;3;]})&&({present[;11;]})';
-
 
 function decompose_feature(input_level, input_logic, input_expression, feature_list, logic_indent_levels){
     
