@@ -154,10 +154,12 @@ function add_feature(input_level, input_logic, input_expression, activation, log
                         return "#989898"; // gray
                     }
                 });
-                
+        
                 // Store the change in the variable
                 current_feature_application = get_feature_application_status();
-                
+        
+                adjust_logical_connective();
+
                 // Reflect the change in the scatter plot
                 apply_current_feature_scheme();
                 
@@ -412,11 +414,21 @@ function click_right_arrow(node){
             }
         });
         
-        var prev_feature_level = +current_feature_application[index-1].level;
+        var prev_feature_level=-1;
+        for(var j=index-1;j>-1;j--){
+
+            if(current_feature_application[j].activation){
+                prev_feature_level = +current_feature_application[j].level; 
+                break;
+            }
+        }
         var this_feature_level = +current_feature_application[index].level;
+        if(prev_feature_level==-1){
+            prev_feature_level = this_feature_level;
+        }
         
         // The indentation level of logical connectives cannot be higher than the neighboring feature indentation levels
-        // They should smaller or equal to the neighboring feature indentation levels
+        // They should be smaller or equal to the neighboring feature indentation levels
         if(Math.min(prev_feature_level,this_feature_level)==level){
             return;
         }
@@ -590,10 +602,21 @@ function adjust_logical_connective(){
         
         var this_feature = all_features[i];
         var index = i;
-
-        var prev_feature_level = +current_feature_application[index-1].level;
+        
+        var prev_feature_level=-1;
+        for(var j=i-1;j>-1;j--){
+            if(current_feature_application[j].activation){
+                prev_feature_level = +current_feature_application[j].level; 
+                break;
+            }
+        }
+        
         var this_feature_level = +current_feature_application[index].level;
         var this_feature_logic_indent_level = +current_feature_application[index].logic_indent_level;
+        
+        if(prev_feature_level==-1){
+            prev_feature_level = this_feature_level;
+        }
 
         var min_level = Math.min(prev_feature_level,this_feature_level);
         if( this_feature_logic_indent_level > min_level ){
