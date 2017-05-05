@@ -185,6 +185,15 @@ function add_feature(input_level, input_logic, input_expression, activation, log
                     return d.text;
                 }); 
         
+        logical_connective.select('.feature_application_logical_connective').on("change",function(d){
+
+            current_feature_application = get_feature_application_status();
+            apply_current_feature_scheme();
+
+            update_feature_expression();
+
+        });
+
         // Append arrows for adjusting the location of each expression
         logical_connective.append('img')
                 .attr('src','img/left.png')
@@ -307,15 +316,6 @@ function add_feature(input_level, input_logic, input_expression, activation, log
             });
     
 
-    logical_connective.select('.feature_application_logical_connective').on("change",function(d){
-        
-        current_feature_application = get_feature_application_status();
-        apply_current_feature_scheme();
-        
-        update_feature_expression();
-        
-    });
-    
 
     // Adjust the indentation
     logical_connective.attr('level',+logic_indent_level);
@@ -565,6 +565,16 @@ function adjust_logical_connective(){
                 .text(function(d){
                     return d.text;
                 }); 
+        
+        logical_connective_div.select('.feature_application_logical_connective').on("change",function(d){
+
+            current_feature_application = get_feature_application_status();
+            apply_current_feature_scheme();
+
+            update_feature_expression();
+
+        });
+        
         
         // Append arrows for adjusting the location of each expression
         logical_connective_div.append('img')
@@ -887,19 +897,6 @@ function update_feature_application_status(expression,option){
     }else if(option=='replace_placeholder'){
         
         current_feature_application = stashed_feature_application;
-        
-        var min_level = 100;
-        for(var i=0;i<current_feature_application.length;i++){
-            if(current_feature_application[i].level < min_level){
-                min_level = current_feature_application[i].level;
-            }
-        }
-        if(min_level > 0){
-            for(var i=0;i<current_feature_application.length;i++){
-                current_feature_application[i].level = current_feature_application[i].level-min_level;
-                current_feature_application[i].logic_indent_level = current_feature_application[i].logic_indent_level-min_level;
-            }
-        }
         return;
         
     }else if(option=='update_placeholder'){
