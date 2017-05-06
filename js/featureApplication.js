@@ -196,7 +196,7 @@ function add_feature(input_level, input_logic, input_expression, activation, log
 
         // Append arrows for adjusting the location of each expression
         logical_connective.append('img')
-                .attr('src','img/left.png')
+                .attr('src','img/2_left.png')
                 .attr('id',function(){
                     return 'left_arrow_' + id;
                 })
@@ -208,7 +208,7 @@ function add_feature(input_level, input_logic, input_expression, activation, log
                 });
 
         logical_connective.append('img')
-                .attr('src','img/right.png')
+                .attr('src','img/2_right.png')
                 .attr('id',function(){
                     return 'right_arrow_' + id;
                 })
@@ -241,7 +241,7 @@ function add_feature(input_level, input_logic, input_expression, activation, log
     
     // Append arrows for adjusting the location of each expression
     feature_expression.append('img')
-            .attr('src','img/left.png')
+            .attr('src','img/2_left.png')
             .attr('id',function(){
                 return 'left_arrow_' + id;
             })
@@ -253,7 +253,7 @@ function add_feature(input_level, input_logic, input_expression, activation, log
             });
     
     feature_expression.append('img')
-            .attr('src','img/down.png')
+            .attr('src','img/2_down.png')
             .attr('id',function(){
                 return 'down_arrow_' + id;
             })
@@ -265,7 +265,7 @@ function add_feature(input_level, input_logic, input_expression, activation, log
             });
     
     feature_expression.append('img')
-            .attr('src','img/up.png')
+            .attr('src','img/2_up.png')
             .attr('id',function(){
                 return 'up_arrow_' + id;
             })
@@ -277,7 +277,7 @@ function add_feature(input_level, input_logic, input_expression, activation, log
             });
     
     feature_expression.append('img')
-            .attr('src','img/right.png')
+            .attr('src','img/2_right.png')
             .attr('id',function(){
                 return 'right_arrow_' + id;
             })
@@ -289,7 +289,7 @@ function add_feature(input_level, input_logic, input_expression, activation, log
             });
     
     feature_expression.append('img')
-            .attr('src','img/minus.png')
+            .attr('src','img/2_minus.png')
             .attr('id',function(){
                 return 'minus_' + id;
             })
@@ -578,7 +578,7 @@ function adjust_logical_connective(){
         
         // Append arrows for adjusting the location of each expression
         logical_connective_div.append('img')
-                .attr('src','img/left.png')
+                .attr('src','img/2_left.png')
                 .attr('id',function(){
                     return 'left_arrow_' + id;
                 })
@@ -590,7 +590,7 @@ function adjust_logical_connective(){
                 });
 
         logical_connective_div.append('img')
-                .attr('src','img/right.png')
+                .attr('src','img/2_right.png')
                 .attr('id',function(){
                     return 'right_arrow_' + id;
                 })
