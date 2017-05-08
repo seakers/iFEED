@@ -227,12 +227,19 @@ function display_drivingFeatures(source){
     var conf1s=[];
     var conf2s=[];
     
+    var most_recent = -1;
+    
     for (var i=0;i<numFeatures;i++){
         lifts.push(source[i].metrics[1]);
         supps.push(source[i].metrics[0]);
         conf1s.push(source[i].metrics[2]);
         conf2s.push(source[i].metrics[3]);
         drivingFeatureTypes.push(pp_feature_type(source[i].name));
+        if(source[i].added){
+            if(source[i].added > most_recent){
+                most_recent = source[i].added;
+            }
+        }
     }
 
     // Set the axis to be Conf(F->S) and Conf(S->F)
@@ -397,7 +404,6 @@ function display_drivingFeatures(source){
             .attr("y2", height)
             .attr("transform", "translate(" + (xScale(0)) + ",0)");
        
-                      
     // Create dots
     var dots = objects.selectAll(".dot.dfplot")
             .data(source, function(d){return (d.id = df_i++);})
@@ -405,9 +411,6 @@ function display_drivingFeatures(source){
             .append('path')
             .attr('class','point dot dfplot')
             .attr("d", d3.svg.symbol().type('triangle-up').size(120))
-            //.append("circle")
-            //.attr("class", "dot dfplot")
-            //.attr("r", 5.5)
             .attr("transform", function (d) {
                 var xCoord = xMap(d);
                 var yCoord = yMap(d);
@@ -415,9 +418,17 @@ function display_drivingFeatures(source){
             })
             .style("stroke-width",1);
     
+    d3.selectAll('.dot.dfplot').filter(function(d){
+        if(d.added==most_recent){
+            return true;
+        }
+        return false;
+    }).attr('d',d3.symbol().type(d3.symbolStar).size(120));
+    
+
     // Update color scale
     updateDrivingFeatureColorScale(color_drivingFeatures3);
-
+    
     dots.on("mouseover", feature_mouseover)
         .on('mouseout', feature_mouseout)
         .on('click', feature_click);     
