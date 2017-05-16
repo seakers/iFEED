@@ -206,7 +206,7 @@ function pp_feature_single(expression){
     }
     var featureName = exp.split("[")[0];
 
-    if(featureName==="paretoFront" || featureName==='FeatureToBeAdded'){return expression;}
+    if(featureName==="paretoFront" || featureName==='FeatureToBeAdded'){return exp;}
 
     if(featureName[0]=='~'){
         featureName = 'NOT '+ featureName.substring(1);
