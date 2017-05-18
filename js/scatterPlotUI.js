@@ -198,24 +198,7 @@ function draw_scatterPlot(source) {
     });
     
     
-    
-    if(testType=="1"){
-    	    	
-    	d3.select("#tab3").text('-');
-    	d3.select("#view3").selectAll('g').remove();
-    	d3.select("#tab4").text('-');
-    	d3.select("#view4").select('g').remove();
-    	
-    }else if(testType=="2"){
-    	
-    	d3.select("#tab4").text('-');
-    	d3.select("#view4").select('g').remove();
-    	
-    }else {
-    	
-    	// Do nothing
-    	
-    }
+
 
     calculateParetoRanking();
     //drawParetoFront();
@@ -880,11 +863,7 @@ function initialize_tabs_filter_options(){
 
 function initialize_tabs_driving_features(){
 	
-	if(testType=="1"){
-		return;
-	}
-	
-	
+
 	selection_changed=true;
 	
 	
@@ -916,40 +895,35 @@ function initialize_tabs_driving_features(){
 
 function initialize_tabs_classification_tree(){
 
-	if(testType=="3"){
-		d3.select("#supportPanel").select("[id=view4]").select("g").remove();
-		var guideline = d3.select("#supportPanel").select("[id=view4]")
-				.append("g")
-				.append("div")
-				.style("width","900px")
-				.style("margin","auto")
-				
-		guideline.append("div")
-				.style("width","100%")
-				.style("font-size","21px")
-				.text("To run data mining, select target solutions on the scatter plot. Then click the button below.");
+    d3.select("#supportPanel").select("[id=view4]").select("g").remove();
+    var guideline = d3.select("#supportPanel").select("[id=view4]")
+            .append("g")
+            .append("div")
+            .style("width","900px")
+            .style("margin","auto")
 
-		guideline.append("div")
-				.style("width","300px")
-				.style("margin","auto")
-				.append("button")
-				.attr("id","getDrivingFeaturesButton")
-				.style("margin-top","30px")
-				.style("width","200px")
-				.style("font-size","19px")
-				.text("Run data mining");
-		d3.selectAll("[id=getDrivingFeaturesButton]").on("click", runDataMining);
-	}else{
-		return;
-	}
+    guideline.append("div")
+            .style("width","100%")
+            .style("font-size","21px")
+            .text("To run data mining, select target solutions on the scatter plot. Then click the button below.");
+
+    guideline.append("div")
+            .style("width","300px")
+            .style("margin","auto")
+            .append("button")
+            .attr("id","getDrivingFeaturesButton")
+            .style("margin-top","30px")
+            .style("width","200px")
+            .style("font-size","19px")
+            .text("Run data mining");
+    d3.selectAll("[id=getDrivingFeaturesButton]").on("click", runDataMining);
+
 }
 
 
 
 function set_selection_option(selected_option){
-	if(testType=="1"){
-		return;
-	}
+
 	if(selected_option=="1"){
 		d3.select("#zoom-pan")[0][0].checked=true;
 		d3.select("#drag-select")[0][0].checked=false;

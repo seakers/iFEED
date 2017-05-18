@@ -15,7 +15,6 @@ and open the template in the editor.
         <script src="js/lib/d3-shape.v1.min.js"></script>
         <script src="js/lib/d3-path.v1.min.js"></script>
 
-
         <script src="js/lib/tabcontent.js" type="text/javascript"></script>
         <link href="js/lib/tabcontent.css" rel="stylesheet" type="text/css"/>
         <link href="css/filter.css" rel="stylesheet" type="text/css"/>
@@ -331,6 +330,31 @@ and open the template in the editor.
         <script src="js/relabel.js" type="text/javascript"></script>
         <script src="js/featureApplication.js" type="text/javascript"></script>
 	   
+        
+        
+        <script src="js/lib/responsivevoice.min.js"></script>
+        <script src="js/lib/annyang.min.js"></script>
+        <script src="js/lib/SpeechKITT.min.js"></script>
+
+        <script>
+            annyang.addCallback('result', function(phrases) {
+                console.log("I think the user said: ", phrases[0]);
+                send_utterance(phrases);
+                console.log("But then again, it could be any of the following: ", phrases);
+            });
+
+            SpeechKITT.annyang();
+            // Define a stylesheet for KITT to use
+            SpeechKITT.setStylesheet('css/SpeechKITT.css');
+            // Render KITT's interface
+            SpeechKITT.vroom(); // SpeechKITT.render() does the same thing, but isn't as much fun!
+
+            responsiveVoice.setDefaultVoice("US English Female");
+            responsiveVoice.speak("hello human, my name is Daphne. How can I help you?");
+            
+        </script>
+        
+
 	   
        <script>
 
@@ -341,12 +365,7 @@ and open the template in the editor.
             var ninstr, norb;
             
             // Sign-in
-            var key = "";
-            var session_timed_out = false;
-            var account_id =-12345678;
-            var testType = -1;
-            var remainingTime;
-           
+            var key = "";           
            
             // Scatter plot variables
            	var architectures; 
@@ -646,10 +665,10 @@ and open the template in the editor.
             }
            
            
-       /*
-            Returns the list of orbits
-            @return orbitList: a string list containing the names of orbits
-       */
+            /*
+                Returns the list of orbits
+                @return orbitList: a string list containing the names of orbits
+            */
             function getOrbitList() {
                 var orbitList;
                 $.ajax({
@@ -668,10 +687,10 @@ and open the template in the editor.
                 return orbitList;
             }
            
-       /*
-            Returns the list of instruments
-            @return instrumentList: a string list containing the names of instruments
-       */
+            /*
+                Returns the list of instruments
+                @return instrumentList: a string list containing the names of instruments
+            */
             function getInstrumentList() {
                 var instrumentList;
                 $.ajax({
@@ -691,9 +710,9 @@ and open the template in the editor.
             }
 
            
-       /*
-            Returns the number of instruments
-       */
+            /*
+                Returns the number of instruments
+            */
             function getNinstr() {
                 if(instrList.length===0){
                     instrList = getInstrumentList();
@@ -701,9 +720,9 @@ and open the template in the editor.
                 return instrList.length;
             }
            
-       /*
-            Returns the number of orbits
-       */
+            /*
+                Returns the number of orbits
+            */
             function getNorb() {
                 if(orbitList.length===0){
                     orbitList = getOrbitList();
@@ -711,45 +730,40 @@ and open the template in the editor.
                 return orbitList.length;
             }
 
-        /*
-            Counts the number of all archs displayed
-            @return: the number of dots
-        */
+            /*
+                Counts the number of all archs displayed
+                @return: the number of dots
+            */
             function numOfArchs(){
                 return d3.selectAll(".dot.archPlot").size();
             }
-       /*
-            Counts the number of selected archs
-            @ return: the number of dots selected
-       */
+           
+            /*
+                Counts the number of selected archs
+                @ return: the number of dots selected
+            */
             function numOfSelectedArchs(){
                 return d3.selectAll(".dot.archPlot.selected").size();
             }
-
-           
            
            
 
-//			var cred = window.location.search;
-//			if(cred){
-//	       		testType = cred.substring(1);
-//	       		console.log("testType:" + testType);
-//			}else{
-//				testType="3";
-//			}
-            testType='3';
+
             import_new_data();
-
-            
            
-
             
             for(var i=0;i<20;i++){
                 key = key + Math.floor(Math.random()*10);
             }
-            //window.open("featureMetricChart.html?"+key,"","width=640,height=380");
-            //window.open("featureApplicationStatus.html?"+key,"","width=500,height=400");
-			
+            //key = prompt("Please enter a key number");
+            key = 1235419;  
+           
+                       
+            window.open("chat.html?"+key,"","width=470,height=380");
+                
+            
+           
+           
         </script>
         <script src="js/websocket.js" type="text/javascript"></script>
     </body>
