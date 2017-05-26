@@ -381,7 +381,7 @@ function show_all_archs(){
 
 
 function arch_mouseover(d) {
-    
+        
     // The support panel is active, disable hovering 
 	if(supportPanel_active){
 		return;
@@ -407,16 +407,111 @@ function arch_mouseover(d) {
             .append("g");
 
     // Display the current architecture info
-    supportPanel.append("p")
+    
+    supportPanel.append('div')
+            .attr('id','arch_info_display')
+            .style('width','800px')
+            .style('float','left');
+    
+    d3.select('#arch_info_display').append("p")
             .text("Benefit: " + d.science.toFixed(4));
-    supportPanel.append("p")
-            .text("Cost: " + d.cost.toFixed(1));
+    d3.select('#arch_info_display').append("p")
+            .text("Cost: " + d.cost.toFixed(1));    
     
-    var bitString = booleanArray2String(d.bitString);
-    display_arch_info(bitString);
+    supportPanel.append('div')
+            .attr('id','instr_options_display')
+            .style('float','right')
+            .style('width','220px')
+            .style('margin-right','5%')
+            .style('margin-top','2%')
+            .style('background-color','#E6E6E6')
+            .style('padding','20px');
     
+    current_bitString = booleanArray2String(d.bitString);
+    
+    display_arch_info(current_bitString);
+    
+    display_instrument_options();
+}
+
+
+function display_instrument_options(){
+    
+    var instrOptions = d3.select('#instr_options_display');
+    
+    if(instrOptions.select('table')[0][0]){
+        return;
+    }
+    
+    var table = instrOptions
+            .append("table")
+            .attr("id", "instrOptionsTable")
+            .style('border-spacing','10px')
+            .style('width','200px');
+    
+    var candidate_instruments = [];
+    for(var i=0;i<Math.round(ninstr/2);i++){
+        var temp = [];
+        for(var j=0;j<2;j++){
+            var index = j*Math.round(ninstr/2) + i;
+            if(index < ninstr){
+                temp.push(instrList[index]);
+            }
+        }
+        candidate_instruments.push(temp);
+    }
+
+    // create table body
+    table.append('tbody')
+            .selectAll('tr')
+            .data(candidate_instruments)
+            .enter()
+            .append('tr')
+            .selectAll('td')
+            .data(function(row,i){
+                return candidate_instruments[i];
+            })
+            .enter()
+            .append('td')
+            .attr("name", function (d) {
+                return d;
+            })
+            .attr("width", function (d, i) {
+                return "70px";
+            })
+            .attr('class',function(d){
+                return 'instr_cell arch_cell candidates';
+            })
+            .text(function (d) {
+                return ActualName2DisplayName(d,"instrument");
+            });    
+    
+    $('.instr_cell.candidates').draggable({
+        connectWith: '.orbit_cell',
+        helper: 'clone',
+        cursor: 'pointer'
+    });    
+    
+    instrOptions.append('div')
+            .attr('id','instr_options_trash')
+            .style('width','180px')
+            .style('margin-left','10px')
+            .style('height','50px')
+            .style('background-color','#FF8B8B');
+    
+    $('#instr_options_trash').droppable({
+        accept: '.instr_cell',
+        drop: function (event, ui) {
+            var node = d3.select(ui.draggable.context);
+            if(node.classed('candidates')) return;
+            ui.draggable.remove();
+        }
+    });    
     
 }
+
+
+
 
 
 function check_satisfied_features(bitString){
@@ -861,6 +956,9 @@ function initialize_tabs_filter_options(){
 
 
 
+
+
+
 function initialize_tabs_driving_features(){
 	
 
@@ -970,7 +1068,7 @@ function get_selected_arch_ids_list(){
 
 
 function select_archs_using_ids(target_ids_string){
-	//var target_ids_string = "356,1695,1696,1701,1702,1703,1704,1719,1720,1722,1723,1724,1725,1726,1727,1728,1729,1733,1734,1735,1737,1741,1743,1744,1745,1753,1760,1761,1762,1763,1764,1765,1767,1771,1775,1776,1777,1784,1785,1786,1787,1788,1790,1796,1797,1801,1802,1803,1804,1805,1813,1814,1817,1818,1819,1820,1821,1822,1823,1824,1825,1827,1828,1830,1831,1832,1835,1843,1849,1850,1855,1856,1862,1864,1865,1871,1875,1876,1878,1879,1880,1888,1889,1890,1891,1894,1896,1902,1907,1908,1909,1910,1920,1922,1924,1926,1928,1930,1932,1933,1934,1936,1937,1939,1941,1947,1952,1953,2004,2008,2014,2026,2028,2034,2035,2039,2041,2046,2047,2051,2053,2059,2069,2122,2128,2131,2158,2164,2165,2178,2182,2183,2186,2188,2190,2192,2195,2196,2198,2200,2203,2204,2208,2210,2212,2237,2241,2243,2247,2250,2256,2257,2258,2265,2266,2267,2268,2269,2271,2272,2274,2283,2293,2295,2297,2302,2303,2305,2307,2308,2310,2314,2322,2327,2332,2343,2355,2358,2359,2360,2361,2362,2363,2364,2365,2369,2374,2378,2379,2380,2382,2383,2384,2385,2400,2402,2403,2405,2409,2411,2413,2416,2417,2421,2426,2452,2453,2455,2456,2457,2459,2460,2477,2497,2499,2501,2503,2519,2522,2523,2528,2536,2539,2541,2543,2567,2569,2575,2583,2586,2587,2598,2604,2605,2613,2614,2617,2618";
+
 	var target_ids_split = target_ids_string.split(',');
 	var target_ids =[];
 	for(var i=0;i<target_ids_split.length;i++){

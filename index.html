@@ -14,13 +14,15 @@ and open the template in the editor.
         <script src="js/lib/d3.js"></script>
         <script src="js/lib/d3-shape.v1.min.js"></script>
         <script src="js/lib/d3-path.v1.min.js"></script>
-
+        <script src="js/lib/jquery-ui.min.js"></script>
+        
         <script src="js/lib/tabcontent.js" type="text/javascript"></script>
         <link href="js/lib/tabcontent.css" rel="stylesheet" type="text/css"/>
         <link href="css/filter.css" rel="stylesheet" type="text/css"/>
         <link href="css/drivingFeatures.css" rel="stylesheet" type="text/css"/>
         <link href="css/classificationTree.css" rel="stylesheet" type="text/css"/>
         <link href="css/featureApplication.css" rel="stylesheet" type="text/css"/>
+        
 	   
         <script src="https://apis.google.com/js/platform.js" async defer></script>
         <meta name="google-signin-client_id" content="564804694787-lnsp9md3u0q8086nftbamu43drid6d4t.apps.googleusercontent.com">
@@ -59,24 +61,21 @@ and open the template in the editor.
             }
 
 
-            #arch_cell{ 
+            .arch_cell{ 
                 border: 1px solid black;
                 padding: 10px;
                 vertical-align: central;
-            }
-        
-            #inst_cell{
-                border: 1px solid black;
-                padding: 3px;
-                vertical-align: central;
-
                 text-align: center;
                 font-family: 'Helvetica Neue', Helvetica; font-weight: 300; padding: 5px;
-                font-size: 15px;
+                font-size: 15px; 
+                height:25px;
             }
         
-
-
+            .instr_cell:hover{
+                background-color: #f5f5f5;
+            }
+        
+            
 			#clockdiv{
 			    font-family: sans-serif;
 			    color: #fff;
@@ -350,7 +349,7 @@ and open the template in the editor.
             SpeechKITT.vroom(); // SpeechKITT.render() does the same thing, but isn't as much fun!
 
             responsiveVoice.setDefaultVoice("US English Female");
-            responsiveVoice.speak("hello human, my name is Daphne. How can I help you?");
+            //responsiveVoice.speak("hello human, my name is Daphne. How can I help you?");
             
         </script>
         
@@ -399,6 +398,10 @@ and open the template in the editor.
             
             var defaultColor_mouseover = "#BABABA";
             var highlightedColor_mouseover = "#FFDEE8";
+           
+            
+            // bitStrings
+            var current_bitString = "";
 
            
            
@@ -512,6 +515,8 @@ and open the template in the editor.
 				norb = orbitList.length;
 				ninstr = instrList.length;
             }
+           
+           
 			
 			
 			
@@ -573,6 +578,7 @@ and open the template in the editor.
             	document.getElementById('tab1').click();
 
                 json_arch = extractInfoFromBitString(bitString);
+               
                 var norb = json_arch.length;
                 var maxNInst = 0;
                 var totalNInst = 0;
@@ -586,12 +592,13 @@ and open the template in the editor.
                 }
 
                 d3.select("#supportPanel").select("[id=view1]")
-                        .select("g").select("table").remove();
+                        .select("#arch_info_display").select("table").remove();
 
                 var supportPanel = d3.select("#supportPanel").select("[id=view1]")
-                        .select("g");
+                        .select("#arch_info_display");
 
-                var table = supportPanel.append("table")
+                var table = supportPanel
+                        .append("table")
                         .attr("id", "archInfoTable");
 
                 var columns = [];
@@ -627,6 +634,7 @@ and open the template in the editor.
                         .attr("name", function (d) {
                             return d.orbit;
                         })
+                        .attr('class','orbit_cell')
                         .selectAll('td')
                         .data(function (row, i) {
                             var thisRow = [];
@@ -647,7 +655,11 @@ and open the template in the editor.
                                 return "#D0D0D0";
                             }
                         })
-                        .attr("id", "arch_cell")
+                        .style("text-align", function (d) {
+                            if (d.type == "orbit") {
+                                return "left";
+                            }
+                        })
                         .attr("width", function (d, i) {
                             if (d.type == "orbit") {
                                 return "120px";
@@ -655,15 +667,78 @@ and open the template in the editor.
                                 return "70px";
                             }
                         })
+                        .attr('class',function(d){
+                            if (d.type == "instrument") {
+                                return 'instr_cell arch_cell';
+                            }else{
+                                return 'arch_cell'
+                            }
+                        })
                         .text(function (d) {
                         	if(d.type=="orbit"){
                         		return ActualName2DisplayName(d.content,"orbit");
                         	}
                         	return ActualName2DisplayName(d.content,"instrument");
-                        })
-                        .style("font-size", "13px");
+                        });
+               
+               
+                $('.orbit_cell').sortable({
+                    connectWith: '.orbit_cell',
+                    cursor: 'pointer',
+                    update: function(ui){
+                        
+                        var indices = [];
+                        var bitString = "";
+                        
+                        d3.select('#archInfoTable').selectAll('.orbit_cell')[0].forEach(function(d){                            
+                            
+                            var orbitName = d3.select(d).attr('name');
+                            var OIndex = orbitList.indexOf(orbitName);
+                            
+                            d3.select(d).selectAll('.instr_cell')[0].forEach(function(d){
+                                var instrName = d3.select(d).attr('name');
+                                var Iindex = instrList.indexOf(instrName);
+                                var index = ninstr*OIndex+Iindex;
+                                indices.push(index);
+                            });
+                        });
+                        
+                        for(var i=0;i<norb;i++){
+                            for(var j=0;j<ninstr;j++){
+                                if(indices.indexOf(i*ninstr+j)==-1){
+                                    bitString = bitString + "0";
+                                }else{
+                                    bitString = bitString + "1";
+                                }
+                            }
+                        }
+                        current_bitString = bitString;
+                    }
+                })
+                .droppable({
+                    accept: '.instr_cell.candidates',
+                    drop: function(event, ui) {
+                                                
+                        var instrNode = d3.select(ui.draggable.context);
+                        var orbitNode = d3.select(this);
+
+                        var instrName = instrNode.attr('name');
+                        var orbitName = orbitNode.attr('name');
+                                                
+                        var Iindex = instrList.indexOf(instrName);
+                        var OIndex = orbitList.indexOf(orbitName);
+                        
+                        var index = ninstr*OIndex+Iindex;
+                                                
+                        current_bitString = current_bitString.split('');
+                        current_bitString[index] = '1';
+                        current_bitString = current_bitString.join('');
+                        
+                        display_arch_info(current_bitString);
+                    }
+                });
             }
-           
+
            
             /*
                 Returns the list of orbits
