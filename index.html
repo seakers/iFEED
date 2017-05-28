@@ -6,7 +6,7 @@ and open the template in the editor.
 -->
 <html>
     <head>
-        <title>iFEED Web Application - test</title>
+        <title>iFEED Web Application</title>
         <meta charset="UTF-8">
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
@@ -146,9 +146,11 @@ and open the template in the editor.
 
     </head>
     <body>
+<!--
         <div id="title" style="float:left; margin-top: 15px; margin-bottom: 20px; text-align: center; width: 100%;">
 				<h2 style='font-size:18px'>iFEED GUI</h2>
         </div>
+-->
 
 		
 		<div style="width:2000px; height:1400px; margin:auto;">
@@ -516,10 +518,39 @@ and open the template in the editor.
 				ninstr = instrList.length;
             }
            
+           var temp;
+           function evaluate_architecture(bitString){
+                $.ajax(
+                        {
+                            url: "/api/vassar/evaluate-architecture/",
+                            type: "POST",
+                            data: {bitString:bitString},
+                            async: false,
+                            success: function (data, textStatus, jqXHR)
+                            {
+                                temp=data;
+                            },
+                            complete: function () {
+                                
+                            },
+                            error: function (jqXHR, textStatus, errorThrown)
+                            {
+                                alert("Error in evaluate architecture");
+                            }
+                        });               
+           }
            
-			
-			
-			
+           
+           function criticize_architecture(bitString){
+               
+               console.log('critique agent called');
+               
+           }
+           
+           
+           
+           
+						
 
             function extractInfoFromBitString(bitString) {
                 var jsonObj_arch=[];
@@ -835,7 +866,7 @@ and open the template in the editor.
            
                        
             window.open("chat.html?"+key,"","width=470,height=380");
-                
+            window.open("critiquer.html?"+key,"","width=600,height=400");   
             
            
            

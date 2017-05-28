@@ -405,9 +405,33 @@ function arch_mouseover(d) {
     d3.select("#supportPanel").select("[id=view1]").select("g").remove();
     var supportPanel = d3.select("#supportPanel").select("[id=view1]")
             .append("g");
+    
+    
+	supportPanel.append("div")
+            .attr('id','arch_specific_buttons')
+			.style("width","400px")
+			//.style("margin","auto")
+			.append("button")
+			.attr("id","evaluate_architecture_button")
+			.style("margin-top","5px")
+			.style("font-size","15px")
+			.text("Evaluate Architecture")
+            .on('click',function(d){
+                evaluate_architecture(current_bitString);
+            });
+    
+    supportPanel.select('#arch_specific_buttons')
+			.append("button")
+			.attr("id","criticize_architecture_button")
+			.style("margin-top","5px")
+            .style('margin-left','4px')
+			.style("font-size","15px")
+			.text("Criticize Architecture")
+            .on('click',function(d){
+                criticize_architecture(current_bitString);
+            });    
 
     // Display the current architecture info
-    
     supportPanel.append('div')
             .attr('id','arch_info_display')
             .style('width','800px')
@@ -423,7 +447,7 @@ function arch_mouseover(d) {
             .style('float','right')
             .style('width','220px')
             .style('margin-right','5%')
-            .style('margin-top','2%')
+            //.style('margin-top','2%')
             .style('background-color','#E6E6E6')
             .style('padding','20px');
     
