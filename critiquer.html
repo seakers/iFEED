@@ -81,32 +81,30 @@
 
 
         <script type="text/javascript">
-
-            function displayMessages(messages) {
-                var data = "";
-                for(var i = 0; i < messages.length; i++) {
-                    var message = messages[i];
-                    if(message.indexOf("==") != -1 ) {
-                        data += "<div class='alert-box warning'><p>Database: </p>"+message.replace("==","")+"</div>";
-                    } else if(message.indexOf(">>") != -1) {
-                        data += "<div class='alert-box error'><p>Rule: </p>"+message.replace(">>","")+"</div>";
-                    } else if(message.indexOf("<<") != -1) {
-                        data += "<div class='alert-box notice'><p>Notice: </p>"+message.replace("<<","")+"</div>";
-                    }
+                        
+            function displayCritiqueMessage(content,context) {
+                
+                var out='';
+                
+                if(context=='critique_histdb'){
+                    out = "<div class='alert-box warning'><p>Historical Database: </p>"+content+"</div>";
+                }else if(context=='critique_rule'){
+                    out = "<div class='alert-box error'><p>Rule: </p>"+content+"</div>";
+                }else if(context=='critique_ifeed'){
+                    
+                }else{
+                    out = "<div class='alert-box notice'><p>System: </p>"+content+"</div>";
                 }
-                $("#main_div").html(data);
+                
+                var main = $("#main_div").html();
+                main = main + out;
+                $("#main_div").html(main);
             }
 
-            displayMessages(["<< Call criticize to show warnings and recomendations"]);
+            displayCritiqueMessage("Call critique agent to show warnings and recomendations",'system');
             
-
             var key = window.location.search;
             key = key.substring(1);    
-            
-            
-            
-            
-            
 
         </script>
         

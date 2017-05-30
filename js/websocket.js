@@ -25,7 +25,10 @@ socket.onmessage = function(e){
     
     // If the target is not feature application status page, return.
     if(data.target.indexOf('ifeed')==-1) return;
-        
+    
+    // Create a event emitter for different context id's
+    // Context for critique: {histdb,rule,ifeed,system}
+    
 };
 
 
