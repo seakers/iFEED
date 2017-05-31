@@ -1,5 +1,5 @@
 
-ws = new WebSocket("wss://www.selva-research.com/api/"+key);
+socket = new WebSocket("wss://www.selva-research.com/api/"+key);
 
 
 function connect(){
