@@ -1,5 +1,5 @@
 
-var socket = new WebSocket("ws://127.0.0.1:8001/"+key);
+ws = new WebSocket("wss://www.selva-research.com/api/"+key);
 
 
 function connect(){
@@ -11,7 +11,7 @@ function connect(){
         return;
     }
     
-    socket = new WebSocket("ws://127.0.0.1:8001/"+key);
+    ws = new WebSocket("wss://www.selva-research.com/api/"+key);
     socket.onmessage=on_message;
 }
 
