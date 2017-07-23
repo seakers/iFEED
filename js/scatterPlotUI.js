@@ -407,34 +407,34 @@ function arch_mouseover(d) {
             .append("g");
     
     
-	supportPanel.append("div")
-            .attr('id','arch_specific_buttons')
-			.style("width","400px")
-			//.style("margin","auto")
-			.append("button")
-			.attr("id","evaluate_architecture_button")
-			.style("margin-top","5px")
-			.style("font-size","15px")
-			.text("Evaluate Architecture")
-            .on('click',function(d){
-                evaluate_architecture(current_bitString);
-            });
+//	supportPanel.append("div")
+//            .attr('id','arch_specific_buttons')
+//			.style("width","400px")
+//			//.style("margin","auto")
+//			.append("button")
+//			.attr("id","evaluate_architecture_button")
+//			.style("margin-top","5px")
+//			.style("font-size","15px")
+//			.text("Evaluate Architecture")
+//            .on('click',function(d){
+//                evaluate_architecture(current_bitString);
+//            });
     
-    supportPanel.select('#arch_specific_buttons')
-			.append("button")
-			.attr("id","criticize_architecture_button")
-			.style("margin-top","5px")
-            .style('margin-left','4px')
-			.style("font-size","15px")
-			.text("Criticize Architecture")
-            .on('click',function(d){
-                criticize_architecture(current_bitString);
-            });    
+//    supportPanel.select('#arch_specific_buttons')
+//			.append("button")
+//			.attr("id","criticize_architecture_button")
+//			.style("margin-top","5px")
+//            .style('margin-left','4px')
+//			.style("font-size","15px")
+//			.text("Criticize Architecture")
+//            .on('click',function(d){
+//                criticize_architecture(current_bitString);
+//            });    
 
     // Display the current architecture info
     supportPanel.append('div')
             .attr('id','arch_info_display')
-            .style('width','800px')
+            .style('width','90%')
             .style('float','left');
     
     d3.select('#arch_info_display').append("p")
@@ -442,14 +442,14 @@ function arch_mouseover(d) {
     d3.select('#arch_info_display').append("p")
             .text("Cost: " + d.cost.toFixed(1));    
     
-    supportPanel.append('div')
-            .attr('id','instr_options_display')
-            .style('float','right')
-            .style('width','220px')
-            .style('margin-right','5%')
-            //.style('margin-top','2%')
-            .style('background-color','#E6E6E6')
-            .style('padding','20px');
+//    supportPanel.append('div')
+//            .attr('id','instr_options_display')
+//            .style('float','right')
+//            .style('width','220px')
+//            .style('margin-right','5%')
+//            //.style('margin-top','2%')
+//            .style('background-color','#E6E6E6')
+//            .style('padding','20px');
     
     current_bitString = booleanArray2String(d.bitString);
     
@@ -510,27 +510,27 @@ function display_instrument_options(){
                 return ActualName2DisplayName(d,"instrument");
             });    
     
-    $('.instr_cell.candidates').draggable({
-        connectWith: '.orbit_cell',
-        helper: 'clone',
-        cursor: 'pointer'
-    });    
+//    $('.instr_cell.candidates').draggable({
+//        connectWith: '.orbit_cell',
+//        helper: 'clone',
+//        cursor: 'pointer'
+//    });    
     
-    instrOptions.append('div')
-            .attr('id','instr_options_trash')
-            .style('width','180px')
-            .style('margin-left','10px')
-            .style('height','50px')
-            .style('background-color','#FF8B8B');
-    
-    $('#instr_options_trash').droppable({
-        accept: '.instr_cell',
-        drop: function (event, ui) {
-            var node = d3.select(ui.draggable.context);
-            if(node.classed('candidates')) return;
-            ui.draggable.remove();
-        }
-    });    
+//    instrOptions.append('div')
+//            .attr('id','instr_options_trash')
+//            .style('width','180px')
+//            .style('margin-left','10px')
+//            .style('height','50px')
+//            .style('background-color','#FF8B8B');
+//    
+//    $('#instr_options_trash').droppable({
+//        accept: '.instr_cell',
+//        drop: function (event, ui) {
+//            var node = d3.select(ui.draggable.context);
+//            if(node.classed('candidates')) return;
+//            ui.draggable.remove();
+//        }
+//    });    
     
 }
 
