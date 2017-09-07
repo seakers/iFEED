@@ -5,13 +5,14 @@
  */
 
 
+
 /*
     Removes the scatter plot
 */
-
 function reset_scatterPlot() {
     d3.select("[id=scatterPlotFigure]").selectAll("svg").remove();
 }
+
 
 /*
     Draws the scatter plot with architecture inputs
@@ -22,7 +23,6 @@ function draw_scatterPlot(source) {
     var margin=ScatterPlot_margin;
     var width=ScatterPlot_width;
     var height=ScatterPlot_height;
-    
     
     source.forEach(function (d) {  // convert string to numbers
         d.science = +d.science;
@@ -196,8 +196,6 @@ function draw_scatterPlot(source) {
     d3.selectAll(".dot.archPlot")[0].forEach(function(d,i){
         d3.select(d).attr("paretoRank",-1);
     });
-    
-    
 
 
     calculateParetoRanking();
@@ -346,33 +344,29 @@ function hideSelection(){
     var clickedArchs = d3.selectAll(".dot.archPlot.selected");
 
     clickedArchs.classed('hidden',true)
+            .classed('selected',false)
+            .classed('highlighted',false)
+            .style('fill',defaultColor)
             .style("opacity", 0.085);
-    d3.select("[id=instrumentOptions]")
-            .select("table").remove();        
+    
     d3.select("[id=numOfSelectedArchs_inputBox]").text(""+numOfSelectedArchs());
     d3.select("[id=numOfArchs_inputBox]").text(""+numOfArchs());
     selection_changed = true;
     initialize_tabs_driving_features();
-    initialize_tabs_classification_tree();
 }
 
 
 function show_all_archs(){
 
     var hiddenArchs = d3.selectAll(".dot.archPlot.hidden");
-    hiddenArchs.classed('hidden',false)
-            .classed('selected',false)
-            .classed('highlighted',false)
-            .style("fill",defaultColor)
-            .style("opacity",1);
     
-    d3.select("[id=instrumentOptions]")
-            .select("table").remove();        
+    hiddenArchs.classed('hidden',false)
+            .style("opacity",1);
+   
     d3.select("[id=numOfSelectedArchs_inputBox]").text(""+numOfSelectedArchs());
     d3.select("[id=numOfArchs_inputBox]").text(""+numOfArchs());
     selection_changed = true;
     initialize_tabs_driving_features();
-    initialize_tabs_classification_tree();
 }
 
 
@@ -1016,6 +1010,8 @@ function initialize_tabs_driving_features(){
 }
 
 function initialize_tabs_classification_tree(){
+    
+    return;
 
     d3.select("#supportPanel").select("[id=view4]").select("g").remove();
     var guideline = d3.select("#supportPanel").select("[id=view4]")

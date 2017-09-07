@@ -106,7 +106,6 @@ function create_feature_placeholder(){
     display_feature_application_status([feature]);
     update_feature_expression();
 }
-     
 
 
 function add_feature(input_level, input_logic, input_expression, activation, logic_indent_level){    
@@ -160,6 +159,7 @@ function add_feature(input_level, input_logic, input_expression, activation, log
                 
                 // Reflect the change in the displayed expression
                 update_feature_expression();
+        
             });
     
 
@@ -190,8 +190,8 @@ function add_feature(input_level, input_logic, input_expression, activation, log
             current_feature_application = get_feature_application_status();
             apply_current_feature_scheme();
 
+            // Update feature expression
             update_feature_expression();
-
         });
 
         // Append arrows for adjusting the location of each expression
@@ -400,10 +400,10 @@ function click_right_arrow(node){
 
     if(d3.select(node).classed('logical_connective')){
 
-        var all_features = d3.selectAll('.applied_feature')
+        var features = d3.selectAll('.applied_feature')
         var this_id = d3.select(node.parentNode).attr('id');
         var index = -1;
-        all_features[0].forEach(function(d,i){
+        features[0].forEach(function(d,i){
             if(d3.select(d).attr('id')==this_id){
                 index = i;
             }
@@ -455,11 +455,11 @@ function click_right_arrow(node){
             
 function click_up_arrow(node){
     
-    var all_features = d3.selectAll('.applied_feature')
+    var features = d3.selectAll('.applied_feature')
 	var source_id = d3.select(node.parentNode).attr('id');
     
     var index = -1;
-    all_features[0].forEach(function(d,i){
+    features[0].forEach(function(d,i){
         if(d3.select(d).attr('id')==source_id){
             index = i;
         }
@@ -494,12 +494,12 @@ function click_up_arrow(node){
             
 function click_down_arrow(node){
 	
-    var all_features = d3.selectAll('.applied_feature')
+    var features = d3.selectAll('.applied_feature')
 	var source_id = d3.select(node.parentNode).attr('id');
     
     var index = -1;
     
-    all_features[0].forEach(function(d,i){
+    features[0].forEach(function(d,i){
         if(d3.select(d).attr('id')==source_id){
             index = i;
         }
@@ -530,10 +530,10 @@ function click_down_arrow(node){
             
 function adjust_logical_connective(){
     
-    var all_features = d3.selectAll('.applied_feature')[0];
+    var features = d3.selectAll('.applied_feature')[0];
     
-    var first_feature = d3.select(all_features[0]);
-    var second_feature = d3.select(all_features[1]);
+    var first_feature = d3.select(features[0]);
+    var second_feature = d3.select(features[1]);
     
     if(first_feature[0][0]==null){
         return;
@@ -603,9 +603,9 @@ function adjust_logical_connective(){
     }
 
     
-    for(var i=1;i<all_features.length;i++){
+    for(var i=1;i<features.length;i++){
         
-        var this_feature = all_features[i];
+        var this_feature = features[i];
         var index = i;
         
         var prev_feature_level=-1;
@@ -795,26 +795,24 @@ function apply_current_feature_scheme(){
     // Draw venn diagram
     draw_venn_diagram();
     current_feature_expression = expression;
+    
+    // Show instant feedback on how good the feature is
+    test_feature();
 }
                 
 
             
 function test_feature(){
-
-    var application_status = d3.select('#applied_feature_div');
-    var count = application_status.selectAll('.applied_feature').size();
-    var first_expression = application_status
-                                .select('.applied_feature')
-                                .select('.feature_application_expression').text();
     
-    if(count==0){
-        return;
-    }else if(count==1 && first_expression.indexOf('FeatureToBeAdded')>-1){
-        return;
-    }else{
-        apply_current_feature_scheme();
-        add_current_feature_to_DF_plot();
+    var expression = get_feature_application_expression();
+    
+    if(expression.indexOf('&&')==-1 && expression.indexOf('||')==-1 && expression.indexOf('FeatureToBeAdded')!=-1){
+        // Single feature
+        expression='';
     }
+    
+    add_current_feature_to_DF_plot(expression);
+    return;
 }
 
 
@@ -897,6 +895,7 @@ function update_feature_application_status(expression,option){
     }else if(option=='replace_placeholder'){
         
         current_feature_application = stashed_feature_application;
+        test_feature();
         return;
         
     }else if(option=='update_placeholder'){
@@ -961,6 +960,7 @@ function update_feature_application_status(expression,option){
         display_feature_application_status(stashed_feature_application);
         
         update_feature_expression(stashed_feature_application);
+        
         return;
         
     }else{ 
@@ -1027,6 +1027,9 @@ function update_feature_application_status(expression,option){
         update_feature_expression();
         
         adjust_logical_connective();
+        
+        test_feature();
+        
         return;
     }
     
@@ -1047,5 +1050,10 @@ d3.select('#clear_deactivated_features').on('click',function(){
     adjust_logical_connective();
     update_feature_expression();
 });
+
+
 d3.select('#toggle_feature_scheme').on('click',toggle_feature_activation);
-d3.select('#test_feature_scheme').on('click',test_feature);     
+
+//d3.select('#test_feature_scheme').on('click',test_feature);  
+
+

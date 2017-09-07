@@ -1,12 +1,8 @@
-
-
 /* 
  * To change this license header, choose License Headers in Project Properties.
  * To change this template file, choose Tools | Templates
  * and open the template in the editor.
  */
-
-
 
 
 
@@ -18,25 +14,23 @@ function runDataMining() {
     highlight_support_panel()
     
     // If the target selection hasn't changed, then use previously obtained driving features to display
-    if(selection_changed == false && sortedDFs != null){
-		display_drivingFeatures(sortedDFs,"lift");
+    if(selection_changed == false && mined_features != null){
+		display_drivingFeatures(all_features,"lift");
 		return;
 	}
     
     // Remove all highlights in the scatter plot (retain target solutions)
     cancelDotSelections('remove_highlighted');
-	
-    var selectedArchs = d3.selectAll(".dot.archPlot.selected")[0];
-    var nonSelectedArchs =  d3.selectAll(".dot.archPlot:not(.selected)")[0];
+
+    var selectedArchs = d3.selectAll(".dot.archPlot.selected:not(.hidden)")[0];
+    var nonSelectedArchs =  d3.selectAll(".dot.archPlot:not(.selected):not(.hidden)")[0];
     
     var numOfSelectedArchs = selectedArchs.length;
     var numOfNonSelectedArchs = nonSelectedArchs.length;
     
     if (numOfSelectedArchs==0){
     	alert("First select target solutions!");
-    }else{
-        
-        
+    }else{        
         // Experiment: Store information
         buttonClickCount_drivingFeatures += 1;
         getDrivingFeatures_numOfArchs.push({numOfSelectedArchs,numOfNonSelectedArchs});
@@ -65,17 +59,14 @@ function runDataMining() {
 //        }
         
         
-        sortedDFs = generateDrivingFeatures(selected,non_selected,support_threshold,confidence_threshold,lift_threshold,userdef_features,"lift",build_classification_tree);
+        mined_features = generateDrivingFeatures(selected,non_selected,support_threshold,confidence_threshold,lift_threshold,userdef_features,"lift",build_classification_tree);
         
-        sortedDFs = sortedDFs.concat(added_features);
+        all_features = mined_features.concat(added_features);
 
-        
-        if(sortedDFs.length==0){
+        if(all_features.length==0){
         	return;
         }
-        
-        
-        display_drivingFeatures(sortedDFs,"lift");
+        display_drivingFeatures(all_features,"lift");
         
 
         selection_changed = false;
@@ -226,20 +217,13 @@ function display_drivingFeatures(source){
     var supps = [];
     var conf1s=[];
     var conf2s=[];
-    
-    var most_recent = -1;
-    
+        
     for (var i=0;i<numFeatures;i++){
         lifts.push(source[i].metrics[1]);
         supps.push(source[i].metrics[0]);
         conf1s.push(source[i].metrics[2]);
         conf2s.push(source[i].metrics[3]);
         drivingFeatureTypes.push(pp_feature_type(source[i].name));
-        if(source[i].added){
-            if(source[i].added > most_recent){
-                most_recent = source[i].added;
-            }
-        }
     }
 
     // Set the axis to be Conf(F->S) and Conf(S->F)
@@ -417,17 +401,17 @@ function display_drivingFeatures(source){
                 return "translate(" + xCoord + "," + yCoord + ")";
             })
             .style("stroke-width",1);
-    
+        
     d3.selectAll('.dot.dfplot').filter(function(d){
-        if(d.added==most_recent){
-            return true;
+        if(d.added=="3"){
+           return true;
         }
         return false;
     }).attr('d',d3.symbol().type(d3.symbolStar).size(120));
     
 
     // Update color scale
-    updateDrivingFeatureColorScale(color_drivingFeatures3);
+    updateDrivingFeatureColorScale(color_drivingFeatures4);
     
     dots.on("mouseover", feature_mouseover)
         .on('mouseout', feature_mouseout)
@@ -771,10 +755,11 @@ function draw_venn_diagram(){
 
 
 
-function add_current_feature_to_DF_plot(){
+function add_current_feature_to_DF_plot(expression){
     
-    if(!selection_changed && sortedDFs.length!=0){
-        var id = sortedDFs.length;
+    if(!selection_changed && all_features.length!=0){
+
+        var id = all_features.length;
         var total = numOfArchs();
         var intersection = d3.selectAll('.dot.archPlot.selected.highlighted')[0].length;
         var selected = d3.selectAll('.dot.archPlot.selected')[0].length;
@@ -790,24 +775,39 @@ function add_current_feature_to_DF_plot(){
         var lift = p_snf/(p_f*p_s); 
         var metrics = [supp, lift, conf, conf2];
         
-        for(var i=0;i<sortedDFs.length;i++){
-            var matchFound = false;
-            if(sortedDFs[i].expression==get_feature_application_expression()){
-                matchFound = true;
+        last_added_feature = added_features.slice(-1)[0]
+        
+        if(last_added_feature != null){
+            if(Math.abs(last_added_feature.metrics[2]-conf) < 0.001 && Math.abs(last_added_feature.metrics[3] - conf2) < 0.001){
+               return;
             }
         }
-        if(matchFound) return;
         
-        var current_feature = {id:id,name:get_feature_application_expression(),expression:get_feature_application_expression(),metrics:metrics,added:added_features.length+1};
+        var current_feature = {id:id,name:expression,expression:expression,metrics:metrics,added:"3"};
         
-        sortedDFs.push(current_feature);
-        added_features.push(current_feature);
+        // Remove the first element if there are already 3 features added
+        if(added_features.length >= 3){
+           added_features.splice(0,1);
+        }
+    
+        // Assign new indices for the added features
+        for(var i=0;i<added_features.length;i++){
+            var tmp = i+1;
+            added_features[i].added = ""+tmp;
+        }
+        
+        // Add new feature to the list of added features
+        if(expression!=""){
+            added_features.push(current_feature);
+        }
+        all_features = mined_features.concat(added_features);
+                
         
         document.getElementById('tab3').click();
         highlight_support_panel()
         
         // Display the driving features with newly added feature
-        display_drivingFeatures(sortedDFs,'lift');
+        display_drivingFeatures(all_features,'lift');
     }
 }
 

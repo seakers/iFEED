@@ -488,7 +488,7 @@ function compareMatchedIDSets(logic,set1,set2){
 
 //({absent[;9;]}&&{numOfInstruments[;11;1]}&&{emptyOrbit[2;;]}&&{emptyOrbit[3;;]})&&({numOfInstruments[;;2]}||{numOfInstruments[;;3]}||{numOfInstruments[;;4]}||{numOfInstruments[;;5]}||{numOfInstruments[;;6]})
 
-// processFilterExpression(filterExpression, indices, "&&", arch_info);
+// processFilterExpression(filter_expression, indices, "&&", arch_info);
 
 function processFilterExpression(expression, prev_matched_ids, prev_logic, arch_info){
 
@@ -879,7 +879,7 @@ function applyFilter(option){
     
     var wrong_arg = false;
     
-    var filterExpression;
+    var filter_expression;
     var matchedArchIDs = [];
 
 
@@ -913,22 +913,22 @@ function applyFilter(option){
     var presetFilter = dropdown;
     if(presetFilter=="present" || presetFilter=="absent" || presetFilter=="together" || presetFilter=="separate"){
         var instrument = input_textbox[0];
-        filterExpression = presetFilter + "[;" + DisplayName2Index(instrument.toUpperCase(),"instrument") + ";]";
+        filter_expression = presetFilter + "[;" + DisplayName2Index(instrument.toUpperCase(),"instrument") + ";]";
     }else if(presetFilter == "inOrbit" || presetFilter == "notInOrbit"){
         var orbit = input_textbox[0].trim();
         var instrument = input_textbox[1];
-        filterExpression = presetFilter + "["+ DisplayName2Index(orbit,"orbit") + ";" + DisplayName2Index(instrument.toUpperCase(),"instrument")+ ";]";
+        filter_expression = presetFilter + "["+ DisplayName2Index(orbit,"orbit") + ";" + DisplayName2Index(instrument.toUpperCase(),"instrument")+ ";]";
     }else if(presetFilter =="emptyOrbit"){
         var orbit = input_textbox[0].trim();
-        filterExpression = presetFilter + "[" + DisplayName2Index(orbit,"orbit") + ";;]";
+        filter_expression = presetFilter + "[" + DisplayName2Index(orbit,"orbit") + ";;]";
     }else if(presetFilter=="numOrbits"){
         var number = input_textbox[0].trim();
-        filterExpression = presetFilter + "[;;" + number + "]";
+        filter_expression = presetFilter + "[;;" + number + "]";
     }else if(presetFilter=="subsetOfInstruments"){
     	var orbit = input_textbox[0].trim();
     	var instrument = input_textbox[2];
     	var numbers = input_textbox[1].trim().replace(/\s+/g, "");
-        filterExpression = presetFilter + "["+ DisplayName2Index(orbit,"orbit") + ";" + DisplayName2Index(instrument.toUpperCase(),"instrument")+ ";"+ numbers+"]";
+        filter_expression = presetFilter + "["+ DisplayName2Index(orbit,"orbit") + ";" + DisplayName2Index(instrument.toUpperCase(),"instrument")+ ";"+ numbers+"]";
     }else if(presetFilter=="numOfInstruments"){
         var orbit = input_textbox[0];
         var instrument = input_textbox[1];
@@ -946,20 +946,20 @@ function applyFilter(option){
         }
         if(orbitEmpty && instrumentEmpty){
             // Count all instruments across all orbits
-            filterExpression=presetFilter + "[;;" + number + "]";
+            filter_expression=presetFilter + "[;;" + number + "]";
         }else if(orbitEmpty){
             // Count the number of specified instrument
-            filterExpression=presetFilter + "[;" + DisplayName2Index(instrument.toUpperCase(),"instrument") + ";" + number + "]";
+            filter_expression=presetFilter + "[;" + DisplayName2Index(instrument.toUpperCase(),"instrument") + ";" + number + "]";
         }else if(instrumentEmpty){
             // Count the number of instruments in an orbit
         	orbit = orbit.trim();
-            filterExpression=presetFilter + "[" + DisplayName2Index(orbit,"orbit") + ";;" + number + "]";
+            filter_expression=presetFilter + "[" + DisplayName2Index(orbit,"orbit") + ";;" + number + "]";
         }
     } else if(dropdown==="paretoFront"){
         
         // To be implemented    
         var filterInput = d3.select("#filter_inputs_div_1").select('.filter_inputs_textbox')[0][0].value;
-        filterExpression = "paretoFront["+filterInput+"]";
+        filter_expression = "paretoFront["+filterInput+"]";
         
     }else if(dropdown==='ifInstrumentExists'){
         
@@ -967,27 +967,27 @@ function applyFilter(option){
         
         var instrument = input_textbox[0].trim();
         var orbit = input_textbox[1].trim().replace(/\s+/g, "");
-        filterExpression = "ifInstrumentExists["+ DisplayName2Index(orbit,"orbit") + ";" + DisplayName2Index(instrument.toUpperCase(),"instrument")+ ";]"; 
+        filter_expression = "ifInstrumentExists["+ DisplayName2Index(orbit,"orbit") + ";" + DisplayName2Index(instrument.toUpperCase(),"instrument")+ ";]"; 
         
     }
     else{// not selected
         return;
     }
-    filterExpression = "{" + filterExpression + "}";
+    filter_expression = "{" + filter_expression + "}";
 
     
-    if(filterExpression.indexOf('paretoFront')!=-1){
+    if(filter_expression.indexOf('paretoFront')!=-1){
     	var filterInput = d3.select("#filter_inputs_div_1").select('.filter_inputs_textbox')[0][0].value;
     	applyParetoFilter(option,filterInput);
     }else{
         
         if(option==="new" || option==="add" || option==="within" || option==="deactivated"){
-            update_feature_application_status(filterExpression, option);
+            update_feature_application_status(filter_expression, option);
             apply_current_feature_scheme();
         }else if(option==="replace_placeholder"){
-            update_feature_application_status(filterExpression, 'update_placeholder');
-            update_feature_application_status(filterExpression, 'replace_placeholder');
-            update_feature_application_status(filterExpression, 'create_placeholder');
+            update_feature_application_status(filter_expression, 'update_placeholder');
+            update_feature_application_status(filter_expression, 'replace_placeholder');
+            update_feature_application_status(filter_expression, 'create_placeholder');
         }
     
     }
@@ -1057,18 +1057,21 @@ function applyParetoFilter(option, arg){
 
 function applyComplexFilter(input_expression){
 
-    var filterExpression = input_expression;
+    var filter_expression = input_expression;
     
-    if(filterExpression===""){
-        cancelDotSelections('remove_highlighted');
+    // Cancel all previous selections
+    cancelDotSelections('remove_highlighted');
+    
+    // If filter expression is empty, return
+    if(filter_expression===""){
         return;
     }
     
-	cancelDotSelections('remove_highlighted');
 
 	var ids = [];
 	var bitStrings = [];
 	var paretoRankings = [];
+    
     d3.selectAll('.dot.archPlot')[0].forEach(function(d){
     	ids.push(d.__data__.id);
     	bitStrings.push(d.__data__.bitString);
@@ -1082,7 +1085,7 @@ function applyComplexFilter(input_expression){
     	indices.push(i);
     }
     // Note that indices and ids are different!
-    var matchedIndices = processFilterExpression(filterExpression, indices, "&&", arch_info);
+    var matchedIndices = processFilterExpression(filter_expression, indices, "&&", arch_info);
                 
     var matchedIDs = [];
     for(var i=0;i<matchedIndices.length;i++){
@@ -1090,7 +1093,7 @@ function applyComplexFilter(input_expression){
     	matchedIDs.push(ids[index]);
     }
     
-    if(filterExpression=='{FeatureToBeAdded}'){
+    if(filter_expression=='{FeatureToBeAdded}'){
         matchedIDs = [];
     }
 
@@ -1114,13 +1117,5 @@ function applyComplexFilter(input_expression){
     d3.select("[id=numOfSelectedArchs_inputBox]").text("" + numOfSelectedArchs()); 
     
 }
-
-
-
-
-
-
-
-
 
 
