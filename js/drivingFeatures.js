@@ -5,6 +5,28 @@
  */
 
 
+var current_feature = null;
+var current_feature_interval=null;
+
+var feature_scores = [];
+
+
+var coloursRainbow = ["#2c7bb6", "#00a6ca","#00ccbc","#90eb9d","#ffff8c","#f9d057","#f29e2e","#e76818","#d7191c"];
+var colourRangeRainbow = d3.range(0, 1, 1.0 / (coloursRainbow.length - 1));
+colourRangeRainbow.push(1);
+
+//Create color gradient
+var colorScaleRainbow = d3.scale.linear()
+    .domain(colourRangeRainbow)
+    .range(coloursRainbow)
+    .interpolate(d3.interpolateHcl);
+
+//Needed to map the values of the dataset to the color scale
+var colorInterpolateRainbow = d3.scale.linear()
+    .domain(d3.extent(feature_scores))
+    .range([0,1]);
+
+
 
 function runDataMining() {
     
@@ -15,7 +37,7 @@ function runDataMining() {
     
     // If the target selection hasn't changed, then use previously obtained driving features to display
     if(selection_changed == false && mined_features != null){
-		display_drivingFeatures(all_features,"lift");
+		display_drivingFeatures(all_features);
 		return;
 	}
     
@@ -53,11 +75,7 @@ function runDataMining() {
 
 		
 		var build_classification_tree = false;
-//        if(testType=="3" && turn_on_apriori==false){
-//			build_classification_tree = true;
-//           //jsonObj_tree = buildClassificationTree();
-//        }
-        
+
         
         mined_features = generateDrivingFeatures(selected,non_selected,support_threshold,confidence_threshold,lift_threshold,userdef_features,"lift",build_classification_tree);
         
@@ -66,7 +84,7 @@ function runDataMining() {
         if(all_features.length==0){
         	return;
         }
-        display_drivingFeatures(all_features,"lift");
+        display_drivingFeatures(all_features);
         
 
         selection_changed = false;
@@ -189,11 +207,16 @@ function sortDrivingFeatures(drivingFeatures,sortBy){
 
 
 
-
+function update_drivingFeatures_display(source){
+    
+    
+//.transition().duration(0)
+    
+}
 
             
 function display_drivingFeatures(source){
-    
+
     // Set variables
     var margin = DrivingFeaturePlot_margin;
     var width = DrivingFeaturePlot_width;
@@ -217,15 +240,51 @@ function display_drivingFeatures(source){
     var supps = [];
     var conf1s=[];
     var conf2s=[];
-        
+    var scores=[];    
+    var maxScore = -1;
+    var bestFeatureIndex = 0;
+    
     for (var i=0;i<numFeatures;i++){
         lifts.push(source[i].metrics[1]);
         supps.push(source[i].metrics[0]);
         conf1s.push(source[i].metrics[2]);
         conf2s.push(source[i].metrics[3]);
+        
+        var score = 1-Math.sqrt(Math.pow(1-conf1s[i],2)+Math.pow(1-conf2s[i],2));
+        scores.push(score);
+        
+        if(score > maxScore){
+            maxScore = score;
+            bestFeatureIndex = i;
+        }
         drivingFeatureTypes.push(pp_feature_type(source[i].name));
     }
+    
+    
+    // Add utopia point to the list
+    var max_conf1 = Math.max.apply(null, conf1s);
+    var max_conf2 = Math.max.apply(null, conf2s);
+    var max_conf = Math.max(max_conf1, max_conf2);
+    
+    source.push({id:"NA",name:"utopiaPoint",expression:"NA",metrics:[Math.max.apply(null, lifts),Math.max.apply(null, supps),max_conf,max_conf]});
+    
+    
+    
+    feature_scores = scores;
+    feature_scores.push(Math.max.apply(null,feature_scores)+0.2); // Set color for the utopia point
+    
+    
+    ///////////////////////////////////////////////////////////////////////////
+    //////////// Get continuous color scale for the Rainbow ///////////////////
+    ///////////////////////////////////////////////////////////////////////////
 
+    //Needed to map the values of the dataset to the color scale
+    colorInterpolateRainbow = d3.scale.linear()
+        .domain(d3.extent(feature_scores))
+        .range([0,1]);
+    
+    
+    
     // Set the axis to be Conf(F->S) and Conf(S->F)
     var x = 2;
     var y = 3;
@@ -271,7 +330,7 @@ function display_drivingFeatures(source){
     // Remove previous plot
     d3.select("#view3").select("g").remove();
     
-    var tab = d3.select('#view3').append('g')
+    var tab = d3.select('#view3').append('g');
     
     // Create plot div's
     tab.append('div')
@@ -387,9 +446,9 @@ function display_drivingFeatures(source){
             .attr("x2", 0)
             .attr("y2", height)
             .attr("transform", "translate(" + (xScale(0)) + ",0)");
-       
+    
     // Create dots
-    var dots = objects.selectAll(".dot.dfplot")
+    objects.selectAll(".dot.dfplot")
             .data(source, function(d){return (d.id = df_i++);})
             .enter()
             .append('path')
@@ -401,23 +460,57 @@ function display_drivingFeatures(source){
                 return "translate(" + xCoord + "," + yCoord + ")";
             })
             .style("stroke-width",1);
-        
-    d3.selectAll('.dot.dfplot').filter(function(d){
-        if(d.added=="3"){
-           return true;
+    
+    var dots = d3.selectAll('.dot.dfplot');
+    
+    // Utopia point
+    get_utopia_point().attr('d',d3.symbol().type(d3.symbolStar).size(120));
+       
+    // The current feature
+    current_feature = get_current_feature();
+    current_feature.attr('d',d3.symbol().type(d3.symbolCross).size(120))
+                .style('fill',"#66F8A8");
+    
+    current_feature.shown=true;
+    
+    function blink() {
+        if(current_feature.shown) {
+            current_feature.style("opacity",0);
+            current_feature.shown = false;
+        } else {
+            current_feature.style("opacity",1);
+            current_feature.shown = true;
         }
-        return false;
-    }).attr('d',d3.symbol().type(d3.symbolStar).size(120));
+    }
+
+    if(current_feature_interval != null){
+       clearInterval(current_feature_interval);
+    }
+    current_feature_interval = setInterval(blink, 500);
     
 
     // Update color scale
-    updateDrivingFeatureColorScale(color_drivingFeatures4);
+    //updateDrivingFeatureColorScale(color_drivingFeatures4);
     
-    dots.on("mouseover", feature_mouseover)
+    
+    dots.filter(function(d,i){
+        if(d.name=="utopiaPoint"){
+            return false;
+        }
+        return true;
+    }).on("mouseover", feature_mouseover)
         .on('mouseout', feature_mouseout)
-        .on('click', feature_click);     
-
-
+        .on('click', feature_click);   
+    
+    // Best feature so far
+//    d3.selectAll('.dot.dfplot')[0].forEach(function(d,i){
+//        if(bestFeatureIndex==i){
+//            d3.select(d).style('fill','blue');
+//        } 
+//    });
+    
+    
+    
 //    var legend = svg.selectAll(".legend")
 //      .data(color.domain())
 //    .enter().append("g")
@@ -436,7 +529,46 @@ function display_drivingFeatures(source){
 //      .attr("dy", ".35em")
 //      .style("text-anchor", "end")
 //      .text(function(d) { return d; });
- 
+    
+    
+
+///////////////////////////////////////////////////////////////////////////
+//////////////////// Create the Rainbow color gradient ////////////////////
+///////////////////////////////////////////////////////////////////////////
+
+
+    ////Calculate the gradient	
+    //d3.select('#view3').select('#dfplot_div').select('svg').append("linearGradient")
+    //	.attr("id", "gradient-rainbow-colors")
+    //	.attr("x1", "0%").attr("y1", "0%")
+    //	.attr("x2", "100%").attr("y2", "0%")
+    //	.selectAll("stop") 
+    //	.data(coloursRainbow)                  
+    //	.enter().append("stop") 
+    //	.attr("offset", function(d,i) { return i/(coloursRainbow.length-1); })   
+    //	.attr("stop-color", function(d) { return d; });
+
+    //Transition the colors to a rainbow
+    function updateRainbow() {
+        //Fill the legend rectangle
+    //	svg.select(".legendRect")
+    //		.style("fill", "url(#gradient-rainbow-colors)");
+
+        //Transition the colors
+        d3.selectAll(".dot.dfplot")
+            //.transition().duration(0)
+            .style("fill", function (d,i) { return colorScaleRainbow(colorInterpolateRainbow(feature_scores[i])); })
+    }//updateRainbow
+    
+    updateRainbow();
+
+    
+    source.splice(source.length-1,1);
+    
+    // The current feature
+    get_current_feature().style('fill',"black");
+    
+    
 }
             
 
@@ -454,33 +586,59 @@ function linspace(start, end, n) {
     return out;
 }
 
+//function updateDrivingFeatureColorScale(scale){
+//    
+//    var num = added_features.length;
+//    if(num==0) num = 1;
+//    
+//    // Create color scale
+//    DrivingFeaturePlot_colorScale = d3.scale.linear()
+//                .domain(linspace(num,0,scale.length))
+//                .range(scale);
+//    
+//    d3.selectAll('.dot.dfplot')[0].forEach(function(d){
+//        
+//        var added = +d.__data__.added;
+//        var utopia = d.__data__.name=="utopiaPoint";
+//        
+//        if(added==null || isNaN(added)){
+//            added = "0";
+//        }
+//        d3.select(d).style('fill',function(d){
+//            if(utopia){
+//                return "#FFDF00";
+//            }else{
+//                return DrivingFeaturePlot_colorScale(added);
+//            }
+//        });
+//        
+//    })
+//}
 
 
 
 
-function updateDrivingFeatureColorScale(scale){
-    
-    var num = added_features.length;
-    if(num==0) num = 1;
-    
-    // Create color scale
-    DrivingFeaturePlot_colorScale = d3.scale.linear()
-                .domain(linspace(num,0,scale.length))
-                .range(scale);
-    
-    d3.selectAll('.dot.dfplot')[0].forEach(function(d){
-        
-        var added = +d.__data__.added;
-        if(added==null || isNaN(added)){
-            added = 0;
-        }
-        
-        d3.select(d).style('fill',function(d){
-            return DrivingFeaturePlot_colorScale(added);
-        });
-        
-    })
-}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 function feature_click(d){
@@ -501,11 +659,11 @@ function feature_mouseover(d){
     var conf = d.metrics[2];
     var conf2 = d.metrics[3];
     
-    d3.selectAll('.dot.dfplot')[0].forEach(function(d){
-        if(d.__data__.id==id){
-            d3.select(d).style("fill", highlightedColor_mouseover);
-        }
-    });
+//    d3.selectAll('.dot.dfplot')[0].forEach(function(d){
+//        if(d.__data__.id==id){
+//            d3.select(d).style("fill", highlightedColor_mouseover);
+//        }
+//    });
     
 
     // Set variables
@@ -589,18 +747,18 @@ function feature_mouseout(d){
     
     var id = d.id;
     
-    // Changing the color back to what it was
-    d3.selectAll('.dot.dfplot')[0].forEach(function(d){
-        
-        if(d.__data__.id==id){
-            var added = + d.__data__.added;
-            if(added==null || isNaN(added)) added=0;
-            
-            d3.select(d).style('fill',function(d){
-                return DrivingFeaturePlot_colorScale(added);
-            });
-        }
-    });
+//    // Changing the color back to what it was
+//    d3.selectAll('.dot.dfplot')[0].forEach(function(d){
+//        
+//        if(d.__data__.id==id){
+//            var added = + d.__data__.added;
+//            if(added==null || isNaN(added)) added="0";
+//            
+//            d3.select(d).style('fill',function(d){
+//                return DrivingFeaturePlot_colorScale(added);
+//            });
+//        }
+//    });
     
     // Remove the tooltip
     d3.selectAll("#tooltip_g").remove();
@@ -775,40 +933,122 @@ function add_current_feature_to_DF_plot(expression){
         var lift = p_snf/(p_f*p_s); 
         var metrics = [supp, lift, conf, conf2];
         
-        last_added_feature = added_features.slice(-1)[0]
+        // Remove the last element from the array
+        //last_added_feature = added_features.slice(-1)[0]
+        last_added_feature = added_features[added_features.length-1];
         
+        
+        // If added_features is not an empty array
         if(last_added_feature != null){
+            // If no change was made to the feature in terms of the metrics
             if(Math.abs(last_added_feature.metrics[2]-conf) < 0.001 && Math.abs(last_added_feature.metrics[3] - conf2) < 0.001){
                return;
             }
         }
         
-        var current_feature = {id:id,name:expression,expression:expression,metrics:metrics,added:"3"};
         
-        // Remove the first element if there are already 3 features added
-        if(added_features.length >= 3){
-           added_features.splice(0,1);
-        }
+        var this_feature = {id:id,name:expression,expression:expression,metrics:metrics,added:"0"};
+        
+        // Remove the first element if there are already 2 features added
+//        if(added_features.length >= 2){
+//           added_features.splice(0,1);
+//        }
     
-        // Assign new indices for the added features
-        for(var i=0;i<added_features.length;i++){
-            var tmp = i+1;
-            added_features[i].added = ""+tmp;
-        }
         
         // Add new feature to the list of added features
         if(expression!=""){
-            added_features.push(current_feature);
+            added_features.push(this_feature);
         }
+        
+        // Assign new indices for the added features
+        for(var i=0;i<added_features.length;i++){
+            added_features[i].added = ""+added_features.length-1-i;
+        }
+        
         all_features = mined_features.concat(added_features);
-                
         
         document.getElementById('tab3').click();
         highlight_support_panel()
         
         // Display the driving features with newly added feature
-        display_drivingFeatures(all_features,'lift');
+        display_drivingFeatures(all_features);
     }
 }
+
+
+
+
+
+function get_utopia_point(){
+    
+    // Utopia point
+    return d3.selectAll('.dot.dfplot').filter(function(d){
+        if(d.name=="utopiaPoint"){
+           return true;
+        }
+        return false;
+    });
+}
+
+
+function get_current_feature(){
+    
+    // The current feature
+    return d3.selectAll('.dot.dfplot').filter(function(d){
+        if(d.added=="0"){
+           return true;
+        }
+        return false;
+    });
+    
+}
+
+
+
+
+
+function check_dominance(metrics1,metrics2){
+    
+    if(
+        (metrics1[2] >= metrics2[2] && metrics1[3] > metrics2[3]) || 
+        (metrics1[2] > metrics2[2] && metrics1[3] >= metrics2[3]) 
+    ){
+        return true; // feature 1 dominates feature 2
+    }
+    return false;
+}
+
+
+function get_non_dominated_features(){
+
+    var non_dominated = [];
+    
+    for(var i=0;i<all_features.length;i++){
+        
+        var dominated = false;
+        
+        for(var j=0;j<all_features.length;j++){
+            
+            if(i==j){
+                continue;
+                
+            }else if(check_dominance(all_features[j].metrics,all_features[i].metrics)){
+                // all_features[j] dominates all_features[i]. i.e. features[i] is dominated
+                dominated=true;
+                break;
+            }
+        }
+        
+        if(dominated==false){
+           non_dominated.push(i);
+        }
+    }
+    
+    return non_dominated;
+}
+
+
+
+
 
 

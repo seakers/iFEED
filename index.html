@@ -272,8 +272,8 @@ and open the template in the editor.
                 padding:20px;
                 overflow:scroll;'>
                     <div id='feature_application_options_panel' style="width:100%;">
-                        <button id='toggle_feature_scheme' class='feature_application_options_button'>Deactivate all features</button>
-                        <button id='clear_deactivated_features' class='feature_application_options_button'>Clear deactivated features</button>
+                        <button id='deactivate_all_features' class='feature_application_options_button'>Deactivate all features</button>
+                        <button id='clear_all_features' class='feature_application_options_button'>Clear all features</button>
                     </div>
                     <div id='feature_application_status' style='width:100%; padding:5px; float:left;'>
                         <div id='applied_feature_div'></div>
@@ -324,7 +324,7 @@ var ScatterPlot_scale = 0;
 var ScatterPlot_translate_local = [0,0];
 var ScatterPlot_scale_local = 0;            
 
-var defaultColor = "#000000";
+var defaultColor = "#6E6E6E";
 var selectedColor = "#19BAD7";
 var highlightedColor = "#F86591";
 var overlapColor = "#A340F0";
@@ -341,14 +341,14 @@ var DrivingFeaturePlot_yAxis;
 
 var DrivingFeaturePlot_margin = {top: 20, right: 20, bottom: 30, left:65};
 var DrivingFeaturePlot_width = 770 - 35 - DrivingFeaturePlot_margin.left - DrivingFeaturePlot_margin.right;
-var DrivingFeaturePlot_height = 430 - 20 - DrivingFeaturePlot_margin.top - DrivingFeaturePlot_margin.bottom;
+var DrivingFeaturePlot_height = 400 - 20 - DrivingFeaturePlot_margin.top - DrivingFeaturePlot_margin.bottom;
 
 var turn_on_apriori = false;
 
 var color_drivingFeatures = d3.scale.category20();        
 var color_drivingFeatures2 = ['#CF3333','#CF5B33','#CF8433','#CFA533','#CFC133','#BACF33','#97CF33','#6CCF33','#3FCF33'];  
 var color_drivingFeatures3 = ['#66F8A8','#7AF866','#C3F866','#E7F866','#F8DD66','#F8B666','#F88166','#F86666','#F86591'];
-var color_drivingFeatures4 = ['#66F8A8','#C3F866','#F8DD66','#F86591'];
+var color_drivingFeatures4 = ['#66F8A8','#F8DD66','#F86591'];
 var DrivingFeaturePlot_colorScale = color_drivingFeatures;
 
 var i_drivingFeatures=0;
@@ -359,7 +359,6 @@ var all_features=null;
 var support_threshold = 0.002;
 var confidence_threshold = 0.10;
 var lift_threshold = 0.1;
-
 
 var selected_features = [];
 var selected_features_expressions = [];             

@@ -1,5 +1,4 @@
 
-var features_activation_store = [];
 var featureID = 0;    
 var indentation_margin = 30;
 
@@ -105,11 +104,48 @@ function create_feature_placeholder(){
     // Make an update to the display
     display_feature_application_status([feature]);
     update_feature_expression();
+    
+//    // Color the temporary features gray
+//    d3.selectAll('.applied_feature')[0].forEach(function(d,i){
+//        if(.indexOf(i)!=-1){
+//           d3.select(d).select('.feature_application_expression').style('color','#A4A4A4');
+//        }
+//    });
+    
 }
 
 
-function add_feature(input_level, input_logic, input_expression, activation, logic_indent_level){    
+
+
+
+function check_redundancy(input_level,input_expression){
+    
+    var redundancy=false;
+    
+    d3.selectAll('.applied_feature')[0].forEach(function(d){
         
+        var expression = d3.select(d).select('.feature_application_expression').attr('expression');
+        var level = d3.select(d).select('.feature_expression').attr('level');
+
+        if(expression==input_expression && level==input_level){
+            redundancy=true;
+        }
+    });
+    
+    return redundancy;
+}
+
+
+
+function add_feature(input_level, input_logic, input_expression, activation, logic_indent_level){  
+    
+    
+    // Remove redundant feature
+    if(check_redundancy(input_level,input_expression)){
+        console.log('Redundant feature not added: ' + input_expression);
+        return;
+    }
+    
     var applied_features = d3.select('#applied_feature_div');
     var id = featureID++;
     var this_feature;
@@ -149,16 +185,7 @@ function add_feature(input_level, input_logic, input_expression, activation, log
                     }
                 });
         
-                // Store the change in the variable
-                current_feature_application = get_feature_application_status();
-        
-                adjust_logical_connective();
-
-                // Reflect the change in the scatter plot
-                apply_current_feature_scheme();
-                
-                // Reflect the change in the displayed expression
-                update_feature_expression();
+                update_feature_application_status();
         
             });
     
@@ -186,12 +213,8 @@ function add_feature(input_level, input_logic, input_expression, activation, log
                 }); 
         
         logical_connective.select('.feature_application_logical_connective').on("change",function(d){
-
-            current_feature_application = get_feature_application_status();
-            apply_current_feature_scheme();
-
-            // Update feature expression
-            update_feature_expression();
+    
+            update_feature_application_status();
         });
 
         // Append arrows for adjusting the location of each expression
@@ -296,23 +319,11 @@ function add_feature(input_level, input_logic, input_expression, activation, log
             .attr('class','delete_feature arrow')
             .attr('width','20')
             .attr('height','17')
-            .on("click",function(d){
-                
-                var activated = d3.select(this.parentNode).select('.feature_application_activate')[0][0].checked;
+            .on("click",function(d){                
                 // Remove the current feature
                 this_feature.remove();
-                // Store the change in the variable
-                current_feature_application = get_feature_application_status();
-                // If the removed feature was the first feature, then the next feature needs to have logical connective removed
-                adjust_logical_connective();
-
-                // Re-apply the current feature scheme if the feature to be deleted was activated
-                if(activated){
-                    // Reflect the change in the scatter plot
-                    apply_current_feature_scheme();
-                    // Update the displayed expression
-                    update_feature_expression();
-                }
+        
+                update_feature_application_status();
             });
     
 
@@ -383,13 +394,7 @@ function click_left_arrow(node){
         });
     }
     
-    current_feature_application = get_feature_application_status();
-
-    adjust_logical_connective();
-    
-    apply_current_feature_scheme();
-    
-    update_feature_expression();
+    update_feature_application_status();
 }
         
 
@@ -446,10 +451,7 @@ function click_right_arrow(node){
         });
     }
     
-    current_feature_application = get_feature_application_status();
-	apply_current_feature_scheme();
-    
-    update_feature_expression();
+    update_feature_application_status();
 }
                      
             
@@ -477,13 +479,7 @@ function click_up_arrow(node){
     
     d3.selectAll('.applied_feature').remove();
     
-    display_feature_application_status(current_feature_application);
-
-    adjust_logical_connective();
-
-	apply_current_feature_scheme();
-
-    update_feature_expression();
+    update_feature_application_status();
 }   
 
 
@@ -518,10 +514,7 @@ function click_down_arrow(node){
     
     display_feature_application_status(current_feature_application);
     
-    adjust_logical_connective();
-	apply_current_feature_scheme();
-    
-    update_feature_expression();
+    update_feature_application_status();
 }     
             
             
@@ -568,10 +561,7 @@ function adjust_logical_connective(){
         
         logical_connective_div.select('.feature_application_logical_connective').on("change",function(d){
 
-            current_feature_application = get_feature_application_status();
-            apply_current_feature_scheme();
-
-            update_feature_expression();
+            update_feature_application_status();
 
         });
         
@@ -804,13 +794,14 @@ function apply_current_feature_scheme(){
             
 function test_feature(){
     
-    var expression = get_feature_application_expression();
+    var expression = get_feature_application_expression();    
     
     if(expression.indexOf('&&')==-1 && expression.indexOf('||')==-1 && expression.indexOf('FeatureToBeAdded')!=-1){
-        // Single feature
+        // Check if the expression is simply a placeholder
         expression='';
     }
     
+    // Add the current feature application scheme to the feature space plot
     add_current_feature_to_DF_plot(expression);
     return;
 }
@@ -818,60 +809,23 @@ function test_feature(){
 
 
 
-function toggle_feature_activation(){
-
-    if(features_activation_store.length==0){
-        
-        d3.selectAll('.applied_feature')[0].forEach(function(d,i){
-            var activation = d3.select(d).select('.feature_application_activate')[0][0].checked;
-            var expression = d3.select(d).select('.feature_application_expression').attr('expression');
-            
-            features_activation_store.push(expression);
-            if(activation && expression.indexOf('FeatureToBeAdded')==-1){
-                // Deactivate the activated features. If the feature is the placeholder, don't deactivate it
-                d3.select(d).select('.feature_application_activate')[0][0].checked = false;
-                d3.select(d).select('.feature_application_expression').style('color',"#989898");
-            }
-        });
-        d3.select('#toggle_feature_scheme').text('Restore all features');
-        
-    }else{
-        
-        d3.selectAll('.applied_feature')[0].forEach(function(d,i){
-            var expression = d3.select(d).select('.feature_application_expression').attr('expression');
-            
-            if(features_activation_store.indexOf(expression)!=-1){
-                d3.select(d).select('.feature_application_activate')[0][0].checked = true;
-                d3.select(d).select('.feature_application_expression').style('color',"#000000");
-            }
-        });
-        reset_feature_activation();
-    }
-    
-    current_feature_application = get_feature_application_status();
-    apply_current_feature_scheme();
-    update_feature_expression();
-}
-
-            
-function reset_feature_activation(){
-    d3.select('#toggle_feature_scheme').text('Deactivate all features');
-    features_activation_store = [];
-}         
-
-
-
+/*
+Updates feature expression text displayed
+*/
 function update_feature_expression(features){
-    
+
     var logic_color = "#FF9500";
     var bracket_color = "#FF0000";
+    
     var expression;
     if(features==null){
         features = current_feature_application;
     }
+    
     expression = get_feature_application_expression(features);
     
     expression = pp_feature(expression);
+    
     expression = expression.replace(/{/g,'');
     expression = expression.replace(/}/g,'');
     
@@ -885,6 +839,9 @@ function update_feature_expression(features){
 }
 
 
+/*
+Updates feature application status displayed
+*/
 function update_feature_application_status(expression,option){
     
     if(option=='create_placeholder'){
@@ -894,8 +851,14 @@ function update_feature_application_status(expression,option){
 
     }else if(option=='replace_placeholder'){
         
+        // Use the stashed feature application
         current_feature_application = stashed_feature_application;
         test_feature();
+        
+        d3.selectAll('.applied_feature')[0].forEach(function(d,i){
+            d3.select(d).select('.feature_application_expression').style('color','black');
+        });
+        
         return;
         
     }else if(option=='update_placeholder'){
@@ -931,8 +894,12 @@ function update_feature_application_status(expression,option){
         
         var logic_indent_levels = [];
         var decomposed = decompose_feature(0, '&&', expression, [], logic_indent_levels);
+        
         var individual_features = decomposed.features;
         logic_indent_levels = decomposed.logic_indent_levels;
+        
+        // Save which if the features are temporary
+        var temp_feature_indices = [];
         
         // Add individual features
         for(var i=0;i<individual_features.length;i++){
@@ -946,24 +913,38 @@ function update_feature_application_status(expression,option){
                 logic = first_logic;
                 logic_level = last_feature_logic_level;
                 features.splice(placeholder_index,1,{activation:true, expression:exp, logic:logic, level:level, logic_indent_level:logic_level});
+                temp_feature_indices.push(placeholder_index);
             }else{
                 logic = individual_features[i].logic;
                 logic_level = logic_indent_levels[i-1] + last_feature_level;
                 features.splice(placeholder_index+i,0,{activation:true, expression:exp, logic:logic, level:level, logic_indent_level:logic_level});
+                temp_feature_indices.push(placeholder_index+i);
             }
         }
         
+        // Save the feature application status
         stashed_feature_application = features;
         
+        // Remove all pre-existing features
         d3.selectAll('.applied_feature').remove();
         
+        // Display the feature application status
         display_feature_application_status(stashed_feature_application);
         
+        // Color the temporary features gray
+        d3.selectAll('.applied_feature')[0].forEach(function(d,i){
+            if(temp_feature_indices.indexOf(i)!=-1){
+               d3.select(d).select('.feature_application_expression').style('color','#A4A4A4');
+            }
+        });
+        
+        // Update the feature expression text
         update_feature_expression(stashed_feature_application);
         
         return;
         
-    }else{ 
+    }else if(['new','add','within','deactivated'].indexOf(option)!=-1){
+        
         // Add a new preset feature from the filter settings
         // option: {'new','add','within','deactivated'}
         
@@ -1021,8 +1002,10 @@ function update_feature_application_status(expression,option){
                 
         // Remove all curently shown features
         d3.selectAll('.applied_feature').remove();
+        
         // Display features
         display_feature_application_status(features);
+        
         // Update the displayed expression
         update_feature_expression();
         
@@ -1032,28 +1015,38 @@ function update_feature_application_status(expression,option){
         
         return;
     }
+    else{        
+        // Update everything up-to-date: 
+        //        1) Feature plot 
+        //        2) Feature expression 
+        //        3) Design space plot
+        
+        current_feature_application = get_feature_application_status();
+        apply_current_feature_scheme();
+        adjust_logical_connective();
+        update_feature_expression();
+    }
     
 }
 
 
 
-d3.select('#clear_deactivated_features').on('click',function(){
+// Deactivate all features
+d3.select('#deactivate_all_features').on('click',function(){
+    
     d3.selectAll('.applied_feature')[0].forEach(function(d){
-        var activation = d3.select(d).select('.feature_application_activate')[0][0].checked;
         var expression = d3.select(d).select('.feature_application_expression').attr('expression');
-        if(!activation&& expression.indexOf('FeatureToBeAdded')==-1){
-            d3.select(d).remove();
+        if(expression.indexOf('FeatureToBeAdded')==-1){
+            d3.select(d).select('.feature_application_activate')[0][0].checked=false;
         }
     });
-    current_feature_application = get_feature_application_status();
-    apply_current_feature_scheme();
-    adjust_logical_connective();
-    update_feature_expression();
-});
+    update_feature_application_status();
+    
+}); 
 
 
-d3.select('#toggle_feature_scheme').on('click',toggle_feature_activation);
-
-//d3.select('#test_feature_scheme').on('click',test_feature);  
-
-
+// Remove all features
+d3.select('#clear_all_features').on('click',function(){
+    d3.selectAll('.applied_feature').remove();
+    update_feature_application_status();
+}); 
