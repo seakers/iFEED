@@ -207,16 +207,9 @@ function sortDrivingFeatures(drivingFeatures,sortBy){
 
 
 
-function update_drivingFeatures_display(source){
-    
-    
-//.transition().duration(0)
-    
-}
 
-            
 function display_drivingFeatures(source){
-
+    
     // Set variables
     var margin = DrivingFeaturePlot_margin;
     var width = DrivingFeaturePlot_width;
@@ -227,13 +220,62 @@ function display_drivingFeatures(source){
     var xAxis = DrivingFeaturePlot_xAxis;
     var yAxis = DrivingFeaturePlot_yAxis;
     
-    var numFeatures = source.length;
+    // Remove previous plot
+    d3.select("#view3").select("g").remove();
+    
+    var tab = d3.select('#view3').append('g');
+    
+    // Create plot div's
+    tab.append('div')
+        .attr('id','dfplot_div')
+        .style('width', width + margin.left + margin.right)
+        .style('height', height + margin.top + margin.bottom);
+    
+    tab.append('div')
+        .attr('id','dfplot_venn_diagram')
+        .append('div')
+        .text('Total number of designs: ' + numOfArchs());
+    
+    // Create a new svg
+    var svg = d3.select("#dfplot_div")
+        .append("svg")
+        .attr('id','dfplot_svg')
+        .attr("width", width + margin.left + margin.right)
+        .attr("height", height + margin.top + margin.bottom)
+        .append("g")
+        .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
+    
+    update_drivingFeatures(source);
+    
+}
+
+
+
+
+
+function update_drivingFeatures(source){
+    
+    // Set variables
+    var margin = DrivingFeaturePlot_margin;
+    var width = DrivingFeaturePlot_width;
+    var height = DrivingFeaturePlot_height;
+    
+    var xScale = DrivingFeaturePlot_xScale;
+    var yScale = DrivingFeaturePlot_yScale;
+    var xAxis = DrivingFeaturePlot_xAxis;
+    var yAxis = DrivingFeaturePlot_yAxis;    
+    
+    
+    var duration = d3.event && d3.event.altKey ? 5000 : 500;
+    
     
 
+    
+    
+    
     // Store driving features information
     var drivingFeatures = source;
     var drivingFeatureTypes = [];
-    
     
     var df_i=0;
     var lifts = [];
@@ -244,7 +286,7 @@ function display_drivingFeatures(source){
     var maxScore = -1;
     var bestFeatureIndex = 0;
     
-    for (var i=0;i<numFeatures;i++){
+    for (var i=0;i<source.length;i++){
         lifts.push(source[i].metrics[1]);
         supps.push(source[i].metrics[0]);
         conf1s.push(source[i].metrics[2]);
@@ -260,7 +302,6 @@ function display_drivingFeatures(source){
         drivingFeatureTypes.push(pp_feature_type(source[i].name));
     }
     
-    
     // Add utopia point to the list
     var max_conf1 = Math.max.apply(null, conf1s);
     var max_conf2 = Math.max.apply(null, conf2s);
@@ -269,19 +310,6 @@ function display_drivingFeatures(source){
     source.push({id:"NA",name:"utopiaPoint",expression:"NA",metrics:[Math.max.apply(null, lifts),Math.max.apply(null, supps),max_conf,max_conf]});
     
     
-    
-    feature_scores = scores;
-    feature_scores.push(Math.max.apply(null,feature_scores)+0.2); // Set color for the utopia point
-    
-    
-    ///////////////////////////////////////////////////////////////////////////
-    //////////// Get continuous color scale for the Rainbow ///////////////////
-    ///////////////////////////////////////////////////////////////////////////
-
-    //Needed to map the values of the dataset to the color scale
-    colorInterpolateRainbow = d3.scale.linear()
-        .domain(d3.extent(feature_scores))
-        .range([0,1]);
     
     
     
@@ -324,78 +352,78 @@ function display_drivingFeatures(source){
         return yScale(yValue(d));
     }; 
     yAxis = d3.svg.axis().scale(yScale).orient("left");
+    
+    
 
     
-    
-    // Remove previous plot
-    d3.select("#view3").select("g").remove();
-    
-    var tab = d3.select('#view3').append('g');
-    
-    // Create plot div's
-    tab.append('div')
-        .attr('id','dfplot_div')
-        .style('width', width + margin.left + margin.right)
-        .style('height', height + margin.top + margin.bottom);
-    
-    tab.append('div')
-        .attr('id','dfplot_venn_diagram')
-        .append('div')
-        .text('Total number of designs: ' + numOfArchs());
-    
-    // Create a new svg
-    var svg = d3.select("#dfplot_div")
-        .append("svg")
-        .attr('id','dfplot_svg')
-        .attr("width", width + margin.left + margin.right)
-        .attr("height", height + margin.top + margin.bottom)
-        .append("g")
-        .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
+    for(var i=0;i<source.length;i++){
+        source[i].x = xMap(source[i]);
+        source[i].y = yMap(source[i]);
+    }
     
     
-    // Set zoom
-    d3.select('#dfplot_svg').call(
-            d3.behavior.zoom()
-            .x(xScale)
-            .y(yScale)
-            .scaleExtent([0.5, 30])
-            .on("zoom", function (d) {
 
-                var scale = d3.event.scale;
 
-                d3.select('#dfplot_svg').select(".x.axis").call(xAxis);
-                d3.select('#dfplot_svg').select(".y.axis").call(yAxis);
-                
-                d3.selectAll('.dot.dfplot')
-                    .attr("transform", function (d) {
-                        var xCoord = xMap(d);
-                        var yCoord = yMap(d);
-                        return "translate(" + xCoord + "," + yCoord + ")";
-                    });
-                
-                
-//                svg.selectAll("[class=bar]")
-//                        .attr("transform",function(d){
-//                            var xCoord = xScale_df(d.id);
-//                            return "translate(" + xCoord + "," + 0 + ")";
-//                        })
-//                        .attr("width", function(d){
-//                            return dfbar_width*scale;
-//                        });
-//                })
+    
+//    feature_scores = scores;
+//    feature_scores.push(Math.max.apply(null,feature_scores)+0.2); // Set color for the utopia point
+//    
+//    
+//    
+//    ///////////////////////////////////////////////////////////////////////////
+//    //////////// Get continuous color scale for the Rainbow ///////////////////
+//    ///////////////////////////////////////////////////////////////////////////
+//
+//    //Needed to map the values of the dataset to the color scale
+//    colorInterpolateRainbow = d3.scale.linear()
+//        .domain(d3.extent(feature_scores))
+//        .range([0,1]);
+
+
+    
+//
+//    // Set zoom
+//    d3.select('#dfplot_svg').call(
+//            d3.behavior.zoom()
+//            .x(xScale)
+//            .y(yScale)
+//            .scaleExtent([0.5, 30])
+//            .on("zoom", function (d) {
+//
+//                var scale = d3.event.scale;
+//
+//                d3.select('#dfplot_svg').select(".x.axis").call(xAxis);
+//                d3.select('#dfplot_svg').select(".y.axis").call(yAxis);
+//                
+//                d3.selectAll('.dot.dfplot')
+//                    .attr("transform", function (d) {
+//                        var xCoord = xMap(d);
+//                        var yCoord = yMap(d);
+//                        return "translate(" + xCoord + "," + yCoord + ")";
+//                    });
+//                
+//                
+////                svg.selectAll("[class=bar]")
+////                        .attr("transform",function(d){
+////                            var xCoord = xScale_df(d.id);
+////                            return "translate(" + xCoord + "," + 0 + ")";
+////                        })
+////                        .attr("width", function(d){
+////                            return dfbar_width*scale;
+////                        });
+////                })
+////        
+////                objects.select(".hAxisLine").attr("transform", "translate(0," + yScale(0) + ")");
+////                objects.select(".vAxisLine").attr("transform", "translate(" + xScale(0) + ",0)");
+//
 //        
-//                objects.select(".hAxisLine").attr("transform", "translate(0," + yScale(0) + ")");
-//                objects.select(".vAxisLine").attr("transform", "translate(" + xScale(0) + ",0)");
-
-        
-            })
-        )
-            .append("g")        
-            .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
+//            })
+//        )
+//            .append("g")        
+//            .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
 
      
                 
-    
     // x-axis
     svg.append("g")
             .attr("class", "x axis dfplot")
@@ -421,6 +449,7 @@ function display_drivingFeatures(source){
             .style("text-anchor", "end")
             .text('Confidence(S->F)')
             .style('font-size','15px');
+
                 
 
 
@@ -567,6 +596,11 @@ function display_drivingFeatures(source){
     
     // The current feature
     get_current_feature().style('fill',"black");
+    
+    
+    
+    
+    
     
     
 }
