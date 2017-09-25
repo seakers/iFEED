@@ -1,4 +1,5 @@
 
+
 function contextMenu() {
     
     var marginRatio = 0.13,
@@ -21,7 +22,7 @@ function contextMenu() {
         }
     
         contextOptions = ['logic','leaf'];
-        contextItems = {'logic':[{'value':'add','text':'Add a new feature'},{'value':'toggle','text':'Toggle logical connective'},{'value':'deactivate','text':'Deactivate this branch'},{'value':'delete','text':'Delete this branch'}],
+        contextItems = {'logic':[{'value':'add','text':'Add new features here'},{'value':'toggle','text':'Toggle logical connective'},{'value':'deactivate','text':'Deactivate this branch'},{'value':'delete','text':'Delete this branch'}],
                  'leaf':[{'value':'deactivate','text':'Deactivate this node'},{'value':'delete','text':'Delete this node'}]}; 
     
         contextMenuSize = {'logic':{
@@ -144,27 +145,60 @@ function contextMenu() {
 var menu = contextMenu();
 
 
+
 function contextMenuAction(context,option,data){
+    
+    var node = data;
     
     if(context=='logic'){
         
         switch(option) {
             case 'add':
+                
+                var id = node.id;
+                visit_nodes(root,function(d){
+                    if(d.id==id){
+                        d.add=true;
+                    }else{
+                        d.add=false;
+                    }
+                })
                 break;
+                
             case 'toggle':
-                if(data.name=='AND'){
-                    data.name = 'OR';
+                if(node.name=='AND'){
+                    node.name = 'OR';
                 }else{
-                    data.name = 'AND';
+                    node.name = 'AND';
                 }
                 break;
+                
             default:
                 break;
         }
-        
     }
     
+    switch(option) {
+        case 'deactivate':
+            break;
+
+        case 'delete':
+            
+            if(node.depth==0){
+                root=null;
+            }else{
+                var index = node.parent.children.indexOf(node);
+                if (index > -1) {
+                    node.parent.children.splice(index, 1);
+                }
+            }
+            
+            break;
+        default:
+            break;
+    }    
     
     update(root);
+    check_tree_structure();
 }
 

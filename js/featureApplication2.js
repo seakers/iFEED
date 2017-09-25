@@ -8,6 +8,64 @@ function reset(){
 }
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+function update_feature_application(option,expression){
+        
+    var get_node_to_add_features = function(d){
+        if(d.add){
+            return d;
+        }else{
+            return null;
+        }
+    }
+        
+    var parentNode = null;
+    
+    if(root){
+        // There already exists a tree
+        
+        parentNode = visit_nodes(root,get_node_to_add_features)
+        
+        if(parentNode){
+            
+            var subtree = construct_tree(expression,parentNode.depth+1);
+            parentNode.children.push(subtree);    
+            
+            update(root);
+            check_tree_structure();
+            
+        }else{
+            
+            // Re-draw the whole tree
+            draw_feature_application_tree(expression);
+            
+        }
+        
+    }else{
+        // There is no tree. Build a new one
+        
+        draw_feature_application_tree(expression)
+    }
+}
+
+
+
+
+
+
+
 //
 //
 //
@@ -215,13 +273,14 @@ function dragEnd(d){
         }else{
             //console.log('selectedNode undefined');            
         }
-
+        
         update(root);
+        
+        check_tree_structure();
         
         dragStarted= false;
         draggingNode=null;
         
-        check_tree_structure();
     }
 }
 
@@ -281,6 +340,12 @@ function draw_feature_application_tree(expression){
 
 
 function update(source) {
+    
+    if(source==null){
+        d3.selectAll('.treeNode').remove();
+        d3.selectAll('.treeLink').remove();
+        return;
+    }    
 
 	var duration = d3.event && d3.event.altKey ? 5000 : 500;
     // Compute the new tree layout.
@@ -363,7 +428,12 @@ function update(source) {
         .attr("r", 9.5)
         .style("fill", function(d) { 
         	 if(d.children){
-                return "#2383FF";
+                 if(d.add){
+                     return "red";
+                 }
+                 else{
+                     return "#2383FF";
+                 }
         	 }else{
                 return "#A3A3A3";
         	 }
@@ -483,7 +553,7 @@ function update(source) {
         
     });    
     
-    
+
     d3.selectAll('.treeNode')
         .call(dragListener);
     
@@ -494,6 +564,13 @@ function update(source) {
             var context = d.type;
             menu(context, coord, d);
         });
+    
+    // Highlight the node in which to add new features
+    d3.selectAll('.treeNode')[0].forEach(function(d){
+        if(d.__data__.add){
+           d3.select(d).select('circle').style('fill','red');
+        }
+    });    
 }
 
 
@@ -514,21 +591,31 @@ function toggle_tree(d) {
 
 function visit_nodes(source,func){
     
+    var re;
+    
     if(typeof func != 'undefined'){
-       func(source);
+        re = func(source)
+        if(re) return re;
     }
     
     if(source.children){
         for(var i=0;i<source.children.length;i++){
-            visit_nodes(source.children[i],func);
+            re = visit_nodes(source.children[i],func)
+            if(re) return re;
         }   
     }
+    
+    return null;
 }
 
 
 function check_tree_structure(){
     
-    var delete_single_child_node = function(node){
+    if(root==null){
+        return;
+    }   
+        
+    var delete_node_with_single_child = function(node){
         
         if(node.children){
             
@@ -553,11 +640,70 @@ function check_tree_structure(){
                     }
                 }
             }
+        }else{
+            
+            if(node.type=='logic' && node.depth==0){
+                // The root node is a logical connective but has no children
+                root=null;
+                d3.selectAll('.treeNode').remove();
+            }
         }
     }
     
+    var remove_redundant_logical_connectives = function(node){
+        
+        if(node.type=="logic" && node.parent){
+            if(node.name==node.parent.name){
+                
+                var children = node.children;
+                var parent = node.parent;
+                var index = parent.children.indexOf(node);
+
+                node.parent.children.splice(index,1);
+                
+                for(var i=0;i<children.length;i++){
+                    parent.children.splice(index,0,children[i]);
+                }
+            }
+        }
+    }
     
-    visit_nodes(root,delete_single_child_node);
+    var remove_redundant_features = function(node){
+        
+        if(node.type=="logic" && node.children){
+            
+            var list_of_features = [];
+            var indices_to_delete = [];
+            var children = node.children;
+            
+            for(var i=0;i<children.length;i++){
+                
+                if(children[i].type=="logic"){
+                   continue;
+                }
+                
+                var this_feature = children[i];
+                
+                if(list_of_features.indexOf(this_feature.name)==-1){
+                    list_of_features.push(this_feature.name);                    
+                }else{
+                    indices_to_delete.push(i);
+                }
+            }
+            
+            indices_to_delete.reverse();
+            
+            for(var j=0;j<indices_to_delete.length;j++){
+                node.children.splice(indices_to_delete[j],1);
+            }
+            
+        }
+        
+    }
+        
+    visit_nodes(root, delete_node_with_single_child);
+    visit_nodes(root, remove_redundant_logical_connectives);
+    visit_nodes(root, remove_redundant_features); 
     
     update(root);
 }

@@ -87,7 +87,7 @@ function runDataMining() {
         
 
         selection_changed = false;
-        update_feature_application_status('', 'create_placeholder');
+        //update_feature_application_status('', 'create_placeholder');
     }
 }
 
@@ -261,8 +261,6 @@ function display_drivingFeatures(source){
 
 
 function update_drivingFeatures(source){
-    
-    console.log(source);
     
 
     // Set variables
@@ -774,12 +772,24 @@ function feature_mouseover(d){
     
     
     // Update the placeholder with the driving feature and stash the expression
-    update_feature_application_status(expression,'update_placeholder');
+    //update_feature_application_status(expression,'update_placeholder');
+    
+    update_feature_application('temp',expression)
+    
     
     applyComplexFilter(get_feature_application_expression(stashed_feature_application));
     draw_venn_diagram();           
     
 }
+
+
+
+
+
+
+
+
+
 
 
 function feature_mouseout(d){
