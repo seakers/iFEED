@@ -1059,14 +1059,6 @@ function set_selection_option(selected_option){
 }
 
 
-function round_num_2_perc(num){
-	var temp = num*100;
-	return temp.toFixed(1);
-}
-
-function round_num_fourth_dec(num){
-	return num.toFixed(4);
-}
 
 
 

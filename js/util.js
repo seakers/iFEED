@@ -86,3 +86,28 @@ function collapse_paren_into_symbol(expression){
 	}
 	return modified_expression;
 }
+
+
+
+function linspace(start, end, n) {
+    var out = [];
+    var delta = (end - start) / (n - 1);
+    var i = 0;
+    while(i < (n - 1)) {
+        out.push(start + (i * delta));
+        i++;
+    }
+    out.push(end);
+    return out;
+}
+
+
+function round_num(num,decimal){
+    if(decimal){
+        return num.toFixed(decimal);
+    }else{
+        return num.toFixed(3);   
+    }
+}
+
+

@@ -1063,7 +1063,7 @@ function applyComplexFilter(input_expression){
     cancelDotSelections('remove_highlighted');
     
     // If filter expression is empty, return
-    if(filter_expression===""){
+    if(filter_expression==="" || !filter_expression){
         return;
     }
     

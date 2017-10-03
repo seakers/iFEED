@@ -1,9 +1,10 @@
 
+// Context info: node, depth, logic(AND or OR)
 
 function contextMenu() {
     
     var marginRatio = 0.13,
-        items = [], 
+        //items = [], 
         style = {
             'rect': {
                 'mouseout': {
@@ -19,43 +20,72 @@ function contextMenu() {
                 'fill': 'steelblue', 
                 'font-size': '17'
             }
-        }
+        },
     
-        contextOptions = ['logic','leaf'];
-        contextItems = {'logic':[{'value':'add','text':'Add new features here'},{'value':'toggle','text':'Toggle logical connective'},{'value':'deactivate','text':'Deactivate this branch'},{'value':'delete','text':'Delete this branch'}],
-                 'leaf':[{'value':'deactivate','text':'Deactivate this node'},{'value':'delete','text':'Delete this node'}]}; 
     
-        contextMenuSize = {'logic':{
-                                'height':null,
-                                'width':null,
-                                'margin':0.15,
-                                'scaled':false
-                            },
-                            'leaf':{
-                                'height':null,
-                                'width':null,
-                                'margin':0.15,
-                                'scaled':false
-                            }};
+        contextItems = {
+            
+            'logic':[{'value':'addChild','text':'Add Feature'},
+                     {'value':'toggle-logic','text':'Change to X'}],
+            
+            'leaf':[],
+            
+            'default':[{'value':'addParent','text':'Add Parent Branch'},{'value':'duplicate','text':'Duplicate'},{'value':'toggle-activation','text':'Activate/Deactivate'},{'value':'delete','text':'Delete'}]
+        }, 
+    
 
     
-    function menu(context,coord, data) {
+        contextMenuSize = {
+            
+            'logic':{'height':null,
+                    'width':null,
+                    'margin':0.15,
+                    'scaled':false},
+            
+            'leaf':{'height':null,
+                    'width':null,
+                    'margin':0.15,
+                    'scaled':false}
+        };
+
+    
+    
+    function menu(context, coord) {
         
-        items = contextItems[context]
+        var type = context.type;
+        var logic = context.name;
+        var depth = context.depth;    
+        var add = context.add;
+        var deactivated = context.deactivated;
+        
+        var items = contextItems[type];
+        items = items.concat(contextItems['default']);
+        
         var x,y;
-        
-        if(context=='logic'){
+        if(type=='logic'){
             x = coord[0]+80;
-            y = coord[1]+55;
+            y = coord[1]+40;
         }else{
-            x = coord[0]-135;
-            y = coord[1]+55;
+            x = coord[0]-105;
+            y = coord[1]+40;
         }
         
         d3.select('.context-menu').remove();
-        scaleItems(context);
+        scaleItems(context,items);
         
-        var size = contextMenuSize[context];
+        if(type=='logic' && depth != 0){
+            // If the node is a logical connective, remove the 'addParent' option. If the node is the root node, then keep the option
+            var index;
+            for(var i=0;i<items.length;i++){
+                if(items[i].value=='addParent'){
+                   index=i;
+                    break;
+                }
+            }
+            items.splice(index,1);
+        }    
+        
+        var size = contextMenuSize[type];
         var width = size.width;
         var height = size.height;
         var margin = size.margin;
@@ -72,7 +102,7 @@ function contextMenu() {
             .on('mouseout', function(){ 
                 d3.select(this).select('rect').style(style.rect.mouseout) })
             .on('click', function(d){
-                contextMenuAction(context,d.value,data);
+                contextMenuAction(context,d.value);
             });
         
         d3.selectAll('.menu-entry')
@@ -85,7 +115,32 @@ function contextMenu() {
         
         d3.selectAll('.menu-entry')
             .append('text')
-            .text(function(d){ return d.text; })
+            .text(function(d){ 
+            
+                if(d.value=='addChild'){
+                    
+                    if(add){
+                        return 'Cancel Add Feature';
+                    }else{
+                        return 'Add Feature';
+                    }
+                   
+                }else if(d.value=='toggle-logic'){
+                    if(logic=='AND'){
+                        return 'Change to OR';
+                    }else{
+                        return 'Change to AND';
+                    }
+                }else if(d.value=='toggle-activation'){
+                    if(deactivated){
+                        return 'Activate';
+                    }else{
+                        return 'Deactivate';
+                    }
+                }else{
+                    return d.text; 
+                }
+            })
             .attr('x', x)
             .attr('y', function(d, i){ return y + (i * height); })
             .attr('dy', height - margin / 2)
@@ -97,19 +152,23 @@ function contextMenu() {
             .on('click', function() {
                 d3.select('.context-menu').remove();
             });
-
+        
     }
     
     
     // Automatically set width, height, and margin;
-    function scaleItems(context) {
+    function scaleItems(context,items) {
         
-        if(!contextMenuSize[context]['scaled']){
+        var type = context.type;
+        var logic = context.name;
+        var depth = context.depth;         
+        
+        if(!contextMenuSize[type]['scaled']){
 
             d3.select('#feature_application_status')
                 .select('svg').select('g')
                 .selectAll('tmp')
-                .data(contextItems[context]).enter()
+                .data(items).enter()
                 .append('text')
                 .text(function(d){ return d.text; })
                 .style(style.text)
@@ -125,17 +184,16 @@ function contextMenu() {
             width =  width + 2 * margin;
             var height = d3.max(z.map(function(x){ return x.height + margin / 2; }));
 
-            contextMenuSize[context]['width'] = width;
-            contextMenuSize[context]['height'] = height;
-            contextMenuSize[context]['margin'] = margin;
-            contextMenuSize[context]['scaled'] = true;
+            contextMenuSize[type]['width'] = width;
+            contextMenuSize[type]['height'] = height;
+            contextMenuSize[type]['margin'] = margin;
+            contextMenuSize[type]['scaled'] = true;
 
             // cleanup
             d3.select('#feature_application_status').selectAll('.tmp').remove();                        
         }
 
     }
-
     return menu;
 }
 
@@ -145,27 +203,35 @@ function contextMenu() {
 var menu = contextMenu();
 
 
-
-function contextMenuAction(context,option,data){
+function contextMenuAction(context,option){
     
-    var node = data;
-    
-    if(context=='logic'){
+    var node = context;
         
-        switch(option) {
-            case 'add':
+// 'logic':[addChild, toggle-logic],     
+// 'leaf':[],
+// 'default':[addParent,duplicate,toggle-activation,delete]
+    
+    if(node.type=='logic'){
+        
+        switch(option) { // Logical connective node
+            case 'addChild':
                 
-                var id = node.id;
-                visit_nodes(root,function(d){
-                    if(d.id==id){
-                        d.add=true;
-                    }else{
-                        d.add=false;
-                    }
-                })
+                if(node.add){
+                    node.add=false;
+                }else{
+                    var id = node.id;
+                    visit_nodes(root,function(d){
+                        if(d.id==id){
+                            d.add=true;
+                        }else{
+                            d.add=false;
+                        }
+                    })
+                }
                 break;
                 
-            case 'toggle':
+            case 'toggle-logic':
+                
                 if(node.name=='AND'){
                     node.name = 'OR';
                 }else{
@@ -176,10 +242,83 @@ function contextMenuAction(context,option,data){
             default:
                 break;
         }
+    }else{
+        switch(option) { // Leaf node
+            default:
+                break;
+        }
+        
     }
     
+    
+    // Default options
     switch(option) {
-        case 'deactivate':
+            
+        case 'addParent':
+            if(node.parent){ // This is a leaf node because of the condition set up previously
+
+                var index = node.parent.children.indexOf(node);
+                var logic = node.parent.name;
+                var depth = node.depth;
+
+                if(logic=="AND"){
+                    logic = "OR";    
+                }else{
+                    logic = "AND";
+                }
+                node.parent.children.splice(index,1,{depth:depth,type:"logic",name:logic,children:[node]});
+
+            }else{ // This is the root node
+
+                var logic = node.name; 
+                if(logic=="AND"){
+                    logic = "OR";    
+                }else{
+                    logic = "AND";
+                }
+
+                var x0 = root.x0;
+                var y0 = root.y0;
+
+                root = {depth:0,type:"logic",name:logic,children:[node],x0:x0,y0:y0};
+            }
+
+            break;
+
+            
+        case 'duplicate':
+            if(node.parent){
+                var index = node.parent.children.indexOf(node);
+                var logic = node.parent.name;
+                var depth = node.depth;
+
+                if(logic=="AND"){
+                    logic = "OR";    
+                }else{
+                    logic = "AND";
+                }
+                
+                var duplicate = construct_tree(parse_tree(node));                
+                node.parent.children.splice(index,0,{depth:depth,type:"logic",name:logic,children:[duplicate]});
+                
+            }              
+            break;
+            
+        case 'toggle-activation':
+            
+            if(node.deactivated){
+                // Activate all parent nodes
+                visit_nodes(node,function(d){
+                    d.deactivated=false;
+                },true);
+                
+            }else{                
+                // Deactivate all descendant nodes
+                visit_nodes(node,function(d){
+                    d.deactivated=true;
+                });
+            }     
+            
             break;
 
         case 'delete':
@@ -192,13 +331,21 @@ function contextMenuAction(context,option,data){
                     node.parent.children.splice(index, 1);
                 }
             }
-            
             break;
+            
         default:
             break;
     }    
     
     update(root);
     check_tree_structure();
+    applyComplexFilter(parse_tree(root));
+    add_feature_to_plot(parse_tree(root));
+    draw_venn_diagram();   
+    
 }
+
+
+
+
 

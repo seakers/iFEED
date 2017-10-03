@@ -1,21 +1,11 @@
-function temp(){
-    draw_feature_application_tree("(F1&&F2)||F3||(F4&&(F5||F6)&&F7)");
-}
+var stashed_node_ids = null;
+var stashed_root = null;
 
-function reset(){
-    d3.select('#feature_application_status').select('svg').remove();
-    temp();
-}
-
-
-
-
-
-
-
-
-
-
+var node_color_default = "#616161";
+var node_color_logic = "#2383FF";
+var node_color_add = "#FF7979";
+var node_color_deactivated = "#E3E3E3";
+var node_color_temp = "#C6F3B6";
 
 
 
@@ -24,115 +14,154 @@ function reset(){
 function update_feature_application(option,expression){
         
     var get_node_to_add_features = function(d){
+        // Find the node to which to add new features
         if(d.add){
             return d;
         }else{
             return null;
         }
     }
-        
-    var parentNode = null;
     
-    if(root){
-        // There already exists a tree
+    if(option=='temp'){
+        // Mouseover
         
-        parentNode = visit_nodes(root,get_node_to_add_features)
-        
-        if(parentNode){
-            
-            var subtree = construct_tree(expression,parentNode.depth+1);
-            parentNode.children.push(subtree);    
-            
-            update(root);
-            check_tree_structure();
-            
+        var parentNode = null;
+        if(root){
+            // There already exists a tree: Find the node to add new features and append children temporarily
+            parentNode = visit_nodes(root,get_node_to_add_features)
+
+            if(parentNode){
+                // parentNode exists
+                
+                // Stash the currently existing node ID's
+                stashed_node_ids = get_node_ids(root,[]);
+                
+                // Construct a subtree and append it as a child to the parent node
+                var subtree = construct_tree(expression,parentNode.depth+1);
+                
+                visit_nodes(subtree,function(d){
+                    d.temp=true;
+                })
+                
+                parentNode.children.push(subtree);    
+                update(root);
+                check_tree_structure();
+                
+            }else{    
+                
+                // No parentNode
+                
+                // Stash the current root 
+                stashed_root = construct_tree(parse_tree(root)); 
+                stashed_root.x0 = root.x0;
+                stashed_root.y0 = root.y0;     
+                
+                // Re-draw the whole tree
+                draw_feature_application_tree(expression);
+            }
+
         }else{
             
-            // Re-draw the whole tree
-            draw_feature_application_tree(expression);
+            stashed_node_ids = [];
+            stashed_root = {};
             
+            // There is no tree. Build a new one
+            draw_feature_application_tree(expression)
         }
         
-    }else{
-        // There is no tree. Build a new one
         
-        draw_feature_application_tree(expression)
+    }else if(option=='restore'){
+        // Restore the stashed tree
+        
+        if(stashed_root != null && stashed_node_ids != null){ 
+            
+            if(jQuery.isEmptyObject(stashed_root) && stashed_node_ids.length==0){
+                // There was no tree before
+                root = null;
+            }
+
+        }else if(stashed_root != null){
+            // The whole tree is stashed
+            root = stashed_root;  
+            
+        }else if(stashed_node_ids != null){
+            // Tree has been modified by the temporary update
+            // Visit each node, and if node.indexOf(id)==-1, remove the index        
+            
+            parentNode = null;
+            indices = [];
+            
+            visit_nodes(root,function(d){  
+                if(stashed_node_ids.indexOf(d.id)==-1){
+                    parentNode = d.parent;
+                    var index = d.parent.children.indexOf(d);
+                    indices.push(index);
+                }
+            });
+                        
+            indices.reverse();
+            for(var i=0;i<indices.length;i++){
+                parentNode.children.splice(indices[i],1);
+            }
+            
+        }else{
+            // Both are null
+            // Do nothing
+        }
+
+        if(root){
+            visit_nodes(root,function(d){
+                d.temp=false;
+            })
+        }
+            
+        update(root);
+
+        stashed_root = null;
+        stashed_node_ids=null;
+
+        check_tree_structure();
+
+    }else if(option=='update'){
+        
+        stashed_node_ids = null;
+        stashed_root = null;
+
+        add_feature_to_plot(parse_tree(root));
     }
+    
+    applyComplexFilter(parse_tree(root));
+    update_feature_expression(parse_tree(root));
+    draw_venn_diagram();   
 }
 
 
 
 
 
+function get_node_ids(source,IDList){
+    
 
+    if(!source){
+        return [];
+    }
+    
+    var id = source.id;
+    
+    if(IDList.indexOf(id)==-1){
+       IDList.push(id);
+    }
+    
+    var children = source.children;
+    if(children){
+        for(var i=0;i<children.length;i++){
+            get_node_ids(children[i],IDList);
+        }
+    }
+    
+    return IDList;
+}
 
-//
-//
-//
-//function tree_create_placeholder(){
-//
-//    draw_feature_application_tree("");
-//    
-////    var features = current_feature_application;
-////    
-////    // If the placeholder already exists, return
-////    for(var i=0;i<features.length;i++){
-////        var expression = features[i].expression;
-////        if(expression.indexOf('FeatureToBeAdded')>-1){
-////            return;
-////        }
-////    }
-////    
-////    // Add a new feature
-////    var feature = {activation:true, expression:'{FeatureToBeAdded}', logic:'&&', level:0, logic_indent_level:0};
-////    features.push(feature);
-////    
-////    // Make an update to the display
-////    display_feature_application_status([feature]);
-////    update_feature_expression();
-//}
-//
-//
-//
-/////*
-////Updates feature application status displayed
-////*/
-////function tree_update_feature_application(expression,option){
-////    
-////    if(option=='create_placeholder'){
-////        // Newly create a new placeholder if it doesn't exist already
-////        tree_create_placeholder();
-////        return;
-////
-////    }else if(option=='replace_placeholder'){
-////                
-////        return;
-////        
-////    }else if(option=='update_placeholder'){
-////        
-////        return;
-////        
-////    }else if(['new','add','within','deactivated'].indexOf(option)!=-1){
-////        
-////        return;
-////    }
-////    else{        
-////        // Update everything up-to-date: 
-////        //        1) Feature plot 
-////        //        2) Feature expression 
-////        //        3) Design space plot
-////        
-////        current_feature_application = get_feature_application_status();
-////        apply_current_feature_scheme();
-////        adjust_logical_connective();
-////        update_feature_expression();
-////    }
-////    
-////}
-//
-//
-//
-//
 
 
 
@@ -278,6 +307,14 @@ function dragEnd(d){
         
         check_tree_structure();
         
+        applyComplexFilter(parse_tree(root));
+
+        update_feature_expression(parse_tree(root));
+        
+        add_feature_to_plot(parse_tree(root));
+        
+        draw_venn_diagram();  
+        
         dragStarted= false;
         draggingNode=null;
         
@@ -300,9 +337,9 @@ var last_modified_tree_node = null;
 function draw_feature_application_tree(expression){
     
 	// top  right bottem left
-	var margin = {left:70,right:20,top:50,bottom:50},
+	var margin = {left:70,right:20,top:20,bottom:20},
 	    width = 800 - margin.left - margin.right,
-	    height = 900 - margin.top - margin.bottom;
+	    height = 780 - margin.top - margin.bottom;
 
 	tree = d3.layout.tree().size([height, width]);
     
@@ -320,20 +357,10 @@ function draw_feature_application_tree(expression){
     root = construct_tree(expression);
     root.x0 = height / 2;
     root.y0 = 0;    
-    
-//    edgeLabelLoc = [];
-//    
-//    function toggleAll(d) {
-//        if (d.children) {
-//            d.children.forEach(toggleAll);
-//            toggle_tree(d);
-//          }
-//    }
-//    root.children.forEach(toggleAll);
-//    // Initialize the display to show a few nodes.
-//    toggle_tree(root.children[0]);
-//    toggle_tree(root.children[1]);
-    
+
+    visit_nodes(root,function(d){
+        d.temp=true;
+    });
     
     update(root);  
 }
@@ -353,7 +380,7 @@ function update(source) {
     
     
     // Normalize for fixed-depth.
-    nodes.forEach(function(d) { d.y = d.depth * 120; });
+    nodes.forEach(function(d) { d.y = d.depth * 140; });
     
     var svg = d3.select('#feature_application_status')
                     .select('svg').select('g');
@@ -371,14 +398,7 @@ function update(source) {
         .attr("transform", function(d) { return "translate(" + source.y0 + "," + source.x0 + ")"; });
     
     nodeEnter.append("svg:circle")
-        .attr("r", 1e-6)
-         .style("fill", function(d) { 
-        	 if(d.children){
-                 return "#2383FF";
-        	 }else{
-        		 return "#A3A3A3";
-        	 }
-    	 });
+        .attr("r", 1e-6);
     
     nodeEnter.append("svg:text")
         .attr("x", function(d) { return d.children || d._children ? -10 : 10; })
@@ -427,29 +447,43 @@ function update(source) {
     nodeUpdate.select("circle")
         .attr("r", 9.5)
         .style("fill", function(d) { 
-        	 if(d.children){
-                 if(d.add){
-                     return "red";
+            if(d.deactivated){
+                return node_color_deactivated;
+            }else if(d.temp){
+                return node_color_temp;
+            }else{
+                 if(d.type=="logic"){
+                     if(d.add){
+                         return node_color_add;
+                     }
+                     else{
+                         return node_color_logic;
+                     }
+                 }else{
+                    return node_color_default;
                  }
-                 else{
-                     return "#2383FF";
-                 }
-        	 }else{
-                return "#A3A3A3";
-        	 }
+            }
     	 });
-//        .style("fill", function(d) { return d._children ? "#3A3A3A" : "#A3A3A3"; });
 
     nodeUpdate.select("text")
-            .attr("x",function(d){
-                if(d.children){ return -10; }
-                else{ return 10; }
-            })
+        .attr("x",function(d){
+            if(d.children){ return -10; }
+            else{ return 10; }
+        })
         .attr("text-anchor", function(d) { 
             if(d.children){ return "end"; }
             else{ return "start"; }
         })
-        .text(function(d) {return d.name})
+        .text(function(d) {
+            return pp_feature_single(d.name);
+        })
+        .style("color",function(d){
+            if(d.type=="logic" && d.add){
+                return node_color_add;
+            }else{
+                return "black";
+            }
+        })
         .style("font-size",23)
         .style("fill-opacity", 1);
  
@@ -472,9 +506,6 @@ function update(source) {
           var o = {x: source.x0, y: source.y0};
           return diagonal({source: o, target: o});
         })
-        .style("stroke",function(d){
-                return "#1CAB00";
-            })
         .style("stroke-width",function(d){
                 return 8;
             })
@@ -483,12 +514,16 @@ function update(source) {
     
     link.transition()
         .duration(duration)
-        .attr("d", diagonal);
-
-//    // Transition links to their new position.
-//    link.transition()
-//        .duration(duration)
-//        .attr("d", diagonal);
+        .attr("d", diagonal)
+        .style("stroke",function(d){
+            if(d.target.deactivated){
+                return node_color_deactivated;
+            }else if(d.target.temp){
+                return node_color_temp; 
+            }else{
+                return node_color_default;
+            }
+        });
 
     // Transition exiting nodes to the parent's new position.
     link.exit().transition()
@@ -562,15 +597,18 @@ function update(source) {
             d3.event.preventDefault();
             var coord = d3.mouse($('#feature_application_status > svg > g').get(0)); 
             var context = d.type;
-            menu(context, coord, d);
+            menu(d, coord);
         });
     
     // Highlight the node in which to add new features
     d3.selectAll('.treeNode')[0].forEach(function(d){
         if(d.__data__.add){
-           d3.select(d).select('circle').style('fill','red');
+           d3.select(d).select('circle').style('fill',node_color_add);
         }
     });    
+    
+    
+    update_feature_expression(parse_tree(root));
 }
 
 
@@ -589,24 +627,34 @@ function toggle_tree(d) {
 
 
 
-function visit_nodes(source,func){
+
+function visit_nodes(source,func,reverse){
     
     var re;
     
     if(typeof func != 'undefined'){
-        re = func(source)
-        if(re) return re;
+        re = func(source);
+        // If func is a function that returns something, stop traversing tree and return. Otherwise, apply func and keep traversing the tree
+        if(re) return re; 
     }
     
-    if(source.children){
-        for(var i=0;i<source.children.length;i++){
-            re = visit_nodes(source.children[i],func)
-            if(re) return re;
-        }   
+    if(reverse){
+        if(source.parent){
+            re = visit_nodes(source.parent,func,true);
+            if(re) return re;  
+        }
+    }else{
+        if(source.children){
+            for(var i=0;i<source.children.length;i++){
+                re = visit_nodes(source.children[i],func)
+                if(re) return re;
+            }   
+        }  
     }
     
     return null;
 }
+
 
 
 function check_tree_structure(){
@@ -615,44 +663,30 @@ function check_tree_structure(){
         return;
     }   
         
-    var delete_node_with_single_child = function(node){
+    var delete_logic_node_without_children = function(node){
         
-        if(node.children){
+        if(!node){
+            return;
+        }else if(!node.children && node.type=='logic'){
             
-            if(node.depth == 0){
-                return;
-            }else if(node.children.length==1){
-                var grandChild = node.children[0];
-                var index = node.parent.children.indexOf(node);
-
-                // Remove the current node
-                if (index > -1) {
-                    node.parent.children.splice(index, 1,grandChild);
-                }
-                
-            }else if(node.children.length==0){
-                if(node.type=='logic'){
-
-                    var index = node.parent.children.indexOf(node);
-                    // Remove the current node
-                    if (index > -1) {
-                        node.parent.children.splice(index, 1);
-                    }
-                }
-            }
-        }else{
-            
-            if(node.type=='logic' && node.depth==0){
-                // The root node is a logical connective but has no children
+            if(node.depth==0){ // The root node is a logical connective but has no children
                 root=null;
                 d3.selectAll('.treeNode').remove();
+            }else{
+                var index = node.parent.children.indexOf(node);
+                // Remove the current node
+                if (index > -1) {
+                    node.parent.children.splice(index, 1);
+                }
             }
-        }
+        }        
     }
     
     var remove_redundant_logical_connectives = function(node){
         
-        if(node.type=="logic" && node.parent){
+        if(!node){
+            return;            
+        }else if(node.type=="logic" && node.parent){
             if(node.name==node.parent.name){
                 
                 var children = node.children;
@@ -670,7 +704,9 @@ function check_tree_structure(){
     
     var remove_redundant_features = function(node){
         
-        if(node.type=="logic" && node.children){
+        if(!node){
+            return;
+        }else if(node.type=="logic" && node.children){
             
             var list_of_features = [];
             var indices_to_delete = [];
@@ -701,11 +737,12 @@ function check_tree_structure(){
         
     }
         
-    visit_nodes(root, delete_node_with_single_child);
+    visit_nodes(root, delete_logic_node_without_children);
     visit_nodes(root, remove_redundant_logical_connectives);
     visit_nodes(root, remove_redundant_features); 
     
     update(root);
+    
 }
 
 
@@ -747,6 +784,31 @@ var updateTempConnector = function(target){
 
 
 
+function update_feature_expression(expression){
+    
+    var logic_color = "#FF9500";
+    var bracket_color = "#FF0000";
+    
+    
+    if(expression==null){
+        expression=="";
+    }else{
+        
+        expression = pp_feature(expression);
+        expression = expression.replace(/{/g,'');
+        expression = expression.replace(/}/g,'');
+
+        expression = expression.replace(/\(/g,'<span style="color:'+bracket_color+';font-weight:bold;font-size:28px">(</span>');
+        expression = expression.replace(/\)/g,'<span style="color:'+bracket_color+';font-weight:bold;font-size:28px">)</span>');
+        expression = expression.replace(/&&/g,' <span style="color:'+logic_color+';">AND</span> ');
+        expression = expression.replace(/\|\|/g,' <span style="color:'+logic_color+';">OR</span> ');
+    }
+    
+    d3.select('#featureApplicationExpressionPanel_body').html("<p>"+expression+"</p>");
+}
+
+
+
 
 
 //## Node: 
@@ -756,12 +818,53 @@ var updateTempConnector = function(target){
 
 function parse_tree(root){
     
+    function deactivated(node){
+        // Check if all of the children nodes have been deactivated. If so, then the current node is also deactivated
+        if(node.deactivated){
+            return true;
+        }else{
+            
+            if(children){
+                
+                var children = node.children;
+                var activated = false;
+                for(var i=0;i<children.length;i++){
+                    if(!children[i].deactivated){
+                        activated=true;
+                    }
+                }
+                if(!activated){
+                    node.deactivated=true;
+                    return true;
+                }
+                
+            }
+        
+        }
+        return false;
+    }
+    
     var expression = null;
-    if(root.type=="leaf"){
-        // Leaf node: feature
-        expression=root.name;
+    
+    if(!root || root==""){
+        // If the current node is "" or null, return null    
+        expression = null;
+        
+    }else if(root.type=="leaf"){
+        // If the current node is a leaf node
+        
+        if(deactivated(root)){
+            expression="";
+        }
+        else{
+            expression=root.name;
+        }
+        
+    }else if(root.type=="logic" && (deactivated(root) || !root.children)){
+        expression="";
         
     }else{
+        // Current node is a logical connective node and is not deactivated
         expression = "";
         
         for(var i=0;i<root.children.length;i++){
@@ -775,13 +878,17 @@ function parse_tree(root){
                 logic="||";
             }
             
-            if(i!=0){
-               expression = expression + logic;
+            var new_expression = parse_tree(child);
+            
+            if(expression!="" && new_expression!=""){
+                expression = expression + logic;
             }
-            expression = expression + parse_tree(child);    
+            expression = expression + new_expression;    
         }
         
-        expression = "(" + expression + ")";
+        if(expression!=""){
+            expression = "(" + expression + ")"; 
+        }
     }
     
     return expression;
@@ -792,6 +899,10 @@ function construct_tree(expression,depth){
     
     if(depth==null){
        depth = 0;
+    }
+    
+    if(expression==null){
+        return {};
     }
     
     var d=depth;
@@ -874,3 +985,15 @@ function construct_tree(expression,depth){
 }
 
 
+
+// Remove all features
+d3.select('#clear_all_features').on('click',function(){
+    
+    root = null;
+    update(root);
+    applyComplexFilter(parse_tree(root));
+    update_feature_expression(parse_tree(root));
+    add_feature_to_plot(parse_tree(root));
+    draw_venn_diagram();      
+    
+}); 
