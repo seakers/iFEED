@@ -62,7 +62,7 @@ function contextMenu() {
         items = items.concat(contextItems['default']);
         
         var x,y;
-        if(type=='logic'){
+        if(type=='logic' || depth==0){
             x = coord[0]+80;
             y = coord[1]+40;
         }else{

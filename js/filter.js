@@ -50,40 +50,13 @@ function openFilterOptions(){
             });    
     
     d3.select("#filter_buttons").append("button")
-            .attr("id","applyFilterButton_new")
+            .attr("id","applyFilterButton")
             .attr("class","filter_options_button")
-            .text("Apply as new feature");
-    
-    d3.select("#filter_buttons").append("button")
-            .attr("class","filter_options_button")
-            .attr("id","applyFilterButton_add")
-            .text("Apply OR");
-    
-    d3.select("#filter_buttons").append("button")
-            .attr("id","applyFilterButton_within")
-            .attr("class","filter_options_button")
-            .text("Apply AND");
-    
-    d3.select("#filter_buttons").append("button")
-            .attr("id","applyFilterButton_placeholder")
-            .attr("class","filter_options_button")
-            .text("Replace the placeholder");
-    
+            .text("Apply Filter")
+            .on("click",applyFilter);
     
     d3.select("#filter_options_dropdown_1").on("change",filter_options_dropdown_preset_filters);    
 
-    d3.select("#applyFilterButton_add").on("click",function(d){
-        applyFilter("add");
-    });
-    d3.select("#applyFilterButton_new").on("click",function(d){
-        applyFilter("new");
-    });
-    d3.select("#applyFilterButton_within").on("click",function(d){
-        applyFilter("within");
-    });
-    d3.select("#applyFilterButton_placeholder").on("click",function(d){
-        applyFilter("replace_placeholder");
-    });
     
     highlight_support_panel()
 }
@@ -871,7 +844,7 @@ function applyPresetFilter(input_expression,bitString,rank){
 
 
 
-function applyFilter(option){
+function applyFilter(){
 
     var dropdown = d3.select("#filter_options_dropdown_1")[0][0].value;
 	
@@ -976,22 +949,23 @@ function applyFilter(option){
     filter_expression = "{" + filter_expression + "}";
 
     
+    
+    
+    
     if(filter_expression.indexOf('paretoFront')!=-1){
+        
     	var filterInput = d3.select("#filter_inputs_div_1").select('.filter_inputs_textbox')[0][0].value;
-    	applyParetoFilter(option,filterInput);
+    	applyParetoFilter(filterInput);
+        
     }else{
         
-        if(option==="new" || option==="add" || option==="within" || option==="deactivated"){
-            update_feature_application_status(filter_expression, option);
-            apply_current_feature_scheme();
-        }else if(option==="replace_placeholder"){
-            update_feature_application_status(filter_expression, 'update_placeholder');
-            update_feature_application_status(filter_expression, 'replace_placeholder');
-            update_feature_application_status(filter_expression, 'create_placeholder');
-        }
+        update_feature_application('temp',filter_expression);
+        update_feature_application('update',filter_expression);
     
     }
 
+    
+    document.getElementById('tab2').click();
     if(wrong_arg){
     	alert("Invalid input argument");
     }
@@ -999,7 +973,11 @@ function applyFilter(option){
 }
 
 
-function applyParetoFilter(option, arg){
+
+
+
+
+function applyParetoFilter(arg,option){
     if(option==="new"){
         cancelDotSelections('remove_highlighted');
         d3.selectAll(".dot.archPlot")[0].forEach(function (d) {

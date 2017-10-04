@@ -477,7 +477,7 @@ function update(source) {
         .text(function(d) {
             return pp_feature_single(d.name);
         })
-        .style("color",function(d){
+        .style("fill",function(d){
             if(d.type=="logic" && d.add){
                 return node_color_add;
             }else{
