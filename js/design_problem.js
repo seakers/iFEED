@@ -11,6 +11,7 @@ var metadata = {
     "output_num":null,
     "input_list":[],
     "output_list":[],
+    "output_obj":[],
 }
 
 

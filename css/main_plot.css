@@ -15,13 +15,21 @@
 .content{
     width:2000px; 
     height:1400px; 
-    margin:auto;
+    float:left;
 }
 
 
 #status_display{
     float:left;
-    width:250px;
+    width:100%;
+    height:30px;
+    margin-top:10px;
+    margin-bottom:10px;
+}
+
+#status_display > div{
+    float:left;
+    width:270px;
     height:25px;
 }
 
@@ -50,10 +58,75 @@
 
 .column.c1{
     float:left;
-    width:60%;
-    margin-top:10px;
-    margin-bottom:5px;
-    height:30px;        
+    width:1240px;
+    height:1400px;      
+}
+
+.row.c1.r1{
+    width:1240px;
+    height:540px;
+    float:left;
+    margin-bottom:15px;
+}
+
+.main_plot.figure{
+    border-style:solid;
+    border-width:3.3px;
+    width:960px;
+    height:540px;
+    margin:0 0 0 0;
+    float:left;
+}
+
+.main_plot.options{
+    float:left;
+    margin-left:10px;
+    width:240px;
+    height:540px;
+    border:1px black double;
+}
+
+
+
+.row.c1.r2{
+    float:left;
+    width:1240px;
+}
+
+.row.c1.r2 > div{
+    width:1212px;
+    float:left;
+    border-style:solid;
+    border-width:1ps;
+    font-weight:300;
+    min-height:480px;
+    overflow-y:scroll;
+}
+
+.column.c2{
+    width:660px;
+    height:1050px;
+    float:left;
+}
+
+.column.c2 > div{
+    width:660px;
+    height:1050px;
+    border-style:solid;
+    border-width:1px;
+    float:left;
+}
+
+#feature_expression_panel{
+    width:100%;
+    height:30px;
+    float:left;
+}
+
+#feature_expression_panel > div{
+    float:left;
+    margin-right:10px;
+    font-weight:bold;
 }
 
 
@@ -182,3 +255,65 @@
             </div>
         </div>
     </div>*/
+
+
+
+
+
+
+
+
+
+
+
+
+
+.main_plot.axis path,
+.main_plot.axis line {
+    fill: none;
+    stroke: #000;
+    shape-rendering: crispEdges;
+}
+
+.main_plot.dot {
+    stroke: #000;
+    stroke-width: 0;
+}
+
+
+/* Tooltip container */
+.tooltip { 
+    position: relative;
+} 
+
+/* Tooltip text */
+.tooltip .tooltiptext {
+    visibility: hidden;
+    width: 150px;
+    background-color: #DCC5C1;
+    color: black;
+    text-align: center;
+    padding: 10px;
+    border-radius: 6px;
+
+    /* Position the tooltip text - see examples below! */
+    position: absolute;
+    z-index: 1;
+
+    opacity: 0;
+    transition: opacity 0.3s;
+}
+
+
+/* Show the tooltip text when you mouse over the tooltip container */
+.tooltip:hover .tooltiptext {
+    opacity: 1;
+    visibility: visible;
+}
+
+
+.clearfix::after {
+    content: "";
+    clear: both;
+    display: table;
+}

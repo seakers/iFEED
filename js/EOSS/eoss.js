@@ -11,12 +11,15 @@ function EOSS(metadata){
     
     // Set the problem instance
     metadata.problem=self;
-
+    metadata.output_list = ['Science','Cost'];
+    metadata.input_num=60;
+    metadata.output_num=2;
+    metadata.output_obj =['max','min'];
+    
     // Set the path to the result file
     metadata.result_path="/results/EOSS_data.csv";
 
 
-    
     /*
     Returns the list of orbits
     @return orbitList: a string list containing the names of orbits

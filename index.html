@@ -41,7 +41,7 @@ and open the template in the editor.
 </div>
 
 <div class='content'>
-    <div id='status-display'>
+    <div id='status_display'>
         <div>
             <div>Number of designs:</div>
             <div id="num_of_archs"></div>
@@ -54,34 +54,34 @@ and open the template in the editor.
     </div>
     <div class='column c1'>
 
-        <div class='row c1 r2'>
+        <div class='row c1 r1'>
             <figure class='main_plot figure'></figure>
             <div class='main_plot options'>
-                <div class='interaction_modes'>
+                <div id='interaction_modes'>
                     <div>Mouse Selection</div>
                     <div class="tooltip">
                         <span class="tooltiptext">Zoom/Pan: This option allows zooming/panning on the scatter plot</span>
-                        <div style="margin-top:3px" onclick="set_selection_option(1);">
+                        <div style="margin-top:3px">
                             Zoom/Pan:
                             <input id="zoom-pan" type="radio" checked="True"/>
                         </div>
                     </div>
                     <div class="tooltip">
                         <span class="tooltiptext">Drag-select: This option allows selecting designs by dragging over points</span>
-                        <div onclick="set_selection_option(2);">
+                        <div>
                             Drag-select:
                             <input id="drag-select" type="radio"/>
                         </div>
                     </div>
                     <div class="tooltip">
                         <span class="tooltiptext">Deselect: This option allows de-selecting designs by dragging over points</span> 
-                        <div onclick="set_selection_option(3);">
+                        <div>
                             Deselect: 
                             <input id="de-select" type="radio"/>
                         </div>
                     </div>
                 </div>
-                <div class='selection_options'>
+                <div id='selection_options'>
                     <div>
                         <div>Range Selection</div>
                         Cost range: <br/>
@@ -98,7 +98,7 @@ and open the template in the editor.
                 </div>
             </div>
         </div>
-        <div class="row c1 c3">
+        <div class="row c1 r2">
             <div id="support_panel"> 
                 <ul class="tabs" data-persist="true">
                     <li><a id="tab1" href="#view1">Inspect Design</a></li>
@@ -115,17 +115,17 @@ and open the template in the editor.
     </div>   
     <div class='column c2'>
         <div>
-            <div id='featureApplicationExpressionPanel'>
-                <div id='featureApplicationExpressionPanel_title'>
+            <div id='feature_expression_panel'>
+                <div>
                     <div>Currently Applied Feature Expression</div>
                 </div>
-                <div id='featureApplicationExpressionPanel_body'></div>
+                <div id='feature_expression'></div>
             </div>
-            <div id='featureApplicationStatusPanel'>
-                <div id='feature_application_options_panel'>
+            <div id='feature_application_panel'>
+                <div id='feature_application_options'>
                     <button id='clear_all_features' class='feature_application_options_button'>Clear</button>
                 </div>
-                <div id='feature_application_status'>
+                <div id='feature_application'>
                     <div id='applied_feature_div'></div>
                 </div>
             </div>
@@ -157,7 +157,7 @@ and open the template in the editor.
 
     var main_plot = new MainPlot(architectures);
 
-    //main_plot.draw_scatter_plot(architectures,0,1);
+    main_plot.draw_scatter_plot(architectures,0,1);
 
 
 </script>
