@@ -1,3 +1,39 @@
+/*
+
+#filter_options (div)
+    #filter_options_dropdown_1 (select)
+    #filter_options_dropdown_2 (select)
+    #filter_options_dropdown_3 (select)
+    #filter_options_dropdown_4 (select)
+#filter_inputs (div)
+    #filter_inputs_div_1 (div)
+        div
+            .filter_inputs_select
+            .filter_inputs_textbox
+            div
+    #filter_inputs_div_2 (div)
+		.filter_inputs_supporting_comments_begin
+        .filter_inputs_select
+        .filter_inputs_textbox
+		.filter_inputs_supporting_comments_end
+    #filter_inputs_div_3 (div)
+        .filter_inputs_textbox
+	#filter_inputs_div_4 (div)
+		.filter_inputs_textbox
+        
+#filter_inputs_append_slots (div)
+    #filter_inputs_append_slot_select (select)
+    #filter_inputs_append_slot_button (button)
+#filter_hints (div)
+    #filter_hints_div_1 (div)
+    #filter_hints_div_2 (div)
+#filter_buttons (div)
+    .filter_options_button (button)
+
+    
+*/
+    
+
 
 
 

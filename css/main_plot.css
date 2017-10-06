@@ -1,0 +1,184 @@
+.title{
+    width:100%;
+    margin-top:15px;
+    margin-bottom:20px;
+    text-align:center;
+    float:left;
+}
+
+.title > h2{
+    width:250px;
+    margin:auto;
+    font-size:14px;
+}
+
+.content{
+    width:2000px; 
+    height:1400px; 
+    margin:auto;
+}
+
+
+#status_display{
+    float:left;
+    width:250px;
+    height:25px;
+}
+
+#status_display > div :first-child{
+    
+    font-size:18px; 
+    line-height:25px;
+    height: 25px; 
+    float:left;
+    margin-left: 1px;
+}
+
+#status_display > div :last-child{
+    
+    width:50px;
+    text-align: center;
+    line-height:25px;
+    margin-left:3px;
+    font-size:18px; 
+    height: 25px; 
+    float:left;
+    background-color: #D5D5D5;
+    
+}
+
+
+.column.c1{
+    float:left;
+    width:60%;
+    margin-top:10px;
+    margin-bottom:5px;
+    height:30px;        
+}
+
+
+
+
+
+
+
+/*
+            <div id="panel_1_1" style="margin-bottom: 10px;width: 1240px ;height: 540px;float: left;">
+                <figure id="scatterPlotFigure" style="border-style: solid;
+                border-width: 3.3px;
+                width: 960;
+                height: 540px;
+                float: left;
+                margin-right: 10px;
+                margin-left:0px;
+                margin-top:0px;"></figure>
+
+                <div id="OptionsPane" class="main_options" style="float:left; width: 250px; height: 540px;border: 1px black double;">
+                    <div style="width:225px;height:535px;margin:auto;">
+
+                        <div style="float:left;width:190px;padding:15px;height:115px;background-color:#D9D9D9;margin-top:15px"> 
+                            <div class="toggle-selection-option-div" style="height: 110px;float:left;">
+                                <div style="font-size:18px;font-weight: bold;">Mouse Selection</div>
+                                <div class="tooltip">
+                                    <span class="tooltiptext" style="right:230px;padding:11px;width:230px">Zoom/Pan: This option allows zooming/panning on the scatter plot</span>
+                                    <div style="margin-top:3px" onclick="set_selection_option(1);">
+                                        Zoom/Pan:
+                                        <input id="zoom-pan" type="radio" checked="True"/>
+                                    </div>
+                                </div>
+
+                                <div class="tooltip">
+                                    <span class="tooltiptext" style="right:230px;padding:11px;width:230px">Drag-select: This option allows selecting designs by dragging over points</span>
+                                    <div onclick="set_selection_option(2);">
+                                        Drag-select:
+                                        <input id="drag-select" type="radio"/>
+                                    </div>
+                                </div>
+
+                                <div class="tooltip">
+                                    <span class="tooltiptext" style="right:230px;padding:11px;width:230px">Deselect: This option allows de-selecting designs by dragging over points</span> 
+                                    <div onclick="set_selection_option(3);">
+                                        Deselect: 
+                                        <input id="de-select" type="radio"/>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div id="selection_option_div" style="float:left;width:220px;margin-top: 20px;">
+                            <div style="margin:auto;width:200;padding:15px;background-color:#D9D9D9">
+                                <div style="font-size:18px;font-weight: bold;margin-bottom:10px">Range Selection</div>
+                                Cost range: <br/>
+                                <input id="selectArchsWithinRange_minCost" class="select_within_range_text_box" type="text" value="0"/>&nbsp; ~&nbsp; <input id="selectArchsWithinRange_maxCost" class="select_within_range_text_box" type="text" value="inf"/>
+                                <br/>
+                                Science Benefit range: <br/>
+                                <input id="selectArchsWithinRange_minScience" class="select_within_range_text_box" type="text" value="0"/>&nbsp; ~&nbsp; <input id="selectArchsWithinRange_maxScience" class="select_within_range_text_box" type="text" value="1"/>
+                                <br/>
+                                <button type="button" id="selectArchsWithinRangeButton" style="margin-top:10px;margin-bottom:3px;width:170px" >Select Designs</button>
+                            </div>
+                            <button type="button"  id="hide_selection" style="width:220px;height:35px;margin-top:10px">Hide selections</button>
+                            <button type="button"  id="show_all_archs" style="width:220px;height:35px;margin-top:5px">Show all architectures</button> 
+                            <button type="button"  id="cancel_selection" style="width:220px;height:35px;margin-top:5px">Cancel all selections</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div id="panel_1_2" style="float:left; margin-top: 5px; width:1240px;">
+                <div id="supportPanel" style="width: 1212px; margin: 0 auto; 
+                float:left;
+                border-style: solid;
+                border-width: 1px;
+                hbmargin-left: 0px;font-family: 'Helvetica Neue', Helvetica; 
+                font-weight: 300; 
+                min-height: 480px;
+                overflow-y: scroll;
+                padding: 5px;"> 
+
+                    <ul class="tabs" data-persist="true">
+                        <li><a id="tab1" href="#view1">Inspect Design</a></li>
+                        <li><a id="tab2" href="#view2">Filter Setting</a></li>
+                        <li><a id="tab3" href="#view3">Feature Status</a></li>
+                        <!--<li><a id="tab4" href="#view4">Classification Tree</a></li>-->
+                    </ul>
+                    <div class="tabcontents">
+                        <div id="view1"></div>
+                        <div id="view2"></div>
+                        <div id="view3"></div>
+                        <!-- <div id="view4"></div>-->
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div id='panel_2' style='width:660px; height:1050px; float:left;'>
+            <div style='width:660px; height: 1050px; border-style:solid; border-width:1px; float:left'>
+                <div id='featureApplicationExpressionPanel' style='float:left;
+                width:630px;
+                height:150px;
+                padding:15px;
+                border-style:solid;
+                border-width:0.5px;
+                font-size:20px'>
+                    <div id='featureApplicationExpressionPanel_title' style='width:100%;height:30px;float:left;margin-bottom:0px'>
+                        <div style='float:left; margin-right:10px;font-weight:bold;'>Currently Applied Feature Expression</div>
+<!--                        <button id='test_feature_scheme' class='feature_application_options_button' style='float:left;'>Test current feature</button>-->
+                    </div>
+                    <div id='featureApplicationExpressionPanel_body' style='overflow:scroll; height:115px; width:100%'></div>
+                </div>
+                <div id='featureApplicationStatusPanel' style='float:left;
+                width:620px;
+                height:820px;
+                padding:20px;
+                overflow:scroll;'>
+                    <div id='feature_application_options_panel' style="width:100%;">
+<!--                        <button id='deactivate_all_features' class='feature_application_options_button'>Deactivate all features</button>-->
+                        <button id='clear_all_features' class='feature_application_options_button' style='font-size:17px'>Clear</button>
+                    </div>
+                    <div id='feature_application_status' style='width:100%; padding:5px; float:left;'>
+                        <div id='applied_feature_div'></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>*/
