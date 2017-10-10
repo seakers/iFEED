@@ -53,7 +53,7 @@ function ContextMenu(feature_application) {
 
     
     
-    function menu(context, coord) {
+    self.showMenu = function(context, coord) {
         
         var type = context.type;
         var logic = context.name;

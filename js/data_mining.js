@@ -20,7 +20,8 @@ function DataMining(ifeed){
     self.margin = {top: 20, right: 20, bottom: 30, left:65};
     self.width = 770 - 35 - self.margin.left - self.margin.right;
     self.height = 400 - 20 - self.margin.top - self.margin.bottom;
-    self.df_i = 0;
+    
+    var df_i = 0;
     
 
     self.current_feature = {id:null,name:null,expression:null,metrics:null,added:"0",x0:-1,y0:-1,x:-1,y:-1};
@@ -172,7 +173,7 @@ function DataMining(ifeed){
         ifeed.main_plot.highlight_support_panel();
 
         // Set variables
-        self.df_i=0;
+        df_i=0;
 
         // Remove previous plot
         d3.select("#view3").select("g").remove();
@@ -208,7 +209,7 @@ function DataMining(ifeed){
         for(var i=0;i<source.length;i++){
             source[i].x0 = -1;
             source[i].y0 = -1;
-            source[i].id = self.df_i++;
+            source[i].id = df_i++;
         }
 
         self.update_feature_plot(source);
@@ -289,6 +290,7 @@ function DataMining(ifeed){
         // Add score for the utopia point (0.2 more than the best score found so far)
         scores.splice(0,0,Math.max.apply(null,scores)+0.2); 
 
+        
         // Set the axis to be Conf(F->S) and Conf(S->F)
         var x = 2;
         var y = 3;
@@ -488,10 +490,10 @@ function DataMining(ifeed){
                     return false;
                 }
                 return true;
-            });
-            //.on("mouseover", self.feature_mouseover)
-            //.on('mouseout', self.feature_mouseout)
-            //.on('click', self.feature_click);   
+            })
+            .on("mouseover", self.feature_mouseover)
+            .on('mouseout', self.feature_mouseout)
+            .on('click', self.feature_click);   
 
 
     //    var legend = svg.selectAll(".legend")
@@ -546,123 +548,113 @@ function DataMining(ifeed){
     
     
 
-//    self.feature_click = function(d){
-//        // Replaces the current feature expression with the stashed expression
-//        //update_feature_application('update');
-//    }
-//
-//
-//
-//    self.feature_mouseover = function(d){
-//
-//        numOfDrivingFeatureViewed = numOfDrivingFeatureViewed+1;
-//
-//        var id= d.id; 
-//        var expression = d.expression;
-//        var metrics = d.metrics;
-//        var conf = d.metrics[2];
-//        var conf2 = d.metrics[3];
-//
-//        // Set variables
-//        var margin = DrivingFeaturePlot_margin;
-//        var width = DrivingFeaturePlot_width;
-//        var height = DrivingFeaturePlot_height;
-//
-//        var mouseLoc_x = d3.mouse(d3.select(".objects.dfplot")[0][0])[0];
-//        var mouseLoc_y = d3.mouse(d3.select(".objects.dfplot")[0][0])[1];
-//
-//        var tooltip_location = {x:0,y:0};
-//        var tooltip_width = 360;
-//        var tooltip_height = 200;
-//
-//        var h_threshold = (width + margin.left + margin.right)*0.5;
-//        var v_threshold = (height + margin.top + margin.bottom)*0.55;
-//
-//
-//        if(mouseLoc_x >= h_threshold){
-//            tooltip_location.x = -10 - tooltip_width;
-//        } else{
-//            tooltip_location.x = 10;
-//        }
-//        if(mouseLoc_y < v_threshold){
-//            tooltip_location.y = 10;
-//        } else{
-//            tooltip_location.y = -10 -tooltip_height;
-//        }
-//
-//        var svg = d3.select(".objects.dfplot");
-//        var tooltip = svg.append("g")
-//                        .attr("id","tooltip_g");
-//
-//        tooltip.append("rect")
-//                    .attr("id","tooltip_rect")
-//                    .attr("transform", function(){
-//                        var x = mouseLoc_x + tooltip_location.x;
-//                        var y = mouseLoc_y + tooltip_location.y;
-//                        return "translate(" + x + "," + y + ")";
-//                     })
-//                    .attr("width",tooltip_width)
-//                    .attr("height",tooltip_height)
-//                    .style("fill","#4B4B4B")
-//                    .style("opacity", 0.92);    
-//
-//        var fo = tooltip
-//                        .append("foreignObject")
-//                        .attr('id','tooltip_foreignObject')
-//                        .attr("x",function(){
-//                            return mouseLoc_x + tooltip_location.x;
-//                        })
-//                        .attr("y",function(){
-//                           return mouseLoc_y + tooltip_location.y; 
-//                        })
-//                        .attr({
-//                            'width':tooltip_width,
-//                            'height':tooltip_height  
-//                        })
-//                        .data([{id:id, expression:expression, metrics:metrics}]) 
-//                        .html(function(d){
-//                            var output= "" + pp_feature(d.expression) + "<br><br> lift: " + round_num(d.metrics[1]) + 
-//                            "<br> Support: " + round_num(d.metrics[0]) + 
-//                            "<br> Confidence(F->S): " + round_num(d.metrics[2]) + 
-//                            "<br> Confidence(S->F): " + round_num(d.metrics[3]) +"";
-//                            return output;
-//                        }).style("padding","8px")
-//                        .style('color','#F7FF55')
-//                        .style('word-wrap','break-word');   
-//
-//
-//        // Update the placeholder with the driving feature and stash the expression    
-//        update_feature_application('temp',expression);
-//        applyComplexFilter(parse_tree(root));
-//        draw_venn_diagram();   
-//    }
-//
-//
-//
-//    self.feature_mouseout = function(d){
-//
-//        var id = d.id;
-//
-//        // Remove the tooltip
-//        d3.selectAll("#tooltip_g").remove();
-//
-//        // Remove all the features created temporarily
-//        d3.selectAll('.applied_feature').remove();
-//
-//        // Bring back the previously stored feature expression
-//        update_feature_application('restore');
-//        applyComplexFilter(parse_tree(root));
-//        draw_venn_diagram();       
-//
-//    }
-//
+    self.feature_click = function(d){
+        // Replaces the current feature expression with the stashed expression
+        ifeed.feature_application.update_feature_application('update');
+    }
 
-    
-    
-    
-    
-    
-    
+
+    self.feature_mouseover = function(d){
+
+        var id= d.id; 
+        var expression = d.expression;
+        var metrics = d.metrics;
+        var conf = d.metrics[2];
+        var conf2 = d.metrics[3];
+
+        // Set variables
+        var margin = self.margin;
+        var width = self.width;
+        var height = self.height;
+
+        var mouseLoc_x = d3.mouse(d3.select(".objects.feature_plot")[0][0])[0];
+        var mouseLoc_y = d3.mouse(d3.select(".objects.feature_plot")[0][0])[1];
+
+        var tooltip_location = {x:0,y:0};
+        var tooltip_width = 360;
+        var tooltip_height = 200;
+
+        var h_threshold = (width + margin.left + margin.right)*0.5;
+        var v_threshold = (height + margin.top + margin.bottom)*0.55;
+
+
+        if(mouseLoc_x >= h_threshold){
+            tooltip_location.x = -10 - tooltip_width;
+        } else{
+            tooltip_location.x = 10;
+        }
+        if(mouseLoc_y < v_threshold){
+            tooltip_location.y = 10;
+        } else{
+            tooltip_location.y = -10 -tooltip_height;
+        }
+
+        var svg = d3.select(".objects.feature_plot");
+        var tooltip = svg.append("g")
+                        .attr("id","tooltip_g");
+
+        tooltip.append("rect")
+                    .attr("id","tooltip_rect")
+                    .attr("transform", function(){
+                        var x = mouseLoc_x + tooltip_location.x;
+                        var y = mouseLoc_y + tooltip_location.y;
+                        return "translate(" + x + "," + y + ")";
+                     })
+                    .attr("width",tooltip_width)
+                    .attr("height",tooltip_height)
+                    .style("fill","#4B4B4B")
+                    .style("opacity", 0.92);    
+
+        var fo = tooltip
+                        .append("foreignObject")
+                        .attr('id','tooltip_foreignObject')
+                        .attr("x",function(){
+                            return mouseLoc_x + tooltip_location.x;
+                        })
+                        .attr("y",function(){
+                           return mouseLoc_y + tooltip_location.y; 
+                        })
+                        .attr({
+                            'width':tooltip_width,
+                            'height':tooltip_height  
+                        })
+                        .data([{id:id, expression:expression, metrics:metrics}]) 
+                        .html(function(d){
+                            var output= "" + ifeed.label.pp_feature(d.expression) + "<br><br> lift: " + round_num(d.metrics[1]) + 
+                            "<br> Support: " + round_num(d.metrics[0]) + 
+                            "<br> Confidence(F->S): " + round_num(d.metrics[2]) + 
+                            "<br> Confidence(S->F): " + round_num(d.metrics[3]) +"";
+                            return output;
+                        }).style("padding","8px")
+                        .style('color','#F7FF55')
+                        .style('word-wrap','break-word');   
+
+
+        // Update the placeholder with the driving feature and stash the expression    
+        ifeed.feature_application.update_feature_application('temp',expression);
+        ifeed.filter.apply_filter_expression(ifeed.feature_application.parse_tree(ifeed.feature_application.root));
+        //draw_venn_diagram();   
+    }
+
+
+
+    self.feature_mouseout = function(d){
+
+        var id = d.id;
+
+        // Remove the tooltip
+        d3.selectAll("#tooltip_g").remove();
+
+        // Remove all the features created temporarily
+
+        // Bring back the previously stored feature expression
+        ifeed.feature_application.update_feature_application('restore');
+        ifeed.filter.apply_filter_expression(ifeed.feature_application.parse_tree(ifeed.feature_application.root));
+        //draw_venn_diagram();       
+
+    }
+
+
     
     
     
@@ -670,8 +662,8 @@ function DataMining(ifeed){
 
         function find_equivalent_feature(metrics,indices){
 
-            for(var i=0;i<all_features.length;i++){
-                var _metrics = all_features[i].metrics;
+            for(var i=0;i<self.all_features.length;i++){
+                var _metrics = self.all_features[i].metrics;
                 var match = true;
                 for(var j=0;j<indices.length;j++){
                     var index = indices[j];
@@ -680,7 +672,7 @@ function DataMining(ifeed){
                     }
                 }
                 if(match){
-                    return all_features[i];
+                    return self.all_features[i];
                 }
             }
             return null;
@@ -691,15 +683,15 @@ function DataMining(ifeed){
         if(!expression || expression==""){
 
             // Assign new indices for the added features
-            for(var i=0;i<added_features.length;i++){
-                all_features[all_features.length-added_features.length+i].added = ""+added_features.length-i;
+            for(var i=0;i<self.added_features.length;i++){
+                self.all_features[self.all_features.length-self.added_features.length+i].added = ""+self.added_features.length-i;
             }        
-            update_drivingFeatures([current_feature]);
+            self.update_feature_plot([current_feature]);
 
         }else{        
 
             // Compute the metrics of a feature
-            var total = numOfArchs();
+            var total = ifeed.main_plot.get_num_of_archs();
             var intersection = d3.selectAll('.dot.main_plot.selected.highlighted')[0].length;
             var selected = d3.selectAll('.dot.main_plot.selected')[0].length;
             var highlighted = d3.selectAll('.dot.main_plot.highlighted')[0].length;
@@ -715,48 +707,43 @@ function DataMining(ifeed){
             var metrics = [supp, lift, conf, conf2];
 
             // Stash the previous location
-            var x=current_feature.x;
-            var y=current_feature.y;
+            var x=self.current_feature.x;
+            var y=self.current_feature.y;
 
             // Define new feature
-            current_feature = {id:df_i++,name:expression,expression:expression,metrics:metrics,added:"0",x0:x,x:x,y0:y,y:y};
+            self.current_feature = {id:df_i++,name:expression,expression:expression,metrics:metrics,added:"0",x0:x,x:x,y0:y,y:y};
 
             // Check if there exists a feature whose metrics match with the current feature's metrics
             var matched = find_equivalent_feature(metrics,[2,3]);       
 
             // Add new feature to the list of added features
-            added_features.push(current_feature);
-            all_features.push(current_feature);  
+            self.added_features.push(self.current_feature);
+            self.all_features.push(self.current_feature);  
 
             // Stash the previous locations of all features
-            for(var i=0;i<all_features.length;i++){
-                all_features[i].x0 = all_features[i].x;
-                all_features[i].y0 = all_features[i].y;
+            for(var i=0;i<self.all_features.length;i++){
+                self.all_features[i].x0 = self.all_features[i].x;
+                self.all_features[i].y0 = self.all_features[i].y;
             }
 
             // Assign new indices for the added features
-            for(var i=0;i<added_features.length;i++){
-                all_features[all_features.length-added_features.length+i].added = ""+added_features.length-1-i;
+            for(var i=0;i<self.added_features.length;i++){
+                self.all_features[self.all_features.length-self.added_features.length+i].added = ""+self.added_features.length-1-i;
             }
 
             document.getElementById('tab3').click();
-            highlight_support_panel();
-
+            
+            ifeed.main_plot.highlight_support_panel();
 
             // Display the driving features with newly added feature
             if(matched){ 
-                update_drivingFeatures([current_feature],true);
+                self.update_feature_plot([self.current_feature],true);
             }else{
-                update_drivingFeatures([current_feature],false);
+                self.update_feature_plot([self.current_feature],false);
             }
 
         }
     }
-    
-    
-    
-    
-    
     
     
     

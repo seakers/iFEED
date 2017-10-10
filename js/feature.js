@@ -313,7 +313,7 @@ function FeatureApplication(ifeed){
                     self.contextMenu = new ContextMenu(self);
                 }
                 
-                self.contextMenu.menu(d, coord);
+                self.contextMenu.showMenu(d, coord);
             
             });
 
@@ -357,13 +357,13 @@ function FeatureApplication(ifeed){
 
         if(reverse){
             if(source.parent){
-                re = visit_nodes(source.parent,func,true);
+                re = self.visit_nodes(source.parent,func,true);
                 if(re) return re;  
             }
         }else{
             if(source.children){
                 for(var i=0;i<source.children.length;i++){
-                    re = visit_nodes(source.children[i],func)
+                    re = self.visit_nodes(source.children[i],func)
                     if(re) return re;
                 }   
             }  
@@ -587,7 +587,7 @@ function FeatureApplication(ifeed){
             }
 
             if(self.root){
-                self.visit_nodes(root,function(d){
+                self.visit_nodes(self.root,function(d){
                     d.temp=false;
                 })
             }

@@ -208,7 +208,6 @@ function Filter(ifeed){
             .html('<p>Valid orbit names: 1000, 2000, 3000, 4000, 5000</p>'
                     +'Valid instrument names: A, B, C, D, E, F, G, H, I, J, K, L');      
             
-            
     }
     
     
