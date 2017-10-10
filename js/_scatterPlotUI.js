@@ -6,16 +6,6 @@
 
 
 
-function add_newArchs_to_scatterPlot() {
-    for (var i = 0; i < newArchs.length; i++) {
-        architectures.push(newArchs[i]);
-    }
-    reset_scatterPlot();
-    draw_scatterPlot(architectures);
-}
-
-
-
 function selectArchsWithinRange() {
 	
     var clickedArchs = d3.selectAll(".dot.archPlot.selected");
@@ -84,199 +74,6 @@ function selectArchsWithinRange() {
 
 
 
-function hideSelection(){
-
-    var clickedArchs = d3.selectAll(".dot.archPlot.selected");
-
-    clickedArchs.classed('hidden',true)
-            .classed('selected',false)
-            .classed('highlighted',false)
-            .style('fill',defaultColor)
-            .style("opacity", 0.085);
-    
-    d3.select("[id=numOfSelectedArchs_inputBox]").text(""+numOfSelectedArchs());
-    d3.select("[id=numOfArchs_inputBox]").text(""+numOfArchs());
-    selection_changed = true;
-    initialize_tabs_driving_features();
-}
-
-
-function show_all_archs(){
-
-    var hiddenArchs = d3.selectAll(".dot.archPlot.hidden");
-    
-    hiddenArchs.classed('hidden',false)
-            .style("opacity",1);
-   
-    d3.select("[id=numOfSelectedArchs_inputBox]").text(""+numOfSelectedArchs());
-    d3.select("[id=numOfArchs_inputBox]").text(""+numOfArchs());
-    selection_changed = true;
-    initialize_tabs_driving_features();
-}
-
-
-
-
-
-
-function arch_mouseover(d) {
-        
-    // The support panel is active, disable hovering 
-	if(supportPanel_active){
-		return;
-	}
-	
-	numOfArchViewed = numOfArchViewed+1;
-	
-    
-    check_satisfied_features(d.bitString);
-    
-    // Change the color of the dot temporarily
-    var id = d.id;
-    
-    d3.selectAll('.dot.archPlot')[0].forEach(function(d){
-        if(d.__data__.id==id){
-            d3.select(d).style("fill", defaultColor_mouseover);
-        }
-    });
-    
-    // Remove the previous info
-    d3.select("#supportPanel").select("[id=view1]").select("g").remove();
-    var supportPanel = d3.select("#supportPanel").select("[id=view1]")
-            .append("g");
-    
-    
-//	supportPanel.append("div")
-//            .attr('id','arch_specific_buttons')
-//			.style("width","400px")
-//			//.style("margin","auto")
-//			.append("button")
-//			.attr("id","evaluate_architecture_button")
-//			.style("margin-top","5px")
-//			.style("font-size","15px")
-//			.text("Evaluate Architecture")
-//            .on('click',function(d){
-//                evaluate_architecture(current_bitString);
-//            });
-    
-//    supportPanel.select('#arch_specific_buttons')
-//			.append("button")
-//			.attr("id","criticize_architecture_button")
-//			.style("margin-top","5px")
-//            .style('margin-left','4px')
-//			.style("font-size","15px")
-//			.text("Criticize Architecture")
-//            .on('click',function(d){
-//                criticize_architecture(current_bitString);
-//            });    
-
-    // Display the current architecture info
-    supportPanel.append('div')
-            .attr('id','arch_info_display')
-            .style('width','90%')
-            .style('float','left');
-    
-    d3.select('#arch_info_display').append("p")
-            .text("Benefit: " + d.science.toFixed(4));
-    d3.select('#arch_info_display').append("p")
-            .text("Cost: " + d.cost.toFixed(1));    
-    
-//    supportPanel.append('div')
-//            .attr('id','instr_options_display')
-//            .style('float','right')
-//            .style('width','220px')
-//            .style('margin-right','5%')
-//            //.style('margin-top','2%')
-//            .style('background-color','#E6E6E6')
-//            .style('padding','20px');
-    
-    current_bitString = booleanArray2String(d.bitString);
-    
-    display_arch_info(current_bitString);
-    
-    display_instrument_options();
-}
-
-
-function display_instrument_options(){
-    
-    var instrOptions = d3.select('#instr_options_display');
-    
-    if(instrOptions.select('table')[0][0]){
-        return;
-    }
-    
-    var table = instrOptions
-            .append("table")
-            .attr("id", "instrOptionsTable")
-            .style('border-spacing','10px')
-            .style('width','200px');
-    
-    var candidate_instruments = [];
-    for(var i=0;i<Math.round(ninstr/2);i++){
-        var temp = [];
-        for(var j=0;j<2;j++){
-            var index = j*Math.round(ninstr/2) + i;
-            if(index < ninstr){
-                temp.push(instrList[index]);
-            }
-        }
-        candidate_instruments.push(temp);
-    }
-
-    // create table body
-    table.append('tbody')
-            .selectAll('tr')
-            .data(candidate_instruments)
-            .enter()
-            .append('tr')
-            .selectAll('td')
-            .data(function(row,i){
-                return candidate_instruments[i];
-            })
-            .enter()
-            .append('td')
-            .attr("name", function (d) {
-                return d;
-            })
-            .attr("width", function (d, i) {
-                return "70px";
-            })
-            .attr('class',function(d){
-                return 'instr_cell arch_cell candidates';
-            })
-            .text(function (d) {
-                return ActualName2DisplayName(d,"instrument");
-            });    
-    
-//    $('.instr_cell.candidates').draggable({
-//        connectWith: '.orbit_cell',
-//        helper: 'clone',
-//        cursor: 'pointer'
-//    });    
-    
-//    instrOptions.append('div')
-//            .attr('id','instr_options_trash')
-//            .style('width','180px')
-//            .style('margin-left','10px')
-//            .style('height','50px')
-//            .style('background-color','#FF8B8B');
-//    
-//    $('#instr_options_trash').droppable({
-//        accept: '.instr_cell',
-//        drop: function (event, ui) {
-//            var node = d3.select(ui.draggable.context);
-//            if(node.classed('candidates')) return;
-//            ui.draggable.remove();
-//        }
-//    });    
-    
-}
-
-
-
-
-
 function check_satisfied_features(bitString){
     
     // If the input bitString is not given, use default colors
@@ -312,25 +109,6 @@ function check_satisfied_features(bitString){
     });
 }
 
-
-function arch_mouseout(d) {
-    var id = d.id;
-    d3.selectAll('.dot.archPlot')[0].forEach(function(d){
-        if(d.__data__.id==id){
-            var dot = d3.select(d);
-            if(dot.classed('selected') && dot.classed('highlighted')){
-                dot.style('fill',overlapColor);
-            }else if(dot.classed('selected')){
-                dot.style('fill',selectedColor);  
-            }else if(dot.classed('highlighted')){
-                dot.style('fill',highlightedColor);
-            }else{
-                d3.select(d).style("fill", defaultColor);
-            }
-        }
-    });
-    check_satisfied_features();
-}
 
 
 
@@ -470,24 +248,7 @@ function calculateParetoRanking(){
 }
 
 
-function highlight_support_panel(){
 
-    d3.select("[id=scatterPlotFigure]")
-    	.style("border-width","1px");
-	d3.select("#supportPanel")
-		.style("border-width","3.3px");
-	supportPanel_active=true;
-}
-
-
-function unhighlight_support_panel(){
-
-    d3.select("[id=scatterPlotFigure]")
-			.style("border-width","3.3px");
-	d3.select("#supportPanel")
-			.style("border-width","1px");
-	supportPanel_active=false;
-}
 
 
 function initialize_tabs(){
@@ -521,9 +282,7 @@ function initialize_tabs_filter_options(){
 
 function initialize_tabs_driving_features(){
 	
-
 	selection_changed=true;
-	
 	
 	d3.select("#supportPanel").select("[id=view3]").select("g").remove();
 	var guideline = d3.select("#supportPanel").select("[id=view3]")
@@ -554,25 +313,6 @@ function initialize_tabs_driving_features(){
 
 
 
-function set_selection_option(selected_option){
-
-	if(selected_option=="1"){
-		d3.select("#zoom-pan")[0][0].checked=true;
-		d3.select("#drag-select")[0][0].checked=false;
-		d3.select("#de-select")[0][0].checked=false;
-	}else if(selected_option=="2"){
-		d3.select("#zoom-pan")[0][0].checked=false;
-		d3.select("#drag-select")[0][0].checked=true;
-		d3.select("#de-select")[0][0].checked=false;
-	}else{
-		d3.select("#zoom-pan")[0][0].checked=false;
-		d3.select("#drag-select")[0][0].checked=false;
-		d3.select("#de-select")[0][0].checked=true;
-	}
-	scatterPlot_selection_option(selected_option)
-}
-
-
 
 
 
@@ -583,6 +323,8 @@ function get_selected_arch_ids(){
 	});
 	return target_string.substring(1,target_string.length);
 }
+
+
 
 function get_selected_arch_ids_list(){
 	var target = [];

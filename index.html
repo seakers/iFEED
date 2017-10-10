@@ -20,6 +20,8 @@ and open the template in the editor.
     <link href="js/lib/tabcontent.css" rel="stylesheet" type="text/css"/>
     
     <link href="css/main_plot.css" rel="stylesheet" type="text/css"/>
+    <link href="css/filter.css" rel="stylesheet" type="text/css"/>
+    <link href="css/data_mining.css" rel="stylesheet" type="text/css"/>
 <!--
     <link href="css/filter.css" rel="stylesheet" type="text/css"/>
     <link href="css/drivingFeatures.css" rel="stylesheet" type="text/css"/>
@@ -60,24 +62,24 @@ and open the template in the editor.
                 <div id='interaction_modes'>
                     <div>Mouse Selection</div>
                     <div class="tooltip">
-                        <span class="tooltiptext">Zoom/Pan: This option allows zooming/panning on the scatter plot</span>
+<!--                        <span class="tooltiptext">Zoom/Pan: This option allows zooming/panning on the scatter plot</span>-->
                         <div style="margin-top:3px">
                             Zoom/Pan:
-                            <input id="zoom-pan" type="radio" checked="True"/>
+                            <input class="main_plot interaction_mode" id="zoom-pan" type="radio" checked="True"/>
                         </div>
                     </div>
                     <div class="tooltip">
-                        <span class="tooltiptext">Drag-select: This option allows selecting designs by dragging over points</span>
+<!--                        <span class="tooltiptext">Drag-select: This option allows selecting designs by dragging over points</span>-->
                         <div>
                             Drag-select:
-                            <input id="drag-select" type="radio"/>
+                            <input class="main_plot interaction_mode" id="drag-select" type="radio"/>
                         </div>
                     </div>
                     <div class="tooltip">
-                        <span class="tooltiptext">Deselect: This option allows de-selecting designs by dragging over points</span> 
+<!--                        <span class="tooltiptext">Deselect: This option allows de-selecting designs by dragging over points</span> -->
                         <div>
                             Deselect: 
-                            <input id="de-select" type="radio"/>
+                            <input class="main_plot interaction_mode" id="de-select" type="radio"/>
                         </div>
                     </div>
                 </div>
@@ -126,38 +128,53 @@ and open the template in the editor.
                     <button id='clear_all_features' class='feature_application_options_button'>Clear</button>
                 </div>
                 <div id='feature_application'>
-                    <div id='applied_feature_div'></div>
                 </div>
             </div>
         </div>
     </div>
 </div>
 
-<!--
-    <script src="js/filter.js" type="text/javascript"></script>
-    <script src="js/drivingFeatures.js" type="text/javascript"></script>
-    <script src="js/relabel.js" type="text/javascript"></script>
-    <script src="js/featureApplication.js" type="text/javascript"></script>
-    <script src="js/featureApplication2.js" type="text/javascript"></script>
-    <script src="js/contextMenu.js" type="text/javascript"></script>
--->
-
+    
+    
+    
 <script src="js/util.js" type="text/javascript"></script>
-<script src="js/design_problem.js" type="text/javascript"></script>
+<script src="js/ifeed-general.js" type="text/javascript"></script>
 <script src="js/EOSS/eoss.js" type="text/javascript"></script>
 <script src="js/main_plot.js" type="text/javascript"></script>
-
+<script src="js/EOSS/relabel.js" type="text/javascript"></script>
+<script src="js/filter.js" type="text/javascript"></script>
+<script src="js/data_mining.js" type="text/javascript"></script>   
+<script src="js/feature.js" type="text/javascript"></script>       
+<script src="js/contextMenu.js" type="text/javascript"></script>
+    
 <script>
 
-    var eoss = new EOSS(metadata);
+    
+    
+    var ifeed = new IFEED();
+    
+    var eoss = new EOSS(ifeed);
+    ifeed.problem=eoss;
+    
+    var main_plot = new MainPlot(ifeed);
+    ifeed.main_plot=main_plot;
+    
+    var filter = new Filter(ifeed);
+    ifeed.filter=filter;
+    
+    var data_mining = new DataMining(ifeed);
+    ifeed.data_mining = data_mining;
+    
+    var feature_application = new FeatureApplication(ifeed);
+    ifeed.feature_application = feature_application;
 
-    import_new_data(metadata.result_path);
-
-    var architectures = metadata.data;
-
-    var main_plot = new MainPlot(architectures);
-
-    main_plot.draw_scatter_plot(architectures,0,1);
+    
+    ifeed.import_new_data(ifeed.result_path);
+    
+    
+    main_plot.update(ifeed.data,0,1);
+    
+    
 
 
 </script>

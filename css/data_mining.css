@@ -1,0 +1,33 @@
+
+
+
+#dfplot_div{
+    float:left;
+}
+
+.dfplot_options{
+    float:left;
+}
+
+
+#dfplot_venn_diagram{
+    float:left;
+    background-color:#E7E7E7;
+    height:350px;
+    width: 340px;
+    margin-left: 50px;
+    margin-top: 15px;
+    padding:15px;
+    
+}
+
+#dfplot_venn_diagram div{
+    font-family:sans-serif;
+    margin-left: 3px;
+    font-size: 18px;
+    width:100%;
+}
+
+
+
+

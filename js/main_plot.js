@@ -1,11 +1,13 @@
 
 
-function MainPlot(architectures){
+function MainPlot(ifeed){
     
     var self = this;
     
-    self.translate = null;
-    self.scale = null;
+    self.translate = [0,0];
+    self.scale = 1;
+    self.xIndex = null;
+    self.yIndex = null;
     
 
     self.main_plot_params = {
@@ -19,6 +21,7 @@ function MainPlot(architectures){
         "selected": "#19BAD7",
         "highlighted": "#F86591",
         "overlap": "#A340F0",
+        "mouseover":"#74FF6E",
     };
         
 
@@ -28,8 +31,23 @@ function MainPlot(architectures){
     }
 
     
+    self.initialize = function(){
+        
+        d3.select("#support_panel").select("#view1").select("g").remove();
+        d3.select("#support_panel").select("#view1").append("g")
+                .append("div")
+                .style("width","900px")
+                .style("margin","auto")
+                .append("div")
+                .style("width","100%")
+                .style("font-size","21px")
+                .text("If you hover the mouse over a design, relevant information will be displayed here.");
+     
+    }
+    
+    
 
-    self.draw_scatter_plot = function(source,xIndex,yIndex) {
+    self.update = function(source,xIndex,yIndex) {
         /*
             Draws the scatter plot with architecture inputs
             @param source: a JSON object array containing the basic arch info
@@ -77,6 +95,8 @@ function MainPlot(architectures){
         self.yMap = yMap;
         self.xAxis = xAxis;
         self.yAxis = yAxis;
+        self.xIndex = xIndex;
+        self.yIndex = yIndex;
 
         // Create svg
         var svg = d3.select(".main_plot.figure")
@@ -109,7 +129,6 @@ function MainPlot(architectures){
 
                         self.translate = d3.event.translate;
                         self.scale = d3.event.scale;
-
                     })
                     )
             .append("g")
@@ -126,7 +145,7 @@ function MainPlot(architectures){
                 .attr("y", -6)
                 .style("text-anchor", "end")
                 .text(function(){
-                    metadata.output_list[xIndex];
+                    ifeed.metadata.output_list[xIndex];
                 });
 
         // y-axis
@@ -140,7 +159,7 @@ function MainPlot(architectures){
                 .attr("dy", ".71em")
                 .style("text-anchor", "end")
                 .text(function(){
-                    metadata.output_list[yIndex];
+                    ifeed.metadata.output_list[yIndex];
                 });
 
         objects = svg.append("svg")
@@ -177,23 +196,21 @@ function MainPlot(architectures){
                 .style("fill", self.color.default);
 
         
-        //dots.on("mouseover", arch_mouseover);
-        //dots.on('mouseout', arch_mouseout);
+        dots.on("mouseover", self.arch_mouseover);
+        dots.on('mouseout', self.arch_mouseout);
 
         // Initialize all tabs
         //initialize_tabs();
 
-//        d3.select("#scatterPlotFigure").on("click",unhighlight_support_panel);
-//        d3.select("#supportPanel").on("click",highlight_support_panel);
+        d3.select(".main_plot.figure").on("click",self.unhighlight_support_panel);
+        d3.select("#support_panel").on("click",self.highlight_support_panel);
 //
 //        // Set button click operations
 //        d3.selectAll("[id=getDrivingFeaturesButton]").on("click", runDataMining);
 //        d3.select("[id=selectArchsWithinRangeButton]").on("click", selectArchsWithinRange);
-//        d3.select("[id=cancel_selection]").on("click",cancelDotSelections);
+        d3.select("#selection_options #cancel_selection").on("click",self.cancel_selection);
 //        d3.select("[id=hide_selection]").on("click",hideSelection);
 //        d3.select("[id=show_all_archs]").on("click",show_all_archs);
-//        d3.select("[id=openFilterOptions]").on("click",openFilterOptions);
-//
 
 //        d3.selectAll(".main_plot.dot")[0].forEach(function(d,i){
 //            d3.select(d).attr("paretoRank",-1);
@@ -205,6 +222,26 @@ function MainPlot(architectures){
 
         //selection_changed = true;
         
+        
+        
+        d3.select('#interaction_modes').selectAll('.tooltip').select('div').on('click',function(d){
+            
+            var id = d3.select(this).select('input').attr('id')
+            if(id=="zoom-pan"){
+                d3.select("#zoom-pan")[0][0].checked=true;
+                d3.select("#drag-select")[0][0].checked=false;
+                d3.select("#de-select")[0][0].checked=false;
+            }else if(id=="drag-select"){
+                d3.select("#zoom-pan")[0][0].checked=false;
+                d3.select("#drag-select")[0][0].checked=true;
+                d3.select("#de-select")[0][0].checked=false;
+            }else{
+                d3.select("#zoom-pan")[0][0].checked=false;
+                d3.select("#drag-select")[0][0].checked=false;
+                d3.select("#de-select")[0][0].checked=true;
+            }
+            self.change_interaction_mode(id);            
+        });
         
         
         d3.select("#num_of_archs").text(""+self.get_num_of_archs());
@@ -269,7 +306,7 @@ function MainPlot(architectures){
     
     
     
-    self.change_interaction_mode = function(option){ // three options: zoom, drag_selection, drag_deselection
+    self.change_interaction_mode = function(option){ // three options: zoom-pan, drag-select, de-select
 
         var margin=self.main_plot_params.margin;
         var width=self.main_plot_params.width;
@@ -278,7 +315,7 @@ function MainPlot(architectures){
         var xScale = self.xScale;
         var xMap = self.xMap;
         var xAxis = self.xAxis;
-        var yScale = self.yAxis;
+        var yScale = self.yScale;
         var yMap = self.yMap;
         var yAxis = self.yAxis;
 
@@ -338,13 +375,6 @@ function MainPlot(architectures){
                 )  
         } else{
 
-            var option;
-            if(selected_option=="drag-select"){
-                option = "selection";
-            }else{
-                option = "deselection";
-            }
-
             var svg =  d3.select(".main_plot.figure")
                 .select("svg")
                 .call(d3.behavior.zoom().on("zoom",null));
@@ -403,12 +433,12 @@ function MainPlot(architectures){
 
                         s.attr(b);
 
-                        if(option=="selection"){ // Make selection
+                        if(option=="drag-select"){ // Make selection
 
                             d3.selectAll(".dot.main_plot:not(.selected)")[0].forEach(function(d,i){
                                 
-                                var xVal = d.__data__.outputs[xIndex];
-                                var yVal = d.__data__.outputs[yIndex];
+                                var xVal = d.__data__.outputs[self.xIndex];
+                                var yVal = d.__data__.outputs[self.yIndex];
                                 var xCoord = xScale(xVal);
                                 var yCoord = yScale(yVal);
 
@@ -434,8 +464,8 @@ function MainPlot(architectures){
                             
                             d3.selectAll(".dot.main_plot.selected")[0].forEach(function(d,i){
                                 
-                                var xVal = d.__data__.outputs[xIndex];
-                                var yVal = d.__data__.outputs[yIndex];
+                                var xVal = d.__data__.outputs[self.xIndex];
+                                var yVal = d.__data__.outputs[self.yIndex];
                                 var xCoord = xScale(xVal);
                                 var yCoord = yScale(yVal);
 
@@ -470,6 +500,33 @@ function MainPlot(architectures){
     }
     
     
+    
+    self.hide_selection = function(){
+        
+        var selected = d3.selectAll(".dot.main_plot.selected");
+
+        selected.classed('hidden',true)
+                .classed('selected',false)
+                .classed('highlighted',false)
+                .style('fill',self.color.default)
+                .style("opacity", 0.085);
+
+        d3.select("#num_of_selected_archs").text(""+self.get_num_of_selected_archs());
+        d3.select("#num_of_archs").text(""+self.get_num_of_archs());
+    }
+
+
+    self.show_all_archs = function(){
+        
+        var hidden = d3.selectAll(".dot.main_plot.hidden");
+        hidden.classed('hidden',false)
+                .style("opacity",1);
+
+        d3.select("#num_of_selected_archs").text(""+self.get_num_of_selected_archs());
+        d3.select("#num_of_archs").text(""+self.get_num_of_archs());
+    }
+    
+    
 
 
     self.get_num_of_archs = function(){
@@ -491,15 +548,99 @@ function MainPlot(architectures){
     }
 
     
+    
+
+    self.arch_mouseover = function(d) {
+
+        var arch = d;
+        
+        // The support panel is active, disable hovering 
+        if(ifeed.UI_states.support_panel_active){
+            return;
+        }
+
+        // Change the color of the dot temporarily
+        d3.select(this).style("fill",self.color.mouseover);
+
+        // Remove the previous info
+        d3.select("#support_panel").select("#view1").select("g").remove();
+        
+        var support_panel = d3.select("#support_panel").select("#view1")
+                .append("g");
+
+        // Display the current architecture info
+        var arch_info_display = support_panel.append('div')
+                .attr('id','arch_info_display')
+                .style('width','90%')
+                .style('float','left');
+
+        
+        for(var i=0;i<ifeed.metadata.output_num;i++){
+            
+            arch_info_display.append("p")
+            
+                            .text(function(d){
+                
+                                var out = ifeed.metadata.output_list[i] + ": ";
+                                var val = arch.outputs[i];
+                
+                                if(typeof val == 'number'){
+                                    if(val>100){ val = val.toFixed(2); }
+                                    else{ val = val.toFixed(4); }
+                                }
+                
+                                return out + val;
+                            });
+        }
+
+        ifeed.problem.display_arch_info(arch);
+        
+        document.getElementById('tab1').click();
+    }    
+    
+    
+    
+    self.arch_mouseout = function(d) {
+        
+        var dot = d3.select(this)
+        if(dot.classed('selected') && dot.classed('highlighted')){
+            dot.style('fill', self.color.overlap);
+        }else if(dot.classed('selected')){
+            dot.style('fill',self.color.selected);  
+        }else if(dot.classed('highlighted')){
+            dot.style('fill',self.color.highlighted);
+        }else{
+            dot.style("fill", self.color.default);
+        }
+    }
+    
+    
+    self.highlight_support_panel = function(){
+
+        d3.select(".main_plot.figure")
+            .style("border-width","1px");
+        d3.select("#support_panel")
+            .style("border-width","3.3px");
+        
+        ifeed.UI_states.support_panel_active=true;
+    }
+
+
+    self.unhighlight_support_panel = function(){
+
+        d3.select(".main_plot.figure")
+                .style("border-width","3.3px");
+        d3.select("#support_panel")
+                .style("border-width","1px");
+        
+        ifeed.UI_states.support_panel_active=false;
+    }
+    
+
+    
+    self.initialize();
+
 }
-
-
-
-
-
-
-
-
 
 
 

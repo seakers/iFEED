@@ -1,7 +1,10 @@
 
 // Context info: node, depth, logic(AND or OR)
 
-function contextMenu() {
+function ContextMenu(feature_application) {
+    
+    
+    var self = this;
     
     var marginRatio = 0.13,
         //items = [], 
@@ -90,6 +93,7 @@ function contextMenu() {
         var height = size.height;
         var margin = size.margin;
 
+        
         // Draw the menu
         d3.select('#feature_application_status').select('svg')
             .append('g').attr('class', 'context-menu')
@@ -102,7 +106,7 @@ function contextMenu() {
             .on('mouseout', function(){ 
                 d3.select(this).select('rect').style(style.rect.mouseout) })
             .on('click', function(d){
-                contextMenuAction(context,d.value);
+                ContextMenuAction(context,d.value);
             });
         
         d3.selectAll('.menu-entry')
@@ -195,155 +199,165 @@ function contextMenu() {
 
     }
     return menu;
-}
-
-
-
-
-var menu = contextMenu();
-
-
-function contextMenuAction(context,option){
     
-    var node = context;
-        
-// 'logic':[addChild, toggle-logic],     
-// 'leaf':[],
-// 'default':[addParent,duplicate,toggle-activation,delete]
     
-    if(node.type=='logic'){
-        
-        switch(option) { // Logical connective node
-            case 'addChild':
-                
-                if(node.add){
-                    node.add=false;
+
+
+
+    function ContextMenuAction(context,option){
+
+        var node = context;
+
+    // 'logic':[addChild, toggle-logic],     
+    // 'leaf':[],
+    // 'default':[addParent,duplicate,toggle-activation,delete]
+
+        if(node.type=='logic'){
+
+            switch(option) { // Logical connective node
+                case 'addChild':
+
+                    if(node.add){
+                        node.add=false;
+                    }else{
+                        var id = node.id;
+                        feature_application.visit_nodes(feature_application.root,function(d){
+                            if(d.id==id){
+                                d.add=true;
+                            }else{
+                                d.add=false;
+                            }
+                        })
+                    }
+                    break;
+
+                case 'toggle-logic':
+
+                    if(node.name=='AND'){
+                        node.name = 'OR';
+                    }else{
+                        node.name = 'AND';
+                    }
+                    break;
+
+                default:
+                    break;
+            }
+        }else{
+            switch(option) { // Leaf node
+                default:
+                    break;
+            }
+
+        }
+
+
+        // Default options
+        switch(option) {
+
+            case 'addParent':
+                if(node.parent){ // This is a leaf node because of the condition set up previously
+
+                    var index = node.parent.children.indexOf(node);
+                    var logic = node.parent.name;
+                    var depth = node.depth;
+
+                    if(logic=="AND"){
+                        logic = "OR";    
+                    }else{
+                        logic = "AND";
+                    }
+                    node.parent.children.splice(index,1,{depth:depth,type:"logic",name:logic,children:[node]});
+
+                }else{ // This is the root node
+
+                    var logic = node.name; 
+                    if(logic=="AND"){
+                        logic = "OR";    
+                    }else{
+                        logic = "AND";
+                    }
+
+                    var x0 = root.x0;
+                    var y0 = root.y0;
+
+                    root = {depth:0,type:"logic",name:logic,children:[node],x0:x0,y0:y0};
+                }
+
+                break;
+
+
+            case 'duplicate':
+                if(node.parent){
+                    var index = node.parent.children.indexOf(node);
+                    var logic = node.parent.name;
+                    var depth = node.depth;
+
+                    if(logic=="AND"){
+                        logic = "OR";    
+                    }else{
+                        logic = "AND";
+                    }
+
+                    var duplicate = feature_application.construct_tree(feature_application.parse_tree(node));                
+                    node.parent.children.splice(index,0,{depth:depth,type:"logic",name:logic,children:[duplicate]});
+
+                }              
+                break;
+
+            case 'toggle-activation':
+
+                if(node.deactivated){
+                    // Activate all parent nodes
+                    visit_nodes(node,function(d){
+                        d.deactivated=false;
+                    },true);
+
+                }else{                
+                    // Deactivate all descendant nodes
+                    visit_nodes(node,function(d){
+                        d.deactivated=true;
+                    });
+                }     
+
+                break;
+
+            case 'delete':
+
+                if(node.depth==0){
+                    root=null;
                 }else{
-                    var id = node.id;
-                    visit_nodes(root,function(d){
-                        if(d.id==id){
-                            d.add=true;
-                        }else{
-                            d.add=false;
-                        }
-                    })
+                    var index = node.parent.children.indexOf(node);
+                    if (index > -1) {
+                        node.parent.children.splice(index, 1);
+                    }
                 }
                 break;
-                
-            case 'toggle-logic':
-                
-                if(node.name=='AND'){
-                    node.name = 'OR';
-                }else{
-                    node.name = 'AND';
-                }
-                break;
-                
+
             default:
                 break;
-        }
-    }else{
-        switch(option) { // Leaf node
-            default:
-                break;
-        }
+        }    
+
+        feature_application.update(feature_application.root);
+        feature_application.check_tree_structure();
         
+//        applyComplexFilter(parse_tree(root));
+//        add_feature_to_plot(parse_tree(root));
+//        draw_venn_diagram();   
+
     }
+
+
+
+
     
     
-    // Default options
-    switch(option) {
-            
-        case 'addParent':
-            if(node.parent){ // This is a leaf node because of the condition set up previously
-
-                var index = node.parent.children.indexOf(node);
-                var logic = node.parent.name;
-                var depth = node.depth;
-
-                if(logic=="AND"){
-                    logic = "OR";    
-                }else{
-                    logic = "AND";
-                }
-                node.parent.children.splice(index,1,{depth:depth,type:"logic",name:logic,children:[node]});
-
-            }else{ // This is the root node
-
-                var logic = node.name; 
-                if(logic=="AND"){
-                    logic = "OR";    
-                }else{
-                    logic = "AND";
-                }
-
-                var x0 = root.x0;
-                var y0 = root.y0;
-
-                root = {depth:0,type:"logic",name:logic,children:[node],x0:x0,y0:y0};
-            }
-
-            break;
-
-            
-        case 'duplicate':
-            if(node.parent){
-                var index = node.parent.children.indexOf(node);
-                var logic = node.parent.name;
-                var depth = node.depth;
-
-                if(logic=="AND"){
-                    logic = "OR";    
-                }else{
-                    logic = "AND";
-                }
-                
-                var duplicate = construct_tree(parse_tree(node));                
-                node.parent.children.splice(index,0,{depth:depth,type:"logic",name:logic,children:[duplicate]});
-                
-            }              
-            break;
-            
-        case 'toggle-activation':
-            
-            if(node.deactivated){
-                // Activate all parent nodes
-                visit_nodes(node,function(d){
-                    d.deactivated=false;
-                },true);
-                
-            }else{                
-                // Deactivate all descendant nodes
-                visit_nodes(node,function(d){
-                    d.deactivated=true;
-                });
-            }     
-            
-            break;
-
-        case 'delete':
-            
-            if(node.depth==0){
-                root=null;
-            }else{
-                var index = node.parent.children.indexOf(node);
-                if (index > -1) {
-                    node.parent.children.splice(index, 1);
-                }
-            }
-            break;
-            
-        default:
-            break;
-    }    
     
-    update(root);
-    check_tree_structure();
-    applyComplexFilter(parse_tree(root));
-    add_feature_to_plot(parse_tree(root));
-    draw_venn_diagram();   
+    
     
 }
+
+
 
 
 
