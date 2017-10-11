@@ -223,7 +223,7 @@ function DataMining(ifeed){
     
 
     self.update_feature_plot = function(source, remove_last_feature){
-
+        
         function get_utopia_point(){
             // Utopia point
             return d3.selectAll('.dot.feature_plot').filter(function(d){
@@ -679,16 +679,16 @@ function DataMining(ifeed){
             }
             return null;
         }
-
-
+        
 
         if(!expression || expression==""){
 
             // Assign new indices for the added features
             for(var i=0;i<self.added_features.length;i++){
-                self.all_features[self.all_features.length-self.added_features.length+i].added = ""+self.added_features.length-i;
+                self.all_features[self.all_features.length-self.added_features.length+i].added = ""+self.added_features.length-i + 1;
             }        
-            self.update_feature_plot([self.current_feature]);
+            
+            self.update_feature_plot([self.current_feature],false);
 
         }else{        
 
@@ -746,6 +746,9 @@ function DataMining(ifeed){
 
         }
     }
+    
+    
+    
     
     
     self.draw_venn_diagram = function(){

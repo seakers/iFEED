@@ -204,9 +204,9 @@ function MainPlot(ifeed){
 
         d3.select(".main_plot.figure").on("click",self.unhighlight_support_panel);
         d3.select("#support_panel").on("click",self.highlight_support_panel);
-//
+
+        
 //        // Set button click operations
-//        d3.selectAll("[id=getDrivingFeaturesButton]").on("click", runDataMining);
 //        d3.select("[id=selectArchsWithinRangeButton]").on("click", selectArchsWithinRange);
         d3.select("#selection_options #cancel_selection").on("click",self.cancel_selection);
 //        d3.select("[id=hide_selection]").on("click",hideSelection);
@@ -216,13 +216,6 @@ function MainPlot(ifeed){
 //            d3.select(d).attr("paretoRank",-1);
 //        });
 
-
-        //calculateParetoRanking();
-        //drawParetoFront();
-
-        //selection_changed = true;
-        
-        
         
         d3.select('#interaction_modes').selectAll('.tooltip').select('div').on('click',function(d){
             
@@ -268,6 +261,11 @@ function MainPlot(ifeed){
                 .classed('highlighted',false)
                 .style("fill",self.color.default);
 
+            if(!ifeed.UI_states.selection_changed){
+                ifeed.UI_states.selection_changed=true;
+                ifeed.data_mining.initialize();
+            }
+            
         }else if(option=='remove_selection'){
             
             // Remove only selection only
@@ -282,6 +280,11 @@ function MainPlot(ifeed){
                     dot.style("fill",self.color.default);
                 }
             });
+            
+            if(!ifeed.UI_states.selection_changed){
+                ifeed.UI_states.selection_changed=true;
+                ifeed.data_mining.initialize();
+            }
             
         }else if(option=='remove_highlighted'){
             
@@ -457,6 +460,11 @@ function MainPlot(ifeed){
                                         // selected but not highlighted
                                         dot.style("fill", self.color.selected);      
                                     }
+                                    
+                                    if(!ifeed.UI_states.selection_changed){
+                                        ifeed.UI_states.selection_changed=true;
+                                        ifeed.data_mining.initialize();
+                                    }
                                 }
                             });
 
@@ -485,6 +493,12 @@ function MainPlot(ifeed){
                                         // was not highlighted
                                         dot.style("fill", self.color.default);   
                                     }
+                                    
+                                    if(!ifeed.UI_states.selection_changed){
+                                        ifeed.UI_states.selection_changed=true;
+                                        ifeed.data_mining.initialize();
+                                    }
+                                    
                                 }
                             });
                         }

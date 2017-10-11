@@ -70,7 +70,9 @@ function Filter(ifeed){
                 .append("button")
                 .attr("id","apply_filter_button")
                 .text("Apply Filter")
-                .on("click",self.applyFilter);
+                .on("click",function(){
+                    self.applyFilter();
+                });
 
         
         d3.select(".filter.options.dropdown").on("change",function(d){
@@ -330,7 +332,7 @@ function Filter(ifeed){
             self.apply_filter_expression(filter_expression);
 
         }else{
-
+            
             ifeed.feature_application.update_feature_application('temp',filter_expression);
             ifeed.feature_application.update_feature_application('update',filter_expression);
             self.apply_filter_expression(filter_expression);

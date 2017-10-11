@@ -187,7 +187,7 @@ function FeatureApplication(ifeed){
 
 
     self.update = function(source) {
-
+        
         if(source==null){
             d3.selectAll('.treeNode').remove();
             d3.selectAll('.treeLink').remove();
@@ -201,6 +201,7 @@ function FeatureApplication(ifeed){
 
         // Normalize for fixed-depth.
         nodes.forEach(function(d) { d.y = d.depth * 140; });
+        
 
         var svg = d3.select('#feature_application')
                         .select('svg').select('g');
@@ -245,17 +246,17 @@ function FeatureApplication(ifeed){
                 self.selectedNode=null;
             })
 
-
-        // Transition nodes to their new position.
-        var nodeUpdate = node.transition()
-            .duration(duration)
-            .attr("transform", function(d) { return "translate(" + d.y + "," + d.x + ")"; });
-
+        
         // Transition exiting nodes to the parent's new position.
         var nodeExit = node.exit().transition()
             .duration(duration)
             .attr("transform", function(d) { return "translate(" + source.y + "," + source.x + ")"; })
             .remove();
+
+        // Transition nodes to their new position.
+        var nodeUpdate = node.transition()
+            .duration(duration)
+            .attr("transform", function(d) { return "translate(" + d.y + "," + d.x + ")"; });
 
         nodeExit.select("circle")
             .attr("r", 1e-6);
