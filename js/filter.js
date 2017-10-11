@@ -70,7 +70,9 @@ function Filter(ifeed){
                 .append("button")
                 .attr("id","apply_filter_button")
                 .text("Apply Filter")
-                .on("click",self.applyFilter);
+                .on("click",function(){
+                    self.applyFilter();
+                });
 
         
         d3.select(".filter.options.dropdown").on("change",function(d){
@@ -330,7 +332,7 @@ function Filter(ifeed){
             self.apply_filter_expression(filter_expression);
 
         }else{
-
+            
             ifeed.feature_application.update_feature_application('temp',filter_expression);
             ifeed.feature_application.update_feature_application('update',filter_expression);
             self.apply_filter_expression(filter_expression);
@@ -357,29 +359,31 @@ function Filter(ifeed){
         // If filter expression is empty, return
         if(feature_expression==="" || !feature_expression){
             return;
-        }
-
-        // Note that indices and ids are different!
-        var filtered_data = self.process_filter_expression(feature_expression, ifeed.data, "&&");
-        
-        var id_list = ifeed.get_data_ids(filtered_data);
-        
-        d3.selectAll('.dot.main_plot')[0].forEach(function(d){
             
-            if(id_list.indexOf(d.__data__.id)!=-1){
+        }else{
+            
+            // Note that indices and ids are different!
+            var filtered_data = self.process_filter_expression(feature_expression, ifeed.data, "&&");
 
-                var dot = d3.select(d);
-                dot.classed('highlighted',true);
+            var id_list = ifeed.get_data_ids(filtered_data);
 
-                if(dot.classed('selected')){
-                    // selected and highlighted
-                    dot.style("fill", ifeed.main_plot.color.overlap);
-                }else{
-                    // not selected
-                    dot.style("fill", ifeed.main_plot.color.highlighted);            		
+            d3.selectAll('.dot.main_plot')[0].forEach(function(d){
+
+                if(id_list.indexOf(d.__data__.id)!=-1){
+
+                    var dot = d3.select(d);
+                    dot.classed('highlighted',true);
+
+                    if(dot.classed('selected')){
+                        // selected and highlighted
+                        dot.style("fill", ifeed.main_plot.color.overlap);
+                    }else{
+                        // not selected
+                        dot.style("fill", ifeed.main_plot.color.highlighted);            		
+                    }
                 }
-            }
-        });  
+            });     
+        }
 
         d3.select("#num_of_selected_archs").text(""+ifeed.main_plot.get_num_of_selected_archs());
     }

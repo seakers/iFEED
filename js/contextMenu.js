@@ -6,6 +6,7 @@ function ContextMenu(ifeed) {
     var self = this;
     
     var feature_application = ifeed.feature_application;
+
     self.root = feature_application.root;
     
     var marginRatio = 0.13,
@@ -200,12 +201,16 @@ function ContextMenu(ifeed) {
         }
 
     }
-
-
+    
+    
     function ContextMenuAction(context,option){
 
         var node = context;
-        
+
+        var visit_nodes = ifeed.feature_application.visit_nodes;
+        var construct_tree = ifeed.feature_application.construct_tree;
+        var parse_tree = ifeed.feature_application.parse_tree;
+
     // 'logic':[addChild, toggle-logic],     
     // 'leaf':[],
     // 'default':[addParent,duplicate,toggle-activation,delete]
@@ -219,7 +224,9 @@ function ContextMenu(ifeed) {
                         node.add=false;
                     }else{
                         var id = node.id;
-                        feature_application.visit_nodes(self.root,function(d){
+
+                        visit_nodes(ifeed.feature_application.root,function(d){
+                            
                             if(d.id==id){
                                 d.add=true;
                             }else{
@@ -254,7 +261,7 @@ function ContextMenu(ifeed) {
         switch(option) {
 
             case 'addParent':
-                if(node.parent){ // This is a leaf node because of the condition set up previously
+                if(node.parent){ // This is a leaf node because of the condition set up previously (logic nodes do not have option to add parent)
 
                     var index = node.parent.children.indexOf(node);
                     var logic = node.parent.name;
@@ -276,10 +283,11 @@ function ContextMenu(ifeed) {
                         logic = "AND";
                     }
 
-                    var x0 = self.root.x0;
-                    var y0 = self.root.y0;
+                    var x0 = ifeed.feature_application.root.x0;
+                    var y0 = ifeed.feature_application.root.y0;
 
-                    self.root = {depth:0,type:"logic",name:logic,children:[node],x0:x0,y0:y0};
+                    ifeed.feature_application.root = {depth:0,type:"logic",name:logic,children:[node],x0:x0,y0:y0};
+
                 }
 
                 break;
@@ -297,23 +305,28 @@ function ContextMenu(ifeed) {
                         logic = "AND";
                     }
 
-                    var duplicate = feature_application.construct_tree(feature_application.parse_tree(node));                
-                    node.parent.children.splice(index,0,{depth:depth,type:"logic",name:logic,children:[duplicate]});
+                    var duplicate = construct_tree(parse_tree(node));     
 
-                }              
+                    node.parent.children.splice(index,0,{depth:depth,type:"logic",name:logic,children:[duplicate]});
+                }
                 break;
 
             case 'toggle-activation':
 
                 if(node.deactivated){
                     // Activate all parent nodes
-                    feature_application.visit_nodes(node,function(d){
+                    visit_nodes(node,function(d){
                         d.deactivated=false;
                     },true);
 
+                    // Activate all children nodes
+                    visit_nodes(node,function(d){
+                        d.deactivated=false;
+                    });
+
                 }else{                
                     // Deactivate all descendant nodes
-                    feature_application.visit_nodes(node,function(d){
+                    visit_nodes(node,function(d){
                         d.deactivated=true;
                     });
                 }     
@@ -323,7 +336,9 @@ function ContextMenu(ifeed) {
             case 'delete':
 
                 if(node.depth==0){
-                    self.root=null;
+
+                    ifeed.feature_application.root=null;
+
                 }else{
                     var index = node.parent.children.indexOf(node);
                     if (index > -1) {
@@ -336,25 +351,16 @@ function ContextMenu(ifeed) {
                 break;
         }    
 
-        feature_application.update(self.root);
-        feature_application.check_tree_structure();
+        ifeed.feature_application.update(ifeed.feature_application.root);
         
-        ifeed.filter.apply_filter_expression(feature_application.parse_tree(self.root));
+        ifeed.feature_application.check_tree_structure();
         
-        ifeed.data_mining.add_feature_to_plot(feature_application.parse_tree(self.root));
+        ifeed.data_mining.add_feature_to_plot(feature_application.parse_tree(ifeed.feature_application.root));
         
         ifeed.data_mining.draw_venn_diagram();   
-
     }
+    
 
-
-
-
-    
-    
-    
-    
-    
 }
 
 

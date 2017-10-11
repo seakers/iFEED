@@ -165,11 +165,9 @@ function FeatureApplication(ifeed){
 
             self.check_tree_structure();
 
-            ifeed.filter.apply_filter_expression(self.parse_tree(self.root));
-
-            self.update_feature_expression(self.parse_tree(self.root));
-
             ifeed.data_mining.add_feature_to_plot(self.parse_tree(self.root));
+            
+            self.update_feature_expression(self.parse_tree(self.root));            
 
             ifeed.data_mining.draw_venn_diagram();  
 
@@ -187,7 +185,7 @@ function FeatureApplication(ifeed){
 
 
     self.update = function(source) {
-
+        
         if(source==null){
             d3.selectAll('.treeNode').remove();
             d3.selectAll('.treeLink').remove();
@@ -201,6 +199,7 @@ function FeatureApplication(ifeed){
 
         // Normalize for fixed-depth.
         nodes.forEach(function(d) { d.y = d.depth * 140; });
+        
 
         var svg = d3.select('#feature_application')
                         .select('svg').select('g');
@@ -245,17 +244,17 @@ function FeatureApplication(ifeed){
                 self.selectedNode=null;
             })
 
-
-        // Transition nodes to their new position.
-        var nodeUpdate = node.transition()
-            .duration(duration)
-            .attr("transform", function(d) { return "translate(" + d.y + "," + d.x + ")"; });
-
+        
         // Transition exiting nodes to the parent's new position.
         var nodeExit = node.exit().transition()
             .duration(duration)
             .attr("transform", function(d) { return "translate(" + source.y + "," + source.x + ")"; })
             .remove();
+
+        // Transition nodes to their new position.
+        var nodeUpdate = node.transition()
+            .duration(duration)
+            .attr("transform", function(d) { return "translate(" + d.y + "," + d.x + ")"; });
 
         nodeExit.select("circle")
             .attr("r", 1e-6);
@@ -546,7 +545,8 @@ function FeatureApplication(ifeed){
                 self.draw_feature_application_tree(expression)
             }
 
-
+            ifeed.filter.apply_filter_expression(self.parse_tree(self.root));
+            
         }else if(option=='restore'){
             // Restore the stashed tree
 
@@ -599,6 +599,8 @@ function FeatureApplication(ifeed){
 
             self.check_tree_structure();
 
+            ifeed.filter.apply_filter_expression(self.parse_tree(self.root));
+            
         }else if(option=='update'){
 
             self.stashed_node_ids = null;
@@ -607,7 +609,6 @@ function FeatureApplication(ifeed){
             ifeed.data_mining.add_feature_to_plot(self.parse_tree(self.root));
         }
 
-        ifeed.filter.apply_filter_expression(self.parse_tree(self.root));
         self.update_feature_expression(self.parse_tree(self.root));
         
         ifeed.data_mining.draw_venn_diagram();   
@@ -1009,9 +1010,8 @@ function FeatureApplication(ifeed){
         self.root = null;
         self.update(self.root);
         
-        ifeed.filter.apply_filter_expression(self.parse_tree(self.root));
-        self.update_feature_expression(self.parse_tree(self.root));
         ifeed.data_mining.add_feature_to_plot(self.parse_tree(self.root));
+        self.update_feature_expression(self.parse_tree(self.root));
         ifeed.data_mining.draw_venn_diagram();      
 
     }); 

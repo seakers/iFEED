@@ -223,7 +223,7 @@ function DataMining(ifeed){
     
 
     self.update_feature_plot = function(source, remove_last_feature){
-
+        
         function get_utopia_point(){
             // Utopia point
             return d3.selectAll('.dot.feature_plot').filter(function(d){
@@ -300,41 +300,40 @@ function DataMining(ifeed){
 
         // setup x
         // data -> value
-        xValue = function (d) {
+        var xValue = function (d) {
             return d.metrics[x];
         }; 
         // value -> display
-        xScale = d3.scale.linear().range([0, width]); 
+        var xScale = d3.scale.linear().range([0, width]); 
 
         // don't want dots overlapping axis, so add in buffer to data domain 
-        xBuffer = (d3.max(self.all_features, xValue) - d3.min(self.all_features, xValue)) * 0.05;
+        var xBuffer = (d3.max(self.all_features, xValue) - d3.min(self.all_features, xValue)) * 0.05;
 
         xScale.domain([d3.min(self.all_features, xValue) - xBuffer, d3.max(self.all_features, xValue) + xBuffer]);
 
         // data -> display
-        xMap = function (d) {
+        var xMap = function (d) {
             return xScale(xValue(d));
         }; 
-        xAxis = d3.svg.axis().scale(xScale).orient("bottom");
+        var xAxis = d3.svg.axis().scale(xScale).orient("bottom");
 
 
         // setup y
         // data -> value
-        yValue = function (d) {
+        var yValue = function (d) {
             return d.metrics[y];
         };
         // value -> display
-        yScale = d3.scale.linear().range([height, 0]); 
+        var yScale = d3.scale.linear().range([height, 0]); 
 
-        yBuffer = (d3.max(self.all_features, yValue) - d3.min(self.all_features, yValue)) * 0.05;
+        var yBuffer = (d3.max(self.all_features, yValue) - d3.min(self.all_features, yValue)) * 0.05;
         yScale.domain([d3.min(self.all_features, yValue) - yBuffer, d3.max(self.all_features, yValue) + yBuffer]);
         // data -> display
-        yMap = function (d) {
+        var yMap = function (d) {
             return yScale(yValue(d));
         }; 
-        yAxis = d3.svg.axis().scale(yScale).orient("left");
+        var yAxis = d3.svg.axis().scale(yScale).orient("left");
 
-        
         // Set the new locations of all the features
         for(var i=0;i<self.all_features.length;i++){
             self.all_features[i].x = xMap(self.all_features[i]);
@@ -679,16 +678,19 @@ function DataMining(ifeed){
             }
             return null;
         }
-
-
+        
+        
+        ifeed.filter.apply_filter_expression(expression);
+        
 
         if(!expression || expression==""){
 
             // Assign new indices for the added features
             for(var i=0;i<self.added_features.length;i++){
-                self.all_features[self.all_features.length-self.added_features.length+i].added = ""+self.added_features.length-i;
+                self.all_features[self.all_features.length-self.added_features.length+i].added = ""+self.added_features.length-i + 1;
             }        
-            self.update_feature_plot([self.current_feature]);
+            
+            self.update_feature_plot([self.current_feature],false);
 
         }else{        
 
@@ -746,6 +748,9 @@ function DataMining(ifeed){
 
         }
     }
+    
+    
+    
     
     
     self.draw_venn_diagram = function(){
