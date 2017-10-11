@@ -229,7 +229,7 @@ function MainPlot(ifeed){
         
         if(mode=="zoom-pan"){
             mode = "drag-select";
-        }else if(id=="drag-select"){
+        }else if(mode=="drag-select"){
             mode =  "de-select";
         }else{
             mode = "zoom-pan";
