@@ -12,7 +12,7 @@ function MainPlot(ifeed){
 
     self.main_plot_params = {
         "margin":{top: 20, right: 20, bottom: 30, left: 60},
-        "width": 960,
+        "width": 1200,
         "height": 540,
     };
     

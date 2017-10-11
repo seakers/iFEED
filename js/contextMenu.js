@@ -6,7 +6,7 @@ function ContextMenu(ifeed) {
     var self = this;
     
     var feature_application = ifeed.feature_application;
-    var root = feature_application.root;
+    self.root = feature_application.root;
     
     var marginRatio = 0.13,
         //items = [], 
@@ -108,7 +108,7 @@ function ContextMenu(ifeed) {
             .on('mouseout', function(){ 
                 d3.select(this).select('rect').style(style.rect.mouseout) })
             .on('click', function(d){
-                ContextMenuAction(root,context,d.value);
+                ContextMenuAction(context,d.value);
             });
         
         d3.selectAll('.menu-entry')
@@ -202,7 +202,7 @@ function ContextMenu(ifeed) {
     }
 
 
-    function ContextMenuAction(root,context,option){
+    function ContextMenuAction(context,option){
 
         var node = context;
         
@@ -219,7 +219,7 @@ function ContextMenu(ifeed) {
                         node.add=false;
                     }else{
                         var id = node.id;
-                        feature_application.visit_nodes(root,function(d){
+                        feature_application.visit_nodes(self.root,function(d){
                             if(d.id==id){
                                 d.add=true;
                             }else{
@@ -276,10 +276,10 @@ function ContextMenu(ifeed) {
                         logic = "AND";
                     }
 
-                    var x0 = root.x0;
-                    var y0 = root.y0;
+                    var x0 = self.root.x0;
+                    var y0 = self.root.y0;
 
-                    root = {depth:0,type:"logic",name:logic,children:[node],x0:x0,y0:y0};
+                    self.root = {depth:0,type:"logic",name:logic,children:[node],x0:x0,y0:y0};
                 }
 
                 break;
@@ -323,7 +323,7 @@ function ContextMenu(ifeed) {
             case 'delete':
 
                 if(node.depth==0){
-                    root=null;
+                    self.root=null;
                 }else{
                     var index = node.parent.children.indexOf(node);
                     if (index > -1) {
@@ -336,12 +336,12 @@ function ContextMenu(ifeed) {
                 break;
         }    
 
-        feature_application.update(root);
+        feature_application.update(self.root);
         feature_application.check_tree_structure();
         
-        ifeed.filter.apply_filter_expression(feature_application.parse_tree(root));
+        ifeed.filter.apply_filter_expression(feature_application.parse_tree(self.root));
         
-        ifeed.data_mining.add_feature_to_plot(feature_application.parse_tree(root));
+        ifeed.data_mining.add_feature_to_plot(feature_application.parse_tree(self.root));
         
         ifeed.data_mining.draw_venn_diagram();   
 
