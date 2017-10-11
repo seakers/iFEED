@@ -230,10 +230,11 @@ function MainPlot(ifeed){
         if(mode=="zoom-pan"){
             mode = "drag-select";
         }else if(mode=="drag-select"){
-            mode =  "de-select";
+            mode =  "de-select";           
         }else{
             mode = "zoom-pan";
         }
+        
         ifeed.UI_states.selection_mode = mode;
         self.change_interaction_mode(mode);     
     }
@@ -498,7 +499,8 @@ function MainPlot(ifeed){
                                 }
                             });
                         }
-                        d3.select("#num_of_archs").text(""+self.get_num_of_archs());
+                        
+                        d3.select("#num_of_selected_archs").text(""+self.get_num_of_selected_archs());
                     }      
                 })
                 .on( "mouseup", function() {
