@@ -33,14 +33,8 @@ function FeatureApplication(ifeed){
     self.selectedNode = null;
     
     self.dragStarted = false;
-    self.dragListener = d3.behavior.drag()
-                        .on('dragstart',self.dragStart)
-                        .on('drag',self.drag)
-                        .on('dragend',self.dragEnd);
-    
     
     self.contextMenu = null;
-    
     
     
     self.draw_feature_application_tree = function(expression){
@@ -74,7 +68,123 @@ function FeatureApplication(ifeed){
     }
     
     
+    self.dragStart = function(d){
+
+        if(d==self.root){return;}
+        if(d3.event.sourceEvent.which != 1){return;}
+
+        self.dragStarted=true;    
+
+        d3.event.sourceEvent.stopPropagation();
+
+        var id = d.id;
+        self.draggingNode=d;
+
+        // Remove the link to the parent node
+        d3.selectAll('.treeLink').filter(function(d){
+            if(d.target.id == id){
+                return true;
+            }else{
+                return false;
+            }        
+        }).remove();
+
+        d3.selectAll('.nodeRange').filter(function(d){
+            if(d.type=='leaf'){
+                return false;
+            }else{
+                return true;
+            }
+        }).style('opacity',0.2);
+
+        d3.select(this)
+                .select('.nodeRange')
+                .style('opacity',0);
+
+        d3.select(this).attr('pointer-events','none');
+
+        if(d.type=="leaf"){
+            return;
+        }else{
+            // Remove all descendant nodes and links
+            self.remove_descendants(id);
+        }
+
+    }
+
+
+    self.drag = function(d){
+
+        if(self.dragStarted){        
+            var coord = d3.mouse($('#feature_application > svg > g').get(0));   
+
+            d.x0 += coord[0];
+            d.y0 += coord[1];        
+
+            var node = d3.select(this);
+            node.attr("transform","translate("+ coord[0] + "," + coord[1] + ")");
+
+            var target = {};
+            target.x = coord[0];
+            target.y = coord[1];
+            self.updateTempConnector(target);            
+        }
+
+    }
+
+    self.dragEnd = function(d){
+
+        if(self.dragStarted){
+
+            d3.selectAll('.nodeRange')
+                .style('opacity',0);
+
+            d3.select(this).attr('pointer-events', '');
+
+            d3.selectAll(".tempTreeLink").remove();  
+
+
+            if(self.selectedNode){
+
+                // Remove the element from the parent, and insert it into the new elements children
+                var index = self.draggingNode.parent.children.indexOf(self.draggingNode);
+                if (index > -1) {
+                    self.draggingNode.parent.children.splice(index, 1);
+                }
+                if (typeof self.selectedNode.children !== 'undefined') {
+                    self.selectedNode.children.push(self.draggingNode);
+                } else {
+                    self.selectedNode.children = [];
+                    self.selectedNode.children.push(self.draggingNode);
+                }
+            }else{
+                //console.log('selectedNode undefined');            
+            }
+
+            self.update(self.root);
+
+            self.check_tree_structure();
+
+            ifeed.filter.apply_filter_expression(self.parse_tree(self.root));
+
+            self.update_feature_expression(self.parse_tree(self.root));
+
+            ifeed.data_mining.add_feature_to_plot(self.parse_tree(self.root));
+
+            ifeed.data_mining.draw_venn_diagram();  
+
+            self.dragStarted= false;
+            self.draggingNode=null;
+
+        }
+    }
     
+    
+    self.dragListener = d3.behavior.drag()
+                        .on('dragstart',self.dragStart)
+                        .on('drag',self.drag)
+                        .on('dragend',self.dragEnd);
+
 
     self.update = function(source) {
 
@@ -310,7 +420,7 @@ function FeatureApplication(ifeed){
                 var context = d.type;
             
                 if(!self.contextMenu){
-                    self.contextMenu = new ContextMenu(self);
+                    self.contextMenu = new ContextMenu(ifeed);
                 }
                 
                 self.contextMenu.showMenu(d, coord);
@@ -320,7 +430,7 @@ function FeatureApplication(ifeed){
         // Highlight the node in which to add new features
         d3.selectAll('.treeNode')[0].forEach(function(d){
             if(d.__data__.add){
-               d3.select(d).select('circle').style('fill',node_color_add);
+               d3.select(d).select('circle').style('fill',self.color.add);
             }
         });    
 
@@ -373,116 +483,6 @@ function FeatureApplication(ifeed){
     }
     
 
-    self.dragStart = function(d){
-
-        if(d==self.root){return;}
-        if(d3.event.sourceEvent.which != 1){return;}
-
-        self.dragStarted=true;    
-
-        d3.event.sourceEvent.stopPropagation();
-
-        var id = d.id;
-        self.draggingNode=d;
-
-        // Remove the link to the parent node
-        d3.selectAll('.treeLink').filter(function(d){
-            if(d.target.id == id){
-                return true;
-            }else{
-                return false;
-            }        
-        }).remove();
-
-        d3.selectAll('.nodeRange').filter(function(d){
-            if(d.type=='leaf'){
-                return false;
-            }else{
-                return true;
-            }
-        }).style('opacity',0.2);
-
-        d3.select(this)
-                .select('.nodeRange')
-                .style('opacity',0);
-
-        d3.select(this).attr('pointer-events','none');
-
-        if(d.type=="leaf"){
-            return;
-        }else{
-            // Remove all descendant nodes and links
-            self.remove_descendants(id);
-        }
-
-    }
-
-
-    self.drag = function(d){
-
-        if(self.dragStarted){        
-            var coord = d3.mouse($('#feature_application > svg > g').get(0));   
-
-            d.x0 += coord[0];
-            d.y0 += coord[1];        
-
-            var node = d3.select(this);
-            node.attr("transform","translate("+ coord[0] + "," + coord[1] + ")");
-
-            var target = {};
-            target.x = coord[0];
-            target.y = coord[1];
-            self.updateTempConnector(target);            
-        }
-
-    }
-
-    self.dragEnd = function(d){
-
-        if(self.dragStarted){
-
-            d3.selectAll('.nodeRange')
-                .style('opacity',0);
-
-            d3.select(this).attr('pointer-events', '');
-
-            d3.selectAll(".tempTreeLink").remove();  
-
-
-            if(self.selectedNode){
-
-                // Remove the element from the parent, and insert it into the new elements children
-                var index = self.draggingNode.parent.children.indexOf(self.draggingNode);
-                if (index > -1) {
-                    self.draggingNode.parent.children.splice(index, 1);
-                }
-                if (typeof self.selectedNode.children !== 'undefined') {
-                    self.selectedNode.children.push(self.draggingNode);
-                } else {
-                    self.selectedNode.children = [];
-                    self.selectedNode.children.push(self.draggingNode);
-                }
-            }else{
-                //console.log('selectedNode undefined');            
-            }
-
-            self.update(self.root);
-
-            self.check_tree_structure();
-
-            self.ifeed.filter.apply_filter_expression(self.parse_tree(self.root));
-
-            self.update_feature_expression(self.parse_tree(self.root));
-
-            ifeed.data_mining.add_feature_to_plot(self.parse_tree(self.root));
-
-            //self.draw_venn_diagram();  
-
-            self.dragStarted= false;
-            self.draggingNode=null;
-
-        }
-    }
 
 
     
@@ -610,7 +610,7 @@ function FeatureApplication(ifeed){
         ifeed.filter.apply_filter_expression(self.parse_tree(self.root));
         self.update_feature_expression(self.parse_tree(self.root));
         
-        //draw_venn_diagram();   
+        ifeed.data_mining.draw_venn_diagram();   
     }
     
     
@@ -633,7 +633,7 @@ function FeatureApplication(ifeed){
         var children = source.children;
         if(children){
             for(var i=0;i<children.length;i++){
-                get_node_idsget_node_ids(children[i],IDList);
+                self.get_node_ids(children[i],IDList);
             }
         }
 
@@ -983,9 +983,10 @@ function FeatureApplication(ifeed){
         var bracket_color = "#FF0000";
 
         if(expression==null){
-            expression=="";
             
-        }else{
+            expression=="";
+
+        }else if(expression != ""){
 
             expression = ifeed.label.pp_feature(expression);
             expression = expression.replace(/{/g,'');
@@ -1011,7 +1012,7 @@ function FeatureApplication(ifeed){
         ifeed.filter.apply_filter_expression(self.parse_tree(self.root));
         self.update_feature_expression(self.parse_tree(self.root));
         ifeed.data_mining.add_feature_to_plot(self.parse_tree(self.root));
-        //draw_venn_diagram();      
+        ifeed.data_mining.draw_venn_diagram();      
 
     }); 
     

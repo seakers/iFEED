@@ -7,14 +7,14 @@ function EOSS(ifeed){
     self.instrument_list = [];
     self.orbit_num = null;
     self.instrument_num = null;
-    self.i = 0;
+    //self.i = 0;
     
     // Set the problem instance
     ifeed.problem=self;
     ifeed.metadata.output_list = ['Science','Cost'];
     ifeed.metadata.input_num=60;
     ifeed.metadata.output_num=2;
-    ifeed.metadata.output_obj =['max','min'];
+    ifeed.metadata.output_obj =[1,-1]; // 1 for lager-is-better, -1 for smaller-is-better
     
     // Set the path to the result file
     ifeed.metadata.result_path="/results/EOSS_data.csv";
@@ -114,7 +114,8 @@ function EOSS(ifeed){
             }
             var outputs = [d.science, d.cost];
             var inputs = d.bitString;
-            var id = self.i++;
+            var id = +d.id;
+            
             var arch = new Architecture(id,inputs,outputs);
 
             output.push(arch);

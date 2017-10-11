@@ -103,7 +103,9 @@ function DataMining(ifeed){
         var numOfNonSelectedArchs = nonSelectedArchs.length;
 
         if (numOfSelectedArchs==0){
+            
             alert("First select target solutions!");
+            
         }else{        
 
             // Store the id's of all dots
@@ -186,11 +188,6 @@ function DataMining(ifeed){
             .style('width', self.width + self.margin.left + self.margin.right)
             .style('height', self.height + self.margin.top + self.margin.bottom);
 
-        tab.append('div')
-            .attr('class','feature_plot venn_diagram')
-            .append('div')
-            .text('Total number of designs: ' + ifeed.main_plot.get_num_of_archs());
-
         // Create a new svg
         var svg = feature_plot.append("svg")
             .attr('class','feature_plot figure')
@@ -199,6 +196,12 @@ function DataMining(ifeed){
             .append("g")
             .attr("transform", "translate(" + self.margin.left + "," + self.margin.top + ")");
 
+        feature_plot.append('div')
+            .attr('class','feature_plot venn_diagram')
+            .append('div')
+            .text('Total number of designs: ' + ifeed.main_plot.get_num_of_archs());
+        
+        
         var objects = svg.append("svg")
                 .attr("class", "objects feature_plot")
                 .attr("width", self.width)
@@ -540,8 +543,7 @@ function DataMining(ifeed){
             .attr("transform",function(d){
                 return "translate(" + d.x + "," + d.y + ")";
             });   
-
-
+                
     }
     
     
@@ -633,7 +635,7 @@ function DataMining(ifeed){
         // Update the placeholder with the driving feature and stash the expression    
         ifeed.feature_application.update_feature_application('temp',expression);
         ifeed.filter.apply_filter_expression(ifeed.feature_application.parse_tree(ifeed.feature_application.root));
-        //draw_venn_diagram();   
+        self.draw_venn_diagram(); 
     }
 
 
@@ -650,7 +652,7 @@ function DataMining(ifeed){
         // Bring back the previously stored feature expression
         ifeed.feature_application.update_feature_application('restore');
         ifeed.filter.apply_filter_expression(ifeed.feature_application.parse_tree(ifeed.feature_application.root));
-        //draw_venn_diagram();       
+        self.draw_venn_diagram();       
 
     }
 
@@ -686,7 +688,7 @@ function DataMining(ifeed){
             for(var i=0;i<self.added_features.length;i++){
                 self.all_features[self.all_features.length-self.added_features.length+i].added = ""+self.added_features.length-i;
             }        
-            self.update_feature_plot([current_feature]);
+            self.update_feature_plot([self.current_feature]);
 
         }else{        
 
@@ -746,197 +748,142 @@ function DataMining(ifeed){
     }
     
     
-    
+    self.draw_venn_diagram = function(){
+
+        var venn_diagram_container = d3.select('.feature_plot .venn_diagram').select('div');
+        
+        if(venn_diagram_container[0][0]==null) return;
+
+        venn_diagram_container.select("svg").remove();
+        
+        var svg = venn_diagram_container
+                                    .append("svg")
+                                    .style('width','320px')  			
+                                    .style('border-width','3px')
+                                    .style('height','305px')
+                                    .style('border-style','solid')
+                                    .style('border-color','black')
+                                    .style('border-radius','40px')
+                                    .style('margin-top','10px')
+                                    .style('margin-bottom','10px'); 
+
+        
+        var total = ifeed.main_plot.get_num_of_archs();
+        var intersection = d3.selectAll('.dot.main_plot.selected.highlighted:not(.hidden)')[0].length;
+        var selected = d3.selectAll('.dot.main_plot.selected:not(.hidden)')[0].length;
+        var highlighted = d3.selectAll('.dot.main_plot.highlighted:not(.hidden)')[0].length;
+
+        
+        var left_margin = 50;
+        var c1x = 110;
+        // Selection has a fixed radius
+        var r1 = 70;
+        var S_size = selected;
+
+        svg.append("circle")
+            .attr("id","venn_diag_c1")
+            .attr("cx", c1x)
+            .attr("cy", 180-30)
+            .attr("r", r1)
+            .style("fill", "steelblue")
+            .style("fill-opacity", ".5");
+
+        svg.append("text")
+            .attr("id","venn_diag_c1_text")
+            .attr("x",c1x-90)
+            .attr("y",180+r1+50-30)
+            .attr("font-family","sans-serif")
+            .attr("font-size","18px")
+            .attr("fill","steelblue")
+            .text("Selected:" + S_size );
+
+        var supp, conf, conf2, lift;
+
+        if(intersection==0){
+            var supp = 0;
+            var F_size = highlighted;
+        }else if(highlighted==0){
+            var supp = 0;
+            var F_size = 0;
+        }else{
+
+            var p_snf = intersection/total;
+            var p_s = selected/total;
+            var p_f = highlighted/total;
+
+            supp = p_snf;
+            conf = supp / p_f;
+            conf2 = supp / p_s;
+            lift = p_snf/(p_f*p_s); 
+
+            var F_size = supp * 1/conf * total;
+            var S_size = supp * 1/conf2 * total;
+
+
+            // Feature 
+            var	r2 = Math.sqrt(F_size/S_size)*r1;
+            var a1 = Math.PI * Math.pow(r1,2);
+            var a2 = Math.PI * Math.pow(r2,2);
+            // Conf(F->S) * |F| = P(FnS)
+            var intersection = supp * ifeed.main_plot.get_num_of_archs() * a1 / S_size;
+
+            var c2x;
+            if (conf2 > 0.999){
+                c2x = c1x + r2 - r1;
+            }else{
+                var dist;
+                $.ajax({
+                    url: "/api/ifeed/venn-diagram-distance/",
+                    type: "POST",
+                    data: {a1: a1,
+                           a2: a2,
+                           intersection: intersection},
+                    async: false,
+                    success: function (data, textStatus, jqXHR)
+                    {
+                        dist = + data;
+                    },
+                    error: function (jqXHR, textStatus, errorThrown)
+                    {alert("error");}
+                });
+                c2x = c1x + dist;
+            }
+
+            svg.append("circle")
+                .attr("id","venn_diag_c2")
+                .attr("cx", c2x)
+                .attr("cy", 180-30)
+                .attr("r", r2)
+                .style("fill", "brown")
+                .style("fill-opacity", ".5");
+
+        }
+
+
+        svg.append("text")
+            .attr("id","venn_diag_int_text")
+            .attr("x",left_margin-10)
+            .attr("y",70-30)
+            .attr("font-family","sans-serif")
+            .attr("font-size","18px")
+            .attr("fill","black")
+            .text("Intersection: " + Math.round(supp * total));
+
+
+        svg.append("text")
+            .attr("id","venn_diag_c2_text")
+            .attr("x",c1x+60)
+            .attr("y",180+r1+50-30)
+            .attr("font-family","sans-serif")
+            .attr("font-size","18px")
+            .attr("fill","brown")
+            .text("Features:" + Math.round(F_size) );
+    }
+
+
     
     self.initialize();
     
-}
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-function draw_venn_diagram(){
-
-    var venn_diagram_container = d3.select('#dfplot_venn_diagram').select('div');
-    if(venn_diagram_container[0][0]==null) return;
-    
-    
-	venn_diagram_container.select("svg").remove();
-	var svg_venn_diag = venn_diagram_container
-								.append("svg")
-					    		.style('width','320px')  			
-								.style('border-width','3px')
-								.style('height','305px')
-								.style('border-style','solid')
-								.style('border-color','black')
-								.style('border-radius','40px')
-								.style('margin-top','10px')
-								.style('margin-bottom','10px'); 
-    
-    var total = numOfArchs();
-    var intersection = d3.selectAll('.dot.main_plot.selected.highlighted')[0].length;
-    var selected = d3.selectAll('.dot.main_plot.selected')[0].length;
-    var highlighted = d3.selectAll('.dot.main_plot.highlighted')[0].length;
-    
-    
-    var left_margin = 50;
-    var c1x = 110;
-    // Selection has a fixed radius
-    var r1 = 70;
-    var S_size = selected;
-    
-	svg_venn_diag
-		.append("circle")
-		.attr("id","venn_diag_c1")
-	    .attr("cx", c1x)
-	    .attr("cy", 180-30)
-	    .attr("r", r1)
-	    .style("fill", "steelblue")
-	    .style("fill-opacity", ".5");
-    
-	svg_venn_diag
-		.append("text")
-        .attr("id","venn_diag_c1_text")
-		.attr("x",c1x-90)
-		.attr("y",180+r1+50-30)
-		.attr("font-family","sans-serif")
-		.attr("font-size","18px")
-		.attr("fill","steelblue")
-		.text("Selected:" + S_size );
-    
-    var supp, conf, conf2, lift;
-    
-    if(intersection==0){
-        var supp = 0;
-        var F_size = highlighted;
-    }else if(highlighted==0){
-        var supp = 0;
-        var F_size = 0;
-    }else{
-        
-        var p_snf = intersection/total;
-        var p_s = selected/total;
-        var p_f = highlighted/total;
-
-        supp = p_snf;
-        conf = supp / p_f;
-        conf2 = supp / p_s;
-        lift = p_snf/(p_f*p_s); 
-
-        var F_size = supp * 1/conf * total;
-        var S_size = supp * 1/conf2 * total;
-
-
-        // Feature 
-        var	r2 = Math.sqrt(F_size/S_size)*r1;
-        var a1 = Math.PI * Math.pow(r1,2);
-        var a2 = Math.PI * Math.pow(r2,2);
-        // Conf(F->S) * |F| = P(FnS)
-        var intersection = supp * numOfArchs() * a1 / S_size;
-        
-        var c2x;
-        if (conf2 > 0.999){
-            c2x = c1x + r2 - r1;
-        }else{
-            var dist;
-            $.ajax({
-                url: "/api/ifeed/venn-diagram-distance/",
-                type: "POST",
-                data: {a1: a1,
-                       a2: a2,
-                       intersection: intersection},
-                async: false,
-                success: function (data, textStatus, jqXHR)
-                {
-                    dist = + data;
-                },
-                error: function (jqXHR, textStatus, errorThrown)
-                {alert("error");}
-            });
-            c2x = c1x + dist;
-        }
-        
-        svg_venn_diag
-            .append("circle")
-            .attr("id","venn_diag_c2")
-            .attr("cx", c2x)
-            .attr("cy", 180-30)
-            .attr("r", r2)
-            .style("fill", "brown")
-            .style("fill-opacity", ".5");
-        
-    }
-	
-	
-	svg_venn_diag
-		.append("text")
-        .attr("id","venn_diag_int_text")
-		.attr("x",left_margin-10)
-		.attr("y",70-30)
-		.attr("font-family","sans-serif")
-		.attr("font-size","18px")
-		.attr("fill","black")
-		.text("Intersection: " + Math.round(supp * total));
-	
-
-	svg_venn_diag
-		.append("text")
-        .attr("id","venn_diag_c2_text")
-		.attr("x",c1x+60)
-		.attr("y",180+r1+50-30)
-		.attr("font-family","sans-serif")
-		.attr("font-size","18px")
-		.attr("fill","brown")
-		.text("Features:" + Math.round(F_size) );
-}
-
-
-
-
-
-function check_dominance(metrics1,metrics2){
-    
-    if(
-        (metrics1[2] >= metrics2[2] && metrics1[3] > metrics2[3]) || 
-        (metrics1[2] > metrics2[2] && metrics1[3] >= metrics2[3]) 
-    ){
-        return true; // feature 1 dominates feature 2
-    }
-    return false;
-}
-
-
-function get_non_dominated_features(){
-
-    var non_dominated = [];    
-    for(var i=0;i<all_features.length;i++){
-        var dominated = false;        
-        for(var j=0;j<all_features.length;j++){
-            
-            if(i==j){
-                continue;
-                
-            }else if(check_dominance(all_features[j].metrics,all_features[i].metrics)){
-                // all_features[j] dominates all_features[i]. i.e. features[i] is dominated
-                dominated=true;
-                break;
-            }
-        }
-        if(dominated==false){
-           non_dominated.push(i);
-        }
-    }
-    return non_dominated;
 }
 
 

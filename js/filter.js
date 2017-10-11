@@ -315,8 +315,8 @@ function Filter(ifeed){
         } else if(dropdown==="paretoFront"){
 
             // To be implemented    
-            var filterInput = d3.select("#filter_inputs_div_1").select('.filter_inputs_textbox')[0][0].value;
-            filter_expression = "paretoFront["+filterInput+"]";
+            var input = d3.selectAll('.filter.inputs.div').select('div').select('input')[0][0].value
+            filter_expression = "paretoFront["+input+"]";
 
         }else{// not selected
             return;
@@ -326,14 +326,13 @@ function Filter(ifeed){
 
 
         if(filter_expression.indexOf('paretoFront')!=-1){
-
-            var filterInput = d3.select("#filter_inputs_div_1").select('.filter_inputs_textbox')[0][0].value;
-            //applyParetoFilter(filterInput);
+            
+            self.apply_filter_expression(filter_expression);
 
         }else{
 
-            //update_feature_application('temp',filter_expression);
-            //update_feature_application('update',filter_expression);
+            ifeed.feature_application.update_feature_application('temp',filter_expression);
+            ifeed.feature_application.update_feature_application('update',filter_expression);
             self.apply_filter_expression(filter_expression);
         }
 
@@ -516,9 +515,16 @@ function Filter(ifeed){
         var bitString = data.inputs;
 
         if(type==="paretoFront"){
-            var arg = +expression.substring(0,expression.length-1).split("[")[1];
-            if(rank<= +arg && rank >=0) return true;
-            else return false;
+            
+            if(data.pareto_ranking || data.pareto_ranking==0){
+                var rank = +data.pareto_ranking;
+                var arg = +expression.substring(0,expression.length-1).split("[")[1];
+                if(rank <= arg){
+                    return true;
+                }else{
+                    return false;
+                }
+            }
         }
 
         var condition = expression.substring(0,expression.length-1).split("[")[1];
@@ -726,14 +732,6 @@ function Filter(ifeed){
         }
 
     }
-    
-    
-    
-    
-    
-    
-    
-    
     
     self.initialize();
     

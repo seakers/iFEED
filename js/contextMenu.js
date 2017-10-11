@@ -1,10 +1,12 @@
 
 // Context info: node, depth, logic(AND or OR)
 
-function ContextMenu(feature_application) {
-    
+function ContextMenu(ifeed) {
     
     var self = this;
+    
+    var feature_application = ifeed.feature_application;
+    var root = feature_application.root;
     
     var marginRatio = 0.13,
         //items = [], 
@@ -95,7 +97,7 @@ function ContextMenu(feature_application) {
 
         
         // Draw the menu
-        d3.select('#feature_application_status').select('svg')
+        d3.select('#feature_application').select('svg')
             .append('g').attr('class', 'context-menu')
             .selectAll('tmp')
             .data(items).enter()
@@ -106,7 +108,7 @@ function ContextMenu(feature_application) {
             .on('mouseout', function(){ 
                 d3.select(this).select('rect').style(style.rect.mouseout) })
             .on('click', function(d){
-                ContextMenuAction(context,d.value);
+                ContextMenuAction(root,context,d.value);
             });
         
         d3.selectAll('.menu-entry')
@@ -169,7 +171,7 @@ function ContextMenu(feature_application) {
         
         if(!contextMenuSize[type]['scaled']){
 
-            d3.select('#feature_application_status')
+            d3.select('#feature_application')
                 .select('svg').select('g')
                 .selectAll('tmp')
                 .data(items).enter()
@@ -180,7 +182,7 @@ function ContextMenu(feature_application) {
                 .attr('y', -1000)
                 .attr('class', 'tmp');
 
-            var z = d3.select('#feature_application_status').select('svg').select('g').selectAll('.tmp')[0]
+            var z = d3.select('#feature_application').select('svg').select('g').selectAll('.tmp')[0]
                       .map(function(x){ return x.getBBox(); });
             
             var width = d3.max(z.map(function(x){ return x.width; }));
@@ -194,20 +196,16 @@ function ContextMenu(feature_application) {
             contextMenuSize[type]['scaled'] = true;
 
             // cleanup
-            d3.select('#feature_application_status').selectAll('.tmp').remove();                        
+            d3.select('#feature_application').selectAll('.tmp').remove();                        
         }
 
     }
-    return menu;
-    
-    
 
 
-
-    function ContextMenuAction(context,option){
+    function ContextMenuAction(root,context,option){
 
         var node = context;
-
+        
     // 'logic':[addChild, toggle-logic],     
     // 'leaf':[],
     // 'default':[addParent,duplicate,toggle-activation,delete]
@@ -221,7 +219,7 @@ function ContextMenu(feature_application) {
                         node.add=false;
                     }else{
                         var id = node.id;
-                        feature_application.visit_nodes(feature_application.root,function(d){
+                        feature_application.visit_nodes(root,function(d){
                             if(d.id==id){
                                 d.add=true;
                             }else{
@@ -309,13 +307,13 @@ function ContextMenu(feature_application) {
 
                 if(node.deactivated){
                     // Activate all parent nodes
-                    visit_nodes(node,function(d){
+                    feature_application.visit_nodes(node,function(d){
                         d.deactivated=false;
                     },true);
 
                 }else{                
                     // Deactivate all descendant nodes
-                    visit_nodes(node,function(d){
+                    feature_application.visit_nodes(node,function(d){
                         d.deactivated=true;
                     });
                 }     
@@ -338,12 +336,14 @@ function ContextMenu(feature_application) {
                 break;
         }    
 
-        feature_application.update(feature_application.root);
+        feature_application.update(root);
         feature_application.check_tree_structure();
         
-//        applyComplexFilter(parse_tree(root));
-//        add_feature_to_plot(parse_tree(root));
-//        draw_venn_diagram();   
+        ifeed.filter.apply_filter_expression(feature_application.parse_tree(root));
+        
+        ifeed.data_mining.add_feature_to_plot(feature_application.parse_tree(root));
+        
+        ifeed.data_mining.draw_venn_diagram();   
 
     }
 

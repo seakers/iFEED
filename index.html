@@ -22,12 +22,7 @@ and open the template in the editor.
     <link href="css/main_plot.css" rel="stylesheet" type="text/css"/>
     <link href="css/filter.css" rel="stylesheet" type="text/css"/>
     <link href="css/data_mining.css" rel="stylesheet" type="text/css"/>
-<!--
-    <link href="css/filter.css" rel="stylesheet" type="text/css"/>
-    <link href="css/drivingFeatures.css" rel="stylesheet" type="text/css"/>
-    <link href="css/classificationTree.css" rel="stylesheet" type="text/css"/>
-    <link href="css/featureApplication.css" rel="stylesheet" type="text/css"/>
--->
+    <link href="css/feature_application.css" rel="stylesheet" type="text/css"/>
 
     <script src="https://apis.google.com/js/platform.js" async defer></script>
     <meta name="google-signin-client_id" content="564804694787-lnsp9md3u0q8086nftbamu43drid6d4t.apps.googleusercontent.com">
@@ -119,23 +114,18 @@ and open the template in the editor.
         <div>
             <div id='feature_expression_panel'>
                 <div>
-                    <div>Currently Applied Feature Expression</div>
+                    <div>Currently Applied Feature</div>
+                    <button id='clear_all_features' class='feature_application_options_button'>Clear</button>
                 </div>
                 <div id='feature_expression'></div>
             </div>
             <div id='feature_application_panel'>
-                <div id='feature_application_options'>
-                    <button id='clear_all_features' class='feature_application_options_button'>Clear</button>
-                </div>
-                <div id='feature_application'>
-                </div>
+                <div id='feature_application'></div>
             </div>
         </div>
     </div>
 </div>
 
-    
-    
     
 <script src="js/util.js" type="text/javascript"></script>
 <script src="js/ifeed-general.js" type="text/javascript"></script>
@@ -144,12 +134,11 @@ and open the template in the editor.
 <script src="js/EOSS/relabel.js" type="text/javascript"></script>
 <script src="js/filter.js" type="text/javascript"></script>
 <script src="js/data_mining.js" type="text/javascript"></script>   
-<script src="js/feature.js" type="text/javascript"></script>       
+<script src="js/feature_application.js" type="text/javascript"></script>       
 <script src="js/contextMenu.js" type="text/javascript"></script>
     
-<script>
-
     
+<script>
     
     var ifeed = new IFEED();
     
@@ -167,15 +156,11 @@ and open the template in the editor.
     
     var feature_application = new FeatureApplication(ifeed);
     ifeed.feature_application = feature_application;
-
     
+
     ifeed.import_new_data(ifeed.result_path);
+    ifeed.calculate_pareto_ranking();
     
-    
-    main_plot.update(ifeed.data,0,1);
-    
-    
-
 
 </script>
 

@@ -1,27 +1,20 @@
 
-
-
-#dfplot_div{
+.feature_plot.figure{
     float:left;
 }
 
-.dfplot_options{
-    float:left;
-}
-
-
-#dfplot_venn_diagram{
+.feature_plot.venn_diagram{
     float:left;
     background-color:#E7E7E7;
     height:350px;
-    width: 340px;
+    width: 320px;
     margin-left: 50px;
     margin-top: 15px;
     padding:15px;
     
 }
 
-#dfplot_venn_diagram div{
+.feature_plot.venn_daigram > div{
     font-family:sans-serif;
     margin-left: 3px;
     font-size: 18px;

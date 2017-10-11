@@ -7,6 +7,12 @@
     font-size: 18px;    
 }
 
+.filter.title.div > p{
+    float:left;
+    font-size:18px;
+}
+
+
 .filter.options.div{
     width: 100%;
     float: left;

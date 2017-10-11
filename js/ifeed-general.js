@@ -19,7 +19,7 @@ function IFEED(){
                     "output_num":null,
                     "input_list":[],
                     "output_list":[],
-                    "output_obj":[], // min or max 
+                    "output_obj":[], // 1 for lager-is-better, -1 for smaller-is-better
                     };
     
     self.data = null; // Array containing the imported data
@@ -91,8 +91,63 @@ function IFEED(){
                 alert("error");
             }   
         });
-
+        
+        
+        ifeed.main_plot.update(ifeed.data,0,1);
     }
+    
+    
+
+    self.calculate_pareto_ranking = function(limit){  
+        
+        var rank=0;
+        
+        if(!limit){
+            limit=15;
+        }
+        
+        var archs = self.data;
+        var remaining = [];
+        
+        while(archs.length > 0){
+            
+            remaining=[];
+
+            var n = archs.length;
+            
+            if (rank>limit){
+                break;
+            }
+
+            for (var i=0; i < n ; i++){
+                var non_dominated = true;
+                var this_arch = archs[i];
+                
+                for (var j=0;j<n;j++){
+                    
+                    if (i==j){
+                        continue;
+                    
+                    }else if(dominates(archs[j].outputs, this_arch.outputs, self.metadata.output_obj)){
+                        non_dominated = false;
+                    }
+                }
+                if (non_dominated == true){
+                    archs[i].pareto_ranking = rank;
+                }else{
+                    remaining.push(archs[i]);
+                }
+            }
+
+            rank++;
+            archs = remaining;
+        }
+    }
+    
+    
+    
+    
+    
     
 }
 
