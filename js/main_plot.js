@@ -217,32 +217,27 @@ function MainPlot(ifeed){
 //        });
 
         
-        d3.select('#interaction_modes').selectAll('.tooltip').select('div').on('click',function(d){
-            
-            var id = d3.select(this).select('input').attr('id')
-            if(id=="zoom-pan"){
-                d3.select("#zoom-pan")[0][0].checked=true;
-                d3.select("#drag-select")[0][0].checked=false;
-                d3.select("#de-select")[0][0].checked=false;
-            }else if(id=="drag-select"){
-                d3.select("#zoom-pan")[0][0].checked=false;
-                d3.select("#drag-select")[0][0].checked=true;
-                d3.select("#de-select")[0][0].checked=false;
-            }else{
-                d3.select("#zoom-pan")[0][0].checked=false;
-                d3.select("#drag-select")[0][0].checked=false;
-                d3.select("#de-select")[0][0].checked=true;
-            }
-            self.change_interaction_mode(id);            
-        });
-        
+        d3.select('#interaction_modes').selectAll('.tooltip').select('div').on('click',self.toggle_selection_mode);
         
         d3.select("#num_of_archs").text(""+self.get_num_of_archs());
     }
     
     
     
-    
+    self.toggle_selection_mode = function(){
+        
+        var mode = ifeed.UI_states.selection_mode;
+        
+        if(mode=="zoom-pan"){
+            mode = "drag-select";
+        }else if(id=="drag-select"){
+            mode =  "de-select";
+        }else{
+            mode = "zoom-pan";
+        }
+        ifeed.UI_states.selection_mode = mode;
+        self.change_interaction_mode(mode);     
+    }
     
 
     self.cancel_selection = function(option){
