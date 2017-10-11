@@ -222,8 +222,7 @@ function MainPlot(ifeed){
         d3.select("#num_of_archs").text(""+self.get_num_of_archs());
     }
     
-    
-    
+
     self.toggle_selection_mode = function(){
         
         var mode = ifeed.UI_states.selection_mode;
