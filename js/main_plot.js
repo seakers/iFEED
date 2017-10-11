@@ -290,8 +290,10 @@ function MainPlot(ifeed){
             
             // Remove only highlights
             d3.selectAll('.main_plot.dot.highlighted')[0].forEach(function(d){
+                
                 var dot = d3.select(d);
                 dot.classed('highlighted',false);
+                
                 if(dot.classed('selected')){
                     dot.style("fill", self.color.selected);
                 }else{

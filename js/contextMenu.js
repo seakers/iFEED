@@ -346,24 +346,17 @@ function ContextMenu(ifeed) {
             default:
                 break;
         }    
-        
-        console.log(ifeed.feature_application.root);
-        
+                
         ifeed.feature_application.update(ifeed.feature_application.root);
         
         ifeed.feature_application.check_tree_structure();
-
+        
         ifeed.data_mining.add_feature_to_plot(feature_application.parse_tree(ifeed.feature_application.root));
-
-        ifeed.filter.apply_filter_expression(feature_application.parse_tree(ifeed.feature_application.root));
         
         ifeed.data_mining.draw_venn_diagram();   
     }
     
-    
-    
-    
-    
+
 }
 
 

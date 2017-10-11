@@ -165,11 +165,9 @@ function FeatureApplication(ifeed){
 
             self.check_tree_structure();
 
-            ifeed.filter.apply_filter_expression(self.parse_tree(self.root));
-
-            self.update_feature_expression(self.parse_tree(self.root));
-
             ifeed.data_mining.add_feature_to_plot(self.parse_tree(self.root));
+            
+            self.update_feature_expression(self.parse_tree(self.root));            
 
             ifeed.data_mining.draw_venn_diagram();  
 
@@ -547,7 +545,8 @@ function FeatureApplication(ifeed){
                 self.draw_feature_application_tree(expression)
             }
 
-
+            ifeed.filter.apply_filter_expression(self.parse_tree(self.root));
+            
         }else if(option=='restore'){
             // Restore the stashed tree
 
@@ -600,6 +599,8 @@ function FeatureApplication(ifeed){
 
             self.check_tree_structure();
 
+            ifeed.filter.apply_filter_expression(self.parse_tree(self.root));
+            
         }else if(option=='update'){
 
             self.stashed_node_ids = null;
@@ -608,7 +609,6 @@ function FeatureApplication(ifeed){
             ifeed.data_mining.add_feature_to_plot(self.parse_tree(self.root));
         }
 
-        ifeed.filter.apply_filter_expression(self.parse_tree(self.root));
         self.update_feature_expression(self.parse_tree(self.root));
         
         ifeed.data_mining.draw_venn_diagram();   
@@ -1010,9 +1010,8 @@ function FeatureApplication(ifeed){
         self.root = null;
         self.update(self.root);
         
-        ifeed.filter.apply_filter_expression(self.parse_tree(self.root));
-        self.update_feature_expression(self.parse_tree(self.root));
         ifeed.data_mining.add_feature_to_plot(self.parse_tree(self.root));
+        self.update_feature_expression(self.parse_tree(self.root));
         ifeed.data_mining.draw_venn_diagram();      
 
     }); 
