@@ -572,8 +572,8 @@ function DataMining(ifeed){
         var mouseLoc_y = d3.mouse(d3.select(".objects.feature_plot")[0][0])[1];
 
         var tooltip_location = {x:0,y:0};
-        var tooltip_width = 360;
-        var tooltip_height = 200;
+        var tooltip_width = 170;
+        var tooltip_height = 70;
 
         var h_threshold = (width + margin.left + margin.right)*0.5;
         var v_threshold = (height + margin.top + margin.bottom)*0.55;
@@ -621,14 +621,13 @@ function DataMining(ifeed){
                         })
                         .data([{id:id, expression:expression, metrics:metrics}]) 
                         .html(function(d){
-                            var output= "" + ifeed.label.pp_feature(d.expression) + "<br><br> lift: " + round_num(d.metrics[1]) + 
-                            "<br> Support: " + round_num(d.metrics[0]) + 
-                            "<br> Confidence(F->S): " + round_num(d.metrics[2]) + 
-                            "<br> Confidence(S->F): " + round_num(d.metrics[3]) +"";
+                            var output= "<br> Specificity: " + round_num(d.metrics[2]) + 
+                            "<br> Coverage: " + round_num(d.metrics[3]) +"";
                             return output;
                         }).style("padding","8px")
                         .style('color','#F7FF55')
-                        .style('word-wrap','break-word');   
+                        .style('word-wrap','break-word')
+                        .style('font-size','21px;');   
 
 
         // Update the placeholder with the driving feature and stash the expression    
