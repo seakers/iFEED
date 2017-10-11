@@ -230,11 +230,21 @@ function MainPlot(ifeed){
         
         if(mode=="zoom-pan"){
             mode = "drag-select";
-        }else if(id=="drag-select"){
+            d3.select("#zoom-pan")[0][0].checked=true;
+            d3.select("#drag-select")[0][0].checked=false;
+            d3.select("#de-select")[0][0].checked=false;
+        }else if(mode=="drag-select"){
             mode =  "de-select";
+            d3.select("#zoom-pan")[0][0].checked=false;
+            d3.select("#drag-select")[0][0].checked=true;
+            d3.select("#de-select")[0][0].checked=false;            
         }else{
             mode = "zoom-pan";
+            d3.select("#zoom-pan")[0][0].checked=false;
+            d3.select("#drag-select")[0][0].checked=false;
+            d3.select("#de-select")[0][0].checked=true;
         }
+        
         ifeed.UI_states.selection_mode = mode;
         self.change_interaction_mode(mode);     
     }
@@ -499,7 +509,8 @@ function MainPlot(ifeed){
                                 }
                             });
                         }
-                        d3.select("#num_of_archs").text(""+self.get_num_of_archs());
+                        
+                        d3.select("#num_of_selected_archs").text(""+self.get_num_of_selected_archs());
                     }      
                 })
                 .on( "mouseup", function() {
