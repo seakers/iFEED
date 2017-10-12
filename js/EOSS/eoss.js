@@ -204,7 +204,7 @@ function EOSS(ifeed){
             .text(function (d) {
                 return d.columnName;
             })
-            .style("font-size", "12px");
+            .style("font-size", "13px");
 
 
         // create table body
@@ -235,7 +235,7 @@ function EOSS(ifeed){
                     return "#D0D0D0";
                 }
             })
-            .attr("id", "arch_cell")
+            .attr("class", "arch_info_display_cell")
             .attr("width", function (d, i) {
                 if (d.type == "orbit") {
                     return "120px";
@@ -248,8 +248,7 @@ function EOSS(ifeed){
                   return ifeed.label.actualName2DisplayName(d.content,"orbit");
               }
               return ifeed.label.actualName2DisplayName(d.content,"instrument");
-            })
-            .style("font-size", "13px");
+            });
     }
 
     
