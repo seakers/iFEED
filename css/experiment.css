@@ -1,4 +1,32 @@
 
+#experiment_prompt{
+    width:80%;
+    float:left;
+    margin-left:70px;
+    background-color: #F9E39D;
+    padding:20px;
+}
+
+#experiment_prompt:first-child{
+    width:800px;
+    float:left;
+}
+
+#promt_body_text_1{
+    font-size:22px;
+}
+
+#arrow_div{
+    margin-top: 30px;
+}
+
+#task_number{
+    font-size:12px;
+    margin:0 48%;
+}
+
+
+
 #clockdiv{
     font-family: sans-serif;
     color: #fff;

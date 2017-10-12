@@ -122,32 +122,32 @@ function Experiment(ifeed){
         // Change the prompt message and the target selection
         if(self.condition_number==1){
 
-            d3.select("#main_header").text("Task "+(self.task_order.indexOf(self.task_number)+1)+": Find features using visual inspection");
-            d3.select('#main_text').html('<p> - You can hover your mouse over each design to see the relevant information.</p>'
+            d3.select("#prompt_header").text("Task "+(self.task_order.indexOf(self.task_number)+1)+": Find features using visual inspection");
+            d3.select('#prompt_body_text_1').html('<p> - You can hover your mouse over each design to see the relevant information.</p>'
                                         +'<p>** for this task, you are encouraged to take notes (either physically on a piece of paper or electronically using a notepad</p>'
                                         +'<br><p>You have at maximum 10 minutes, but you can finish early if you feel like you found a good enough feature with good coverage and specificy. </p>');
 
             d3.select('body').style('background-color','#FFEDF3');
-            d3.select('#main_div').style('background-color','#FFC1D4');   
+            d3.select('#experiment_prompt').style('background-color','#FFC1D4');   
         }
         else if(self.condition_number==2){
-            d3.select("#main_header").text("Task "+(self.task_order.indexOf(self.task_number)+1)+": Find features using visual inspection and filters");
-            d3.select('#main_text').html('<p> - You can hover your mouse over each design to see the relevant information.</p>'
+            d3.select("#prompt_header").text("Task "+(self.task_order.indexOf(self.task_number)+1)+": Find features using visual inspection and filters");
+            d3.select('#prompt_body_text_1').html('<p> - You can hover your mouse over each design to see the relevant information.</p>'
                                         +'<p> - You can use filters to selectively highlight designs sharing certain features. </p>'
                                         +'<br><p>You have at maximum 10 minutes, but you can finish early if you feel like you found a good enough feature with good coverage and specificy. </p>');
 
             d3.select('body').style('background-color','#F0EBFF');
-            d3.select('#main_div').style('background-color','#CDC1FF');        
+            d3.select('#experiment_prompt').style('background-color','#CDC1FF');        
         }
         else if(self.condition_number==3){
-            d3.select("#main_header").text("Task "+(self.task_order.indexOf(self.task_number)+1)+": Find features using visual inspection, filters, and data mining");
-            d3.select('#main_text').html('<p> - You can hover your mouse over each design to see the relevant information.</p>'
+            d3.select("#prompt_header").text("Task "+(self.task_order.indexOf(self.task_number)+1)+": Find features using visual inspection, filters, and data mining");
+            d3.select('#prompt_body_text_1').html('<p> - You can hover your mouse over each design to see the relevant information.</p>'
                                         +'<p> - You can use filters to selectively highlight designs sharing certain features. </p>'
                                         +'<p> - You can use data mining to automatically extract some features for you. </p>'
                                         +'<br><p>You have at maximum 10 minutes, but you can finish early if you feel like you found a good enough feature with good coverage and specificy. </p>');
 
             d3.select('body').style('background-color','#F5FFF6');
-            d3.select('#main_div').style('background-color','#ABFFB3');
+            d3.select('#experiment_prompt').style('background-color','#ABFFB3');
         }
 
 
@@ -520,10 +520,10 @@ function Experiment(ifeed){
 
     
     
-    d3.select("#leftarrow").on("click",function(d){
+    d3.select("#move_backward_button").on("click",function(d){
         self.previous_task();
     });
-    d3.select("#rightarrow").on("click",function(d){
+    d3.select("#move_forward_button").on("click",function(d){
         self.next_task();
     });
     

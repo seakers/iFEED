@@ -39,17 +39,21 @@ and open the template in the editor.
     <h2>iFEED GUI</h2>
 </div>
     
-<div id="experiment_promt" style="width:80%;float:left;margin-left:70px;background-color:#F9E39D;padding:20px">
+<div id="experiment_promt">
     
-    <div id='prompt_body' style='width:800px;float:left;'>
-        <h3 id="main_header"></h3>
-        <p id="main_text" style="font-size:22px"></p>
-        <p id="main_text2" style="font-size:22px"></p>
+    <div>
+        <h3 id="prompt_header"></h3>
+        <div id="prompt_body">
+            <p id="prompt_body_text_1" style="font-size:22px"></p>
+            <p id="prompt_body_text_2" style="font-size:22px"></p>
+            
+            <div></div>
+        </div>
 
-        <div id="arrow_div" style="margin-top:30px">
-            <img src="img/rightarrow.png" class="img-hor-vert" id="leftarrow" width="48" height="31">
-            <img src="img/rightarrow.png" id="rightarrow" width="48" height="31">
-            <div id="task_number" style="font-size:12px; margin:0 48%"></div>
+        <div id="arrow_div">
+            <img src="img/rightarrow.png" class="img-hor-vert" id="move_backward_button" width="48" height="31">
+            <img src="img/rightarrow.png" id="move_forward_button" width="48" height="31">
+            <div id="task_number"></div>
         </div>
     </div>
 
@@ -64,6 +68,9 @@ and open the template in the editor.
                 <div class="smalltext">Seconds</div>
               </div>
         </div>	
+    </div>
+    
+    <div id="prompt_page_number">
     </div>
 
 </div>	
