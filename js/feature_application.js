@@ -37,6 +37,24 @@ function FeatureApplication(ifeed){
     self.contextMenu = null;
     
     
+    self.reset = function(){
+        
+        self.root=null;
+        
+        self.update(self.root);
+
+        ifeed.data_mining.add_feature_to_plot("");
+
+        self.update_feature_expression("");            
+
+        ifeed.data_mining.draw_venn_diagram();  
+
+        self.dragStarted= false;
+        self.draggingNode=null;
+    }
+    
+
+    
     self.draw_feature_application_tree = function(expression){
 
         var margin = self.margin;
@@ -988,7 +1006,7 @@ function FeatureApplication(ifeed){
             expression=="";
 
         }else if(expression != ""){
-
+                        
             expression = ifeed.label.pp_feature(expression);
             expression = expression.replace(/{/g,'');
             expression = expression.replace(/}/g,'');

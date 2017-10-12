@@ -517,7 +517,9 @@ function Filter(ifeed){
         var ninstr = ifeed.problem.instrument_num;
         var type = expression.split("[")[0];
         var bitString = data.inputs;
-
+        
+        bitString = ifeed.experiment.encodeBitStringBool(bitString);
+        
         if(type==="paretoFront"){
             
             if(data.pareto_ranking || data.pareto_ranking==0){

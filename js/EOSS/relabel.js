@@ -25,7 +25,7 @@ function EOSSLabel(eoss){
     self.disabled = false;
     
     self.orbit_relabeled = ["1000","2000","3000","4000","5000"];
-    self.instrument_relabeld = ["A","B","C","D","E","F","G","H","I","J","K","L"];
+    self.instrument_relabeled = ["A","B","C","D","E","F","G","H","I","J","K","L"];
     
     
     /*
@@ -57,7 +57,7 @@ function EOSSLabel(eoss){
         if(type=="orbit"){
             return self.orbit_relabeled[index];
         }else if(type=="instrument"){
-            return self.instrument_relabeld[index];
+            return self.instrument_relabeled[index];
         }else{
             return "Naming Error";
         }
@@ -108,7 +108,7 @@ function EOSSLabel(eoss){
         for(var i=0;i<split.length;i++){
             var name = split[i];
 
-            if(self.orbit_relabeled.indexOf(name)==-1 && self.instrument_relabeld.indexOf(name)==-1){
+            if(self.orbit_relabeled.indexOf(name)==-1 && self.instrument_relabeled.indexOf(name)==-1){
                 alert('Invalid input argument');
             }
             if(i>0) output=output+",";
@@ -116,7 +116,7 @@ function EOSSLabel(eoss){
             if(type=="orbit"){
                 output=output+$.inArray(name,self.orbit_relabeled);
             }else if(type=="instrument"){
-                output=output+$.inArray(name,self.instrument_relabeld);
+                output=output+$.inArray(name,self.instrument_relabeled);
             }else{
                 return "Naming Error";
             }
@@ -144,7 +144,7 @@ function EOSSLabel(eoss){
             if(nth==-1){ // Couldn't find gthe name from the list
                 return name;
             }
-            return self.instrument_relabeld[nth];
+            return self.instrument_relabeled[nth];
         } else{
             return name;
         }
@@ -162,7 +162,7 @@ function EOSSLabel(eoss){
             }
             return eoss.orbit_list[nth];
         } else if(type=="instrument"){
-            var nth = $.inArray(name,self.instrument_relabeld);
+            var nth = $.inArray(name,self.instrument_relabeled);
             if(nth==-1){ // Couldn't find gthe name from the list
                 return name;
             }

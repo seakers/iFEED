@@ -121,13 +121,13 @@ function DataMining(ifeed){
                 non_selected.push(id);
             }
 
-            self.mined_features = self.get_driving_features(selected,non_selected,self.support_threshold,self.confidence_threshold,self.lift_threshold);
+            if(ifeed.experiment.condition_number=='2'){
+                self.mined_features=[];
+            }else{
+                self.mined_features = self.get_driving_features(selected,non_selected,self.support_threshold,self.confidence_threshold,self.lift_threshold);
+            }            
 
             self.all_features = self.mined_features;
-            
-            if(self.all_features.length==0){
-                return;
-            }
             
             self.display_features(self.all_features);
 
@@ -288,7 +288,9 @@ function DataMining(ifeed){
         self.utopia_point.metrics=[Math.max.apply(null, lifts),Math.max.apply(null, supps),max_conf,max_conf];
 
         // Insert the utopia point to the list of features
-        self.all_features.splice(0, 0, self.utopia_point);
+        if(self.all_features.length!=0){
+            self.all_features.splice(0, 0, self.utopia_point);
+        }
 
         // Add score for the utopia point (0.2 more than the best score found so far)
         scores.splice(0,0,Math.max.apply(null,scores)+0.2); 
@@ -308,8 +310,13 @@ function DataMining(ifeed){
 
         // don't want dots overlapping axis, so add in buffer to data domain 
         var xBuffer = (d3.max(self.all_features, xValue) - d3.min(self.all_features, xValue)) * 0.05;
-
-        xScale.domain([d3.min(self.all_features, xValue) - xBuffer, d3.max(self.all_features, xValue) + xBuffer]);
+        
+        if(self.all_features.length==0){
+            xScale.domain([0,1]);
+        }else{
+            xScale.domain([d3.min(self.all_features, xValue) - xBuffer, d3.max(self.all_features, xValue) + xBuffer]);
+        }
+        
 
         // data -> display
         var xMap = function (d) {
@@ -327,7 +334,13 @@ function DataMining(ifeed){
         var yScale = d3.scale.linear().range([height, 0]); 
 
         var yBuffer = (d3.max(self.all_features, yValue) - d3.min(self.all_features, yValue)) * 0.05;
-        yScale.domain([d3.min(self.all_features, yValue) - yBuffer, d3.max(self.all_features, yValue) + yBuffer]);
+        
+        if(self.all_features.length==0){
+            yScale.domain([0,1]);
+        }else{
+            yScale.domain([d3.min(self.all_features, yValue) - yBuffer, d3.max(self.all_features, yValue) + yBuffer]);
+        }
+        
         // data -> display
         var yMap = function (d) {
             return yScale(yValue(d));
@@ -401,7 +414,7 @@ function DataMining(ifeed){
                 .attr("x", self.width)
                 .attr("y", -6)
                 .style("text-anchor", "end")
-                .text('Confidence(F->S)')
+                .text('Specificity')
                 .style('font-size','15px');
 
         // y-axis
@@ -414,7 +427,7 @@ function DataMining(ifeed){
                 .attr("y", 6)
                 .attr("dy", ".71em")
                 .style("text-anchor", "end")
-                .text('Confidence(S->F)')
+                .text('Coverage')
                 .style('font-size','15px');
 
 
@@ -526,7 +539,9 @@ function DataMining(ifeed){
         updateRainbow();
 
         // Remove the utopia point
-        self.all_features.splice(0,1);
+        if(self.all_features.length!=0){
+            self.all_features.splice(0,1);
+        }
 
         if(remove_last_feature){
             // Remove the last feature, as it had been added temporarily to display the cursor
@@ -559,6 +574,9 @@ function DataMining(ifeed){
 
         var id= d.id; 
         var expression = d.expression;
+        
+        expression = ifeed.experiment.label.relabel_randomized_variable(expression);
+
         var metrics = d.metrics;
         var conf = d.metrics[2];
         var conf2 = d.metrics[3];
@@ -572,8 +590,8 @@ function DataMining(ifeed){
         var mouseLoc_y = d3.mouse(d3.select(".objects.feature_plot")[0][0])[1];
 
         var tooltip_location = {x:0,y:0};
-        var tooltip_width = 170;
-        var tooltip_height = 70;
+        var tooltip_width = 160;
+        var tooltip_height = 100;
 
         var h_threshold = (width + margin.left + margin.right)*0.5;
         var v_threshold = (height + margin.top + margin.bottom)*0.55;
@@ -624,7 +642,7 @@ function DataMining(ifeed){
                             var output= "<br> Specificity: " + round_num(d.metrics[2]) + 
                             "<br> Coverage: " + round_num(d.metrics[3]) +"";
                             return output;
-                        }).style("padding","8px")
+                        }).style("padding","3px")
                         .style('color','#F7FF55')
                         .style('word-wrap','break-word')
                         .style('font-size','21px;');   

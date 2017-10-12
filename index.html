@@ -24,6 +24,8 @@ and open the template in the editor.
     <link href="css/data_mining.css" rel="stylesheet" type="text/css"/>
     <link href="css/feature_application.css" rel="stylesheet" type="text/css"/>
 
+    <link href="css/experiment.css" rel="stylesheet" type="text/css"/>
+    
     <script src="https://apis.google.com/js/platform.js" async defer></script>
     <meta name="google-signin-client_id" content="564804694787-lnsp9md3u0q8086nftbamu43drid6d4t.apps.googleusercontent.com">
 
@@ -36,6 +38,36 @@ and open the template in the editor.
 <div class='title'>
     <h2>iFEED GUI</h2>
 </div>
+    
+<div id="experiment_promt" style="width:80%;float:left;margin-left:70px;background-color:#F9E39D;padding:20px">
+    
+    <div id='prompt_body' style='width:800px;float:left;'>
+        <h3 id="main_header"></h3>
+        <p id="main_text" style="font-size:22px"></p>
+        <p id="main_text2" style="font-size:22px"></p>
+
+        <div id="arrow_div" style="margin-top:30px">
+            <img src="img/rightarrow.png" class="img-hor-vert" id="leftarrow" width="48" height="31">
+            <img src="img/rightarrow.png" id="rightarrow" width="48" height="31">
+            <div id="task_number" style="font-size:12px; margin:0 48%"></div>
+        </div>
+    </div>
+
+    <div id='clock' style='float:right;'>
+        <div id="clockdiv">
+              <div>
+                <span class="minutes"></span>
+                <div class="smalltext">Minutes</div>
+              </div>
+              <div>
+                <span class="seconds"></span>
+                <div class="smalltext">Seconds</div>
+              </div>
+        </div>	
+    </div>
+
+</div>	
+    
 
 <div class='content'>
     <div id='status_display'>
@@ -59,7 +91,7 @@ and open the template in the editor.
                 <ul class="tabs" data-persist="true">
                     <li><a id="tab1" href="#view1">Inspect Design</a></li>
                     <li><a id="tab2" href="#view2">Filter Setting</a></li>
-                    <li><a id="tab3" href="#view3">Feature Status</a></li>
+                    <li><a id="tab3" href="#view3">Feature Analysis</a></li>
                 </ul>
                 <div class="tabcontents">
                     <div id="view1"></div>
@@ -121,6 +153,10 @@ and open the template in the editor.
     ifeed.calculate_pareto_ranking();
     
     ifeed.main_plot.toggle_selection_mode();
+    
+    var experiment = new Experiment(ifeed);
+    ifeed.experiment = experiment;
+    
     
 </script>
 
