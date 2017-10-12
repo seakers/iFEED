@@ -63,6 +63,8 @@ function Experiment(ifeed){
     self.account_id = '123123123';
     
     
+
+    
     function getTimeRemaining(endtime){
           var t = Date.parse(endtime) - Date.parse(new Date());
           var seconds = Math.floor( (t/1000) % 60 );
@@ -520,10 +522,10 @@ function Experiment(ifeed){
 
     
     
-    d3.select("#leftarrow").on("click",function(d){
+    d3.select("#move_backward_button").on("click",function(d){
         self.previous_task();
     });
-    d3.select("#rightarrow").on("click",function(d){
+    d3.select("#move_forward_button").on("click",function(d){
         self.next_task();
     });
     
