@@ -7,14 +7,12 @@ function ExperimentTutorial(ifeed,experiment){
     self.current_view = 5;
     self.max_view = 30;
     
-    
     self.max_view_reached = 0;
     self.view_actions = 0;
     
     self.current_items=[];
     
     self.intro = introJs();
-    
     
     self.deactivate_continue_button = function(){
         d3.select("#move_forward_button")
@@ -47,20 +45,32 @@ function ExperimentTutorial(ifeed,experiment){
     
     
     d3.select("#move_backward_button").on("click",self.tutorial_go_back);
+    
+    d3.select('#arrow_div').insert('button','#move_forward_button')
+            .attr('id','reopen_intro_button')
+            .text('Re-open messages')
+            .on('click',function(){self.intro.start();});
+    
     d3.select("#move_forward_button").on("click",self.tutorial_continue);
     
 
-    self.write_tutorial_prompt = function(title,body){
+    self.write_prompt = function(title,body){
         d3.select("#prompt_header").text(title);
         d3.select("#prompt_body_text_1").html(body);
     }
     
-    self.start_intro = function(objects, messages){
+    
+    
+    self.start_intro = function(objects, messages, classname, callback){
         
         if(messages.length==1){
-            self.intro.setOption('showButtons',false);
+            self.intro.setOption('showButtons',false).setOption('showBullets',false);
         }else{
-            self.intro.setOption('showButtons',true);
+            self.intro.setOption('showButtons',true).setOption('showBullets',true);
+        }
+        
+        if(!classname){
+            classname = 'introjs_tooltip';
         }
         
         var steps = [];
@@ -78,22 +88,24 @@ function ExperimentTutorial(ifeed,experiment){
                     steps.push({element:objects[i],intro:messages[i]});
                 }
             }
-
-            //d3.select(tag).attr('data-intro',message);            
-            //d3.select(tag).style('border-width','5px').style('border-color','#FF2D65');
         }
 
         self.current_items = objects;
         
-        self.intro.setOptions({steps:steps,tooltipClass:'introjs_tooltip'}).start();   
+        if(callback){
+            self.intro.setOptions({steps:steps,tooltipClass:classname}).onchange(callback).start(); 
+        }else{
+            self.intro.setOptions({steps:steps,tooltipClass:classname}).start(); 
+        }
     }
     
     
+    
+    
     self.clear_view = function(){
-
         self.current_items = [];
-        
         self.intro.setOptions({steps:[]});
+        self.write_prompt("","");
     }
 
     
@@ -105,83 +117,102 @@ function ExperimentTutorial(ifeed,experiment){
 
         // Set the page number
         d3.select('#prompt_page_number').text("" + self.current_view + "/"+ self.max_view);
-        
 
+        var objects,contents,classname,callback;
+        var title, prompt;
         
         if(self.current_view==5){
         
-            var content = ["Now we will go through each component of iFEED interface.", "During this part of the tutorial, please focus on the part that is currently being explained. Explanation about other parts of the interface may be provided later in the tutorial."];
-
-            self.start_intro(null,content);
+            objects = null;
+            contents = ["Now we will go through each component of iFEED interface.", 
+                           "During this part of the tutorial, please focus on the part that is currently being explained. Explanation about other parts of the interface may be provided later in the tutorial."];
+            
+            classname=null;
+            callback=null;
+                        
+            title = 'Overview';
+            prompt = 'Each page will cover different topics. To go back to the previous topic, click the left-arrow button. To continue, click the right-arrow button. To view the explanations related to the current topic again, click the "Re-open messages" button.';
         }
         
         else if(self.current_view==6){ // Scatter plot panel
 
-            var title = 'Scatter Plot Panel';
-            var content = ['The scatter plot panel displays thousands of different designs of satellite systems. Each dot corresponds to one design, and its location indicates the corresponding cost and science benefit score of the design.','You can zoom in and zoom out as well as pan using your mouse wheel.'];
-
-            //self.write_tutorial_prompt(title,body);
-            self.start_intro(d3.select('.main_plot.figure')[0],content);
+            objects = d3.select('.main_plot.figure')[0];
+            
+            contents = ['The scatter plot panel displays thousands of different designs of satellite systems. Each dot corresponds to one design, and its location indicates the corresponding cost and science benefit score of the design.', // 0
+                            'You can zoom in and zoom out as well as pan using your mouse wheel.', // 1
+                            'For each task, a group of dots will be highlighted in a light blue color.', // 2
+                            'These dots represent the target designs that you need to investigate. Your goal is to find patterns that are shared uniquely by these designs.' // 3
+                           ];
+            
+            classname = 'introjs_tooltip_large';
+            callback = function(targetElement) {
+                if(this._currentStep==2){
+                    experiment.select_archs_using_ids(tutorial_selection);
+                    d3.select("#num_of_selected_archs").text(""+ifeed.main_plot.get_num_of_selected_archs());   
+                }
+            }            
+            
+            title = 'Scatter Plot Panel';
+            prompt = '';
         }
 
-        else if(self.current_view==7){ // Target solutions
 
-            var title = "Target designs";
-            var content = ['For each task, a group of dots will be highlighted in a light blue color. These dots represent the target designs that you need to investigate. Your goal is to find patterns that are shared uniquely by these designs.'];
+        else if(self.current_view==7){ // Number of designs shown
 
-            //self.write_tutorial_prompt(title,body);
-            self.start_intro(d3.select('.main_plot.figure')[0],content);
-
-            experiment.select_archs_using_ids(tutorial_selection);
-            d3.select("#num_of_selected_archs").text(""+ifeed.main_plot.get_num_of_selected_archs());   
+            objects = [d3.select('#status_display')[0][0],d3.selectAll('#status_display > div')[0][0],d3.selectAll('#status_display > div')[0][1]];
+            
+            contents = ['The number of designs are displayed in the boxes above the scatter plot.','This shows the total number of designs','This shows the number of target designs'];
+            
+            classname = 'introjs_tooltip_small';
+            callback=null;
+            
+            title='Number of designs';
+            prompt = '';
         }
-
-
-        else if(self.current_view==8){ // Number of designs shown
-
-
-            var title = "Number of designs";
-            var body = '<p>The total number of designs and the number of target designs are displayed in the boxes '
-                                               +'above the scatter plot.</p>';
-
-            self.write_tutorial_prompt(title,body);
-            self.start_intro(d3.selectAll('#status_display > div')[0],[body]);
-        }
-
-        
         
         else if(self.current_view==8){ 
 
-            var title = "Analysis Panel";
-            var body = '<p>The analysis panel is located below the scatter plot panel.</p>';
+            objects = d3.selectAll('#support_panel')[0];
+            
+            contents = ['The analysis panel is located below the scatter plot panel.',
+                       'If you hover your mouse over a design on the scatter plot, the relevant information will be displayed on the \"Inspect Design\" tab.',
+                        'The displayed information contains the science benefit score and the cost, as well as a figure that shows what instruments are assigned to each orbit.'];
 
-            self.write_tutorial_prompt(title,body);
-            self.start_intro(d3.selectAll('#support_panel')[0]);
-
+            classname = 'introjs_tooltip_large';
+            callback = null;
+            
+            title = "Analysis Panel and Inspecting Design by Hovering";
+            prompt = '';
         }
+        
+        
         else if(self.current_view==9){
 
             if(self.max_view_reached < 9){
                 self.deactivate_continue_button();
             }
 
-            var title = "Design Inspection";
-            var body = '<p>If you hover your mouse over a design on the scatter plot, the relevant information '
-                                               +'will be displayed on the \"Inspect Design\" tab. The displayed information contains the science benefit score and the cost, as well as a figure that shows what instruments are assigned to each orbit. </p>'
-
-                                               +'<p>The borderline of either the scatter plot or the analysis panel will be represented by bold lines. The bold line means that the panel is currently focused. When the analysis panel is focused, hovering the mouse over a dot on the scatter plot will not change the information already displayed on the analysis panel. To enable the inspection of designs by hovering, click the scatter plot to bring the focus back to the scatter plot. </p>'
-
-                                               +'<p>To continue, try alternating the focus by clicking on the scatter plot and the analysis panel.</p>';
-
-            self.write_tutorial_prompt(title,body);
-            self.start_intro(d3.selectAll('#support_panel')[0]);
+            objects = d3.select('.column.c1')[0];
+            contents = ['The borderline of either the scatter plot or the analysis panel will be represented by bold lines. The bold line means that the panel is currently focused.',
+                        'When the analysis panel is focused, hovering the mouse over a dot on the scatter plot will not change the information already displayed on the analysis panel. ',
+                        'To enable the inspection of designs by hovering, click the scatter plot to bring the focus back to the scatter plot.'];
+            
+            classname = 'introjs_tooltip_large';
+            callback = function(targetElement) {
+                if(this._currentStep==1){
+                    ifeed.main_plot.highlight_support_panel();
+                }
+            }    
+            
+            title = "Activating Panels";
+            prompt = 'To continue, try alternating the focus by clicking on the scatter plot and the analysis panel.';
 
             document.getElementById('tab1').click();
-
             ifeed.main_plot.cancel_selection();        
             ifeed.main_plot.unhighlight_support_panel();
         }
 
+        
         else if(self.current_view==10){
 
             var title = 'Finding "good" features';
@@ -740,6 +771,12 @@ function ExperimentTutorial(ifeed,experiment){
     //		.text("Start the Experiment")
     //		.on("click", start_experiment);
     //}
+        
+        
+        
+        
+        self.write_prompt(title,prompt);
+        self.start_intro(objects,contents,classname,callback);
 
     }
 

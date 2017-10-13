@@ -3,8 +3,10 @@
     width:80%;
     float:left;
     margin-left:70px;
-    background-color: #F9E39D;
-    padding:20px;
+    background-color: #C5EEFF;
+    border-radius: 25px;
+    opacity:0.9;
+    padding:25px;
 }
 
 #experiment_prompt{
@@ -52,20 +54,28 @@
     display: inline-block;
 }
 
+
+#arrow_div > img, #arrow_div > button{
+    float:left;
+    margin-left: 4px;
+    margin-right: 4px;
+}
+
+
 .introjs_tooltip_small{
-    font-size:  23px;
-    max-width: 400px;
-    min-width: 400px;
+    font-size:  22px;
+    max-width: 300px;
+    min-width: 300px;
 }
 
 .introjs_tooltip{
-    font-size:  23px;
-    max-width: 600px;
-    min-width: 600px;
+    font-size:  22px;
+    max-width: 500px;
+    min-width: 500px;
 }
 
 .introjs_tooltip_large{
-    font-size:  23px;
-    max-width: 900px;
-    min-width: 900px;
+    font-size:  22px;
+    max-width: 700px;
+    min-width: 700px;
 }
