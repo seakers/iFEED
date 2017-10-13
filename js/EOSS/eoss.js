@@ -17,7 +17,7 @@ function EOSS(ifeed){
     ifeed.metadata.output_obj =[1,-1]; // 1 for lager-is-better, -1 for smaller-is-better
     
     // Set the path to the result file
-    ifeed.metadata.result_path="/results/EOSS_data.csv";
+    ifeed.metadata.result_path="EOSS_data.csv";
     
     
     ifeed.label = new EOSSLabel(self);
@@ -31,7 +31,7 @@ function EOSS(ifeed){
         var orbitList;
         $.ajax({
             url: "/api/vassar/get-orbit-list/",
-            type: "POST",
+            type: "GET",
             async: false,
             success: function (data, textStatus, jqXHR)
             {
@@ -54,7 +54,7 @@ function EOSS(ifeed){
         var instrumentList;
         $.ajax({
             url: "/api/vassar/get-instrument-list/",
-            type: "POST",
+            type: "GET",
             async: false,
             success: function (data, textStatus, jqXHR)
             {
