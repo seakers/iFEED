@@ -16,8 +16,10 @@ and open the template in the editor.
     <script src="js/lib/d3-shape.v1.min.js"></script>
     <script src="js/lib/d3-path.v1.min.js"></script>
     <script src="js/lib/tabcontent.js" type="text/javascript"></script>
-    
     <link href="js/lib/tabcontent.css" rel="stylesheet" type="text/css"/>
+    <script src="js/lib/intro.js"></script>
+    <link href="js/lib/introjs.css" rel="stylesheet" type="text/css"/>
+    
     
     <link href="css/main_plot.css" rel="stylesheet" type="text/css"/>
     <link href="css/filter.css" rel="stylesheet" type="text/css"/>
@@ -38,12 +40,11 @@ and open the template in the editor.
 <div class='title'>
     <h2>iFEED GUI</h2>
 </div>
-    
 
 
 <div class='content'>
     
-    <div id="experiment_prompt_div">
+    <div id="experiment_prompt_div" class='experiment_prompt_div'>
         <div id="experiment_prompt">
             <h3 id="prompt_header"></h3>
             <div id="prompt_body">
@@ -79,7 +80,7 @@ and open the template in the editor.
     </div>	
 
     
-    <div id='status_display'>
+    <div id='status_display' class='status_display'>
         <div>
             <div>Number of designs:</div>
             <div id="num_of_archs"></div>
@@ -162,13 +163,15 @@ and open the template in the editor.
     ifeed.import_new_data(ifeed.result_path);
     ifeed.calculate_pareto_ranking();
     
-    ifeed.main_plot.toggle_selection_mode();
+    //ifeed.main_plot.toggle_selection_mode();
     
     var experiment = new Experiment(ifeed);
     ifeed.experiment = experiment;
     
     var tutorial = new ExperimentTutorial(ifeed,experiment);
-    ifeed.tutorial = tutorial;    
+    ifeed.tutorial = tutorial;   
+    
+    tutorial.display_views();
     
 </script>
 

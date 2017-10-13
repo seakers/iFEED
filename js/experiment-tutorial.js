@@ -4,32 +4,29 @@ function ExperimentTutorial(ifeed,experiment){
     
     var self = this;
     
-    self.current_view = 0;
+    self.current_view = 5;
     self.max_view = 30;
     
     
     self.max_view_reached = 0;
     self.view_actions = 0;
     
-    self.currently_highlighted=[];
+    self.current_items=[];
+    
+    self.intro = introJs();
     
     
     self.deactivate_continue_button = function(){
-        
         d3.select("#move_forward_button")
             .on("click",null)
             .style('opacity',0.3);
     }
 
     self.activate_continue_button = function(){
-        
         d3.select('#move_forward_button')
             .style('opacity',1)
             .on("click",self.tutorial_continue);
     }
-
-    d3.select("#move_backward_button").on("click",self.tutorial_go_back);
-    d3.select("#move_forward_button").on("click",self.tutorial_continue);
 
 
     self.tutorial_continue = function(){
@@ -39,685 +36,712 @@ function ExperimentTutorial(ifeed,experiment){
     
 
     self.tutorial_go_back = function(){
-        
-//        if(self.current_view==5){
-//            var path = "index.html?" + testType + "-" + account_id;
-//            window.location.replace(path);
-//        }
+        if(self.current_view==5){
+            //var path = "index.html?" + testType + "-" + account_id;
+            //window.location.replace(path);
+            return;
+        }
         self.current_view--;
         self.display_views();
     }
     
     
+    d3.select("#move_backward_button").on("click",self.tutorial_go_back);
+    d3.select("#move_forward_button").on("click",self.tutorial_continue);
+    
 
     self.write_tutorial_prompt = function(title,body){
-
         d3.select("#prompt_header").text(title);
         d3.select("#prompt_body_text_1").html(body);
-
-    }
-
-    self.highlight_border = function(obj_list){
-
-        for(var i=0;i<obj_list.length;i++){
-            var tag = obj_list[i];
-            d3.select(tag).style('border-width','5px').style('border-color','#FF2D65');
-        }
-
-        self.currently_highlighted = obj_list;
     }
     
-    self.unhighlight_border = function(){
-
-        for(var i=0;i<self.currently_highlighted.length;i++){
-            
-            var tag = self.currently_highlighted[i];
-            d3.select(tag).style('border-width','1px').style('border-color','#000000');
-            
+    self.start_intro = function(objects, messages){
+        
+        if(messages.length==1){
+            self.intro.setOption('showButtons',false);
+        }else{
+            self.intro.setOption('showButtons',true);
         }
-        self.currently_highlighted = [];
+        
+        var steps = [];
+        var last_object = null;
+        
+        for(var i=0;i<messages.length;i++){
+
+            if(!objects){
+                steps.push({intro:messages[i]});
+            }else{
+                if(!objects[i]){
+                    steps.push({element:last_object,intro:messages[i]});
+                }else{
+                    last_object = objects[i];
+                    steps.push({element:objects[i],intro:messages[i]});
+                }
+            }
+
+            //d3.select(tag).attr('data-intro',message);            
+            //d3.select(tag).style('border-width','5px').style('border-color','#FF2D65');
+        }
+
+        self.current_items = objects;
+        
+        self.intro.setOptions({steps:steps,tooltipClass:'introjs_tooltip'}).start();   
     }
     
     
     self.clear_view = function(){
 
-        self.unhighlight_border();
+        self.current_items = [];
+        
+        self.intro.setOptions({steps:[]});
     }
 
     
 
-self.display_views = function(){
-	
-    // Initialize
-    self.clear_view();
+    self.display_views = function(){
 
-    // Set the page number
-    d3.select('#prompt_page_number').text("" + self.current_view + "/"+ self.max_view);
-    
-    if(self.current_view==5){ // Scatter plot panel
+        // Initialize
+        self.clear_view();
 
-        var title = 'Scatter Plot Panel';
-        var body = '<p>The scatter plot panel (box highlighted in red) displays thousands of different designs of '
-                                           +'satellite systems. Each dot corresponds to one design, and its location indicates the corresponding cost and science benefit score of the design. </p>'
-                                           +'<p>You can zoom in and zoom out using your mouse wheel, or using pinching motion if you are using a trackpad. You can also pan using your mouse.</p>'
-                                          +'<p>Note: During the tutorial, please focus on the part that is currently highlighted. Explanation about other parts of the interface may be provided later in the tutorial. </p>';
+        // Set the page number
+        d3.select('#prompt_page_number').text("" + self.current_view + "/"+ self.max_view);
         
-        self.write_tutorial_header(title,body);
-        self.highlight_border([d3.select('.main_plot.figure')[0][0]]);
-    }
-    
-    else if(self.current_view==6){ // Target solutions
-
-        var title = "Target designs";
-        var body = '<p>For each task, a group of dots will be highlighted in a light blue color. '
-                                           +'These dots represent the target designs that you need to investigate. Your goal is to find patterns that are shared uniquely by these designs.';
-
-        self.write_tutorial_header(title,body);
-        self.highlight_border(d3.select('.main_plot.figure')[0]);
-
-        experiment.select_archs_using_ids(tutorial_selection);
-        d3.select("#num_of_selected_archs").text(""+ifeed.main_plot.get_num_of_selected_archs());   
-    }
-
-    
-    else if(self.current_view==7){ // Number of designs shown
 
         
-        var title = "Number of designs";
-        var body = '<p>The total number of designs and the number of target designs are displayed in the boxes '
-                                           +'above the scatter plot.</p>';
+        if(self.current_view==5){
         
-        self.write_tutorial_header(title,body);
-        self.highlight_border(d3.selectAll('#status_display > div')[0]);
-    }
+            var content = ["Now we will go through each component of iFEED interface.", "During this part of the tutorial, please focus on the part that is currently being explained. Explanation about other parts of the interface may be provided later in the tutorial."];
 
-    else if(self.current_view==8){ 
-        
-        var title = "Analysis Panel";
-        var body = '<p>The analysis panel is located below the scatter plot panel.</p>';
-
-        self.write_tutorial_header(title,body);
-        self.highlight_border(d3.selectAll('#support_panel')[0]);
-        
-    }
-    else if(self.current_view==9){
-        
-        if(self.max_view_reached < 9){
-            self.deactivate_continue_button();
+            self.start_intro(null,content);
         }
         
-        var title = "Design Inspection";
-        var body = '<p>If you hover your mouse over a design on the scatter plot, the relevant information '
-                                           +'will be displayed on the \"Inspect Design\" tab. The displayed information contains the science benefit score and the cost, as well as a figure that shows what instruments are assigned to each orbit. </p>'
+        else if(self.current_view==6){ // Scatter plot panel
 
-                                           +'<p>The borderline of either the scatter plot or the analysis panel will be represented by bold lines. The bold line means that the panel is currently focused. When the analysis panel is focused, hovering the mouse over a dot on the scatter plot will not change the information already displayed on the analysis panel. To enable the inspection of designs by hovering, click the scatter plot to bring the focus back to the scatter plot. </p>'
+            var title = 'Scatter Plot Panel';
+            var content = ['The scatter plot panel displays thousands of different designs of satellite systems. Each dot corresponds to one design, and its location indicates the corresponding cost and science benefit score of the design.','You can zoom in and zoom out as well as pan using your mouse wheel.'];
 
-                                           +'<p>To continue, try alternating the focus by clicking on the scatter plot and the analysis panel.</p>';
+            //self.write_tutorial_prompt(title,body);
+            self.start_intro(d3.select('.main_plot.figure')[0],content);
+        }
 
-        self.write_tutorial_prompt(title,body);
-        self.highlight_border(d3.selectAll('#support_panel')[0]);
+        else if(self.current_view==7){ // Target solutions
+
+            var title = "Target designs";
+            var content = ['For each task, a group of dots will be highlighted in a light blue color. These dots represent the target designs that you need to investigate. Your goal is to find patterns that are shared uniquely by these designs.'];
+
+            //self.write_tutorial_prompt(title,body);
+            self.start_intro(d3.select('.main_plot.figure')[0],content);
+
+            experiment.select_archs_using_ids(tutorial_selection);
+            d3.select("#num_of_selected_archs").text(""+ifeed.main_plot.get_num_of_selected_archs());   
+        }
+
+
+        else if(self.current_view==8){ // Number of designs shown
+
+
+            var title = "Number of designs";
+            var body = '<p>The total number of designs and the number of target designs are displayed in the boxes '
+                                               +'above the scatter plot.</p>';
+
+            self.write_tutorial_prompt(title,body);
+            self.start_intro(d3.selectAll('#status_display > div')[0],[body]);
+        }
+
         
-        document.getElementById('tab1').click();
         
-        ifeed.main_plot.cancel_selection();        
-        ifeed.main_plot.unhighlight_support_panel();
+        else if(self.current_view==8){ 
+
+            var title = "Analysis Panel";
+            var body = '<p>The analysis panel is located below the scatter plot panel.</p>';
+
+            self.write_tutorial_prompt(title,body);
+            self.start_intro(d3.selectAll('#support_panel')[0]);
+
+        }
+        else if(self.current_view==9){
+
+            if(self.max_view_reached < 9){
+                self.deactivate_continue_button();
+            }
+
+            var title = "Design Inspection";
+            var body = '<p>If you hover your mouse over a design on the scatter plot, the relevant information '
+                                               +'will be displayed on the \"Inspect Design\" tab. The displayed information contains the science benefit score and the cost, as well as a figure that shows what instruments are assigned to each orbit. </p>'
+
+                                               +'<p>The borderline of either the scatter plot or the analysis panel will be represented by bold lines. The bold line means that the panel is currently focused. When the analysis panel is focused, hovering the mouse over a dot on the scatter plot will not change the information already displayed on the analysis panel. To enable the inspection of designs by hovering, click the scatter plot to bring the focus back to the scatter plot. </p>'
+
+                                               +'<p>To continue, try alternating the focus by clicking on the scatter plot and the analysis panel.</p>';
+
+            self.write_tutorial_prompt(title,body);
+            self.start_intro(d3.selectAll('#support_panel')[0]);
+
+            document.getElementById('tab1').click();
+
+            ifeed.main_plot.cancel_selection();        
+            ifeed.main_plot.unhighlight_support_panel();
+        }
+
+        else if(self.current_view==10){
+
+            var title = 'Finding "good" features';
+            var body = '<p>Now, we will define what a good feature is. Your goal in this experiment is to find “good” features that explain the target region well. Below are some examples of how features might look like (these are just examples, so you don\'t have to pay attention to the details): </p>'
+
+                +'<p>1. Instrument A is assigned to orbit 1000 </p>'
+                +'<p>2. Instrument A and instrument B are assigned together in one orbit</p>'
+                +'<p>3. Instrument C and instrument D are not assigned to the same orbit</p>'
+                +'<p>4. Orbit 2000 is empty </p>'
+                +'<p>5. At least two instruments out of instruments A, B, C are assigned to the same orbit </p>'
+                +'<p>6. Instrument D is assigned to either orbit 1000 or orbit 2000</p>'
+                +'<p>7. Orbit 1000 is assigned only two instruments</p>'                                   
+
+                +'<p>You can think of these features as descriptions of the target designs. A “good” feature should explain most of the target designs, while not being too general. </p>';   
+
+        }
+
+        else if(self.current_view==11){
+
+            ifeed.main_plot.cancel_selection();
+            experiment.select_archs_using_ids(tutorial_selection);
+
+            var title = 'Coverage of target designs';
+            var body = 
+                '<p>Consider the following description: </p>'
+                +'<p>(a) At least one of the instruments A and G is used in the design</p>'
+                +'<p>Try clicking the button below to show what designs have the feature (a). The pink and purple dots in the scatter plot are all the designs that have feature (a), meaning that they use either instrument A or G (or both) in their designs. Purple dots are the overlap between the pink dots (designs with the feature) and the blue dots (target). Note that many of the target designs share this feature (as shown by the purple dots). We say that this feature has a large coverage of target designs. Such large coverage is desired in a good feature. </p>'
+
+                +'<p>However, (a) is not necessarily what we are looking for. It is too general, meaning that it also applies to many of the non-target designs as well. This leads us to the next criterion for a good feature. </p>';
+
+            var buttons = d3.select('#tutorial_buttons').append('g')
+
+            buttons.append('button')
+                    .attr('id','tutorial_button')
+                    .text('Highlight designs with feature (a)')
+                    .style('margin-right','20px')
+                    .style('font-size','18px')
+                    .on('click',function(d){
+                        applyComplexFilter('{present[;0;]}||{present[;6;]}');
+                    });
+        }
+        
+        
+        
+        
+        
+    //    
+    //else if(current_view==12){
+    //    
+    //    cancelDotSelections();
+    //    select_archs_using_ids(tutorial_selection);
+    //    
+    //    d3.select('#tutorial_header').text('Specificity');
+    //    d3.select('#tutorial_text_1').html(
+    //        
+    //        '<p>Now let\'s look at another description (Just see how it looks. The details are not important!):</p>'
+    //        +'<p>(b) Instrument B is used, and D is not used in the design, and E and C are never assigned to the same orbit. Instrument E is not assigned to orbit 1000. Instrument B, C, E, H, I are not assigned to orbit 3000, instruments A, B, F, J are not assigned to orbit 4000. Moreover, instrument A and instrument C are not assigned to orbit 5000.</p>'
+    //        
+    //        +'<p>Pretty complicated, right? Now try clicking the button below to highlight the designs with this feature. If you look closely, you will see that many of the pink dots have disappeared. This is good becuase we wanted to find a feature that uniquely describes the target region and does not cover the non-target region. We say that feature (b) is highly specific to the target region, and this is the second criterion that we require from a good feature.</p>'
+    //        
+    //        +'<p>However, if you look closely, you will notice that now many of the purple dots (target designs covered by the feature) have also disappeared. Only very small portion of the targets are in purple color now. Therefore, (b) is too specific, meaning that it only accounts for a small number of targets. Or you can say that the coverage of target designs have decreased. </p>'
+    //        
+    //        +'<p>As you may have noticed, there are two conflicting criteria that we are seeking from a good feature. Let\'s summarize those points in the next section.</p>'
+    //    );
+    //    
+    //    var buttons = d3.select('#tutorial_buttons').append('g')
+    //    buttons.append('button')
+    //            .attr('id','tutorial_button')
+    //            .text('Highlight designs with feature (b)')
+    //            .style('font-size','18px')
+    //            .on('click',function(d){
+    //                applyComplexFilter(tutorial_feature_example_b);
+    //            });
+    //    
+    //}else if(current_view==13){
+    //    
+    //    cancelDotSelections();
+    //    select_archs_using_ids(tutorial_selection);
+    //    
+    //    d3.select('#tutorial_header').text('The key is finding the balance');
+    //    d3.select('#tutorial_text_1').html(
+    //        '<p>In summary, a good feature should satisfy the following two conditions:</p>'
+    //        +'<p>1. The feature should cover a large area of the target region (maximize the number of purple dots)</p>'
+    //        +'<p>2. The feature should be specific enough, so that it does not cover the non-target region (minimize the number of pink dots)</p>'
+    //        +'<p>As we have seen in the previous example, there is a trade-off between these two conditions. If you try to make a feature cover more targets, you might make it too general, and make it cover non-target designs as well (too many pink dots). On the other hand, if you try to make a feature too specific, it may not cover many target designs (too few purple dots). </p>'
+    //        +'<p>Therefore, the key is finding the right balance between those two criteria. You can test the features again and see how they are distributed in the scatter plot by clicking the buttons below. (Reminder: Feature (a) is has good coverage but is not specific enough. Feature (b) is specific but has very low coverage of the targets.)</p>'
+    //        +'<p>Understanding this concept is important. If you are not sure about the concept introduced here, please ask questions to the experimenter for clarification.</p>'
+    //    );
+    //    
+    //    var buttons = d3.select('#tutorial_buttons').append('g')
+    //    
+    //    buttons.append('button')
+    //            .attr('id','tutorial_button_1')
+    //            .text('Highlight designs with feature (a)')
+    //            .style('margin-right','20px')
+    //            .style('font-size','18px')
+    //            .on('click',function(d){
+    //                cancelDotSelections('remove_highlighted');
+    //                applyComplexFilter('{present[;0;]}||{present[;6;]}');
+    //            });
+    //    
+    //    
+    //    buttons.append('button')
+    //            .attr('id','tutorial_button_2')
+    //            .text('Highlight designs with feature (b)')
+    //            .style('font-size','18px')
+    //            .on('click',function(d){
+    //                cancelDotSelections('remove_highlighted');
+    //                applyComplexFilter(tutorial_feature_example_b);
+    //            });
+    //}
+    //    
+    //    
+    //else if(current_view==14){
+    //	d3.select("#tutorial_header").text("Filters")
+    //	d3.select("#tutorial_text_1").html('<p>Now we will learn how to use iFEED as a tool to find good features. </p>'
+    //                                       
+    //                                       +'<p> In the analysis panel, you can find a tab for filter settings. Filters are used to highlight a group of designs that share the common feature that you define. For example, you can selectively highlight designs that use instrument C in any orbit, or highlight designs that assign instrument D and E to the orbit 4000. </p>'
+    //                                       
+    //                                       +'<p>The most basic and useful features have been identified and built into the filter options. You can select one of these preset filters to specify what patterns you want to investigate. We will test some of these preset filters in the following pages.</p>');
+    //
+    //    // Run data mining
+    //    runDataMining();
+    //    
+    //    
+    //    d3.select('#test_feature_scheme')[0][0].disabled=true;  
+    //    
+    //    d3.selectAll('.dot.dfplot').remove();
+    //
+    //    // Remove automatically generated placeholder
+    //    d3.selectAll('.applied_feature').remove();
+    //    current_feature_application = [];
+    //    update_feature_expression();
+    //    
+    //
+    //    document.getElementById('tab2').click();
+    //    highlight_support_panel();
+    //    d3.select('#supportPanel')
+    //        .style('border-width','5px')
+    //        .style('border-style','solid')
+    //        .style('border-color','#FF2D65');
+    //	
+    //}
+    //
+    //
+    //else if(current_view==15){
+    //	if(max_view_reached < 15){
+    //		deactivate_continue_button();
+    //	}
+    //    
+    //    cancelDotSelections('remove_highlighted');
+    //    
+    //	d3.select("#tutorial_header").text("Preset Filters: Present")
+    //	d3.select("#tutorial_text_1").html('<p>The filter called \'Present\' '
+    //			+'is used to selectively highlight designs that '
+    //			+'contain a specific instrument. It takes in one instrument name as an argument,'
+    //			+' and selects all designs that use that instrument. Follow the directions below to activate it:</p>'
+    //			+'<p>1. Select \'Present\' option from the dropdown menu. </p>'
+    //			+'<p>2. In the input field that appears, type in an instrument name. '
+    //			+'The instrument should be an alphabet letter ranging from A to L. </p>'
+    //			+'<p>3. Then click [Apply as new feature] button to apply the filter.</p>'
+    //			+'<p>As a result of applying the feature, a group of dots on the scatter plot are highlighted in pink color. These dots represent designs that have the feature you just defined.</p>');
+    //	
+    //	document.getElementById('tab2').click();
+    //	highlight_support_panel();
+    //    
+    //	d3.select('#filter_options').select('select')
+    //		.style('border-width','5px')
+    //		.style('border-style','solid')
+    //		.style('border-color','#FF2D65');
+    //	d3.select('#applyFilterButton_new')
+    //		.style('border-width','5px')
+    //		.style('border-style','solid')
+    //		.style('border-color','#FF2D65');   
+    //}
+    //
+    //
+    //else if(current_view==16){
+    //	if(max_view_reached<16){
+    //		deactivate_continue_button();
+    //	}
+    //    
+    //    cancelDotSelections('remove_highlighted');
+    //    
+    //	d3.select("#tutorial_header").text("Preset Filters: InOrbit")
+    //	d3.select("#tutorial_text_1").html('<p>The filter called \'InOrbit\' is used to selectively highlight designs that assign a specific '
+    //                                       +'instrument(s) to a given orbit. It takes in an orbit name and instrument name(s) as arguments. If more than one instrument name is given, then it highlights all designs that assign all those instruments into the specified orbit. To continue, follow the steps below:</p>'
+    //			+'<p>1. Select \'InOrbit\' option from the dropdown menu. </p>'
+    //			+'<p>2. In the first input field that appears, type in an orbit name. '
+    //			+'The orbit name should be a number in thousands (1000, 2000, 3000, 4000, or 5000). </p>'
+    //			+'<p>2. In the second input field, type in instrument names (1 or more). '
+    //			+'The instrument should be an alphabet letter ranging from A to L. If there are more than one instruments,'
+    //			+' the names should be separated by commas.</p>'
+    //			+'<p>3. Then click [Apply as new feature] button to apply the filter.</p>');
+    //
+    //	document.getElementById('tab2').click();
+    //	highlight_support_panel();
+    //	
+    //	d3.select('#filter_options').select('select')
+    //		.style('border-width','5px')
+    //		.style('border-style','solid')
+    //		.style('border-color','#FF2D65');
+    //	d3.select('#applyFilterButton_new')
+    //		.style('border-width','5px')
+    //		.style('border-style','solid')
+    //		.style('border-color','#FF2D65');
+    //}
+    //    
+    //    
+    //else if(current_view==17){
+    //    
+    //	d3.select("#tutorial_header").text("What happens when you apply a filter?")
+    //	d3.select("#tutorial_text_1").html('<p>When you apply a filter, you will notice three changes are made in the interface:'
+    //                                       +'<p>1. Some dots are highlighted in pink (and purple) color in the scatter plot. These dots represent all designs that have the particular feature you just defined.</p>'
+    //                                       +'<p>2. If you go to the "Feature Analysis" tab, you will see a Venn diagram. The area of the pink circle is proportional to the number of pink dots in the scatter plot. Similarly, the area of the light blue circle corresponds to the number of blue dots in the scatter plot. The intersecting area corresponds to the purple dots, which are the target designs that have the specified feature. </p>'
+    //                                       +'<p>3. On the feature application status panel (on the right side of the screen), you can see the current feature that is applied. </p>');
+    //
+    //	document.getElementById('tab3').click();
+    //	highlight_support_panel(); 
+    //    
+    //	d3.select('#panel_2').select('div')
+    //		.style('border-width','5px')
+    //		.style('border-style','solid')
+    //		.style('border-color','#FF2D65');
+    //    
+    //    d3.select('#dfplot_venn_diagram')
+    //        .style('border-width','5px')
+    //		.style('border-style','solid')
+    //		.style('border-color','#FF2D65');
+    //    
+    //    d3.select('#scatterPlotFigure')
+    //		.style('border-width','5px')
+    //		.style('border-color','#FF2D65');
+    //
+    //}
+    //    
+    //else if(current_view==18){
+    //    
+    //	if(max_view_reached<18){
+    //		deactivate_continue_button();
+    //	}
+    //    
+    //	d3.select("#tutorial_header").text("How to use Feature Application Status Panel")
+    //	d3.select("#tutorial_text_1").html('<p>The Feature Application Status panel shows the currently applied feature in two different ways. First, the upper part displays the logical expression of the currently applied feature. The lower part is an interactive interface that you can use to combine multiple features and generate more complex features. '
+    //
+    //                                      +'<p>The check box located on the left of each feature indicates whether a certain feature is being applied or not. If it is checked, it means that the corresponding feature is being used to highlight pink dots on the scatter plot. When multiple ones are checked, then it combines the effect of those features. </p>'
+    //                                      
+    //                                      +'<p>When you have multiple features defined, there appears a dropdown menu in between those two features. This allows you to select the logical connective used to combine the two features. For example, if AND is used, that means two features are combined using a logical conjunction (AND) to highlight pink dots.</p>'
+    //                                      
+    //                                      +'<p>To continue, try activating and deactivating some features, and also changing some logical connectives in between features. Note that the change is reflected on the upper part of the feature application status panel, as well as on the scatter plot in real time. </p>');
+    // 
+    //    
+    //	document.getElementById('tab3').click();
+    //	highlight_support_panel(); 
+    //    
+    //	d3.select('#panel_2').select('div')
+    //		.style('border-width','5px')
+    //		.style('border-style','solid')
+    //		.style('border-color','#FF2D65');
+    //}
+    //    
+    //    
+    //else if(current_view==19){
+    //    
+    //	if(max_view_reached<19){
+    //		deactivate_continue_button();
+    //	}
+    //    
+    //	d3.select("#tutorial_header").text("How to use Feature Application Status Panel - continued")
+    //	d3.select("#tutorial_text_1").html('<p>The arrows next to a feature name allow you to change the location of each feature. By clicking left and right arrows, you can adjust the indentation levels of features. The indentation acts just like parentheses in a mathematical expression. If two features are at the same indentation level, they are evaluation together as if they are inside brackets. </p>'
+    //                
+    //                                       +'<p>For example, let\'s say you want to express A OR (B AND C), where A, B, and C are all an arbitrary feature. Then you need to place place features B and C in the same level indentation level different from A (more to the right). To continue, try generating a combined feature that has a form: \'A AND (B OR C)\', where A, B, and C are different features. You will also have to adjust the indentation of the logical connectives. </p>'
+    //                                
+    //                                       +'<p>(hint: Notice that whenever you make a change, you can see the current interpretation on the upper window labeled "Currently Applied Feature Expression". To implement \'A and (B or C)\', you first need to activate three features. Then, place B and C in the same indentation level. The logical connective between B and C need to be OR, and the connective between A and B need to be AND. If you have any question on how this work, please ask the experimenter.)</p>');
+    //    
+    //    
+    //	document.getElementById('tab3').click();
+    //	highlight_support_panel(); 
+    //    
+    //	d3.select('#panel_2').select('div')
+    //		.style('border-width','5px')
+    //		.style('border-style','solid')
+    //		.style('border-color','#FF2D65');
+    //} 
+    //    
+    //    
+    //
+    //else if(current_view==20){
+    //	if(max_view_reached<20){
+    //		deactivate_continue_button();
+    //	}
+    //	d3.select("#tutorial_header").text("Preset Filters: together")
+    //	d3.select("#tutorial_text_1").html('<p>Now let’s go back and try applying a few more filters.  The filter called \'together\' is used to selectively highlight designs that assign a group of instrument together in the same orbit. It is different from ‘inOrbit’ as the instruments can be assigned to any orbit. To continue, follow the steps below:</p>'
+    //			+'<p>1. Select \'together\' option from the dropdown menu. </p>'
+    //			+'<p>2. In the input field, type in multiple instrument names, separated by commas. '
+    //			+'The instrument should be an alphabet letter ranging from A to L. </p>'
+    //			+'<p>3. Then click [Apply as new feature] button to apply the filter.</p>');
+    //
+    //	document.getElementById('tab2').click();
+    //	highlight_support_panel();
+    //	
+    //	d3.select('#filter_options').select('select')
+    //		.style('border-width','5px')
+    //		.style('border-style','solid')
+    //		.style('border-color','#FF2D65');
+    //	d3.select('#applyFilterButton_new')
+    //		.style('border-width','5px')
+    //		.style('border-style','solid')
+    //		.style('border-color','#FF2D65');
+    //}
+    //
+    //    
+    //else if(current_view==21){
+    //	if(max_view_reached<21){
+    //		deactivate_continue_button();
+    //	}
+    //    
+    //	d3.select("#tutorial_header").text("Preset Filters: Empty orbit")
+    //	d3.select("#tutorial_text_1").html('<p>The filter called \'Empty orbit\' is used to selectively highlight designs that '
+    //			+'do not assign any instrument to the specified orbit. It takes in a single orbit name '
+    //			+'as an argument. To continue, follow the steps below:</p>'
+    //			+'<p>1. Select \'Empty orbit\' option from the dropdown menu. </p>'
+    //			+'<p>2. In the input field, type in an orbit name. '
+    //			+'The orbit name should be a number in thousands (1000, 2000, 3000, 4000, or 5000). </p>'
+    //			+'<p>3. Then click [Apply as new feature] button to apply the filter.</p>');
+    //
+    //	document.getElementById('tab2').click();
+    //	highlight_support_panel();
+    //	
+    //	d3.select('#filter_options').select('select')
+    //		.style('border-width','5px')
+    //		.style('border-style','solid')
+    //		.style('border-color','#FF2D65');
+    //	d3.select('#applyFilterButton_new')
+    //		.style('border-width','5px')
+    //		.style('border-style','solid')
+    //		.style('border-color','#FF2D65');
+    //}
+    //
+    //
+    //else if(current_view==22){
+    //	if(max_view_reached<22){
+    //		deactivate_continue_button();
+    //	}
+    //	d3.select("#tutorial_header").text("Preset Filters: Number of instruments")
+    //	d3.select("#tutorial_text_1").html('<p>The filter called \'Number of instruments\' is used to selectively highlight designs that '
+    //			+'use the specified number of instruments. '
+    //			+'It has some flexibility in what arguments you can enter to this filter. </p>'
+    //			+'<p> - If orbit name and instrument names are not given (input field empty), '
+    //			+'then it will count the number of all instruments used in the design. </p>'
+    //			+'<p> - If orbit name is given, then it will count the number of instruments in that particular orbit. </p>'
+    //			+'<p> - If instrument name is given, then it will count the number of those instruments. </p>'
+    //			+'<p> (IMPORTANT: Either one of orbit name or instrument name should be empty)'
+    //			+'<p>To continue, follow the steps below:</p>'
+    //			+'<p>1. Select \'Number of instruments\' option from the dropdown menu. </p>'
+    //			+'<p>2. Fill in the input fields. At least one of instrument or orbit names should be empty. The number cannot be empty.</p>'
+    //			+'<p>3. Then click [Apply as new feature] button to apply the filter.</p>');
+    //
+    //	document.getElementById('tab2').click();
+    //	highlight_support_panel();
+    //	
+    //	d3.select('#filter_options').select('select')
+    //		.style('border-width','5px')
+    //		.style('border-style','solid')
+    //		.style('border-color','#FF2D65');
+    //	d3.select('#applyFilterButton_new')
+    //		.style('border-width','5px')
+    //		.style('border-style','solid')
+    //		.style('border-color','#FF2D65');
+    //}
+    //
+    //else if(current_view==23){
+    //	if(max_view_reached<23){
+    //		deactivate_continue_button();
+    //	}
+    //	d3.select("#tutorial_header").text("Preset Filters: Num of instruments in a subset")
+    //	d3.select("#tutorial_text_1").html('<p>The filter called \'Num of instruments in a subset\' is used to selectively highlight designs that assign to an orbit a certain number of instruments from a given set. For example, you can specify that at least 2 instruments out of {A,B,C,D,E} should be assigned to orbit 1000.To continue, follow the steps below:</p>'
+    //            +'<p>1. Select \'Num of instruments in a subset\' option from the dropdown menu.</p>'
+    //			+'<p>2. Put in an orbit name.</p>'
+    //			+'<p>3. Put in the minimum and the maximum number of instruments.</p>'
+    //			+'<p>4. Put in a group of instruments to be counted.</p>'
+    //			+'<p>5. Then click [Apply as new feature] button to apply the filter.</p>'
+    //			+'<p>Now We\'ve covered many of the preset filters, but not all of them. You can test other filters that we haven’t used and see if you understand what they do.</p>');
+    //
+    //	document.getElementById('tab2').click();
+    //	highlight_support_panel();
+    //	
+    //	d3.select('#filter_options').select('select')
+    //		.style('border-width','5px')
+    //		.style('border-style','solid')
+    //		.style('border-color','#FF2D65');
+    //    
+    //	d3.select('#applyFilterButton_new')
+    //		.style('border-width','5px')
+    //		.style('border-style','solid')
+    //		.style('border-color','#FF2D65');
+    //}
+    //
+    //else if(current_view==24){
+    //
+    //	d3.select("#tutorial_header").text("Different options to apply features")
+    //	d3.select("#tutorial_text_1").html('<p>So far, we have only used [Apply new feature] button to apply the feature you define. This makes all the previous features listed in the Feature Application Status window automatically disabled.</p>'
+    //                                      
+    //                                      +'<p>You can also use [Apply OR] and [Apply AND] buttons. As the name suggests, [Apply OR] combines the new feature with the previous ones using logical disjunction (or). [Apply AND] combines the new feature with the previous ones using logical conjunction (and). [Replace placeholder] can be used to add the new feature to a certain location. The explanation about the placeholder will be provided later in the tutorial. </p>');
+    //
+    //	document.getElementById('tab2').click();
+    //	highlight_support_panel();
+    //
+    //	d3.select('#applyFilterButton_add')
+    //		.style('border-width','5px')
+    //		.style('border-style','solid')
+    //		.style('border-color','#FF2D65');
+    //	
+    //    d3.select('#applyFilterButton_within')
+    //		.style('border-width','5px')
+    //		.style('border-style','solid')
+    //		.style('border-color','#FF2D65');   
+    //}
+    //    
+    //    
+    //
+    //
+    //else if(current_view==25){ // Show only for testType= 3
+    //
+    //    initialize_tabs_driving_features();
+    //    select_archs_using_ids(tutorial_selection);
+    //    
+    //    d3.selectAll('.applied_feature').remove();
+    //    current_feature_application = [];
+    //    update_feature_expression();
+    //    
+    //
+    //	d3.select("#tutorial_header").text("Data Mining")
+    //	d3.select("#tutorial_text_1").html('<p>iFEED also provides a data mining capability to help analyze the data.'
+    //					+' The data mining capability extracts features that have a good coverage and those that have high specificity.'
+    //					+' Extracting these patterns can be used as a starting point in finding the features that are both specific and have good coverage. </p>'
+    //					+'<p>To run data mining, just go to the feature analysis tab and click the [Run data mining] button.</p>');
+    //	
+    //	document.getElementById('tab3').click();
+    //	highlight_support_panel();
+    //    
+    //	d3.select('#getDrivingFeaturesButton')
+    //		.style('border-width','5px')
+    //		.style('border-style','solid')
+    //		.style('border-color','#FF2D65');  
+    //}
+    //
+    //    
+    //else if(current_view==26){ // Show only for testType= 3
+    //	
+    //	d3.select("#tutorial_header").text("Mined Features Explained")
+    //	d3.select("#tutorial_text_1").html('<p>The features obtained using data mining are presented as as another scatter plot. Each triangle '
+    //			+'represents one feature. The vertical axis represents the coverage of target region, and the horizontal axis represents the specificity'
+    //			+' of the feature. The scores for coverage and specificity can range from 0 to 1 (larger is better).'
+    //			+' As you hover your mouse over each triangle, the relevant information is presented in 4 ways.</p>'
+    //			+'<p>1. Tooltip shows the scores for the coverage and specificity.</p>'
+    //			+'<p>2. Scatterplot highlights all the designs that have the given feature (combined with whatever is shown on the Feature Application Status panel) with pink (and purple) dots. If you want to see the effect of a single feature only (without combining them with the previously added features), click [deactivate all features] button on the feature application status panel first, and then hover over the triangles. </p>'
+    //			+'<p>3. A Venn Diagram is presented to show the composition of designs with the feature and the'
+    //			+' selected designs.</p>'
+    //            +'<p>4. The current feature replaces the placeholder displayed on the feature application status panel.</p>');            				
+    //	
+    //	document.getElementById('tab3').click();
+    //	highlight_support_panel();
+    //	d3.select('#supportPanel')
+    //		.style('border-width','5px')
+    //		.style('border-style','solid')
+    //		.style('border-color','#FF2D65');  
+    //    
+    //	d3.select('#panel_2').select('div')
+    //		.style('border-width','5px')
+    //		.style('border-style','solid')
+    //		.style('border-color','#FF2D65');
+    //    
+    //    d3.select('#dfplot_venn_diagram')
+    //        .style('border-width','5px')
+    //		.style('border-style','solid')
+    //		.style('border-color','#FF2D65');
+    //}
+    // 
+    //    
+    //else if(current_view==27){ // Show only for testType= 3
+    //	
+    //	d3.select("#tutorial_header").text("Adding features to the feature application status panel")
+    //	d3.select("#tutorial_text_1").html('<p>If you click one of the triangles, the feature is added to the feature application status panel.'
+    //			                                 +' This way, you can easily add and combine multiple features to create better features.</p>'
+    //                                      
+    //                                      +'<p></p>');            				
+    //	
+    //	document.getElementById('tab3').click();
+    //	highlight_support_panel();
+    //
+    //	d3.select('#panel_2').select('div')
+    //		.style('border-width','5px')
+    //		.style('border-style','solid')
+    //		.style('border-color','#FF2D65');
+    //}
+    //  
+    //    
+    //else if(current_view==28){ // Show only for testType= 3
+    //    
+    //    d3.select('#test_feature_scheme')[0][0].disabled=false;  
+    //	d3.select('#test_feature_scheme').on('click',test_feature);  
+    //    
+    //	d3.select("#tutorial_header").text("Testing features")
+    //	d3.select("#tutorial_text_1").html('<p>Inside the feature analysis panel, there is a button [Test current feature].'
+    //                                       +' Clicking this button will add a new point on the mined features plot as a green star. This new point shows how much coverage and specificity the currently applied feature has. The most recent one is presented as a star, but it turns into a triangle as you generate new points on the plot. </p>'
+    //                                      
+    //                                       +'<p>To make a feature more specific and cover many target designs, you should try to make a feature that is located at the top-right corner of the mined features plot.</p>'
+    //                                      
+    //                                      +'<p>Note that the features generated using data mining are provided as a starting point, and you should try to improve these features by combining them (using ANDs and ORs). Or, you can use the information you get from these basic features to try to define your own feature using Filter Settings.</p>');         				
+    //	
+    //	document.getElementById('tab3').click();
+    //	highlight_support_panel();
+    //
+    //	d3.select('#panel_2').select('div')
+    //		.style('border-width','5px')
+    //		.style('border-style','solid')
+    //		.style('border-color','#FF2D65');
+    //}
+    //    
+    //    
+    //else if(current_view==29){ 
+    //	
+    //	d3.select("#tutorial_header").text("Basic strategies for new exploring features")
+    //	d3.select("#tutorial_text_1").html('<p>1. When a feature is too general (covering many non-targets), you can combine it with other features using ANDs to make it more specific. Or if the current feature contains ORs, removing those OR connections help improving the spceficitiy of a feature.</p>'
+    //                                      +'<p>2. When a feature is too specific, you can combine it with other features using ORs to make it more general. Or if the current feature contains ANDs, removing those AND connections improves the coverage of a feature. </p>'
+    //                                      +'<p>3. You can generalize a feature by defining a new feature using Filter Settings. For example, if you are constantly seeing different combinations of instruments {A,B,C,D} in orbit 1000, you can define a new feature that says "At least 2 of A,B,C,D should be assigned to orbit 1000". </p>'
+    //                                      
+    //                                      +'<br><br><p>So, the recommended strategies for you to get started is:</p>'
+    //                                      +'<p>1. Start from a general feature with a good coverage (shown in the top-left corner) and try to improve it by combining it with other general features (using AND) in order to remove pink dots.</p>'
+    //                                      +'<p>2. Start from a specific feature with a good specificity (shown in the bottom-right corner) and try to improve it by combining it with other specific features (using OR) in order to add more purple dots.</p>'
+    //                                      +'<p>You can use this as a starting point, but keep in mind that it is very likely that you should use both ANDs and ORs in combination in order to achieve good coverage and specificity at the same time.</p>');  
+    //}
+    //
+    //    
+    //else if(current_view==30){ 
+    //	deactivate_continue_button();
+    //	
+    //	d3.select("#tutorial_header").text("Tutorial Finished")
+    //	d3.select("#tutorial_text_1").html('<p style="font-weight:bold;">This is the end of the tutorial. '
+    //		+'Once you start the experiment, you will not be able to return to this tutorial. If you don\'t understand specific'
+    //		+' part of this tool, you can go back to that section now and review the material or ask questions to the experimenter. </p>'
+    //		+'<p style="font-weight:bold;">In the experiment, you will be given 3 tasks. For each task, you will be provided with a different set of capabilities to do the analysis. For some tasks, you will have only a subset tools introduced in this tutorial.</p>'
+    //        +'<p>The goal of all tasks is to find good features that have good specificity and coverage.</p>'
+    //		+'<p style="font-weight:bold">After each task is finished, you will be asked to verbally describe to us what interesting features you have just found. Please let the experimenter know when you finish each task. </p>'
+    //		+'<p>Now you can move on to the experiment by clicking the button below. Good luck!</p>');  
+    //
+    //	d3.select('#tutorial_text_1')
+    //		.insert('button')
+    //		.attr("type","button")
+    //		.attr("id","experiment_start_button")
+    //		.style("width","220px")
+    //		.style("height","30px")
+    //		.style("margin-top:20px");
+    //	d3.select("#experiment_start_button")
+    //		.text("Start the Experiment")
+    //		.on("click", start_experiment);
+    //}
+
     }
-
-    else if(self.current_view==10){
-
-        var title = 'Finding "good" features';
-        var body = '<p>Now, we will define what a good feature is. Your goal in this experiment is to find “good” features that explain the target region well. Below are some examples of how features might look like (these are just examples, so you don\'t have to pay attention to the details): </p>'
-
-            +'<p>1. Instrument A is assigned to orbit 1000 </p>'
-            +'<p>2. Instrument A and instrument B are assigned together in one orbit</p>'
-            +'<p>3. Instrument C and instrument D are not assigned to the same orbit</p>'
-            +'<p>4. Orbit 2000 is empty </p>'
-            +'<p>5. At least two instruments out of instruments A, B, C are assigned to the same orbit </p>'
-            +'<p>6. Instrument D is assigned to either orbit 1000 or orbit 2000</p>'
-            +'<p>7. Orbit 1000 is assigned only two instruments</p>'                                   
-
-            +'<p>You can think of these features as descriptions of the target designs. A “good” feature should explain most of the target designs, while not being too general. </p>';   
-        
-    }
-    
-    else if(self.current_view==11){
-
-        ifeed.main_plot.cancel_selection();
-        experiment.select_archs_using_ids(tutorial_selection);
-
-        var title = 'Coverage of target designs';
-        var body = 
-            '<p>Consider the following description: </p>'
-            +'<p>(a) At least one of the instruments A and G is used in the design</p>'
-            +'<p>Try clicking the button below to show what designs have the feature (a). The pink and purple dots in the scatter plot are all the designs that have feature (a), meaning that they use either instrument A or G (or both) in their designs. Purple dots are the overlap between the pink dots (designs with the feature) and the blue dots (target). Note that many of the target designs share this feature (as shown by the purple dots). We say that this feature has a large coverage of target designs. Such large coverage is desired in a good feature. </p>'
-
-            +'<p>However, (a) is not necessarily what we are looking for. It is too general, meaning that it also applies to many of the non-target designs as well. This leads us to the next criterion for a good feature. </p>';
-
-        var buttons = d3.select('#tutorial_buttons').append('g')
-
-        buttons.append('button')
-                .attr('id','tutorial_button')
-                .text('Highlight designs with feature (a)')
-                .style('margin-right','20px')
-                .style('font-size','18px')
-                .on('click',function(d){
-                    applyComplexFilter('{present[;0;]}||{present[;6;]}');
-                });
-    }
-    
-else if(current_view==12){
-    
-    cancelDotSelections();
-    select_archs_using_ids(tutorial_selection);
-    
-    d3.select('#tutorial_header').text('Specificity');
-    d3.select('#tutorial_text_1').html(
-        
-        '<p>Now let\'s look at another description (Just see how it looks. The details are not important!):</p>'
-        +'<p>(b) Instrument B is used, and D is not used in the design, and E and C are never assigned to the same orbit. Instrument E is not assigned to orbit 1000. Instrument B, C, E, H, I are not assigned to orbit 3000, instruments A, B, F, J are not assigned to orbit 4000. Moreover, instrument A and instrument C are not assigned to orbit 5000.</p>'
-        
-        +'<p>Pretty complicated, right? Now try clicking the button below to highlight the designs with this feature. If you look closely, you will see that many of the pink dots have disappeared. This is good becuase we wanted to find a feature that uniquely describes the target region and does not cover the non-target region. We say that feature (b) is highly specific to the target region, and this is the second criterion that we require from a good feature.</p>'
-        
-        +'<p>However, if you look closely, you will notice that now many of the purple dots (target designs covered by the feature) have also disappeared. Only very small portion of the targets are in purple color now. Therefore, (b) is too specific, meaning that it only accounts for a small number of targets. Or you can say that the coverage of target designs have decreased. </p>'
-        
-        +'<p>As you may have noticed, there are two conflicting criteria that we are seeking from a good feature. Let\'s summarize those points in the next section.</p>'
-    );
-    
-    var buttons = d3.select('#tutorial_buttons').append('g')
-    buttons.append('button')
-            .attr('id','tutorial_button')
-            .text('Highlight designs with feature (b)')
-            .style('font-size','18px')
-            .on('click',function(d){
-                applyComplexFilter(tutorial_feature_example_b);
-            });
-    
-}else if(current_view==13){
-    
-    cancelDotSelections();
-    select_archs_using_ids(tutorial_selection);
-    
-    d3.select('#tutorial_header').text('The key is finding the balance');
-    d3.select('#tutorial_text_1').html(
-        '<p>In summary, a good feature should satisfy the following two conditions:</p>'
-        +'<p>1. The feature should cover a large area of the target region (maximize the number of purple dots)</p>'
-        +'<p>2. The feature should be specific enough, so that it does not cover the non-target region (minimize the number of pink dots)</p>'
-        +'<p>As we have seen in the previous example, there is a trade-off between these two conditions. If you try to make a feature cover more targets, you might make it too general, and make it cover non-target designs as well (too many pink dots). On the other hand, if you try to make a feature too specific, it may not cover many target designs (too few purple dots). </p>'
-        +'<p>Therefore, the key is finding the right balance between those two criteria. You can test the features again and see how they are distributed in the scatter plot by clicking the buttons below. (Reminder: Feature (a) is has good coverage but is not specific enough. Feature (b) is specific but has very low coverage of the targets.)</p>'
-        +'<p>Understanding this concept is important. If you are not sure about the concept introduced here, please ask questions to the experimenter for clarification.</p>'
-    );
-    
-    var buttons = d3.select('#tutorial_buttons').append('g')
-    
-    buttons.append('button')
-            .attr('id','tutorial_button_1')
-            .text('Highlight designs with feature (a)')
-            .style('margin-right','20px')
-            .style('font-size','18px')
-            .on('click',function(d){
-                cancelDotSelections('remove_highlighted');
-                applyComplexFilter('{present[;0;]}||{present[;6;]}');
-            });
-    
-    
-    buttons.append('button')
-            .attr('id','tutorial_button_2')
-            .text('Highlight designs with feature (b)')
-            .style('font-size','18px')
-            .on('click',function(d){
-                cancelDotSelections('remove_highlighted');
-                applyComplexFilter(tutorial_feature_example_b);
-            });
-}
-    
-    
-else if(current_view==14){
-	d3.select("#tutorial_header").text("Filters")
-	d3.select("#tutorial_text_1").html('<p>Now we will learn how to use iFEED as a tool to find good features. </p>'
-                                       
-                                       +'<p> In the analysis panel, you can find a tab for filter settings. Filters are used to highlight a group of designs that share the common feature that you define. For example, you can selectively highlight designs that use instrument C in any orbit, or highlight designs that assign instrument D and E to the orbit 4000. </p>'
-                                       
-                                       +'<p>The most basic and useful features have been identified and built into the filter options. You can select one of these preset filters to specify what patterns you want to investigate. We will test some of these preset filters in the following pages.</p>');
-
-    // Run data mining
-    runDataMining();
-    
-    
-    d3.select('#test_feature_scheme')[0][0].disabled=true;  
-    
-    d3.selectAll('.dot.dfplot').remove();
-
-    // Remove automatically generated placeholder
-    d3.selectAll('.applied_feature').remove();
-    current_feature_application = [];
-    update_feature_expression();
-    
-
-    document.getElementById('tab2').click();
-    highlight_support_panel();
-    d3.select('#supportPanel')
-        .style('border-width','5px')
-        .style('border-style','solid')
-        .style('border-color','#FF2D65');
-	
-}
-
-
-else if(current_view==15){
-	if(max_view_reached < 15){
-		deactivate_continue_button();
-	}
-    
-    cancelDotSelections('remove_highlighted');
-    
-	d3.select("#tutorial_header").text("Preset Filters: Present")
-	d3.select("#tutorial_text_1").html('<p>The filter called \'Present\' '
-			+'is used to selectively highlight designs that '
-			+'contain a specific instrument. It takes in one instrument name as an argument,'
-			+' and selects all designs that use that instrument. Follow the directions below to activate it:</p>'
-			+'<p>1. Select \'Present\' option from the dropdown menu. </p>'
-			+'<p>2. In the input field that appears, type in an instrument name. '
-			+'The instrument should be an alphabet letter ranging from A to L. </p>'
-			+'<p>3. Then click [Apply as new feature] button to apply the filter.</p>'
-			+'<p>As a result of applying the feature, a group of dots on the scatter plot are highlighted in pink color. These dots represent designs that have the feature you just defined.</p>');
-	
-	document.getElementById('tab2').click();
-	highlight_support_panel();
-    
-	d3.select('#filter_options').select('select')
-		.style('border-width','5px')
-		.style('border-style','solid')
-		.style('border-color','#FF2D65');
-	d3.select('#applyFilterButton_new')
-		.style('border-width','5px')
-		.style('border-style','solid')
-		.style('border-color','#FF2D65');   
-}
-
-
-else if(current_view==16){
-	if(max_view_reached<16){
-		deactivate_continue_button();
-	}
-    
-    cancelDotSelections('remove_highlighted');
-    
-	d3.select("#tutorial_header").text("Preset Filters: InOrbit")
-	d3.select("#tutorial_text_1").html('<p>The filter called \'InOrbit\' is used to selectively highlight designs that assign a specific '
-                                       +'instrument(s) to a given orbit. It takes in an orbit name and instrument name(s) as arguments. If more than one instrument name is given, then it highlights all designs that assign all those instruments into the specified orbit. To continue, follow the steps below:</p>'
-			+'<p>1. Select \'InOrbit\' option from the dropdown menu. </p>'
-			+'<p>2. In the first input field that appears, type in an orbit name. '
-			+'The orbit name should be a number in thousands (1000, 2000, 3000, 4000, or 5000). </p>'
-			+'<p>2. In the second input field, type in instrument names (1 or more). '
-			+'The instrument should be an alphabet letter ranging from A to L. If there are more than one instruments,'
-			+' the names should be separated by commas.</p>'
-			+'<p>3. Then click [Apply as new feature] button to apply the filter.</p>');
-
-	document.getElementById('tab2').click();
-	highlight_support_panel();
-	
-	d3.select('#filter_options').select('select')
-		.style('border-width','5px')
-		.style('border-style','solid')
-		.style('border-color','#FF2D65');
-	d3.select('#applyFilterButton_new')
-		.style('border-width','5px')
-		.style('border-style','solid')
-		.style('border-color','#FF2D65');
-}
-    
-    
-else if(current_view==17){
-    
-	d3.select("#tutorial_header").text("What happens when you apply a filter?")
-	d3.select("#tutorial_text_1").html('<p>When you apply a filter, you will notice three changes are made in the interface:'
-                                       +'<p>1. Some dots are highlighted in pink (and purple) color in the scatter plot. These dots represent all designs that have the particular feature you just defined.</p>'
-                                       +'<p>2. If you go to the "Feature Analysis" tab, you will see a Venn diagram. The area of the pink circle is proportional to the number of pink dots in the scatter plot. Similarly, the area of the light blue circle corresponds to the number of blue dots in the scatter plot. The intersecting area corresponds to the purple dots, which are the target designs that have the specified feature. </p>'
-                                       +'<p>3. On the feature application status panel (on the right side of the screen), you can see the current feature that is applied. </p>');
-
-	document.getElementById('tab3').click();
-	highlight_support_panel(); 
-    
-	d3.select('#panel_2').select('div')
-		.style('border-width','5px')
-		.style('border-style','solid')
-		.style('border-color','#FF2D65');
-    
-    d3.select('#dfplot_venn_diagram')
-        .style('border-width','5px')
-		.style('border-style','solid')
-		.style('border-color','#FF2D65');
-    
-    d3.select('#scatterPlotFigure')
-		.style('border-width','5px')
-		.style('border-color','#FF2D65');
-
-}
-    
-else if(current_view==18){
-    
-	if(max_view_reached<18){
-		deactivate_continue_button();
-	}
-    
-	d3.select("#tutorial_header").text("How to use Feature Application Status Panel")
-	d3.select("#tutorial_text_1").html('<p>The Feature Application Status panel shows the currently applied feature in two different ways. First, the upper part displays the logical expression of the currently applied feature. The lower part is an interactive interface that you can use to combine multiple features and generate more complex features. '
-
-                                      +'<p>The check box located on the left of each feature indicates whether a certain feature is being applied or not. If it is checked, it means that the corresponding feature is being used to highlight pink dots on the scatter plot. When multiple ones are checked, then it combines the effect of those features. </p>'
-                                      
-                                      +'<p>When you have multiple features defined, there appears a dropdown menu in between those two features. This allows you to select the logical connective used to combine the two features. For example, if AND is used, that means two features are combined using a logical conjunction (AND) to highlight pink dots.</p>'
-                                      
-                                      +'<p>To continue, try activating and deactivating some features, and also changing some logical connectives in between features. Note that the change is reflected on the upper part of the feature application status panel, as well as on the scatter plot in real time. </p>');
- 
-    
-	document.getElementById('tab3').click();
-	highlight_support_panel(); 
-    
-	d3.select('#panel_2').select('div')
-		.style('border-width','5px')
-		.style('border-style','solid')
-		.style('border-color','#FF2D65');
-}
-    
-    
-else if(current_view==19){
-    
-	if(max_view_reached<19){
-		deactivate_continue_button();
-	}
-    
-	d3.select("#tutorial_header").text("How to use Feature Application Status Panel - continued")
-	d3.select("#tutorial_text_1").html('<p>The arrows next to a feature name allow you to change the location of each feature. By clicking left and right arrows, you can adjust the indentation levels of features. The indentation acts just like parentheses in a mathematical expression. If two features are at the same indentation level, they are evaluation together as if they are inside brackets. </p>'
-                
-                                       +'<p>For example, let\'s say you want to express A OR (B AND C), where A, B, and C are all an arbitrary feature. Then you need to place place features B and C in the same level indentation level different from A (more to the right). To continue, try generating a combined feature that has a form: \'A AND (B OR C)\', where A, B, and C are different features. You will also have to adjust the indentation of the logical connectives. </p>'
-                                
-                                       +'<p>(hint: Notice that whenever you make a change, you can see the current interpretation on the upper window labeled "Currently Applied Feature Expression". To implement \'A and (B or C)\', you first need to activate three features. Then, place B and C in the same indentation level. The logical connective between B and C need to be OR, and the connective between A and B need to be AND. If you have any question on how this work, please ask the experimenter.)</p>');
-    
-    
-	document.getElementById('tab3').click();
-	highlight_support_panel(); 
-    
-	d3.select('#panel_2').select('div')
-		.style('border-width','5px')
-		.style('border-style','solid')
-		.style('border-color','#FF2D65');
-} 
-    
-    
-
-else if(current_view==20){
-	if(max_view_reached<20){
-		deactivate_continue_button();
-	}
-	d3.select("#tutorial_header").text("Preset Filters: together")
-	d3.select("#tutorial_text_1").html('<p>Now let’s go back and try applying a few more filters.  The filter called \'together\' is used to selectively highlight designs that assign a group of instrument together in the same orbit. It is different from ‘inOrbit’ as the instruments can be assigned to any orbit. To continue, follow the steps below:</p>'
-			+'<p>1. Select \'together\' option from the dropdown menu. </p>'
-			+'<p>2. In the input field, type in multiple instrument names, separated by commas. '
-			+'The instrument should be an alphabet letter ranging from A to L. </p>'
-			+'<p>3. Then click [Apply as new feature] button to apply the filter.</p>');
-
-	document.getElementById('tab2').click();
-	highlight_support_panel();
-	
-	d3.select('#filter_options').select('select')
-		.style('border-width','5px')
-		.style('border-style','solid')
-		.style('border-color','#FF2D65');
-	d3.select('#applyFilterButton_new')
-		.style('border-width','5px')
-		.style('border-style','solid')
-		.style('border-color','#FF2D65');
-}
-
-    
-else if(current_view==21){
-	if(max_view_reached<21){
-		deactivate_continue_button();
-	}
-    
-	d3.select("#tutorial_header").text("Preset Filters: Empty orbit")
-	d3.select("#tutorial_text_1").html('<p>The filter called \'Empty orbit\' is used to selectively highlight designs that '
-			+'do not assign any instrument to the specified orbit. It takes in a single orbit name '
-			+'as an argument. To continue, follow the steps below:</p>'
-			+'<p>1. Select \'Empty orbit\' option from the dropdown menu. </p>'
-			+'<p>2. In the input field, type in an orbit name. '
-			+'The orbit name should be a number in thousands (1000, 2000, 3000, 4000, or 5000). </p>'
-			+'<p>3. Then click [Apply as new feature] button to apply the filter.</p>');
-
-	document.getElementById('tab2').click();
-	highlight_support_panel();
-	
-	d3.select('#filter_options').select('select')
-		.style('border-width','5px')
-		.style('border-style','solid')
-		.style('border-color','#FF2D65');
-	d3.select('#applyFilterButton_new')
-		.style('border-width','5px')
-		.style('border-style','solid')
-		.style('border-color','#FF2D65');
-}
-
-
-else if(current_view==22){
-	if(max_view_reached<22){
-		deactivate_continue_button();
-	}
-	d3.select("#tutorial_header").text("Preset Filters: Number of instruments")
-	d3.select("#tutorial_text_1").html('<p>The filter called \'Number of instruments\' is used to selectively highlight designs that '
-			+'use the specified number of instruments. '
-			+'It has some flexibility in what arguments you can enter to this filter. </p>'
-			+'<p> - If orbit name and instrument names are not given (input field empty), '
-			+'then it will count the number of all instruments used in the design. </p>'
-			+'<p> - If orbit name is given, then it will count the number of instruments in that particular orbit. </p>'
-			+'<p> - If instrument name is given, then it will count the number of those instruments. </p>'
-			+'<p> (IMPORTANT: Either one of orbit name or instrument name should be empty)'
-			+'<p>To continue, follow the steps below:</p>'
-			+'<p>1. Select \'Number of instruments\' option from the dropdown menu. </p>'
-			+'<p>2. Fill in the input fields. At least one of instrument or orbit names should be empty. The number cannot be empty.</p>'
-			+'<p>3. Then click [Apply as new feature] button to apply the filter.</p>');
-
-	document.getElementById('tab2').click();
-	highlight_support_panel();
-	
-	d3.select('#filter_options').select('select')
-		.style('border-width','5px')
-		.style('border-style','solid')
-		.style('border-color','#FF2D65');
-	d3.select('#applyFilterButton_new')
-		.style('border-width','5px')
-		.style('border-style','solid')
-		.style('border-color','#FF2D65');
-}
-
-else if(current_view==23){
-	if(max_view_reached<23){
-		deactivate_continue_button();
-	}
-	d3.select("#tutorial_header").text("Preset Filters: Num of instruments in a subset")
-	d3.select("#tutorial_text_1").html('<p>The filter called \'Num of instruments in a subset\' is used to selectively highlight designs that assign to an orbit a certain number of instruments from a given set. For example, you can specify that at least 2 instruments out of {A,B,C,D,E} should be assigned to orbit 1000.To continue, follow the steps below:</p>'
-            +'<p>1. Select \'Num of instruments in a subset\' option from the dropdown menu.</p>'
-			+'<p>2. Put in an orbit name.</p>'
-			+'<p>3. Put in the minimum and the maximum number of instruments.</p>'
-			+'<p>4. Put in a group of instruments to be counted.</p>'
-			+'<p>5. Then click [Apply as new feature] button to apply the filter.</p>'
-			+'<p>Now We\'ve covered many of the preset filters, but not all of them. You can test other filters that we haven’t used and see if you understand what they do.</p>');
-
-	document.getElementById('tab2').click();
-	highlight_support_panel();
-	
-	d3.select('#filter_options').select('select')
-		.style('border-width','5px')
-		.style('border-style','solid')
-		.style('border-color','#FF2D65');
-    
-	d3.select('#applyFilterButton_new')
-		.style('border-width','5px')
-		.style('border-style','solid')
-		.style('border-color','#FF2D65');
-}
-
-else if(current_view==24){
-
-	d3.select("#tutorial_header").text("Different options to apply features")
-	d3.select("#tutorial_text_1").html('<p>So far, we have only used [Apply new feature] button to apply the feature you define. This makes all the previous features listed in the Feature Application Status window automatically disabled.</p>'
-                                      
-                                      +'<p>You can also use [Apply OR] and [Apply AND] buttons. As the name suggests, [Apply OR] combines the new feature with the previous ones using logical disjunction (or). [Apply AND] combines the new feature with the previous ones using logical conjunction (and). [Replace placeholder] can be used to add the new feature to a certain location. The explanation about the placeholder will be provided later in the tutorial. </p>');
-
-	document.getElementById('tab2').click();
-	highlight_support_panel();
-
-	d3.select('#applyFilterButton_add')
-		.style('border-width','5px')
-		.style('border-style','solid')
-		.style('border-color','#FF2D65');
-	
-    d3.select('#applyFilterButton_within')
-		.style('border-width','5px')
-		.style('border-style','solid')
-		.style('border-color','#FF2D65');   
-}
-    
-    
-
-
-else if(current_view==25){ // Show only for testType= 3
-
-    initialize_tabs_driving_features();
-    select_archs_using_ids(tutorial_selection);
-    
-    d3.selectAll('.applied_feature').remove();
-    current_feature_application = [];
-    update_feature_expression();
-    
-
-	d3.select("#tutorial_header").text("Data Mining")
-	d3.select("#tutorial_text_1").html('<p>iFEED also provides a data mining capability to help analyze the data.'
-					+' The data mining capability extracts features that have a good coverage and those that have high specificity.'
-					+' Extracting these patterns can be used as a starting point in finding the features that are both specific and have good coverage. </p>'
-					+'<p>To run data mining, just go to the feature analysis tab and click the [Run data mining] button.</p>');
-	
-	document.getElementById('tab3').click();
-	highlight_support_panel();
-    
-	d3.select('#getDrivingFeaturesButton')
-		.style('border-width','5px')
-		.style('border-style','solid')
-		.style('border-color','#FF2D65');  
-}
-
-    
-else if(current_view==26){ // Show only for testType= 3
-	
-	d3.select("#tutorial_header").text("Mined Features Explained")
-	d3.select("#tutorial_text_1").html('<p>The features obtained using data mining are presented as as another scatter plot. Each triangle '
-			+'represents one feature. The vertical axis represents the coverage of target region, and the horizontal axis represents the specificity'
-			+' of the feature. The scores for coverage and specificity can range from 0 to 1 (larger is better).'
-			+' As you hover your mouse over each triangle, the relevant information is presented in 4 ways.</p>'
-			+'<p>1. Tooltip shows the scores for the coverage and specificity.</p>'
-			+'<p>2. Scatterplot highlights all the designs that have the given feature (combined with whatever is shown on the Feature Application Status panel) with pink (and purple) dots. If you want to see the effect of a single feature only (without combining them with the previously added features), click [deactivate all features] button on the feature application status panel first, and then hover over the triangles. </p>'
-			+'<p>3. A Venn Diagram is presented to show the composition of designs with the feature and the'
-			+' selected designs.</p>'
-            +'<p>4. The current feature replaces the placeholder displayed on the feature application status panel.</p>');            				
-	
-	document.getElementById('tab3').click();
-	highlight_support_panel();
-	d3.select('#supportPanel')
-		.style('border-width','5px')
-		.style('border-style','solid')
-		.style('border-color','#FF2D65');  
-    
-	d3.select('#panel_2').select('div')
-		.style('border-width','5px')
-		.style('border-style','solid')
-		.style('border-color','#FF2D65');
-    
-    d3.select('#dfplot_venn_diagram')
-        .style('border-width','5px')
-		.style('border-style','solid')
-		.style('border-color','#FF2D65');
-}
- 
-    
-else if(current_view==27){ // Show only for testType= 3
-	
-	d3.select("#tutorial_header").text("Adding features to the feature application status panel")
-	d3.select("#tutorial_text_1").html('<p>If you click one of the triangles, the feature is added to the feature application status panel.'
-			                                 +' This way, you can easily add and combine multiple features to create better features.</p>'
-                                      
-                                      +'<p></p>');            				
-	
-	document.getElementById('tab3').click();
-	highlight_support_panel();
-
-	d3.select('#panel_2').select('div')
-		.style('border-width','5px')
-		.style('border-style','solid')
-		.style('border-color','#FF2D65');
-}
-  
-    
-else if(current_view==28){ // Show only for testType= 3
-    
-    d3.select('#test_feature_scheme')[0][0].disabled=false;  
-	d3.select('#test_feature_scheme').on('click',test_feature);  
-    
-	d3.select("#tutorial_header").text("Testing features")
-	d3.select("#tutorial_text_1").html('<p>Inside the feature analysis panel, there is a button [Test current feature].'
-                                       +' Clicking this button will add a new point on the mined features plot as a green star. This new point shows how much coverage and specificity the currently applied feature has. The most recent one is presented as a star, but it turns into a triangle as you generate new points on the plot. </p>'
-                                      
-                                       +'<p>To make a feature more specific and cover many target designs, you should try to make a feature that is located at the top-right corner of the mined features plot.</p>'
-                                      
-                                      +'<p>Note that the features generated using data mining are provided as a starting point, and you should try to improve these features by combining them (using ANDs and ORs). Or, you can use the information you get from these basic features to try to define your own feature using Filter Settings.</p>');         				
-	
-	document.getElementById('tab3').click();
-	highlight_support_panel();
-
-	d3.select('#panel_2').select('div')
-		.style('border-width','5px')
-		.style('border-style','solid')
-		.style('border-color','#FF2D65');
-}
-    
-    
-else if(current_view==29){ 
-	
-	d3.select("#tutorial_header").text("Basic strategies for new exploring features")
-	d3.select("#tutorial_text_1").html('<p>1. When a feature is too general (covering many non-targets), you can combine it with other features using ANDs to make it more specific. Or if the current feature contains ORs, removing those OR connections help improving the spceficitiy of a feature.</p>'
-                                      +'<p>2. When a feature is too specific, you can combine it with other features using ORs to make it more general. Or if the current feature contains ANDs, removing those AND connections improves the coverage of a feature. </p>'
-                                      +'<p>3. You can generalize a feature by defining a new feature using Filter Settings. For example, if you are constantly seeing different combinations of instruments {A,B,C,D} in orbit 1000, you can define a new feature that says "At least 2 of A,B,C,D should be assigned to orbit 1000". </p>'
-                                      
-                                      +'<br><br><p>So, the recommended strategies for you to get started is:</p>'
-                                      +'<p>1. Start from a general feature with a good coverage (shown in the top-left corner) and try to improve it by combining it with other general features (using AND) in order to remove pink dots.</p>'
-                                      +'<p>2. Start from a specific feature with a good specificity (shown in the bottom-right corner) and try to improve it by combining it with other specific features (using OR) in order to add more purple dots.</p>'
-                                      +'<p>You can use this as a starting point, but keep in mind that it is very likely that you should use both ANDs and ORs in combination in order to achieve good coverage and specificity at the same time.</p>');  
-}
-
-    
-else if(current_view==30){ 
-	deactivate_continue_button();
-	
-	d3.select("#tutorial_header").text("Tutorial Finished")
-	d3.select("#tutorial_text_1").html('<p style="font-weight:bold;">This is the end of the tutorial. '
-		+'Once you start the experiment, you will not be able to return to this tutorial. If you don\'t understand specific'
-		+' part of this tool, you can go back to that section now and review the material or ask questions to the experimenter. </p>'
-		+'<p style="font-weight:bold;">In the experiment, you will be given 3 tasks. For each task, you will be provided with a different set of capabilities to do the analysis. For some tasks, you will have only a subset tools introduced in this tutorial.</p>'
-        +'<p>The goal of all tasks is to find good features that have good specificity and coverage.</p>'
-		+'<p style="font-weight:bold">After each task is finished, you will be asked to verbally describe to us what interesting features you have just found. Please let the experimenter know when you finish each task. </p>'
-		+'<p>Now you can move on to the experiment by clicking the button below. Good luck!</p>');  
-
-	d3.select('#tutorial_text_1')
-		.insert('button')
-		.attr("type","button")
-		.attr("id","experiment_start_button")
-		.style("width","220px")
-		.style("height","30px")
-		.style("margin-top:20px");
-	d3.select("#experiment_start_button")
-		.text("Start the Experiment")
-		.on("click", start_experiment);
-}
-
-}
 
 
     
