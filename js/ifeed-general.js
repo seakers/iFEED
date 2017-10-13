@@ -74,7 +74,7 @@ function IFEED(){
         $.ajax({
             url: "/api/ifeed/import-data/",
             type: "POST",
-            data: {path:path},
+            data: {filename:path},
             async: false,
             success: function (data, textStatus, jqXHR){
 
