@@ -1,12 +1,17 @@
 
 #experiment_prompt_div{
-    width:80%;
+    width:1400px;
     float:left;
-    margin-left:70px;
+    margin-left: 300px;
     background-color: #C5EEFF;
     border-radius: 25px;
     opacity:0.9;
     padding:25px;
+}
+
+#experiment_prompt_div > div{
+    float:left;
+    width:100%;
 }
 
 #experiment_prompt{
@@ -27,6 +32,17 @@
     margin:0 48%;
 }
 
+#prompt_page_number{
+    float:left;
+    width:100%;
+    margin-top:15px;
+}
+
+#prompt_page_number > div{
+    margin:auto;
+    width:50px;
+    font-size: 19px;
+}
 
 
 #clockdiv{

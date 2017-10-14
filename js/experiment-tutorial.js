@@ -116,7 +116,7 @@ function ExperimentTutorial(ifeed,experiment){
         self.clear_view();
 
         // Set the page number
-        d3.select('#prompt_page_number').text("" + self.current_view + "/"+ self.max_view);
+        d3.select('#prompt_page_number > div').text("" + self.current_view + "/"+ self.max_view);
 
         var objects,contents,classname,callback;
         var title, prompt;
