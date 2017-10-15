@@ -333,9 +333,9 @@ function Filter(ifeed){
 
         }else{
             
-            ifeed.feature_application.update_feature_application('temp',filter_expression);
-            ifeed.feature_application.update_feature_application('update',filter_expression);
-            self.apply_filter_expression(filter_expression);
+            ifeed.feature_application.update_feature_application('temp',filter_expression,true);
+            ifeed.feature_application.update_feature_application('update',filter_expression,true);
+            //self.apply_filter_expression(filter_expression);
         }
 
         

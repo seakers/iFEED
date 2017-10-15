@@ -505,7 +505,7 @@ function FeatureApplication(ifeed){
     
 
     
-    self.update_feature_application = function(option,expression){
+    self.update_feature_application = function(option,expression,directUpdate){
 
         var get_node_to_add_features = function(d){
             // Find the node to which to add new features
@@ -537,9 +537,12 @@ function FeatureApplication(ifeed){
                         d.temp=true;
                     })
 
-                    parentNode.children.push(subtree);    
-                    self.update(self.root);
-                    self.check_tree_structure();
+                    parentNode.children.push(subtree); 
+                    
+                    if(!directUpdate){
+                        self.update(self.root);
+                        self.check_tree_structure();
+                    }
 
                 }else{    
 
@@ -623,7 +626,14 @@ function FeatureApplication(ifeed){
 
             self.stashed_node_ids = null;
             self.stashed_root = null;
+            self.visit_nodes(self.root,function(d){
+                d.temp=false;
+            })
 
+            if(directUpdate){
+                self.update(self.root);
+                self.check_tree_structure();
+            }
             ifeed.data_mining.add_feature_to_plot(self.parse_tree(self.root));
         }
 
