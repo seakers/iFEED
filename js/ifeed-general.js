@@ -40,7 +40,7 @@ function IFEED(){
     //Interaction states
     self.UI_states = {"support_panel_active":false,
                      "selection_changed":true,
-                     "selection_mode":"zoom-pan",};
+                     "selection_mode":"zoom-pan"};
     
 
     
