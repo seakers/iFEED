@@ -36,7 +36,6 @@ function IFEED(){
     self.data_mining = null;
     self.feature_application = null;
     
-    
     //Interaction states
     self.UI_states = {"support_panel_active":false,
                      "selection_changed":true,

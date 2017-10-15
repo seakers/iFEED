@@ -628,7 +628,7 @@ function MainPlot(ifeed){
     
     
     self.highlight_support_panel = function(){
-
+        
         d3.select(".main_plot.figure")
             .style("border-width","1px");
         d3.select("#support_panel")
@@ -639,7 +639,7 @@ function MainPlot(ifeed){
 
 
     self.unhighlight_support_panel = function(){
-
+        
         d3.select(".main_plot.figure")
                 .style("border-width","3.3px");
         d3.select("#support_panel")

@@ -17,7 +17,8 @@ function EOSS(ifeed){
     ifeed.metadata.output_obj =[1,-1]; // 1 for lager-is-better, -1 for smaller-is-better
     
     // Set the path to the result file
-    ifeed.metadata.result_path="EOSS_data.csv";
+    //ifeed.metadata.result_path="EOSS_data.csv";
+    ifeed.metadata.result_path="reduced_data.csv";
     
     
     ifeed.label = new EOSSLabel(self);

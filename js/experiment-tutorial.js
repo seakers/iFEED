@@ -8,12 +8,18 @@ function ExperimentTutorial(ifeed,experiment){
     self.max_view = 30;
     
     self.max_view_reached = 0;
-    self.view_actions = 0;
     
     self.current_items=[];
-    
     self.intro = introJs();
     
+    
+    self.move_to_page = function(page){
+        
+        self.current_view = page;
+        self.max_view_reached = page-1;
+        self.display_views();
+    }
+        
     self.deactivate_continue_button = function(){
         d3.select("#move_forward_button")
             .on("click",null)
@@ -26,13 +32,11 @@ function ExperimentTutorial(ifeed,experiment){
             .on("click",self.tutorial_continue);
     }
 
-
     self.tutorial_continue = function(){
         self.current_view++;
         self.display_views();
     }
     
-
     self.tutorial_go_back = function(){
         if(self.current_view==5){
             //var path = "index.html?" + testType + "-" + account_id;
@@ -53,12 +57,12 @@ function ExperimentTutorial(ifeed,experiment){
     
     d3.select("#move_forward_button").on("click",self.tutorial_continue);
     
-
+    
+    
     self.write_prompt = function(title,body){
         d3.select("#prompt_header").text(title);
         d3.select("#prompt_body_text_1").html(body);
     }
-    
     
     
     self.start_intro = function(objects, messages, classname, callback){
@@ -82,7 +86,11 @@ function ExperimentTutorial(ifeed,experiment){
                 steps.push({intro:messages[i]});
             }else{
                 if(!objects[i]){
-                    steps.push({element:last_object,intro:messages[i]});
+                    if(!last_object){
+                        steps.push({intro:messages[i]});
+                    }else{
+                        steps.push({element:last_object,intro:messages[i]});
+                    }
                 }else{
                     last_object = objects[i];
                     steps.push({element:objects[i],intro:messages[i]});
@@ -98,14 +106,18 @@ function ExperimentTutorial(ifeed,experiment){
             self.intro.setOptions({steps:steps,tooltipClass:classname}).start(); 
         }
     }
-    
-    
-    
+
     
     self.clear_view = function(){
+        
         self.current_items = [];
         self.intro.setOptions({steps:[]});
         self.write_prompt("","");
+        
+        
+        d3.select('#tutorial_button_1').remove();
+        d3.select('#tutorial_button_2').remove();
+        
     }
 
     
@@ -161,7 +173,7 @@ function ExperimentTutorial(ifeed,experiment){
 
             objects = [d3.select('#status_display')[0][0],d3.selectAll('#status_display > div')[0][0],d3.selectAll('#status_display > div')[0][1]];
             
-            contents = ['The number of designs are displayed in the boxes above the scatter plot.','This shows the total number of designs','This shows the number of target designs'];
+            contents = ['The number of designs are displayed in the boxes above the scatter plot.','This shows the total number of designs','This shows the number of target designs (highlighted in blue)'];
             
             classname = 'introjs_tooltip_small';
             callback=null;
@@ -171,8 +183,11 @@ function ExperimentTutorial(ifeed,experiment){
         }
         
         else if(self.current_view==8){ 
-
-            objects = d3.selectAll('#support_panel')[0];
+            
+            document.getElementById('tab1').click();
+            ifeed.main_plot.unhighlight_support_panel();
+            
+            objects = [d3.selectAll('#support_panel')[0][0],d3.select('.column.c1')[0][0]];
             
             contents = ['The analysis panel is located below the scatter plot panel.',
                        'If you hover your mouse over a design on the scatter plot, the relevant information will be displayed on the \"Inspect Design\" tab.',
@@ -189,9 +204,49 @@ function ExperimentTutorial(ifeed,experiment){
         else if(self.current_view==9){
 
             if(self.max_view_reached < 9){
+                
+                self.counter = 0;
+                
+                var highlight_support_panel = function(){
+                    
+                    if(self.current_view==9){
+                        if(self.counter >1){
+                            self.activate_continue_button();
+                            if(self.max_view_reached<9)  self.max_view_reached=9;
+                        }else{
+                            if(!ifeed.UI_states.support_panel_active){
+                                self.counter++;
+                            }
+                        }                    
+                    }
+                    
+                    ifeed.main_plot.highlight_support_panel.apply();
+                }
+                
+                
+                var unhighlight_support_panel = function(){
+                                        
+                    if(self.current_view==9){
+                        
+                        if(self.counter >1){
+                            self.activate_continue_button();
+                            if(self.max_view_reached<9)  self.max_view_reached=9;
+                        }else{
+                            if(ifeed.UI_states.support_panel_active){
+                                self.counter++;
+                            }
+                        }                    
+                    }
+                    
+                    ifeed.main_plot.unhighlight_support_panel.apply();
+                }
+                
+                d3.select(".main_plot.figure").on("click",unhighlight_support_panel);
+                d3.select("#support_panel").on("click",highlight_support_panel);
                 self.deactivate_continue_button();
             }
 
+            
             objects = d3.select('.column.c1')[0];
             contents = ['The borderline of either the scatter plot or the analysis panel will be represented by bold lines. The bold line means that the panel is currently focused.',
                         'When the analysis panel is focused, hovering the mouse over a dot on the scatter plot will not change the information already displayed on the analysis panel. ',
@@ -208,26 +263,32 @@ function ExperimentTutorial(ifeed,experiment){
             prompt = 'To continue, try alternating the focus by clicking on the scatter plot and the analysis panel.';
 
             document.getElementById('tab1').click();
-            ifeed.main_plot.cancel_selection();        
             ifeed.main_plot.unhighlight_support_panel();
         }
 
         
         else if(self.current_view==10){
 
-            var title = 'Finding "good" features';
-            var body = '<p>Now, we will define what a good feature is. Your goal in this experiment is to find “good” features that explain the target region well. Below are some examples of how features might look like (these are just examples, so you don\'t have to pay attention to the details): </p>'
+            title = 'The features of the designs';
+            
+            objects = null;
+            contents = ['Now, we will define what features are. Your goal in this experiment is to find “good” features that explain the target region well.',
+                        
+                       '<p> Below are some examples of how features might look like (these are just examples, so you don\'t have to pay attention to the details): </p>'
+                        +'<p>   1. Instrument A is assigned to orbit 1000 </p>'
+                        +'<p>   2. Instrument A and instrument B are assigned together in one orbit</p>'
+                        +'<p>   3. Instrument C and instrument D are not assigned to the same orbit</p>'
+                        +'<p>   4. Orbit 2000 is empty </p>'
+                        +'<p>   5. At least two instruments out of instruments A, B, C are assigned to the same orbit </p>'
+                        +'<p>   6. Instrument D is assigned to either orbit 1000 or orbit 2000</p>'
+                        +'<p>   7. Orbit 1000 is assigned only two instruments</p>',
+                        
+                       'You can think of these features as descriptions of the target designs (highlighted in blue).'];
 
-                +'<p>1. Instrument A is assigned to orbit 1000 </p>'
-                +'<p>2. Instrument A and instrument B are assigned together in one orbit</p>'
-                +'<p>3. Instrument C and instrument D are not assigned to the same orbit</p>'
-                +'<p>4. Orbit 2000 is empty </p>'
-                +'<p>5. At least two instruments out of instruments A, B, C are assigned to the same orbit </p>'
-                +'<p>6. Instrument D is assigned to either orbit 1000 or orbit 2000</p>'
-                +'<p>7. Orbit 1000 is assigned only two instruments</p>'                                   
-
-                +'<p>You can think of these features as descriptions of the target designs. A “good” feature should explain most of the target designs, while not being too general. </p>';   
-
+            classname='introjs_tooltip_large';
+            
+            callback=null;
+            prompt = '';
         }
 
         else if(self.current_view==11){
@@ -235,127 +296,139 @@ function ExperimentTutorial(ifeed,experiment){
             ifeed.main_plot.cancel_selection();
             experiment.select_archs_using_ids(tutorial_selection);
 
-            var title = 'Coverage of target designs';
-            var body = 
-                '<p>Consider the following description: </p>'
-                +'<p>(a) At least one of the instruments A and G is used in the design</p>'
-                +'<p>Try clicking the button below to show what designs have the feature (a). The pink and purple dots in the scatter plot are all the designs that have feature (a), meaning that they use either instrument A or G (or both) in their designs. Purple dots are the overlap between the pink dots (designs with the feature) and the blue dots (target). Note that many of the target designs share this feature (as shown by the purple dots). We say that this feature has a large coverage of target designs. Such large coverage is desired in a good feature. </p>'
+            title = 'Coverage of target designs';
+            
+            objects = [null, d3.select('.main_plot.figure')[0][0]];
+            
+            contents = ['We will define "goodness" of a feature using two metrics. The first metric is called the coverage of a feature.',
+                
+                        '<p>Consider the following description: </p>'
+                        +'<p>(a) At least one of the instruments A and G is used in the design</p>'
+                        +'<p>Take a look at the scatter plot, and notice that some dots have turned pink or purple. The pink and purple dots are all the designs that have feature (a), meaning that they use either instrument A or G (or both) in their designs.',
+                        
+                        '<p>Pink dots represent designs that have the feature (a), but are not in the target region. Purple dots represent designs that have the feature (a) and are inside the target region. </p>',
+                        
+                       'Note that many of the target designs share this feature (as shown by the purple dots). We say that this feature has a good coverage of target designs. Such good coverage is desired in a good feature.',
+                        
+                       'However, feature (a) is not necessarily what we are looking for. It is too general, meaning that it also applies to many of the non-target designs as well. This leads us to the next criterion to define a good feature.'];
+            
+            classname='introjs_tooltip_large';
+            callback = function(targetElement) {
 
-                +'<p>However, (a) is not necessarily what we are looking for. It is too general, meaning that it also applies to many of the non-target designs as well. This leads us to the next criterion for a good feature. </p>';
-
-            var buttons = d3.select('#tutorial_buttons').append('g')
-
-            buttons.append('button')
-                    .attr('id','tutorial_button')
-                    .text('Highlight designs with feature (a)')
-                    .style('margin-right','20px')
-                    .style('font-size','18px')
-                    .on('click',function(d){
-                        applyComplexFilter('{present[;0;]}||{present[;6;]}');
-                    });
+                if(this._currentStep==1){
+                    ifeed.filter.apply_filter_expression('{present[;0;]}||{present[;6;]}');
+                }
+            } 
+            prompt = '';
         }
         
+
+        else if(self.current_view==12){
+            
+            ifeed.main_plot.cancel_selection();
+            experiment.select_archs_using_ids(tutorial_selection);
+            
+            title = 'Specificity of target designs';
+            objects = [null, d3.select('.main_plot.figure')[0][0]];
+            
+            contents = ['<p>Now let\'s look at another description (Just see how it looks. The details are not important!):</p>'
+                +'<p>(b) Instrument B is used, and D is not used in the design, and E and C are never assigned to the same orbit. Instrument E is not assigned to orbit 1000. Instrument B, C, E, H, I are not assigned to orbit 3000, instruments A, B, F, J are not assigned to orbit 4000. Moreover, instrument A and instrument C are not assigned to orbit 5000.</p>',
+                        
+                        '<p>Note that different dots are now in pink and purple colors. If you look closely at the scatter plot, you will see that many of the pink dots have disappeared. This is good becuase we wanted to find a feature that uniquely describes the target region and does not cover the non-target region. </p><p>We say that feature (b) is highly specific to the target region, and this is the second criterion that we require from a good feature.</p>',
+                        
+                        '<p>However, you may also notice that many of the purple dots (target designs covered by the feature) have also disappeared. Only very small portion of the targets are in purple color now.</p><p>Therefore, (b) is too specific, meaning that it only accounts for a small number of targets. Or you can say that the coverage of target designs have decreased. </p>',
+                        
+                        '<p>As you may have noticed, there are two conflicting criteria that we are seeking from a good feature. Let\'s summarize those points in the next section.</p>'
+                       ];
+            
+            classname='introjs_tooltip_large';
+            callback = function(targetElement) {
+
+                if(this._currentStep==1){
+                    ifeed.filter.apply_filter_expression(tutorial_feature_example_b);
+                }
+            } 
+            prompt = '';
+        }
+        
+
+    else if(self.current_view==13){
+        
+        ifeed.main_plot.cancel_selection();
+        experiment.select_archs_using_ids(tutorial_selection);
+        
+
+        var buttons = d3.select('#prompt_body').append('g')
+        
+        buttons.append('button')
+                .attr('id','tutorial_button_1')
+                .text('Highlight designs with feature (a)')
+                .style('margin-right','20px')
+                .style('font-size','18px')
+                .on('click',function(d){
+                    ifeed.main_plot.cancel_selection('remove_highlighted');
+                    ifeed.filter.apply_filter_expression('{present[;0;]}||{present[;6;]}');
+                });
+        
+        
+        buttons.append('button')
+                .attr('id','tutorial_button_2')
+                .text('Highlight designs with feature (b)')
+                .style('font-size','18px')
+                .on('click',function(d){
+                    ifeed.main_plot.cancel_selection('remove_highlighted');
+                    ifeed.filter.apply_filter_expression(tutorial_feature_example_b);
+                });
+        
+            
+        title = 'The key is finding the balance';
+        objects = [null, d3.select('.main_plot.figure')[0][0]];
+
+        contents = ['<p>In summary, a good feature should satisfy the following two conditions:</p>'
+            +'<p>1. The feature should cover a large area of the target region (maximize the number of purple dots)</p>'
+            +'<p>2. The feature should be specific enough, so that it does not cover the non-target region (minimize the number of pink dots)</p>',
+                    
+            '<p>As we have seen in the previous example, there is a trade-off between these two conditions. If you try to make a feature cover more targets, you might make it too general, and make it cover non-target designs as well (too many pink dots). On the other hand, if you try to make a feature too specific, it may not cover many target designs (too few purple dots). </p>',
+                    
+            '<p>Therefore, the key is finding the right balance between those two criteria. You can test the features again and see how they are distributed in the scatter plot by clicking the buttons shown on the experiment prompt box. (Reminder: Feature (a) is has good coverage but is not specific enough. Feature (b) is specific but has very low coverage of the targets.)</p>',
+                    
+            '<p>Understanding this concept is important. If you are not sure about the concept introduced here, please ask questions to the experimenter for clarification.</p>']
+
+        classname='introjs_tooltip_large';
+        prompt = '';
+        
+        
+    }
+        
+        
+    else if(self.current_view==14){
+        
+        ifeed.main_plot.cancel_selection();
+        experiment.select_archs_using_ids(tutorial_selection);
+        
+        ifeed.main_plot.highlight_support_panel();
+        document.getElementById('tab2').click();
+
+        title = 'Filters';
+        objects = [d3.selectAll('#support_panel')[0][0], d3.select('.filter .options .div')[0][0]];
+
+        contents = ['<p>Now we will learn how to use iFEED as a tool to find good features. </p>'
+                    +'<p> In the analysis panel, you can find a tab for filter settings. Filters are used to highlight a group of designs that share the common feature that you define. </p><p>For example, you can selectively highlight designs that use instrument C in any orbit, or highlight designs that assign instrument D and E to the orbit 4000. </p>',
+                    
+                    '<p>The most basic and useful features have been identified and built into the filter options. You can select one of these preset filters to specify what patterns you want to investigate. We will test some of these preset filters in the following pages.</p>']
+
+        classname='introjs_tooltip_large';
+        prompt = '';
+        
+
+//        // Run data mining
+//        runDataMining();
+    }
         
         
         
         
-    //    
-    //else if(current_view==12){
-    //    
-    //    cancelDotSelections();
-    //    select_archs_using_ids(tutorial_selection);
-    //    
-    //    d3.select('#tutorial_header').text('Specificity');
-    //    d3.select('#tutorial_text_1').html(
-    //        
-    //        '<p>Now let\'s look at another description (Just see how it looks. The details are not important!):</p>'
-    //        +'<p>(b) Instrument B is used, and D is not used in the design, and E and C are never assigned to the same orbit. Instrument E is not assigned to orbit 1000. Instrument B, C, E, H, I are not assigned to orbit 3000, instruments A, B, F, J are not assigned to orbit 4000. Moreover, instrument A and instrument C are not assigned to orbit 5000.</p>'
-    //        
-    //        +'<p>Pretty complicated, right? Now try clicking the button below to highlight the designs with this feature. If you look closely, you will see that many of the pink dots have disappeared. This is good becuase we wanted to find a feature that uniquely describes the target region and does not cover the non-target region. We say that feature (b) is highly specific to the target region, and this is the second criterion that we require from a good feature.</p>'
-    //        
-    //        +'<p>However, if you look closely, you will notice that now many of the purple dots (target designs covered by the feature) have also disappeared. Only very small portion of the targets are in purple color now. Therefore, (b) is too specific, meaning that it only accounts for a small number of targets. Or you can say that the coverage of target designs have decreased. </p>'
-    //        
-    //        +'<p>As you may have noticed, there are two conflicting criteria that we are seeking from a good feature. Let\'s summarize those points in the next section.</p>'
-    //    );
-    //    
-    //    var buttons = d3.select('#tutorial_buttons').append('g')
-    //    buttons.append('button')
-    //            .attr('id','tutorial_button')
-    //            .text('Highlight designs with feature (b)')
-    //            .style('font-size','18px')
-    //            .on('click',function(d){
-    //                applyComplexFilter(tutorial_feature_example_b);
-    //            });
-    //    
-    //}else if(current_view==13){
-    //    
-    //    cancelDotSelections();
-    //    select_archs_using_ids(tutorial_selection);
-    //    
-    //    d3.select('#tutorial_header').text('The key is finding the balance');
-    //    d3.select('#tutorial_text_1').html(
-    //        '<p>In summary, a good feature should satisfy the following two conditions:</p>'
-    //        +'<p>1. The feature should cover a large area of the target region (maximize the number of purple dots)</p>'
-    //        +'<p>2. The feature should be specific enough, so that it does not cover the non-target region (minimize the number of pink dots)</p>'
-    //        +'<p>As we have seen in the previous example, there is a trade-off between these two conditions. If you try to make a feature cover more targets, you might make it too general, and make it cover non-target designs as well (too many pink dots). On the other hand, if you try to make a feature too specific, it may not cover many target designs (too few purple dots). </p>'
-    //        +'<p>Therefore, the key is finding the right balance between those two criteria. You can test the features again and see how they are distributed in the scatter plot by clicking the buttons below. (Reminder: Feature (a) is has good coverage but is not specific enough. Feature (b) is specific but has very low coverage of the targets.)</p>'
-    //        +'<p>Understanding this concept is important. If you are not sure about the concept introduced here, please ask questions to the experimenter for clarification.</p>'
-    //    );
-    //    
-    //    var buttons = d3.select('#tutorial_buttons').append('g')
-    //    
-    //    buttons.append('button')
-    //            .attr('id','tutorial_button_1')
-    //            .text('Highlight designs with feature (a)')
-    //            .style('margin-right','20px')
-    //            .style('font-size','18px')
-    //            .on('click',function(d){
-    //                cancelDotSelections('remove_highlighted');
-    //                applyComplexFilter('{present[;0;]}||{present[;6;]}');
-    //            });
-    //    
-    //    
-    //    buttons.append('button')
-    //            .attr('id','tutorial_button_2')
-    //            .text('Highlight designs with feature (b)')
-    //            .style('font-size','18px')
-    //            .on('click',function(d){
-    //                cancelDotSelections('remove_highlighted');
-    //                applyComplexFilter(tutorial_feature_example_b);
-    //            });
-    //}
-    //    
-    //    
-    //else if(current_view==14){
-    //	d3.select("#tutorial_header").text("Filters")
-    //	d3.select("#tutorial_text_1").html('<p>Now we will learn how to use iFEED as a tool to find good features. </p>'
-    //                                       
-    //                                       +'<p> In the analysis panel, you can find a tab for filter settings. Filters are used to highlight a group of designs that share the common feature that you define. For example, you can selectively highlight designs that use instrument C in any orbit, or highlight designs that assign instrument D and E to the orbit 4000. </p>'
-    //                                       
-    //                                       +'<p>The most basic and useful features have been identified and built into the filter options. You can select one of these preset filters to specify what patterns you want to investigate. We will test some of these preset filters in the following pages.</p>');
-    //
-    //    // Run data mining
-    //    runDataMining();
-    //    
-    //    
-    //    d3.select('#test_feature_scheme')[0][0].disabled=true;  
-    //    
-    //    d3.selectAll('.dot.dfplot').remove();
-    //
-    //    // Remove automatically generated placeholder
-    //    d3.selectAll('.applied_feature').remove();
-    //    current_feature_application = [];
-    //    update_feature_expression();
-    //    
-    //
-    //    document.getElementById('tab2').click();
-    //    highlight_support_panel();
-    //    d3.select('#supportPanel')
-    //        .style('border-width','5px')
-    //        .style('border-style','solid')
-    //        .style('border-color','#FF2D65');
-    //	
-    //}
+        
     //
     //
     //else if(current_view==15){
@@ -779,12 +852,6 @@ function ExperimentTutorial(ifeed,experiment){
         self.start_intro(objects,contents,classname,callback);
 
     }
-
-
-    
-    
-    
-    
     
 }
 
@@ -825,7 +892,6 @@ function ExperimentTutorial(ifeed,experiment){
 
 function clear_view(){
     
-    view_actions = 0;	
     
     // Set the border to default
     d3.select('#supportPanel')
@@ -1012,7 +1078,7 @@ function turn_highlighted_to_selection(){
 
 
 
-var tutorial_feature_example_b = "{present[;1;]}&&{notInOrbit[2;1;]}&&{notInOrbit[3;1;]}&&{absent[;3;]}&&{notInOrbit[2;8;]}&&{notInOrbit[0;4;]}&&{notInOrbit[3;5;]}&&{notInOrbit[2;4;]}&&{separate[;4,2;]}&&{notInOrbit[2;7;]}&&{notInOrbit[4;0;]}&&{notInOrbit[3;0;]}&&{notInOrbit[2;2;]}&&{notInOrbit[3;9;]}&&{notInOrbit[4;2;]}&&{Placeholder}";
+var tutorial_feature_example_b = "{present[;1;]}&&{notInOrbit[2;1;]}&&{notInOrbit[3;1;]}&&{absent[;3;]}&&{notInOrbit[2;8;]}&&{notInOrbit[0;4;]}&&{notInOrbit[3;5;]}&&{notInOrbit[2;4;]}&&{separate[;4,2;]}&&{notInOrbit[2;7;]}&&{notInOrbit[4;0;]}&&{notInOrbit[3;0;]}&&{notInOrbit[2;2;]}&&{notInOrbit[3;9;]}&&{notInOrbit[4;2;]}";
 
 
 
