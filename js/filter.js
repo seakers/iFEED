@@ -221,6 +221,8 @@ function Filter(ifeed){
     
     self.applyFilter = function(){
 
+        var invalid_input = false;
+        
         var dropdown = d3.select(".filter.options.dropdown")[0][0].value;
         
         var filter_expression;
@@ -261,18 +263,35 @@ function Filter(ifeed){
         if(option=="present" || option=="absent" || option=="together" || option=="separate"){
             
             var instrument = input_textbox[0];
-            filter_expression = option + "[;" + ifeed.label.displayName2Index(instrument.toUpperCase(),"instrument") + ";]";
+            var inst_relabel = ifeed.label.displayName2Index(instrument.toUpperCase(),"instrument");
+            if(inst_relabel==null){
+                invalid_input=true;
+            }
+            filter_expression = option + "[;" + inst_relabel + ";]";
             
         }else if(option == "inOrbit" || option == "notInOrbit"){
             
             var orbit = input_textbox[0].trim();
             var instrument = input_textbox[1];
-            filter_expression = option + "["+ ifeed.label.displayName2Index(orbit,"orbit") + ";" + ifeed.label.displayName2Index(instrument.toUpperCase(),"instrument")+ ";]";
+            
+            var orb_relabel = ifeed.label.displayName2Index(orbit,"orbit");
+            var inst_relabel = ifeed.label.displayName2Index(instrument.toUpperCase(),"instrument");
+            if(inst_relabel==null || orb_relabel==null){
+                invalid_input=true;
+            }            
+            
+            filter_expression = option + "["+ orb_relabel + ";" + inst_relabel + ";]";
             
         }else if(option =="emptyOrbit"){
             
             var orbit = input_textbox[0].trim();
-            filter_expression = option + "[" + ifeed.label.displayName2Index(orbit,"orbit") + ";;]";
+            
+            var orb_relabel = ifeed.label.displayName2Index(orbit,"orbit");
+            if(orb_relabel==null){
+                invalid_input=true;
+            }         
+            
+            filter_expression = option + "[" + orb_relabel + ";;]";
             
         }else if(option=="numOrbits"){
             
@@ -283,8 +302,15 @@ function Filter(ifeed){
             
             var orbit = input_textbox[0].trim();
             var instrument = input_textbox[2];
+            
+            var orb_relabel = ifeed.label.displayName2Index(orbit,"orbit");
+            var inst_relabel = ifeed.label.displayName2Index(instrument.toUpperCase(),"instrument");
+            if(inst_relabel==null || orb_relabel==null){
+                invalid_input=true;
+            }                    
+            
             var numbers = input_textbox[1].trim().replace(/\s+/g, "");
-            filter_expression = option + "["+ ifeed.label.displayName2Index(orbit,"orbit") + ";" + ifeed.label.displayName2Index(instrument.toUpperCase(),"instrument")+ ";"+ numbers+"]";
+            filter_expression = option + "["+ orb_relabel + ";" + inst_relabel + ";"+ numbers+"]";
             
         }else if(option=="numOfInstruments"){
             
@@ -307,11 +333,22 @@ function Filter(ifeed){
                 filter_expression=option + "[;;" + number + "]";
             }else if(orbitEmpty){
                 // Count the number of specified instrument
-                filter_expression=option + "[;" + ifeed.label.displayName2Index(instrument.toUpperCase(),"instrument") + ";" + number + "]";
+                
+                var inst_relabel = ifeed.label.displayName2Index(instrument.toUpperCase(),"instrument");
+                if(inst_relabel==null){
+                    invalid_input=true;
+                }                
+                filter_expression=option + "[;" + inst_relabel + ";" + number + "]";
+                
             }else if(instrumentEmpty){
                 // Count the number of instruments in an orbit
                 orbit = orbit.trim();
-                filter_expression=option + "[" + ifeed.label.displayName2Index(orbit,"orbit") + ";;" + number + "]";
+                
+                var orb_relabel = ifeed.label.displayName2Index(orbit,"orbit");
+                if(orb_relabel==null){
+                    invalid_input=true;
+                }                   
+                filter_expression=option + "[" + orb_relabel + ";;" + number + "]";
             }
             
         } else if(dropdown==="paretoFront"){
@@ -325,24 +362,22 @@ function Filter(ifeed){
         }
         
         filter_expression = "{" + filter_expression + "}";
-
+        
+        if(invalid_input){
+            alert("Invalid input argument");
+            return false;
+        }        
 
         if(filter_expression.indexOf('paretoFront')!=-1){
-            
             self.apply_filter_expression(filter_expression);
 
         }else{
-            
-            ifeed.feature_application.update_feature_application('temp',filter_expression,true);
-            ifeed.feature_application.update_feature_application('update',filter_expression,true);
+            ifeed.feature_application.update_feature_application('direct-update',filter_expression);
             //self.apply_filter_expression(filter_expression);
         }
 
-        
         document.getElementById('tab2').click();
-        if(false){
-            alert("Invalid input argument");
-        }
+        return true;
     }
     
 
