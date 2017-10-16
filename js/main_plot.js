@@ -223,14 +223,11 @@ function MainPlot(ifeed){
     }
     
     
-    self.toggle_selection_mode = function(d){
+    self.toggle_selection_mode = function(){
         
         var mode = null;
-                
-        if(d){
-            mode = d3.select(d).select('input').attr('id');
-        }
-        else{
+        
+        if(this==self){
             mode = ifeed.UI_states.selection_mode;
             if(mode=="zoom-pan"){
                 mode="drag-select";
@@ -239,8 +236,10 @@ function MainPlot(ifeed){
             }else{
                 mode="zoom-pan";
             }
+        }else{
+            mode = d3.select(this).select('input').attr('id');
         }
-        
+
         if(mode=="zoom-pan"){
             d3.select("#zoom-pan")[0][0].checked=true;
             d3.select("#drag-select")[0][0].checked=false;
