@@ -522,6 +522,7 @@ function FeatureApplication(ifeed){
         if(option=='direct-update'){
             option='temp';
             direct_update = true;
+
         }
 
         if(option=='temp'){
@@ -655,8 +656,7 @@ function FeatureApplication(ifeed){
             
             ifeed.data_mining.add_feature_to_plot(self.parse_tree(self.root));
         }
-        
-        
+
         self.update_feature_expression(self.parse_tree(self.root));
         ifeed.data_mining.draw_venn_diagram();   
     }

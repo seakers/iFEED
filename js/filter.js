@@ -223,6 +223,8 @@ function Filter(ifeed){
         
         var invalid_argument = false;
 
+        var invalid_input = false;
+        
         var dropdown = d3.select(".filter.options.dropdown")[0][0].value;
         
         var filter_expression;
@@ -263,37 +265,33 @@ function Filter(ifeed){
         if(option=="present" || option=="absent" || option=="together" || option=="separate"){
             
             var instrument = input_textbox[0];
-            var relabeled_instrument_name = ifeed.label.displayName2Index(instrument.toUpperCase(),"instrument");
-            
-            if(relabeled_instrument_name==null){
-                invalid_argument=true;
+            var inst_relabel = ifeed.label.displayName2Index(instrument.toUpperCase(),"instrument");
+            if(inst_relabel==null){
+                invalid_input=true;
             }
-            filter_expression = option + "[;" + relabeled_instrument_name + ";]";
+            filter_expression = option + "[;" + inst_relabel + ";]";
             
         }else if(option == "inOrbit" || option == "notInOrbit"){
             
             var orbit = input_textbox[0].trim();
             var instrument = input_textbox[1];
             
-            var relabeled_orbit_name = ifeed.label.displayName2Index(orbit,"orbit");
-            var relabeled_instrument_name = ifeed.label.displayName2Index(instrument.toUpperCase(),"instrument");
-            
-            if(relabeled_orbit_name==null || relabeled_instrument_name==null){
-                invalid_argument=true;
-            }
-            
-            filter_expression = option + "["+ relabeled_orbit_name + ";" + relabeled_instrument_name + ";]";
+            var orb_relabel = ifeed.label.displayName2Index(orbit,"orbit");
+            var inst_relabel = ifeed.label.displayName2Index(instrument.toUpperCase(),"instrument");
+            if(inst_relabel==null || orb_relabel==null){
+                invalid_input=true;
+            }            
+            filter_expression = option + "["+ orb_relabel + ";" + inst_relabel + ";]";
             
         }else if(option =="emptyOrbit"){
             
             var orbit = input_textbox[0].trim();
-            var relabeled_orbit_name = ifeed.label.displayName2Index(orbit,"orbit");
-            
-            if(relabeled_orbit_name==null){
-                invalid_argument=true;
-            }
-            
-            filter_expression = option + "[" + relabeled_orbit_name + ";;]";
+
+            var orb_relabel = ifeed.label.displayName2Index(orbit,"orbit");
+            if(orb_relabel==null){
+                invalid_input=true;
+            }         
+            filter_expression = option + "[" + orb_relabel + ";;]";
             
         }else if(option=="numOrbits"){
             
@@ -304,16 +302,16 @@ function Filter(ifeed){
             
             var orbit = input_textbox[0].trim();
             var instrument = input_textbox[2];
+            
+            var orb_relabel = ifeed.label.displayName2Index(orbit,"orbit");
+            var inst_relabel = ifeed.label.displayName2Index(instrument.toUpperCase(),"instrument");
+            if(inst_relabel==null || orb_relabel==null){
+                invalid_input=true;
+            }                    
+            
             var numbers = input_textbox[1].trim().replace(/\s+/g, "");
-            
-            var relabeled_orbit_name = ifeed.label.displayName2Index(orbit,"orbit");
-            var relabeled_instrument_name = ifeed.label.displayName2Index(instrument.toUpperCase(),"instrument");
-            
-            if(relabeled_orbit_name==null || relabeled_instrument_name==null){
-                invalid_argument=true;
-            }            
-            
-            filter_expression = option + "["+ relabeled_orbit_name + ";" + relabeled_instrument_name + ";"+ numbers+"]";
+
+            filter_expression = option + "["+ orb_relabel + ";" + inst_relabel + ";"+ numbers+"]";
             
         }else if(option=="numOfInstruments"){
             
@@ -336,24 +334,23 @@ function Filter(ifeed){
                 filter_expression=option + "[;;" + number + "]";
             }else if(orbitEmpty){
                 // Count the number of specified instrument
-                var relabeled_instrument_name = ifeed.label.displayName2Index(instrument.toUpperCase(),"instrument");
-                
-                if(relabeled_instrument_name==null){
-                    invalid_argument=true;
-                }      
-                
-                filter_expression=option + "[;" + relabeled_instrument_name + ";" + number + "]";
+
+                var inst_relabel = ifeed.label.displayName2Index(instrument.toUpperCase(),"instrument");
+                if(inst_relabel==null){
+                    invalid_input=true;
+                }                
+                filter_expression=option + "[;" + inst_relabel + ";" + number + "]";
                 
             }else if(instrumentEmpty){
                 // Count the number of instruments in an orbit
                 orbit = orbit.trim();
-                var relabeled_orbit_name = ifeed.label.displayName2Index(orbit,"orbit");
                 
-                if(relabeled_orbit_name==null){
-                    invalid_argument=true;
-                }            
-                
-                filter_expression=option + "[" + relabeled_orbit_name + ";;" + number + "]";
+                var orb_relabel = ifeed.label.displayName2Index(orbit,"orbit");
+                if(orb_relabel==null){
+                    invalid_input=true;
+                }                   
+                filter_expression=option + "[" + orb_relabel + ";;" + number + "]";
+
             }
             
         } else if(dropdown==="paretoFront"){
@@ -367,25 +364,23 @@ function Filter(ifeed){
         }
         
         filter_expression = "{" + filter_expression + "}";
-
+        
+        if(invalid_input){
+            alert("Invalid input argument");
+            return false;
+        }        
 
         if(filter_expression.indexOf('paretoFront')!=-1){
-            
             self.apply_filter_expression(filter_expression);
 
         }else{
-            
+
             ifeed.feature_application.update_feature_application('direct-update',filter_expression);
             //self.apply_filter_expression(filter_expression);
         }
 
-        
         document.getElementById('tab2').click();
-        
-        if(invalid_argument){
-            alert("Invalid input argument");
-            return false;
-        }
+
         return true;
     }
     

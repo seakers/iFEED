@@ -112,6 +112,7 @@ function EOSSLabel(eoss){
                 //alert('Invalid input argument');
                 return null;
             }
+            
             if(i>0) output=output+",";
 
             if(type=="orbit"){
