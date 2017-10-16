@@ -109,7 +109,8 @@ function EOSSLabel(eoss){
             var name = split[i];
 
             if(self.orbit_relabeled.indexOf(name)==-1 && self.instrument_relabeled.indexOf(name)==-1){
-                alert('Invalid input argument');
+                //alert('Invalid input argument');
+                return null;
             }
             if(i>0) output=output+",";
 

@@ -135,15 +135,23 @@ function ExperimentTutorial(ifeed,experiment){
         
         if(self.current_view==5){
         
-            objects = null;
+            objects = [null,null,d3.select('#arrow_div')[0][0],d3.select('#experiment_prompt_div')[0][0],d3.select('#clock')[0][0]];
+            
             contents = ["Now we will go through each component of iFEED interface.", 
-                           "During this part of the tutorial, please focus on the part that is currently being explained. Explanation about other parts of the interface may be provided later in the tutorial."];
+                        
+                           "During this part of the tutorial, please focus on the part that is currently being explained. Explanation about other parts of the interface may be provided later in the tutorial.",
+                        
+                       "Each page will cover different topics. To go back to the previous topic, click the left-arrow button. To continue, click the right-arrow button. To review these explanations related to the current topic, click the \"Re-open messages\" button.",
+                        
+                       "For some pages, you will have to do certain tasks to proceed. The detailed directions on how to do those tasks will be provided here.",
+                       
+                        "You have total 25 minutes to finish the rest of the tutorial. Now you can proceed by clicking \"done\" button and then the right arrow button."];
             
             classname=null;
             callback=null;
                         
             title = 'Overview';
-            prompt = 'Each page will cover different topics. To go back to the previous topic, click the left-arrow button. To continue, click the right-arrow button. To view the explanations related to the current topic again, click the "Re-open messages" button.';
+            prompt = "";
         }
         
         else if(self.current_view==6){ // Scatter plot panel
@@ -345,7 +353,7 @@ function ExperimentTutorial(ifeed,experiment){
             callback = function(targetElement) {
 
                 if(this._currentStep==1){
-                    ifeed.filter.apply_filter_expression(tutorial_feature_example_b);
+                    experiment.highlight_archs_using_ids(tutorial_selection2);
                 }
             } 
             prompt = '';
@@ -377,7 +385,7 @@ function ExperimentTutorial(ifeed,experiment){
                 .style('font-size','18px')
                 .on('click',function(d){
                     ifeed.main_plot.cancel_selection('remove_highlighted');
-                    ifeed.filter.apply_filter_expression(tutorial_feature_example_b);
+                    experiment.highlight_archs_using_ids(tutorial_selection2);
                 });
         
             
@@ -406,6 +414,11 @@ function ExperimentTutorial(ifeed,experiment){
         ifeed.main_plot.cancel_selection();
         experiment.select_archs_using_ids(tutorial_selection);
         
+//        // Run data mining
+        ifeed.UI_states.selection_changed= true;
+        ifeed.data_mining.run();
+        ifeed.data_mining.update_feature_plot(ifeed.data_mining.all_features, false, 0.28, 0.85);
+        
         ifeed.main_plot.highlight_support_panel();
         document.getElementById('tab2').click();
 
@@ -419,108 +432,152 @@ function ExperimentTutorial(ifeed,experiment){
 
         classname='introjs_tooltip_large';
         prompt = '';
+    }
+
+
+    else if(self.current_view==15){
+        
+    	if(self.max_view_reached < 15){
+
+            var applyFilter = function(){
+                
+                var filter_return_successful = ifeed.filter.applyFilter();
+
+                if(self.current_view==15){
+                    
+                    var dropdown = d3.select(".filter.options.dropdown")[0][0].value;                    
+                    if(dropdown=="present" && filter_return_successful){
+                        self.activate_continue_button();
+                        if(self.max_view_reached < 15)  self.max_view_reached=15;
+                    }                
+                }
+            }
+
+            self.deactivate_continue_button();
+            d3.select(".filter.buttons")
+                    .select('#apply_filter_button')
+                    .on("click",applyFilter);
+            
+    	}
         
 
-//        // Run data mining
-//        runDataMining();
+        ifeed.main_plot.cancel_selection('remove_highlighted');
+        
+    	document.getElementById('tab2').click();
+    	ifeed.main_plot.highlight_support_panel();
+                
+        d3.select('.filter.options.dropdown')[0][0].value = "present";
+        ifeed.filter.initialize_preset_filter_input("present"); 
+        
+        
+        title = 'Preset Filters: Present';
+        objects = [d3.selectAll('#support_panel')[0][0]];
+
+        contents = ["<p>The filter called \'Present\' is used to selectively highlight designs that contain a specific instrument. It takes in one instrument name as an argument, and selects all designs that use that instrument.</p>",
+                    
+                   "<p>To apply the filter, put in an argument to the appropriate input field and click [Apply Filter] button. </p>",
+                    
+                    "<p>As a result of applying the filter, a group of dots on the scatter plot are highlighted in pink color. These dots represent designs that have the feature you just defined.</p>"]
+
+        classname='introjs_tooltip';
+        
+        prompt = '<p>To continue, follow the steps below:</p>'
+                +'<p>1. Select \'Present\' option from the dropdown menu. </p>'
+    			+'<p>2. In the input field that appears, type in an instrument name. The instrument should be an alphabet letter ranging from A to L. </p>'
+    			+'<p>3. Then click [Apply Filter] button to apply the filter.</p>';
+  
     }
         
         
+    else if(self.current_view==16){
+        
+    	if(self.max_view_reached < 16){
+
+            var applyFilter = function(){
+                
+                var filter_return_successful = ifeed.filter.applyFilter();
+
+                if(self.current_view==16){
+                    
+                    var dropdown = d3.select(".filter.options.dropdown")[0][0].value;                    
+                    if(dropdown=="inOrbit" && filter_return_successful){
+                        self.activate_continue_button();
+                        if(self.max_view_reached < 16)  self.max_view_reached=16;
+                    }                
+                }
+            }
+
+            self.deactivate_continue_button();
+            d3.select(".filter.buttons")
+                    .select('#apply_filter_button')
+                    .on("click",applyFilter);
+            
+    	}
+        
+
+        ifeed.main_plot.cancel_selection('remove_highlighted');
+        
+    	document.getElementById('tab2').click();
+    	ifeed.main_plot.highlight_support_panel();
+                
+        d3.select('.filter.options.dropdown')[0][0].value = "inOrbit";
+        ifeed.filter.initialize_preset_filter_input("inOrbit"); 
+        
+        
+        title = "Preset Filters: InOrbit";
+        objects = [d3.selectAll('#support_panel')[0][0]];
+
+        contents = ["<p>The filter called \'InOrbit\' is used to selectively highlight designs that assign a specific instrument(s) to a given orbit. </p>",
+                    "<p>It takes in an orbit name and instrument name(s) as arguments. If more than one instrument name is given, then it highlights all designs that assign all those instruments into the specified orbit."]
+
+        classname='introjs_tooltip';
+        
+        prompt = '<p>To continue, follow the steps below:</p>'
+    			+'<p>1. Select \'InOrbit\' option from the dropdown menu. </p>'
+    			+'<p>2. In the first input field that appears, type in an orbit name. '
+    			+'The orbit name should be a number in thousands (1000, 2000, 3000, 4000, or 5000). </p>'
+    			+'<p>2. In the second input field, type in instrument names (1 or more). '
+    			+'The instrument should be an alphabet letter ranging from A to L. If there are more than one instruments,'
+    			+' the names should be separated by commas.</p>'
+    			+'<p>3. Then click [Apply Filter] button to apply the filter.</p>';        
+    }
+        
+
+    else if(current_view==17){
+        
+//    	d3.select("#tutorial_header").text("What happens when you apply a filter?")
+//    	d3.select("#tutorial_text_1").html('<p>When you apply a filter, you will notice three changes are made in the interface:'
+//                                           +'<p>1. Some dots are highlighted in pink (and purple) color in the scatter plot. These dots represent all designs that have the particular feature you just defined.</p>'
+//                                           +'<p>2. If you go to the "Feature Analysis" tab, you will see a Venn diagram. The area of the pink circle is proportional to the number of pink dots in the scatter plot. Similarly, the area of the light blue circle corresponds to the number of blue dots in the scatter plot. The intersecting area corresponds to the purple dots, which are the target designs that have the specified feature. </p>'
+//                                           +'<p>3. On the feature application status panel (on the right side of the screen), you can see the current feature that is applied. </p>');
+//    
+//    	document.getElementById('tab3').click();
+//    	highlight_support_panel(); 
+//        
+//    	d3.select('#panel_2').select('div')
+//    		.style('border-width','5px')
+//    		.style('border-style','solid')
+//    		.style('border-color','#FF2D65');
+//        
+//        d3.select('#dfplot_venn_diagram')
+//            .style('border-width','5px')
+//    		.style('border-style','solid')
+//    		.style('border-color','#FF2D65');
+//        
+//        d3.select('#scatterPlotFigure')
+//    		.style('border-width','5px')
+//    		.style('border-color','#FF2D65');
+//    
         
         
         
-    //
-    //
-    //else if(current_view==15){
-    //	if(max_view_reached < 15){
-    //		deactivate_continue_button();
-    //	}
-    //    
-    //    cancelDotSelections('remove_highlighted');
-    //    
-    //	d3.select("#tutorial_header").text("Preset Filters: Present")
-    //	d3.select("#tutorial_text_1").html('<p>The filter called \'Present\' '
-    //			+'is used to selectively highlight designs that '
-    //			+'contain a specific instrument. It takes in one instrument name as an argument,'
-    //			+' and selects all designs that use that instrument. Follow the directions below to activate it:</p>'
-    //			+'<p>1. Select \'Present\' option from the dropdown menu. </p>'
-    //			+'<p>2. In the input field that appears, type in an instrument name. '
-    //			+'The instrument should be an alphabet letter ranging from A to L. </p>'
-    //			+'<p>3. Then click [Apply as new feature] button to apply the filter.</p>'
-    //			+'<p>As a result of applying the feature, a group of dots on the scatter plot are highlighted in pink color. These dots represent designs that have the feature you just defined.</p>');
-    //	
-    //	document.getElementById('tab2').click();
-    //	highlight_support_panel();
-    //    
-    //	d3.select('#filter_options').select('select')
-    //		.style('border-width','5px')
-    //		.style('border-style','solid')
-    //		.style('border-color','#FF2D65');
-    //	d3.select('#applyFilterButton_new')
-    //		.style('border-width','5px')
-    //		.style('border-style','solid')
-    //		.style('border-color','#FF2D65');   
-    //}
-    //
-    //
-    //else if(current_view==16){
-    //	if(max_view_reached<16){
-    //		deactivate_continue_button();
-    //	}
-    //    
-    //    cancelDotSelections('remove_highlighted');
-    //    
-    //	d3.select("#tutorial_header").text("Preset Filters: InOrbit")
-    //	d3.select("#tutorial_text_1").html('<p>The filter called \'InOrbit\' is used to selectively highlight designs that assign a specific '
-    //                                       +'instrument(s) to a given orbit. It takes in an orbit name and instrument name(s) as arguments. If more than one instrument name is given, then it highlights all designs that assign all those instruments into the specified orbit. To continue, follow the steps below:</p>'
-    //			+'<p>1. Select \'InOrbit\' option from the dropdown menu. </p>'
-    //			+'<p>2. In the first input field that appears, type in an orbit name. '
-    //			+'The orbit name should be a number in thousands (1000, 2000, 3000, 4000, or 5000). </p>'
-    //			+'<p>2. In the second input field, type in instrument names (1 or more). '
-    //			+'The instrument should be an alphabet letter ranging from A to L. If there are more than one instruments,'
-    //			+' the names should be separated by commas.</p>'
-    //			+'<p>3. Then click [Apply as new feature] button to apply the filter.</p>');
-    //
-    //	document.getElementById('tab2').click();
-    //	highlight_support_panel();
-    //	
-    //	d3.select('#filter_options').select('select')
-    //		.style('border-width','5px')
-    //		.style('border-style','solid')
-    //		.style('border-color','#FF2D65');
-    //	d3.select('#applyFilterButton_new')
-    //		.style('border-width','5px')
-    //		.style('border-style','solid')
-    //		.style('border-color','#FF2D65');
-    //}
-    //    
-    //    
-    //else if(current_view==17){
-    //    
-    //	d3.select("#tutorial_header").text("What happens when you apply a filter?")
-    //	d3.select("#tutorial_text_1").html('<p>When you apply a filter, you will notice three changes are made in the interface:'
-    //                                       +'<p>1. Some dots are highlighted in pink (and purple) color in the scatter plot. These dots represent all designs that have the particular feature you just defined.</p>'
-    //                                       +'<p>2. If you go to the "Feature Analysis" tab, you will see a Venn diagram. The area of the pink circle is proportional to the number of pink dots in the scatter plot. Similarly, the area of the light blue circle corresponds to the number of blue dots in the scatter plot. The intersecting area corresponds to the purple dots, which are the target designs that have the specified feature. </p>'
-    //                                       +'<p>3. On the feature application status panel (on the right side of the screen), you can see the current feature that is applied. </p>');
-    //
-    //	document.getElementById('tab3').click();
-    //	highlight_support_panel(); 
-    //    
-    //	d3.select('#panel_2').select('div')
-    //		.style('border-width','5px')
-    //		.style('border-style','solid')
-    //		.style('border-color','#FF2D65');
-    //    
-    //    d3.select('#dfplot_venn_diagram')
-    //        .style('border-width','5px')
-    //		.style('border-style','solid')
-    //		.style('border-color','#FF2D65');
-    //    
-    //    d3.select('#scatterPlotFigure')
-    //		.style('border-width','5px')
-    //		.style('border-color','#FF2D65');
-    //
-    //}
+        
+        
+        
+        
+        
+        
+    }
     //    
     //else if(current_view==18){
     //    
@@ -995,6 +1052,9 @@ function select_driving_features(expression){
 }
 
 
+
+
+
 function get_selected_arch_ids(){
 	var target_string = "";
 	d3.selectAll('.dot.archPlot.selected')[0].forEach(function(d){
@@ -1031,34 +1091,7 @@ function select_archs_using_ids(target_ids_string){
 }
 
 
-function highlight_archs_using_ids(target_ids_string){
 
-	var target_ids_split = target_ids_string.split(',');
-	var target_ids =[];
-	for(var i=0;i<target_ids_split.length;i++){
-		var id = + target_ids_split[i];
-		target_ids.push(id);
-	}
-    d3.selectAll('.dot.archPlot')[0].forEach(function(d){
-    	if(target_ids.indexOf(d.__data__.id)!=-1){
-            var dot = d3.select(d);
-            if(dot.classed('selected')){
-                dot.classed('highlighted',true)
-                    .style("fill", overlapColor);
-            }else{
-                dot.classed('highlighted',true)
-                    .style("fill", highlightedColor);
-            }
-    	}
-    });
-}
-
-
-
-
-var high_cost_high_perf = "1703,1704,1705,1731,1738,1740,1741,1742,1744,1746,1747,1748,1762,1789,1790,1791,1792,1794,1797,1799,1800,1804,1805,1806,1807,1822,1823,1825,1830,1832,1835,1843,1853,1857,1859,1863,1875,1878,1879,1884,1885,1888,1890,1895,1903,1908,1914,1916,1926,1928,1930,1933,1946,1951,1983,1991,1993,1994,2000,2004,2014,2015,2017,2024,2026,2034,2046,2047,2059,2076,2084,2086,2124,2179,2181,2186,2188,2189,2190,2191,2197,2202,2237,2239,2241,2247,2251,2253,2257,2262,2264,2276,2278,2282,2283,2284,2289,2290,2295,2298,2305,2310,2314,2322,2338,2346,2355,2360,2361,2363,2374,2378,2411,2466,2469,2474,2476,2481,2482,2483,2484,2487,2489,2493,2497,2507,2512,2536,2544,2569,2574,2586,2607,2610,2611,2617";
-var mid_cost_mid_perf = "1695,1719,1720,1722,1723,1724,1725,1726,1727,1728,1729,1733,1734,1735,1737,1760,1761,1762,1763,1765,1767,1775,1776,1784,1785,1786,1788,1812,1814,1817,1819,1820,1821,1822,1825,1843,1849,1850,1855,1856,1864,1865,1869,1871,1875,1876,1879,1888,1889,1890,1891,1894,1896,1907,1908,1909,1920,1922,1926,1928,1934,1936,1937,1939,1941,1947,2026,2034,2035,2051,2053,2069,2158,2165,2182,2186,2192,2195,2204,2208,2210,2212,2247,2250,2258,2265,2268,2269,2272,2274,2293,2295,2302,2303,2305,2308,2310,2322,2327,2332,2355,2364,2378,2379,2380,2382,2402,2403,2405,2411,2413,2416,2417,2421,2452,2453,2456,2457,2460,2496,2503,2519,2522,2523,2536,2539,2541,2543,2555,2575,2598,2604,2614,2617";
-var low_cost_low_perf = "19,25,26,34,44,77,81,106,108,161,170,1692,1694,1697,1698,1699,1700,1708,1709,1712,1715,1720,1721,1754,1759,1765,1767,1772,1773,1775,1778,1779,1781,1783,1808,1810,1811,1812,1815,1817,1819,1837,1838,1839,1840,1846,1850,1851,1852,1854,1856,1858,1860,1868,1869,1870,1871,1907,1909,1912,1915,1918,1919,1927,1935,1936,1943,1945,1947,1956,1958,1962,1963,1967,2029,2035,2049,2051,2054,2064,2088,2090,2107,2109,2117,2125,2138,2145,2148,2155,2158,2159,2165,2167,2176,2204,2207,2208,2215,2219,2224,2227,2265,2273,2321,2327,2336,2348,2356,2391,2393,2419,2427,2428,2435,2438,2439,2446,2450,2452,2490,2496,2498,2515,2522,2529,2533,2534,2546,2547,2551,2554,2555,2556,2561,2578,2581,2598,2604";
 
 
 
@@ -1084,6 +1117,7 @@ var tutorial_feature_example_b = "{present[;1;]}&&{notInOrbit[2;1;]}&&{notInOrbi
 
 var tutorial_selection = "6,51,165,169,176,189,194,227,237,239,258,287,298,303,313,322,324,339,341,349,352,353,354,359,360,366,369,370,373,382,387,402,406,408,425,426,439,444,473,490,504,506,510,514,519,523,527,532,540,546,575,576,594,600,601,604,612,621,622,624,625,628,629,632,639,645,652,654,658,667,678,681,686,687,688,692,699,703,704,707,718,725,727,728,733,736,740,741,742,744,746,751,761,762,770,774,777,778,781,786,790,793,800,801,802,805,810,812,813,815,816,823,825,832,835,836,840,845,846,856,861,862,865,872,877,878,886,889,891,896,899,905,910,911,912,917,929,933,936,939,943,945,950,952,957,960,965,967,975,977,978,986,1003,1005,1010,1015,1018,1021,1024,1027,1029,1031,1032,1035,1036,1038,1042,1045,1051,1052,1053,1059,1064,1068,1070,1076,1077,1084,1085,1089,1094,1096,1101,1113,1117,1119,1120,1121,1124,1137,1149,1157,1158,1162,1163,1171,1172,1177,1181,1182,1190,1194,1195,1199,1214,1216,1224,1228,1238,1242,1249,1250,1251,1252,1262";
 
+var tutorial_selection2 = "0,19,44,50,67,75,91,132,157,160,165,169,227,258,262,264,266,287,303,316,330,339,444,460,473,504,508,622,624,647,653,659,667,670,687,692,693,698,699,701,707,718,725,736,739,758,770,790,796,812,824,835,856,864,865,883,912,929,950,960,965,982,1005,1029,1038,1117,1119,1120,1157,1182,1188,1216,1224,1254";
 
 
 var tutorial_example_specific_feature = "{present[;1;]}&&{absent[;3;]}&&{absent[;4;]}&&{numOrbits[;;5]}&&{Placeholder}";

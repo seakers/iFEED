@@ -88,7 +88,7 @@ function DataMining(ifeed){
     self.run = function(){
 
         // If the target selection hasn't changed, then use previously obtained driving features to display
-        if(ifeed.UI_states.selection_changed == false && mined_features != null){
+        if(ifeed.UI_states.selection_changed == false && self.mined_features != null){
             self.display_features(self.all_features);
             return;
         }
@@ -222,7 +222,7 @@ function DataMining(ifeed){
     
     
 
-    self.update_feature_plot = function(source, remove_last_feature){
+    self.update_feature_plot = function(source, remove_last_feature, utopia_x, utopia_y){
         
         function get_utopia_point(){
             // Utopia point
@@ -285,7 +285,12 @@ function DataMining(ifeed){
         var max_conf = Math.max(max_conf1, max_conf2);
 
         // Add utopia point
-        self.utopia_point.metrics=[Math.max.apply(null, lifts),Math.max.apply(null, supps),max_conf,max_conf];
+        if(utopia_x){
+            self.utopia_point.metrics=[Math.max.apply(null, lifts),Math.max.apply(null, supps),utopia_x,utopia_y];
+        }else{
+            self.utopia_point.metrics=[Math.max.apply(null, lifts),Math.max.apply(null, supps),max_conf,max_conf];
+        }
+        
 
         // Insert the utopia point to the list of features
         if(self.all_features.length!=0){

@@ -220,6 +220,8 @@ function Filter(ifeed){
     
     
     self.applyFilter = function(){
+        
+        var invalid_argument = false;
 
         var dropdown = d3.select(".filter.options.dropdown")[0][0].value;
         
@@ -261,18 +263,37 @@ function Filter(ifeed){
         if(option=="present" || option=="absent" || option=="together" || option=="separate"){
             
             var instrument = input_textbox[0];
-            filter_expression = option + "[;" + ifeed.label.displayName2Index(instrument.toUpperCase(),"instrument") + ";]";
+            var relabeled_instrument_name = ifeed.label.displayName2Index(instrument.toUpperCase(),"instrument");
+            
+            if(relabeled_instrument_name==null){
+                invalid_argument=true;
+            }
+            filter_expression = option + "[;" + relabeled_instrument_name + ";]";
             
         }else if(option == "inOrbit" || option == "notInOrbit"){
             
             var orbit = input_textbox[0].trim();
             var instrument = input_textbox[1];
-            filter_expression = option + "["+ ifeed.label.displayName2Index(orbit,"orbit") + ";" + ifeed.label.displayName2Index(instrument.toUpperCase(),"instrument")+ ";]";
+            
+            var relabeled_orbit_name = ifeed.label.displayName2Index(orbit,"orbit");
+            var relabeled_instrument_name = ifeed.label.displayName2Index(instrument.toUpperCase(),"instrument");
+            
+            if(relabeled_orbit_name==null || relabeled_instrument_name==null){
+                invalid_argument=true;
+            }
+            
+            filter_expression = option + "["+ relabeled_orbit_name + ";" + relabeled_instrument_name + ";]";
             
         }else if(option =="emptyOrbit"){
             
             var orbit = input_textbox[0].trim();
-            filter_expression = option + "[" + ifeed.label.displayName2Index(orbit,"orbit") + ";;]";
+            var relabeled_orbit_name = ifeed.label.displayName2Index(orbit,"orbit");
+            
+            if(relabeled_orbit_name==null){
+                invalid_argument=true;
+            }
+            
+            filter_expression = option + "[" + relabeled_orbit_name + ";;]";
             
         }else if(option=="numOrbits"){
             
@@ -284,7 +305,15 @@ function Filter(ifeed){
             var orbit = input_textbox[0].trim();
             var instrument = input_textbox[2];
             var numbers = input_textbox[1].trim().replace(/\s+/g, "");
-            filter_expression = option + "["+ ifeed.label.displayName2Index(orbit,"orbit") + ";" + ifeed.label.displayName2Index(instrument.toUpperCase(),"instrument")+ ";"+ numbers+"]";
+            
+            var relabeled_orbit_name = ifeed.label.displayName2Index(orbit,"orbit");
+            var relabeled_instrument_name = ifeed.label.displayName2Index(instrument.toUpperCase(),"instrument");
+            
+            if(relabeled_orbit_name==null || relabeled_instrument_name==null){
+                invalid_argument=true;
+            }            
+            
+            filter_expression = option + "["+ relabeled_orbit_name + ";" + relabeled_instrument_name + ";"+ numbers+"]";
             
         }else if(option=="numOfInstruments"){
             
@@ -307,11 +336,24 @@ function Filter(ifeed){
                 filter_expression=option + "[;;" + number + "]";
             }else if(orbitEmpty){
                 // Count the number of specified instrument
-                filter_expression=option + "[;" + ifeed.label.displayName2Index(instrument.toUpperCase(),"instrument") + ";" + number + "]";
+                var relabeled_instrument_name = ifeed.label.displayName2Index(instrument.toUpperCase(),"instrument");
+                
+                if(relabeled_instrument_name==null){
+                    invalid_argument=true;
+                }      
+                
+                filter_expression=option + "[;" + relabeled_instrument_name + ";" + number + "]";
+                
             }else if(instrumentEmpty){
                 // Count the number of instruments in an orbit
                 orbit = orbit.trim();
-                filter_expression=option + "[" + ifeed.label.displayName2Index(orbit,"orbit") + ";;" + number + "]";
+                var relabeled_orbit_name = ifeed.label.displayName2Index(orbit,"orbit");
+                
+                if(relabeled_orbit_name==null){
+                    invalid_argument=true;
+                }            
+                
+                filter_expression=option + "[" + relabeled_orbit_name + ";;" + number + "]";
             }
             
         } else if(dropdown==="paretoFront"){
@@ -340,9 +382,12 @@ function Filter(ifeed){
 
         
         document.getElementById('tab2').click();
-        if(false){
+        
+        if(invalid_argument){
             alert("Invalid input argument");
+            return false;
         }
+        return true;
     }
     
 

@@ -9,6 +9,10 @@
     padding:25px;
 }
 
+#prompt_header{
+    font-size: 30px;
+}
+
 #experiment_prompt_div > div{
     float:left;
     width:100%;
@@ -25,6 +29,7 @@
 
 #arrow_div{
     margin-top: 30px;
+    float:left;
 }
 
 #task_number{

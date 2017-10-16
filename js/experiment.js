@@ -464,6 +464,31 @@ function Experiment(ifeed){
         });
         return target;
     }
+    
+    
+    
+    self.highlight_archs_using_ids = function(target_ids_string){
+        
+        var target_ids_split = target_ids_string.split(',');
+        var target_ids =[];
+        for(var i=0;i<target_ids_split.length;i++){
+            var id = + target_ids_split[i];
+            target_ids.push(id);
+        }
+        d3.selectAll('.dot.main_plot')[0].forEach(function(d){
+            if(target_ids.indexOf(d.__data__.id)!=-1){
+                
+                var overlap = d3.select(d).classed('selected');
+
+                d3.select(d)
+                    .classed('highlighted',true)
+                    .style("fill", function(){
+                        if(overlap) return ifeed.main_plot.color.overlap;
+                        return ifeed.main_plot.color.highlighted;
+                    });
+            }
+        });
+    }
 
 
     self.select_archs_using_ids = function(target_ids_string){
@@ -475,11 +500,18 @@ function Experiment(ifeed){
             target_ids.push(id);
         }
         d3.selectAll('.dot.main_plot')[0].forEach(function(d){
+                
             if(target_ids.indexOf(d.__data__.id)!=-1){
+                
+                var overlap = d3.select(d).classed('highlighted');
                 d3.select(d)
                     .classed('selected',true)
-                    .style("fill", ifeed.main_plot.color.selected);
+                    .style("fill", function(){
+                        if(overlap) return ifeed.main_plot.color.overlap;
+                        return ifeed.main_plot.color.selected;
+                    });
             }
+
         });
 
     }
@@ -494,10 +526,10 @@ function Experiment(ifeed){
 
     self.turn_highlighted_to_selected = function(){
 
-        d3.selectAll('.dot.main_plot.selected')
-            .classed('selected',false)
-            .classed('highlighted',false)
-            .style("fill", ifeed.main_plot.color.default); 
+//        d3.selectAll('.dot.main_plot.selected')
+//            .classed('selected',false)
+//            .classed('highlighted',false)
+//            .style("fill", ifeed.main_plot.color.default); 
 
         d3.selectAll('.dot.main_plot.highlighted')
             .classed('selected',true)
@@ -508,10 +540,10 @@ function Experiment(ifeed){
 
     self.turn_selected_to_highlighted = function(){
 
-        d3.selectAll('.dot.main_plot.highlighted')
-            .classed('selected',false)
-            .classed('highlighted',false)
-            .style("fill", ifeed.main_plot.color.default); 
+//        d3.selectAll('.dot.main_plot.highlighted')
+//            .classed('selected',false)
+//            .classed('highlighted',false)
+//            .style("fill", ifeed.main_plot.color.default); 
 
         d3.selectAll('.dot.main_plot.selected')
             .classed('selected',false)
