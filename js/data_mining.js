@@ -222,7 +222,7 @@ function DataMining(ifeed){
     
     
 
-    self.update_feature_plot = function(source, remove_last_feature, utopia_x, utopia_y){
+    self.update_feature_plot = function(source, remove_last_feature){
         
         function get_utopia_point(){
             // Utopia point
@@ -285,8 +285,14 @@ function DataMining(ifeed){
         var max_conf = Math.max(max_conf1, max_conf2);
 
         // Add utopia point
-        if(utopia_x){
-            self.utopia_point.metrics=[Math.max.apply(null, lifts),Math.max.apply(null, supps),utopia_x,utopia_y];
+        if(ifeed.experiment){
+            if(ifeed.experiment.tutorial){
+                var utopia_x = ifeed.experiment.tutorial.tutorial_utopia_point_x;
+                var utopia_y = ifeed.experiment.tutorial.tutorial_utopia_point_y;
+                self.utopia_point.metrics=[Math.max.apply(null, lifts),Math.max.apply(null, supps),utopia_x,utopia_y];
+            }else{
+                self.utopia_point.metrics=[Math.max.apply(null, lifts),Math.max.apply(null, supps),max_conf,max_conf];
+            }
         }else{
             self.utopia_point.metrics=[Math.max.apply(null, lifts),Math.max.apply(null, supps),max_conf,max_conf];
         }

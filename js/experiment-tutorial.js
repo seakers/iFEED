@@ -12,6 +12,8 @@ function ExperimentTutorial(ifeed,experiment){
     self.current_items=[];
     self.intro = introJs();
     
+    self.tutorial_utopia_point_x = 0.28;
+    self.tutorial_utopia_point_y = 0.85;
     
     self.move_to_page = function(page){
         
@@ -444,7 +446,6 @@ function ExperimentTutorial(ifeed,experiment){
                 var filter_return_successful = ifeed.filter.applyFilter();
 
                 if(self.current_view==15){
-                    
                     var dropdown = d3.select(".filter.options.dropdown")[0][0].value;                    
                     if(dropdown=="present" && filter_return_successful){
                         self.activate_continue_button();
@@ -461,7 +462,7 @@ function ExperimentTutorial(ifeed,experiment){
     	}
         
 
-        ifeed.main_plot.cancel_selection('remove_highlighted');
+        ifeed.feature_application.clear_all_features();
         
     	document.getElementById('tab2').click();
     	ifeed.main_plot.highlight_support_panel();
@@ -475,7 +476,7 @@ function ExperimentTutorial(ifeed,experiment){
 
         contents = ["<p>The filter called \'Present\' is used to selectively highlight designs that contain a specific instrument. It takes in one instrument name as an argument, and selects all designs that use that instrument.</p>",
                     
-                   "<p>To apply the filter, put in an argument to the appropriate input field and click [Apply Filter] button. </p>",
+                   "<p>To apply the filter, type in an argument to the input text field and click [Apply Filter] button. </p>",
                     
                     "<p>As a result of applying the filter, a group of dots on the scatter plot are highlighted in pink color. These dots represent designs that have the feature you just defined.</p>"]
 
@@ -515,8 +516,7 @@ function ExperimentTutorial(ifeed,experiment){
     	}
         
 
-        ifeed.main_plot.cancel_selection('remove_highlighted');
-        
+        ifeed.feature_application.clear_all_features();
     	document.getElementById('tab2').click();
     	ifeed.main_plot.highlight_support_panel();
                 
@@ -528,7 +528,7 @@ function ExperimentTutorial(ifeed,experiment){
         objects = [d3.selectAll('#support_panel')[0][0]];
 
         contents = ["<p>The filter called \'InOrbit\' is used to selectively highlight designs that assign a specific instrument(s) to a given orbit. </p>",
-                    "<p>It takes in an orbit name and instrument name(s) as arguments. If more than one instrument name is given, then it highlights all designs that assign all those instruments into the specified orbit."]
+                    "<p>It takes in an orbit name and instrument name(s) as arguments. If more than one instrument name is given, then it highlights all designs that assign all those instruments into the specified orbit.</p>"]
 
         classname='introjs_tooltip';
         
@@ -540,45 +540,219 @@ function ExperimentTutorial(ifeed,experiment){
     			+'The instrument should be an alphabet letter ranging from A to L. If there are more than one instruments,'
     			+' the names should be separated by commas.</p>'
     			+'<p>3. Then click [Apply Filter] button to apply the filter.</p>';        
+    }        
+    else if(self.current_view==17){
+    	
+    	if(self.max_view_reached < 17){
+
+            var applyFilter = function(){
+                
+                var filter_return_successful = ifeed.filter.applyFilter();
+                if(self.current_view==17){
+                    
+                    var dropdown = d3.select(".filter.options.dropdown")[0][0].value;                    
+                    if(dropdown=="together" && filter_return_successful){
+                        self.activate_continue_button();
+                        if(self.max_view_reached < 17)  self.max_view_reached=17;
+                    }                
+                }
+            }
+
+            self.deactivate_continue_button();
+            d3.select(".filter.buttons")
+                    .select('#apply_filter_button')
+                    .on("click",applyFilter);
+            
+    	}
+        
+        ifeed.feature_application.clear_all_features();
+    	document.getElementById('tab2').click();
+    	ifeed.main_plot.highlight_support_panel();
+                
+        d3.select('.filter.options.dropdown')[0][0].value = "together";
+        ifeed.filter.initialize_preset_filter_input("together"); 
+        
+        
+        title = "Preset Filters: Together";
+        objects = [d3.selectAll('#support_panel')[0][0]];
+
+        contents = ["The filter called \'together\' is used to selectively highlight designs that assign a group of instrument together in the same orbit. It is different from ‘inOrbit’ as the instruments can be assigned to any orbit."]
+
+        classname='introjs_tooltip';
+        
+        prompt = '<p> To continue, follow the steps below:</p>'
+    			+'<p>1. Select \'together\' option from the dropdown menu. </p>'
+    			+'<p>2. In the input field, type in multiple instrument names, separated by commas. '
+    			+'The instrument should be an alphabet letter ranging from A to L. </p>'
+    			+'<p>3. Then click [Apply Filter] button to apply the filter.</p>';           
+    }     
+    else if(self.current_view==18){
+    	
+    	if(self.max_view_reached < 18){
+
+            var applyFilter = function(){
+                
+                var filter_return_successful = ifeed.filter.applyFilter();
+                if(self.current_view==18){
+                    
+                    var dropdown = d3.select(".filter.options.dropdown")[0][0].value;                    
+                    if(dropdown=="emptyOrbit" && filter_return_successful){
+                        self.activate_continue_button();
+                        if(self.max_view_reached < 18)  self.max_view_reached=18;
+                    }                
+                }
+            }
+
+            self.deactivate_continue_button();
+            d3.select(".filter.buttons")
+                    .select('#apply_filter_button')
+                    .on("click",applyFilter);
+            
+    	}
+        
+        ifeed.feature_application.clear_all_features();
+        
+    	document.getElementById('tab2').click();
+    	ifeed.main_plot.highlight_support_panel();
+                
+        d3.select('.filter.options.dropdown')[0][0].value = "emptyOrbit";
+        ifeed.filter.initialize_preset_filter_input("emptyOrbit"); 
+        
+        title = "Preset Filters: Empty orbit";
+        objects = [d3.selectAll('#support_panel')[0][0]];
+
+        contents = ["<p>The filter called \'Empty orbit\' is used to selectively highlight designs that do not assign any instrument to the specified orbit. It takes in a single orbit name as an argument.</p>"];
+
+        classname='introjs_tooltip';
+        
+        prompt = '<p>To continue, follow the steps below:</p>'
+    			+'<p>1. Select \'Empty orbit\' option from the dropdown menu. </p>'
+    			+'<p>2. In the input field, type in an orbit name. '
+    			+'The orbit name should be a number in thousands (1000, 2000, 3000, 4000, or 5000). </p>'
+    			+'<p>3. Then click [Apply Filter] button to apply the filter.</p>';   
     }
+//    else if(self.current_view==19){        
+//    	if(self.max_view_reached < 19){
+//
+//            var applyFilter = function(){
+//                
+//                var filter_return_successful = ifeed.filter.applyFilter();
+//                if(self.current_view==19){
+//                    
+//                    var dropdown = d3.select(".filter.options.dropdown")[0][0].value;                    
+//                    if(dropdown=="numOfInstruments" && filter_return_successful){
+//                        self.activate_continue_button();
+//                        if(self.max_view_reached < 19)  self.max_view_reached=19;
+//                    }                
+//                }
+//            }
+//
+//            self.deactivate_continue_button();
+//            d3.select(".filter.buttons")
+//                    .select('#apply_filter_button')
+//                    .on("click",applyFilter);
+//            
+//    	}
+//        
+//        ifeed.main_plot.cancel_selection('remove_highlighted');
+//    	document.getElementById('tab2').click();
+//    	ifeed.main_plot.highlight_support_panel();
+//                
+//        d3.select('.filter.options.dropdown')[0][0].value = "numOfInstruments";
+//        ifeed.filter.initialize_preset_filter_input("numOfInstruments"); 
+//        
+//        title = "Preset Filters: Number of instruments";
+//        objects = [d3.selectAll('#support_panel')[0][0]];
+//
+//        contents = ['<p>The filter called \'Number of instruments\' is used to selectively highlight designs that '
+//    			+'use the specified number of instruments. '
+//    			+'It has some flexibility in what arguments you can enter to this filter. </p>'
+//    			+'<p> - If orbit name and instrument names are not given (input field empty), '
+//    			+'then it will count the number of all instruments used in the design. </p>'
+//    			+'<p> - If orbit name is given, then it will count the number of instruments in that particular orbit. </p>'
+//    			+'<p> - If instrument name is given, then it will count the number of those instruments. </p>'
+//    			+'<p> (IMPORTANT: Either one of orbit name or instrument name should be empty)'];
+//
+//        classname='introjs_tooltip';
+//        
+//        prompt = '<p>To continue, follow the steps below:</p>'
+//                +'<p>1. Select \'Number of instruments\' option from the dropdown menu. </p>'
+//    			+'<p>2. Fill in the input fields. At least one of instrument or orbit names should be empty. The number cannot be empty.</p>'
+//    			+'<p>3. Then click [Apply as new feature] button to apply the filter.</p>';   
+//    }
+//    else if(current_view==23){
+//    	if(max_view_reached<23){
+//    		deactivate_continue_button();
+//    	}
+//    	d3.select("#tutorial_header").text("Preset Filters: Num of instruments in a subset")
+//    	d3.select("#tutorial_text_1").html('<p>The filter called \'Num of instruments in a subset\' is used to selectively highlight designs that assign to an orbit a certain number of instruments from a given set. For example, you can specify that at least 2 instruments out of {A,B,C,D,E} should be assigned to orbit 1000.To continue, follow the steps below:</p>'
+//                +'<p>1. Select \'Num of instruments in a subset\' option from the dropdown menu.</p>'
+//    			+'<p>2. Put in an orbit name.</p>'
+//    			+'<p>3. Put in the minimum and the maximum number of instruments.</p>'
+//    			+'<p>4. Put in a group of instruments to be counted.</p>'
+//    			+'<p>5. Then click [Apply as new feature] button to apply the filter.</p>'
+//    			+'<p>Now We\'ve covered many of the preset filters, but not all of them. You can test other filters that we haven’t used and see if you understand what they do.</p>');
+//    
+//    	document.getElementById('tab2').click();
+//    	highlight_support_panel();
+//    	
+//    	d3.select('#filter_options').select('select')
+//    		.style('border-width','5px')
+//    		.style('border-style','solid')
+//    		.style('border-color','#FF2D65');
+//        
+//    	d3.select('#applyFilterButton_new')
+//    		.style('border-width','5px')
+//    		.style('border-style','solid')
+//    		.style('border-color','#FF2D65');
+//    }
+
+    else if(current_view==19){
+        
+    	d3.select("#tutorial_header").text("What happens when you apply a filter?")
+    	d3.select("#tutorial_text_1").html('<p>When you apply a filter, you will notice three changes are made in the interface:'
+                                           +'<p>1. Some dots are highlighted in pink (and purple) color in the scatter plot. These dots represent all designs that have the particular feature you just defined.</p>'
+                                           +'<p>2. If you go to the "Feature Analysis" tab, you will see a Venn diagram. The area of the pink circle is proportional to the number of pink dots in the scatter plot. Similarly, the area of the light blue circle corresponds to the number of blue dots in the scatter plot. The intersecting area corresponds to the purple dots, which are the target designs that have the specified feature. </p>'
+                                           +'<p>3. On the feature application status panel (on the right side of the screen), you can see the current feature that is applied. </p>');
+    
+    	document.getElementById('tab3').click();
+    	highlight_support_panel(); 
         
 
-    else if(current_view==17){
+
+        ifeed.main_plot.cancel_selection('remove_highlighted');
         
-//    	d3.select("#tutorial_header").text("What happens when you apply a filter?")
-//    	d3.select("#tutorial_text_1").html('<p>When you apply a filter, you will notice three changes are made in the interface:'
-//                                           +'<p>1. Some dots are highlighted in pink (and purple) color in the scatter plot. These dots represent all designs that have the particular feature you just defined.</p>'
-//                                           +'<p>2. If you go to the "Feature Analysis" tab, you will see a Venn diagram. The area of the pink circle is proportional to the number of pink dots in the scatter plot. Similarly, the area of the light blue circle corresponds to the number of blue dots in the scatter plot. The intersecting area corresponds to the purple dots, which are the target designs that have the specified feature. </p>'
-//                                           +'<p>3. On the feature application status panel (on the right side of the screen), you can see the current feature that is applied. </p>');
-//    
-//    	document.getElementById('tab3').click();
-//    	highlight_support_panel(); 
-//        
-//    	d3.select('#panel_2').select('div')
-//    		.style('border-width','5px')
-//    		.style('border-style','solid')
-//    		.style('border-color','#FF2D65');
-//        
-//        d3.select('#dfplot_venn_diagram')
-//            .style('border-width','5px')
-//    		.style('border-style','solid')
-//    		.style('border-color','#FF2D65');
-//        
-//        d3.select('#scatterPlotFigure')
-//    		.style('border-width','5px')
-//    		.style('border-color','#FF2D65');
-//    
+    	document.getElementById('tab2').click();
+    	ifeed.main_plot.highlight_support_panel();
+                
+        d3.select('.filter.options.dropdown')[0][0].value = "present";
+        ifeed.filter.initialize_preset_filter_input("present"); 
         
         
+        title = 'Preset Filters: Present';
+        objects = [d3.selectAll('#support_panel')[0][0]];
+
+        contents = ["<p>The filter called \'Present\' is used to selectively highlight designs that contain a specific instrument. It takes in one instrument name as an argument, and selects all designs that use that instrument.</p>",
+                    
+                   "<p>To apply the filter, put in an argument to the appropriate input field and click [Apply Filter] button. </p>",
+                    
+                    "<p>As a result of applying the filter, a group of dots on the scatter plot are highlighted in pink color. These dots represent designs that have the feature you just defined.</p>"]
+
+        classname='introjs_tooltip';
         
-        
+        prompt = '<p>To continue, follow the steps below:</p>'
+                +'<p>1. Select \'Present\' option from the dropdown menu. </p>'
+    			+'<p>2. In the input field that appears, type in an instrument name. The instrument should be an alphabet letter ranging from A to L. </p>'
+    			+'<p>3. Then click [Apply Filter] button to apply the filter.</p>';
         
         
         
         
         
     }
-    //    
+
+        
+        
     //else if(current_view==18){
     //    
     //	if(max_view_reached<18){
@@ -630,116 +804,7 @@ function ExperimentTutorial(ifeed,experiment){
     //    
     //    
     //
-    //else if(current_view==20){
-    //	if(max_view_reached<20){
-    //		deactivate_continue_button();
-    //	}
-    //	d3.select("#tutorial_header").text("Preset Filters: together")
-    //	d3.select("#tutorial_text_1").html('<p>Now let’s go back and try applying a few more filters.  The filter called \'together\' is used to selectively highlight designs that assign a group of instrument together in the same orbit. It is different from ‘inOrbit’ as the instruments can be assigned to any orbit. To continue, follow the steps below:</p>'
-    //			+'<p>1. Select \'together\' option from the dropdown menu. </p>'
-    //			+'<p>2. In the input field, type in multiple instrument names, separated by commas. '
-    //			+'The instrument should be an alphabet letter ranging from A to L. </p>'
-    //			+'<p>3. Then click [Apply as new feature] button to apply the filter.</p>');
-    //
-    //	document.getElementById('tab2').click();
-    //	highlight_support_panel();
-    //	
-    //	d3.select('#filter_options').select('select')
-    //		.style('border-width','5px')
-    //		.style('border-style','solid')
-    //		.style('border-color','#FF2D65');
-    //	d3.select('#applyFilterButton_new')
-    //		.style('border-width','5px')
-    //		.style('border-style','solid')
-    //		.style('border-color','#FF2D65');
-    //}
-    //
-    //    
-    //else if(current_view==21){
-    //	if(max_view_reached<21){
-    //		deactivate_continue_button();
-    //	}
-    //    
-    //	d3.select("#tutorial_header").text("Preset Filters: Empty orbit")
-    //	d3.select("#tutorial_text_1").html('<p>The filter called \'Empty orbit\' is used to selectively highlight designs that '
-    //			+'do not assign any instrument to the specified orbit. It takes in a single orbit name '
-    //			+'as an argument. To continue, follow the steps below:</p>'
-    //			+'<p>1. Select \'Empty orbit\' option from the dropdown menu. </p>'
-    //			+'<p>2. In the input field, type in an orbit name. '
-    //			+'The orbit name should be a number in thousands (1000, 2000, 3000, 4000, or 5000). </p>'
-    //			+'<p>3. Then click [Apply as new feature] button to apply the filter.</p>');
-    //
-    //	document.getElementById('tab2').click();
-    //	highlight_support_panel();
-    //	
-    //	d3.select('#filter_options').select('select')
-    //		.style('border-width','5px')
-    //		.style('border-style','solid')
-    //		.style('border-color','#FF2D65');
-    //	d3.select('#applyFilterButton_new')
-    //		.style('border-width','5px')
-    //		.style('border-style','solid')
-    //		.style('border-color','#FF2D65');
-    //}
-    //
-    //
-    //else if(current_view==22){
-    //	if(max_view_reached<22){
-    //		deactivate_continue_button();
-    //	}
-    //	d3.select("#tutorial_header").text("Preset Filters: Number of instruments")
-    //	d3.select("#tutorial_text_1").html('<p>The filter called \'Number of instruments\' is used to selectively highlight designs that '
-    //			+'use the specified number of instruments. '
-    //			+'It has some flexibility in what arguments you can enter to this filter. </p>'
-    //			+'<p> - If orbit name and instrument names are not given (input field empty), '
-    //			+'then it will count the number of all instruments used in the design. </p>'
-    //			+'<p> - If orbit name is given, then it will count the number of instruments in that particular orbit. </p>'
-    //			+'<p> - If instrument name is given, then it will count the number of those instruments. </p>'
-    //			+'<p> (IMPORTANT: Either one of orbit name or instrument name should be empty)'
-    //			+'<p>To continue, follow the steps below:</p>'
-    //			+'<p>1. Select \'Number of instruments\' option from the dropdown menu. </p>'
-    //			+'<p>2. Fill in the input fields. At least one of instrument or orbit names should be empty. The number cannot be empty.</p>'
-    //			+'<p>3. Then click [Apply as new feature] button to apply the filter.</p>');
-    //
-    //	document.getElementById('tab2').click();
-    //	highlight_support_panel();
-    //	
-    //	d3.select('#filter_options').select('select')
-    //		.style('border-width','5px')
-    //		.style('border-style','solid')
-    //		.style('border-color','#FF2D65');
-    //	d3.select('#applyFilterButton_new')
-    //		.style('border-width','5px')
-    //		.style('border-style','solid')
-    //		.style('border-color','#FF2D65');
-    //}
-    //
-    //else if(current_view==23){
-    //	if(max_view_reached<23){
-    //		deactivate_continue_button();
-    //	}
-    //	d3.select("#tutorial_header").text("Preset Filters: Num of instruments in a subset")
-    //	d3.select("#tutorial_text_1").html('<p>The filter called \'Num of instruments in a subset\' is used to selectively highlight designs that assign to an orbit a certain number of instruments from a given set. For example, you can specify that at least 2 instruments out of {A,B,C,D,E} should be assigned to orbit 1000.To continue, follow the steps below:</p>'
-    //            +'<p>1. Select \'Num of instruments in a subset\' option from the dropdown menu.</p>'
-    //			+'<p>2. Put in an orbit name.</p>'
-    //			+'<p>3. Put in the minimum and the maximum number of instruments.</p>'
-    //			+'<p>4. Put in a group of instruments to be counted.</p>'
-    //			+'<p>5. Then click [Apply as new feature] button to apply the filter.</p>'
-    //			+'<p>Now We\'ve covered many of the preset filters, but not all of them. You can test other filters that we haven’t used and see if you understand what they do.</p>');
-    //
-    //	document.getElementById('tab2').click();
-    //	highlight_support_panel();
-    //	
-    //	d3.select('#filter_options').select('select')
-    //		.style('border-width','5px')
-    //		.style('border-style','solid')
-    //		.style('border-color','#FF2D65');
-    //    
-    //	d3.select('#applyFilterButton_new')
-    //		.style('border-width','5px')
-    //		.style('border-style','solid')
-    //		.style('border-color','#FF2D65');
-    //}
+
     //
     //else if(current_view==24){
     //
@@ -947,75 +1012,6 @@ function ExperimentTutorial(ifeed,experiment){
 //}
 
 
-function clear_view(){
-    
-    
-    // Set the border to default
-    d3.select('#supportPanel')
-        .style('border-width','1px')
-        .style('border-color','#000000');
-        
-    d3.select('#filter_options')
-        .select('select')
-        .style('border-width','0px')
-        .style('border-color','#000000');
-
-    d3.select('#getDrivingFeaturesButton')
-        .style('border-width','0px')
-        .style('border-color','#000000');
-
-    d3.select('#applyFilterButton_new')
-        .style('border-width','0px')
-        .style('border-color','#000000');      
-
-    d3.select('#applyFilterButton_add')
-        .style('border-width','0px')
-        .style('border-color','#000000');      
-
-    d3.select('#applyFilterButton_within')
-        .style('border-width','0px')
-        .style('border-color','#000000');      
-
-    
-    d3.select('#StatusBar')
-        .style('border-width','0px')
-        .style('border-color','#000000');
-
-	d3.select('#filter_application_status')
-        .style('border-width','0px')
-        .style('border-color','#000000');
-    
-	d3.select('#filter_application_save')
-        .style('border-width','0px')
-        .style('border-color','#000000'); 
-    
-    d3.select('#scatterPlotFigure')
-        .style('border-width','1px')
-        .style('border-color','#000000');
-    
-	d3.select('#panel_2').select('div')
-        .style('border-width','1px')
-        .style('border-color','#000000');
-    
-    d3.select('#dfplot_venn_diagram')
-        .style('border-width','0px')
-        .style('border-color','#000000');
-    
-    d3.select('#tutorial_buttons').select('g').remove();     
-
-    // Clear the texts and images
-	d3.select("#tutorial_header").text("");
-	d3.select("#tutorial_text_1").text('');
-	d3.select("#tutorial_img_1").attr("src","")
-			.style("width","0%")
-			.style("opacity",0);
-	d3.select("#tutorial_img_2").remove();
-	d3.select("#tutorial_text_2").attr("src","")
-			.style("width","0%")
-			.style("opacity",0);
-	d3.select("#tutorial_img_credit").text("");
-	activate_continue_button();
-}
 
 
 
@@ -1052,74 +1048,12 @@ function select_driving_features(expression){
 }
 
 
-
-
-
-function get_selected_arch_ids(){
-	var target_string = "";
-	d3.selectAll('.dot.archPlot.selected')[0].forEach(function(d){
-		target_string = target_string + "," + d.__data__.id;
-	});
-	return target_string.substring(1,target_string.length);
-}
-
-
-function get_selected_arch_ids_list(){
-	var target = [];
-	d3.selectAll('.dot.archPlot.selected')[0].forEach(function(d){
-		target.push(d.__data__.id);
-	});
-	return target;
-}
-
-
-function select_archs_using_ids(target_ids_string){
-
-	var target_ids_split = target_ids_string.split(',');
-	var target_ids =[];
-	for(var i=0;i<target_ids_split.length;i++){
-		var id = + target_ids_split[i];
-		target_ids.push(id);
-	}
-    d3.selectAll('.dot.archPlot')[0].forEach(function(d){
-    	if(target_ids.indexOf(d.__data__.id)!=-1){
-    		d3.select(d)
-    			.classed('selected',true)
-    			.style("fill", selectedColor);
-    	}
-    });
-}
-
-
-
-
-
-
-function turn_highlighted_to_selection(){
-	
-    d3.selectAll('.dot.archPlot.selected')
-		.classed('selected',false)
-        .classed('highlighted',false)
-	    .style("fill", defaultColor); 
-    
-	d3.selectAll('.dot.archPlot.highlighted')
-        .classed('selected',true)
-		.classed('highlighted',false)
-		.style("fill", selectedColor);  
-}
-
-
-
-
 var tutorial_feature_example_b = "{present[;1;]}&&{notInOrbit[2;1;]}&&{notInOrbit[3;1;]}&&{absent[;3;]}&&{notInOrbit[2;8;]}&&{notInOrbit[0;4;]}&&{notInOrbit[3;5;]}&&{notInOrbit[2;4;]}&&{separate[;4,2;]}&&{notInOrbit[2;7;]}&&{notInOrbit[4;0;]}&&{notInOrbit[3;0;]}&&{notInOrbit[2;2;]}&&{notInOrbit[3;9;]}&&{notInOrbit[4;2;]}";
-
-
 
 var tutorial_selection = "6,51,165,169,176,189,194,227,237,239,258,287,298,303,313,322,324,339,341,349,352,353,354,359,360,366,369,370,373,382,387,402,406,408,425,426,439,444,473,490,504,506,510,514,519,523,527,532,540,546,575,576,594,600,601,604,612,621,622,624,625,628,629,632,639,645,652,654,658,667,678,681,686,687,688,692,699,703,704,707,718,725,727,728,733,736,740,741,742,744,746,751,761,762,770,774,777,778,781,786,790,793,800,801,802,805,810,812,813,815,816,823,825,832,835,836,840,845,846,856,861,862,865,872,877,878,886,889,891,896,899,905,910,911,912,917,929,933,936,939,943,945,950,952,957,960,965,967,975,977,978,986,1003,1005,1010,1015,1018,1021,1024,1027,1029,1031,1032,1035,1036,1038,1042,1045,1051,1052,1053,1059,1064,1068,1070,1076,1077,1084,1085,1089,1094,1096,1101,1113,1117,1119,1120,1121,1124,1137,1149,1157,1158,1162,1163,1171,1172,1177,1181,1182,1190,1194,1195,1199,1214,1216,1224,1228,1238,1242,1249,1250,1251,1252,1262";
 
 var tutorial_selection2 = "0,19,44,50,67,75,91,132,157,160,165,169,227,258,262,264,266,287,303,316,330,339,444,460,473,504,508,622,624,647,653,659,667,670,687,692,693,698,699,701,707,718,725,736,739,758,770,790,796,812,824,835,856,864,865,883,912,929,950,960,965,982,1005,1029,1038,1117,1119,1120,1157,1182,1188,1216,1224,1254";
 
-
-var tutorial_example_specific_feature = "{present[;1;]}&&{absent[;3;]}&&{absent[;4;]}&&{numOrbits[;;5]}&&{Placeholder}";
+var tutorial_example_specific_feature = "{present[;1;]}&&{absent[;3;]}&&{absent[;4;]}&&{numOrbits[;;5]}";
 
 

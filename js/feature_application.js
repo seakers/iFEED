@@ -505,7 +505,7 @@ function FeatureApplication(ifeed){
     
 
     
-    self.update_feature_application = function(option,expression,directUpdate){
+    self.update_feature_application = function(option,expression){
 
         var get_node_to_add_features = function(d){
             // Find the node to which to add new features
@@ -514,6 +514,14 @@ function FeatureApplication(ifeed){
             }else{
                 return null;
             }
+        }
+        
+        if(expression==null) expression = "";
+        
+        var direct_update = false;
+        if(option=='direct-update'){
+            option='temp';
+            direct_update = true;
         }
 
         if(option=='temp'){
@@ -539,7 +547,7 @@ function FeatureApplication(ifeed){
 
                     parentNode.children.push(subtree); 
                     
-                    if(!directUpdate){
+                    if(!direct_update){
                         self.update(self.root);
                         self.check_tree_structure();
                     }
@@ -630,15 +638,26 @@ function FeatureApplication(ifeed){
                 d.temp=false;
             })
 
-            if(directUpdate){
-                self.update(self.root);
-                self.check_tree_structure();
-            }
             ifeed.data_mining.add_feature_to_plot(self.parse_tree(self.root));
         }
-
-        self.update_feature_expression(self.parse_tree(self.root));
         
+        
+        if(direct_update){
+            
+            self.stashed_node_ids = null;
+            self.stashed_root = null;
+            self.visit_nodes(self.root,function(d){
+                d.temp=false;
+            })
+
+            self.update(self.root);
+            self.check_tree_structure();
+            
+            ifeed.data_mining.add_feature_to_plot(self.parse_tree(self.root));
+        }
+        
+        
+        self.update_feature_expression(self.parse_tree(self.root));
         ifeed.data_mining.draw_venn_diagram();   
     }
     
@@ -1031,23 +1050,17 @@ function FeatureApplication(ifeed){
     }
 
 
-
-    // Remove all features
-    d3.select('#clear_all_features').on('click',function(){
-
+    self.clear_all_features = function(){
         self.root = null;
         self.update(self.root);
-        
         ifeed.data_mining.add_feature_to_plot(self.parse_tree(self.root));
         self.update_feature_expression(self.parse_tree(self.root));
-        ifeed.data_mining.draw_venn_diagram();      
-
-    }); 
-    
+        ifeed.data_mining.draw_venn_diagram();  
+    }
     
 
-    
-    
+    // Remove all features
+    d3.select('#clear_all_features').on('click',self.clear_all_features); 
     
 }
 
