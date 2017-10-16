@@ -108,9 +108,10 @@ function EOSSLabel(eoss){
         for(var i=0;i<split.length;i++){
             var name = split[i];
 
-            if(self.orbit_relabeled.indexOf(name)==-1 && self.instrument_relabeled.indexOf(name)==-1){
-                alert('Invalid input argument');
+            if(self.orbit_relabeled.indexOf(name)==-1 && self.instrument_relabeld.indexOf(name)==-1){
+                return null;
             }
+            
             if(i>0) output=output+",";
 
             if(type=="orbit"){
