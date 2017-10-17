@@ -44,7 +44,7 @@ function Experiment(ifeed){
 
 
     var deadline;
-    var remainingTime = + 10*60*1000; // 10 minutes
+    self.remainingTime = + 10*60*1000; // 10 minutes
     
     self.label = new Label(this);
 
@@ -83,7 +83,7 @@ function Experiment(ifeed){
     self.resetTimer = function(){
         clearInterval(self.timeinterval);
         var startTime = Date.parse(new Date());
-        deadline = new Date(startTime+remainingTime);
+        deadline = new Date(startTime+self.remainingTime);
         self.initializeClock(deadline);
     }
 
@@ -100,11 +100,12 @@ function Experiment(ifeed){
 
             minutesSpan.innerHTML = ('0' + t.minutes).slice(-2);
             secondsSpan.innerHTML = ('0' + t.seconds).slice(-2);
-
+            
+            //console.log(t.total);
             if(t.total<=0){
                 self.stopTimer();
-                alert('The task is finished! Please let the experimenter know that you have finished the task. Do not proceed unless directed to do so.')
-                return;
+                alert('Time is up! Please let the experimenter know. Do not proceed unless directed to do so.')
+                return undefined;
             }
         }
 
