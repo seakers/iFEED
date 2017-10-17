@@ -488,12 +488,14 @@ function FeatureApplication(ifeed){
                 if(re) return re;  
             }
         }else{
-            if(source.children){
-                for(var i=0;i<source.children.length;i++){
-                    re = self.visit_nodes(source.children[i],func)
-                    if(re) return re;
-                }   
-            }  
+            if(source){
+                if(source.children){
+                    for(var i=0;i<source.children.length;i++){
+                        re = self.visit_nodes(source.children[i],func)
+                        if(re) return re;
+                    }   
+                }  
+            }
         }
 
         return null;

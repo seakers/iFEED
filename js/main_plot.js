@@ -145,7 +145,7 @@ function MainPlot(ifeed){
                 .attr("y", -6)
                 .style("text-anchor", "end")
                 .text(function(){
-                    ifeed.metadata.output_list[xIndex];
+                    return ifeed.metadata.output_list[xIndex];
                 });
 
         // y-axis
@@ -159,7 +159,7 @@ function MainPlot(ifeed){
                 .attr("dy", ".71em")
                 .style("text-anchor", "end")
                 .text(function(){
-                    ifeed.metadata.output_list[yIndex];
+                    return ifeed.metadata.output_list[yIndex];
                 });
 
         objects = svg.append("svg")

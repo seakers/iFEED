@@ -352,7 +352,7 @@ function ContextMenu(ifeed) {
         }    
 
         ifeed.feature_application.update(ifeed.feature_application.root);
-        
+                
         ifeed.feature_application.check_tree_structure();
         
         ifeed.data_mining.add_feature_to_plot(feature_application.parse_tree(ifeed.feature_application.root));
