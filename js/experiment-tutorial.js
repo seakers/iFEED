@@ -102,11 +102,7 @@ function ExperimentTutorial(ifeed,experiment){
 
         self.current_items = objects;
         
-        if(callback){
-            self.intro.setOptions({steps:steps,tooltipClass:classname}).onchange(callback).start(); 
-        }else{
-            self.intro.setOptions({steps:steps,tooltipClass:classname}).start(); 
-        }
+        self.intro.setOptions({steps:steps,tooltipClass:classname}).onchange(callback).start(); 
     }
 
     
@@ -135,6 +131,8 @@ function ExperimentTutorial(ifeed,experiment){
         var objects,contents,classname,callback;
         var title, prompt;
         
+        callback = function(){return undefined;};
+        
         if(self.current_view==5){
         
             objects = [null,null,d3.select('#arrow_div')[0][0],d3.select('#experiment_prompt_div')[0][0],d3.select('#clock')[0][0]];
@@ -150,7 +148,6 @@ function ExperimentTutorial(ifeed,experiment){
                         "You are given total 25 minutes to finish this part of the tutorial. Now you can proceed by clicking \"done\" button and then the right arrow button."];
             
             classname=null;
-            callback=null;
                         
             title = 'Overview';
             prompt = "";
@@ -186,7 +183,6 @@ function ExperimentTutorial(ifeed,experiment){
             contents = ['The number of designs are displayed in the boxes above the scatter plot.','This shows the total number of designs','This shows the number of target designs (highlighted in blue)'];
             
             classname = 'introjs_tooltip_small';
-            callback=null;
             
             title='Number of designs';
             prompt = '';
@@ -204,7 +200,6 @@ function ExperimentTutorial(ifeed,experiment){
                         'The displayed information contains the science benefit score and the cost, as well as a figure that shows what instruments are assigned to each orbit.'];
 
             classname = 'introjs_tooltip_large';
-            callback = null;
             
             title = "Analysis Panel and Inspecting Design by Hovering";
             prompt = '';
@@ -297,7 +292,6 @@ function ExperimentTutorial(ifeed,experiment){
 
             classname='introjs_tooltip_large';
             
-            callback=null;
             prompt = '';
         }
 
@@ -730,9 +724,7 @@ function ExperimentTutorial(ifeed,experiment){
                    "<p>The horizontal axis corresponds to the specificity, and the vertical axis corresponds to the coverage of a feature. </p><p>Since we want both high specificity and good coverage, your goal is to find features that will be located on the top-right corner of the plot. The star on the top-right shows the goal that you should try to reach.</p>"];
 
         classname = 'introjs_tooltip';
-        
-        callback = null;
-        
+                
         prompt = "";
         
     }
@@ -796,8 +788,6 @@ function ExperimentTutorial(ifeed,experiment){
                    "You can view possible actions by right-clicking on each node. There may be different set of options depending on which node it is. We will go over these in the next section."];
 
         classname = 'introjs_tooltip_large';
-        
-        callback = null;
         
         prompt = "";        
     }
@@ -863,8 +853,6 @@ function ExperimentTutorial(ifeed,experiment){
 
         classname = 'introjs_tooltip_large';
         
-        callback = null;
-        
         prompt = "";
         
         
@@ -883,8 +871,6 @@ function ExperimentTutorial(ifeed,experiment){
         contents = [null];
 
         classname = 'introjs_tooltip_large';
-        
-        callback = null;
         
         prompt = '<p style="font-weight:bold;">This is the end of the tutorial. '
     		+'Once you start the experiment, you will not be able to return to this tutorial. If you don\'t understand specific'

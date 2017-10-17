@@ -1066,10 +1066,3 @@ function FeatureApplication(ifeed){
     
 }
 
-
-
-
-
-
-
-
