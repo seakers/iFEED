@@ -41,8 +41,8 @@ function ExperimentTutorial(ifeed,experiment){
     
     self.tutorial_go_back = function(){
         if(self.current_view==5){
-            //var path = "index.html?" + testType + "-" + account_id;
-            //window.location.replace(path);
+            var path = "index.html";
+            window.location.replace(path);
             return;
         }
         self.current_view--;
@@ -282,7 +282,7 @@ function ExperimentTutorial(ifeed,experiment){
             title = 'The features of the designs';
             
             objects = null;
-            contents = ['Now, we will define what features are. Your goal in this experiment is to find “good” features that explain the target region well.',
+            contents = ['Now, we will define what features are. Your goal in this experiment is to find the “good” features that explain the target region well.',
                         
                        '<p> Below are some examples of how features might look like (these are just examples, so you don\'t have to pay attention to the details): </p>'
                         +'<p>   1. Instrument A is assigned to orbit 1000 </p>'
@@ -314,13 +314,13 @@ function ExperimentTutorial(ifeed,experiment){
                 
                         '<p>Consider the following description: </p>'
                         +'<p>(a) At least one of the instruments A and G is used in the design</p>'
-                        +'<p>Take a look at the scatter plot, and notice that some dots have turned pink or purple. The pink and purple dots are all the designs that have feature (a), meaning that they use either instrument A or G (or both) in their designs.',
+                        +'<p>Take a look at the scatter plot, and note that some dots have turned pink or purple. The pink and purple dots are all the designs that have feature (a), meaning that they use either instrument A or G (or both) in their designs.',
                         
                         '<p>Pink dots represent designs that have the feature (a), but are not in the target region. Purple dots represent designs that have the feature (a) and are inside the target region. </p>',
                         
-                       'Note that many of the target designs share this feature (as shown by the purple dots). We say that this feature has a good coverage of target designs. Such good coverage is desired in a good feature.',
+                       'Note that many of the target designs share this feature (as shown by the large number of purple dots). We say that this feature has a good coverage of target designs. Such good coverage is desired in a good feature.',
                         
-                       'However, feature (a) is not necessarily what we are looking for. It is too general, meaning that it also applies to many of the non-target designs as well. This leads us to the next criterion to define a good feature.'];
+                       'However, feature (a) is not necessarily what we are looking for. It is too general, meaning that it also applies to many of the non-target designs as well (as shown by the large number of pink dots). This leads us to the next criterion to define a good feature.'];
             
             classname='introjs_tooltip_large';
             callback = function(targetElement) {
@@ -344,9 +344,9 @@ function ExperimentTutorial(ifeed,experiment){
             contents = ['<p>Now let\'s look at another description (Just see how it looks. The details are not important!):</p>'
                 +'<p>(b) Instrument B is used, and D is not used in the design, and E and C are never assigned to the same orbit. Instrument E is not assigned to orbit 1000. Instrument B, C, E, H, I are not assigned to orbit 3000, instruments A, B, F, J are not assigned to orbit 4000. Moreover, instrument A and instrument C are not assigned to orbit 5000.</p>',
                         
-                        '<p>Note that different dots are now in pink and purple colors. If you look closely at the scatter plot, you will see that many of the pink dots have disappeared. This is good becuase we wanted to find a feature that uniquely describes the target region and does not cover the non-target region. </p><p>We say that feature (b) is highly specific to the target region, and this is the second criterion that we require from a good feature.</p>',
+                        '<p>Note that different dots are now in pink and purple colors. If you look closely, you will find that many of the pink dots have disappeared. This is good becuase we wanted to find a feature that uniquely describes the target region and does not cover the non-target region. </p><p>We say that feature (b) is specific to the target region, and this is the second criterion that we require from a good feature.</p>',
                         
-                        '<p>However, you may also notice that many of the purple dots (target designs covered by the feature) have also disappeared. Only very small portion of the targets are in purple color now.</p><p>Therefore, (b) is too specific, meaning that it only accounts for a small number of targets. Or you can say that the coverage of target designs have decreased. </p>',
+                        '<p>However, you may notice that many of the purple dots (target designs covered by the feature) have also disappeared. Only very small portion of the targets are in purple color now.</p><p>Therefore, (b) is too specific, meaning that it only accounts for a small number of targets. Or you can say that the coverage of target designs have decreased. </p>',
                         
                         '<p>As you may have noticed, there are two conflicting criteria that we are seeking from a good feature. Let\'s summarize those points in the next section.</p>'
                        ];
@@ -423,7 +423,7 @@ function ExperimentTutorial(ifeed,experiment){
         objects = [d3.selectAll('#support_panel')[0][0], d3.select('.filter .options .div')[0][0]];
 
         contents = ['<p>Now we will learn how to use iFEED as a tool to find good features. </p>'
-                    +'<p> In the analysis panel, you can find a tab for filter settings. Filters are used to highlight a group of designs that share the common feature that you define. </p><p>For example, you can selectively highlight designs that use instrument C in any orbit, or highlight designs that assign instrument D and E to the orbit 4000. </p>',
+                    +'<p> In the analysis panel, you can find a tab for filter settings. Filters are used to highlight a group of designs that share the common feature that you define. </p>',
                     
                     '<p>The most basic and useful features have been identified and built into the filter options. You can select one of these preset filters to specify what patterns you want to investigate. We will test some of these preset filters in the following pages.</p>']
 
@@ -626,6 +626,8 @@ function ExperimentTutorial(ifeed,experiment){
     			+'The orbit name should be a number in thousands (1000, 2000, 3000, 4000, or 5000). </p>'
     			+'<p>3. Then click [Apply Filter] button to apply the filter.</p>';   
     }
+        
+        
 //    else if(self.current_view==19){        
 //    	if(self.max_view_reached < 19){
 //
@@ -723,9 +725,9 @@ function ExperimentTutorial(ifeed,experiment){
 
         contents = ["Feature Analysis tab contains a plot that shows how much coverage and specificity each feature has. ",
                     
-                    "Each feature is represented by a triangle or a cross, depending on how it is generated. Triangles represent features that are generated automatically using a data mining algorithm, whereas crosses are the features that you explored.",
+                    "Each feature is represented by a triangle or a cross, depending on how it is generated. Triangles represent features that are generated automatically using a data mining algorithm, whereas crosses are the features that you explored manually.",
                     
-                   "The horizontal axis corresponds to the specificity, and the vertical axis corresponds to the coverage of a feature. Since we want both high specificity and good coverage, your goal is to find features that will be located on the top-right corner of the plot. The star on the top-right shows the goal that you should try to reach."];
+                   "<p>The horizontal axis corresponds to the specificity, and the vertical axis corresponds to the coverage of a feature. </p><p>Since we want both high specificity and good coverage, your goal is to find features that will be located on the top-right corner of the plot. The star on the top-right shows the goal that you should try to reach.</p>"];
 
         classname = 'introjs_tooltip';
         
@@ -747,9 +749,9 @@ function ExperimentTutorial(ifeed,experiment){
                    
                    "First, a set of dots on the scatter plot will be highlighted in pink and purple color, in the same way as when you used the filter. Again, those designs have the feature that you are currently inspecting.",
                    
-                   "Second, a Venn diagram appears on the right side of the Feature Analysis tab. The Venn diagram shows the composition of the designs under different sets. The blue circle represents designs that are inside the target region, and the pink circle represents the designs that have the current feature.",
+                   "<p>Second, a Venn diagram appears on the right side of the Feature Analysis tab. The Venn diagram shows the composition of the designs under different sets.</p><p> The size of the blue circle corresponds to the number of designs that are inside the target region, and the size of the pink circle corresponds to the number of designs that have the current feature.</p>",
                    
-                   "Third, a logical expression and a graphical representation of the feature will appear in the Feature Application Status panel. The logical expression is shown on the upper part of the panel, and the lower part will display the graphical representation. More explanation about this will be provided in the next section."];
+                   "<p>Third, a logical expression and a graphical representation of the feature will appear in the Feature Application Status panel. </p><p>The logical expression is shown on the upper part of the panel, and the lower part will display the graphical representation.</p><p>More explanation about this will be provided in the next section.</p>"];
 
         classname = 'introjs_tooltip_large';
         
@@ -775,11 +777,13 @@ function ExperimentTutorial(ifeed,experiment){
                    null,
                    d3.select('#feature_application_panel')[0][0],
                   null,
-                  d3.select('#feature_expression_panel')[0][0]];
+                  d3.select('#feature_expression_panel')[0][0],
+                  d3.select('#feature_application_panel')[0][0]
+                  ];
 
         contents = ["Feature Application Status panel allows you to modify and combine different features to create more complicated ones.",
                    
-                   "To add features to the Feature Application Status panel, you have to click on one of the features shown on the Feature Analysis tab. Hovering your mouse over the features will result in temporary change in the Feature Application Status, and by clicking you can fix the change.",
+                   "<p>To add features to the Feature Application Status panel, you have to click on one of the features shown on the Feature Analysis tab.</p><p> Hovering your mouse over the features will result in temporary change in the Feature Application Status, and by clicking you can fix the change.</p>",
                     
                    "Once a feature is added, you will see a black cross blinking in the figure. It shows where the current feature is located",
                    
@@ -787,11 +791,13 @@ function ExperimentTutorial(ifeed,experiment){
                    
                    "In the graphical representation, there are two kinds of nodes: nodes for logical connectives and nodes for individual features. The logical connectives are colored in blue, and they can be either AND or OR.",
                     
-                   "As shown in the feature expression displayed above, all feature nodes inside the same logical connective node are inside the same bracket and combined using the same logical connection.",
+                   "As shown in the corresponding feature expression, all feature nodes inside the same logical connective node are inside the same bracket and are combined using the same logical connection.",
                    
                    "You can view possible actions by right-clicking on each node. There may be different set of options depending on which node it is. We will go over these in the next section."];
 
         classname = 'introjs_tooltip_large';
+        
+        callback = null;
         
         prompt = "";        
     }
@@ -811,7 +817,7 @@ function ExperimentTutorial(ifeed,experiment){
                   d3.select('.column.c2')[0][0],
                   d3.select('#feature_expression_panel:first-child')[0][0]];
 
-        contents = ["We will go over some of the options associated with each node. First, right-click on one of the feature nodes, and select \"Add Parent Branch\". It adds a new logical connective node as a parent.",
+        contents = ["<p>We will go over some of the options associated with each node. </p><p>First, right-click on one of the feature nodes, and select \"Add Parent Branch\". It adds a new logical connective node as a parent.</p>",
                    
                    "Right-click the same node and select \"Duplicate\". A new branch will appear, duplicating the content of the original node.",
                    
@@ -819,93 +825,104 @@ function ExperimentTutorial(ifeed,experiment){
                    
                    "You can also delete nodes by selecting \"Delete\" option.",
                    
-                   "For logical connectives, there is an option called \"Add Feature\". If you select this option, the color of the node will turn red. This indicates that when you add a new feature, it will be added under this selected node.",
+                   "<p>Logical connective nodes have an option called \"Add Feature\". If you select this option, the color of the node will turn red. </p><p>This indicates that when you add a new feature, it will be added under this selected node.</p>",
                    
-                   "Try adding a new feature by hovering your mouse over one of the features in the Feature Analysis tab. You will see that the new feature does not replace the whole graphical representation, but is simply added to the current one. To finalize the addition of the new feature, you need to click the feature.",
+                   "<p>Try adding a new feature by hovering your mouse over one of the features in the Feature Analysis tab. </p><p>You will see that the new feature does not replace the whole graphical representation, but is simply added to the current one. </p><p>To finalize the addition of the new feature, you need to click the feature.</p>",
                    
-                   "You can change the location of each node by drag and drop. When you drag each node, temporary circles will appear around all other logical connective nodes. If you drop a node in one of those circles, the node will be added under that particular logical connective.",
-                   
-                   "Finally, you can delete the current feature by clicking \"clear\" button."];
+                   "<p>You can change the location of each node by drag and drop (with the exception of the root node - the leftmost node). </p><p>When you drag each node, temporary circles will appear around all other logical connective nodes. If you drop a node in one of those circles, the node will be added under that particular logical connective.</p><p>If the movement happens within the same parent node, the node will be added to the lower location.</p>",
+                                       
+                   "Finally, you can remove the current feature by clicking \"clear\" button."];
 
         classname = 'introjs_tooltip_large';
         
-        prompt = "";        
+        prompt = "";    
+        
+        
     }    
+    else if(self.current_view==23){ 
         
+        document.getElementById('tab3').click();
+        ifeed.main_plot.highlight_support_panel();
+        ifeed.feature_application.clear_all_features();
         
-  
+        title = 'Basic strategies for new exploring features';
+        
+        objects = [d3.select('.columns')[0][0]];
 
-    //else if(current_view==25){ // Show only for testType= 3
-    //
-    //    initialize_tabs_driving_features();
-    //    select_archs_using_ids(tutorial_selection);
-    //    
-    //    d3.selectAll('.applied_feature').remove();
-    //    current_feature_application = [];
-    //    update_feature_expression();
-    //    
-    //
-    //	d3.select("#tutorial_header").text("Data Mining")
-    //	d3.select("#tutorial_text_1").html('<p>iFEED also provides a data mining capability to help analyze the data.'
-    //					+' The data mining capability extracts features that have a good coverage and those that have high specificity.'
-    //					+' Extracting these patterns can be used as a starting point in finding the features that are both specific and have good coverage. </p>'
-    //					+'<p>To run data mining, just go to the feature analysis tab and click the [Run data mining] button.</p>');
-    //	
-    //	document.getElementById('tab3').click();
-    //	highlight_support_panel();
-    //    
-    //	d3.select('#getDrivingFeaturesButton')
-    //		.style('border-width','5px')
-    //		.style('border-style','solid')
-    //		.style('border-color','#FF2D65');  
-    //}
-    //
-    //    
-    //    
-    //    
-    //else if(current_view==29){ 
-    //	
-    //	d3.select("#tutorial_header").text("Basic strategies for new exploring features")
-    //	d3.select("#tutorial_text_1").html('<p>1. When a feature is too general (covering many non-targets), you can combine it with other features using ANDs to make it more specific. Or if the current feature contains ORs, removing those OR connections help improving the spceficitiy of a feature.</p>'
-    //                                      +'<p>2. When a feature is too specific, you can combine it with other features using ORs to make it more general. Or if the current feature contains ANDs, removing those AND connections improves the coverage of a feature. </p>'
-    //                                      +'<p>3. You can generalize a feature by defining a new feature using Filter Settings. For example, if you are constantly seeing different combinations of instruments {A,B,C,D} in orbit 1000, you can define a new feature that says "At least 2 of A,B,C,D should be assigned to orbit 1000". </p>'
-    //                                      
-    //                                      +'<br><br><p>So, the recommended strategies for you to get started is:</p>'
-    //                                      +'<p>1. Start from a general feature with a good coverage (shown in the top-left corner) and try to improve it by combining it with other general features (using AND) in order to remove pink dots.</p>'
-    //                                      +'<p>2. Start from a specific feature with a good specificity (shown in the bottom-right corner) and try to improve it by combining it with other specific features (using OR) in order to add more purple dots.</p>'
-    //                                      +'<p>You can use this as a starting point, but keep in mind that it is very likely that you should use both ANDs and ORs in combination in order to achieve good coverage and specificity at the same time.</p>');  
-    //}
-    //
-    //    
-    //else if(current_view==30){ 
-    //	deactivate_continue_button();
-    //	
-    //	d3.select("#tutorial_header").text("Tutorial Finished")
-    //	d3.select("#tutorial_text_1").html('<p style="font-weight:bold;">This is the end of the tutorial. '
-    //		+'Once you start the experiment, you will not be able to return to this tutorial. If you don\'t understand specific'
-    //		+' part of this tool, you can go back to that section now and review the material or ask questions to the experimenter. </p>'
-    //		+'<p style="font-weight:bold;">In the experiment, you will be given 3 tasks. For each task, you will be provided with a different set of capabilities to do the analysis. For some tasks, you will have only a subset tools introduced in this tutorial.</p>'
-    //        +'<p>The goal of all tasks is to find good features that have good specificity and coverage.</p>'
-    //		+'<p style="font-weight:bold">After each task is finished, you will be asked to verbally describe to us what interesting features you have just found. Please let the experimenter know when you finish each task. </p>'
-    //		+'<p>Now you can move on to the experiment by clicking the button below. Good luck!</p>');  
-    //
-    //	d3.select('#tutorial_text_1')
-    //		.insert('button')
-    //		.attr("type","button")
-    //		.attr("id","experiment_start_button")
-    //		.style("width","220px")
-    //		.style("height","30px")
-    //		.style("margin-top:20px");
-    //	d3.select("#experiment_start_button")
-    //		.text("Start the Experiment")
-    //		.on("click", start_experiment);
-    //}
+        contents = ["<p>We went over all the features of iFEED! Here you will learn some basic strategies you can take to find the good features. </p><p>Try to follow the directions now and generate your own feature. </p>",
+                    
+                    "<p>Start with a general feature (having good coverage), and try to combine it with other features using ANDs to make it more specific.</p>",
+                    
+                    "<p>In other words, start with a feature that is on the top-left corner (in the figure inside Feature Analysis tab), and try to move the cursur to the right side of the plot.</p>",
+                    
+                    "<p>If you think the feature is too specific (having poor coverage), then put it inside an OR node by using \"Add Parent Branch\" on the root node (the leftmost node). </p><p>Then, add a new general feature inside the OR node.</p>",
+                    
+                    "<p>Now try to make it specific again by adding new nodes under the newly created AND node.</p>",        
+        
+                    '<p>A good feature will likely consist of both ANDs and ORs in combination.</p>'];
+
+        classname = 'introjs_tooltip_large';
+        
+        callback = null;
+        
+        prompt = "";
         
         
+    }    
+    else if(self.current_view==24){ 
+    	self.deactivate_continue_button();
+    	
+        document.getElementById('tab3').click();
+        ifeed.main_plot.highlight_support_panel();
+        ifeed.feature_application.clear_all_features();
+        
+        title = 'Tutorial Finished';
+        
+        objects = [null];
+
+        contents = [null];
+
+        classname = 'introjs_tooltip_large';
+        
+        callback = null;
+        
+        prompt = '<p style="font-weight:bold;">This is the end of the tutorial. '
+    		+'Once you start the experiment, you will not be able to return to this tutorial. If you don\'t understand specific'
+    		+' part of this tool, you can go back to that section now and review the material or ask questions to the experimenter. </p>'
+    		+'<p style="font-weight:bold;">In the experiment, you will be given 3 tasks. For each task, you will be provided with a different set of capabilities to do the analysis. For some tasks, you will have only a subset tools introduced in this tutorial.</p>'
+            +'<p>The goal of all tasks is to find good features that have good specificity and coverage.</p>'
+    		+'<p style="font-weight:bold">After each task is finished, you will be asked to verbally describe to us what interesting features you have just found. Please let the experimenter know when you finish each task. </p>'
+    		+'<p>Now you can move on to the experiment by clicking the button below. Good luck!</p>';
         
         
-        self.write_prompt(title,prompt);
+        d3.select('#prompt_body')
+                .append('g')
+                .append('button')
+                .attr('id','tutorial_button_1')
+                .style('margin-right','20px')
+                .style('font-size','18px')
+                .text('Start the Experiment')
+                .on('click',start_experiment);
+
+        
+//    	d3.select('#tutorial_text_1')
+//    		.insert('button')
+//    		.attr("type","button")
+//    		.attr("id","experiment_start_button")
+//    		.style("width","220px")
+//    		.style("height","30px")
+//    		.style("margin-top:20px");
+//    	d3.select("#experiment_start_button")
+//    		.text("Start the Experiment")
+//    		.on("click", start_experiment);
+    }
+        
+    
+    self.write_prompt(title,prompt);
+    
+    if(self.current_view!=24){
         self.start_intro(objects,contents,classname,callback);
+    }    
 
     }
     
@@ -941,14 +958,9 @@ function ExperimentTutorial(ifeed,experiment){
 //}
 
 
-//function start_experiment(){
-//    window.location.replace("http://52.14.7.76/experiment?" + account_id);
-//}
-
-
-
-
-
+function start_experiment(){
+    window.location.replace("http://52.14.7.76/experiment");
+}
 
 
 
