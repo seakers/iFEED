@@ -128,7 +128,10 @@
     font-weight:bold;
 }
 
-
+#arch_info_display_table_div{
+    float:left;
+    width:100%;
+}
 
 .arch_info_display_cell{
     border: 1px solid black;

@@ -178,7 +178,9 @@ function EOSS(ifeed){
 
         var supportPanel = d3.select("#support_panel").select("#view1").select("g");
 
-        var table = supportPanel.append("table")
+        var table = supportPanel.append('div')
+                                .attr('id','arch_info_display_table_div')
+                                .append("table")
                                 .attr("id", "arch_info_display_table");
 
         var columns = [];
