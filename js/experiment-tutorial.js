@@ -5,7 +5,7 @@ function ExperimentTutorial(ifeed,experiment){
     var self = this;
     
     self.current_view = 5;
-    self.max_view = 30;
+    self.max_view = 24;
     
     self.max_view_reached = 0;
     
@@ -526,8 +526,7 @@ function ExperimentTutorial(ifeed,experiment){
     			+'<p>2. In the first input field that appears, type in an orbit name. '
     			+'The orbit name should be a number in thousands (1000, 2000, 3000, 4000, or 5000). </p>'
     			+'<p>2. In the second input field, type in instrument names (1 or more). '
-    			+'The instrument should be an alphabet letter ranging from A to L. If there are more than one instruments,'
-    			+' the names should be separated by commas.</p>'
+    			+'The instrument should be an alphabet letter ranging from A to L. If there are more than one instrument, the names should be separated by commas.</p>'
     			+'<p>3. Then click [Apply Filter] button to apply the filter.</p>';        
     }        
     else if(self.current_view==17){
@@ -841,7 +840,7 @@ function ExperimentTutorial(ifeed,experiment){
 
         contents = ["<p>We went over all the features of iFEED! Here you will learn some basic strategies you can take to find the good features. </p><p>Try to follow the directions now and generate your own feature. </p>",
                     
-                    "<p>Start with a general feature (having good coverage), and try to combine it with other features using ANDs to make it more specific.</p>",
+                    "<p>First, it is a good idea to build upon the features that are found by the data mining, as they provide relatively good starting points.</p><p>Start with a general feature (having good coverage), and try to combine it with other features using ANDs to make it more specific.</p>",
                     
                     "<p>In other words, start with a feature that is on the top-left corner (in the figure inside Feature Analysis tab), and try to move the cursur to the right side of the plot.</p>",
                     
