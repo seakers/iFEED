@@ -39,8 +39,8 @@ function Experiment(ifeed){
                        [3, 1, 8, 7, 5, 6, 2, 0, 4, 9, 11, 10],
                        [7, 8, 1, 9, 11, 5, 6, 2, 10, 0, 3, 4]];
 
-    self.orbitOrder = self.orbitOrderStore[self.variable_scheme_number];
-    self.instrOrder = self.instrOrderStore[self.variable_scheme_number];
+    //self.orbitOrder = self.orbitOrderStore[self.variable_scheme_number];
+    //self.instrOrder = self.instrOrderStore[self.variable_scheme_number];
 
 
     var deadline;

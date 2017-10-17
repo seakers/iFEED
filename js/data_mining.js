@@ -14,7 +14,7 @@ function DataMining(ifeed){
     self.lift_threshold = 0.1;
     
     self.all_features = [];
-    self.mined_features = [];
+    self.mined_features = null;
     self.added_features = [];
     
     self.margin = {top: 20, right: 20, bottom: 30, left:65};

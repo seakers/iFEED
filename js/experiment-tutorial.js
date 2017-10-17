@@ -143,11 +143,11 @@ function ExperimentTutorial(ifeed,experiment){
                         
                            "During this part of the tutorial, please focus on the part that is currently being explained. Explanation about other parts of the interface may be provided later in the tutorial.",
                         
-                       "Each page will cover different topics. To go back to the previous topic, click the left-arrow button. To continue, click the right-arrow button. To review these explanations related to the current topic, click the \"Re-open messages\" button.",
+                       "Each page will cover different topic. To go back to the previous topic, click the left-arrow button. To continue, click the right-arrow button. To review these explanations, click the \"Re-open messages\" button.",
                         
                        "For some pages, you will have to do certain tasks to proceed. The detailed directions on how to do those tasks will be provided here.",
                        
-                        "You have total 25 minutes to finish the rest of the tutorial. Now you can proceed by clicking \"done\" button and then the right arrow button."];
+                        "You are given total 25 minutes to finish this part of the tutorial. Now you can proceed by clicking \"done\" button and then the right arrow button."];
             
             classname=null;
             callback=null;
@@ -400,12 +400,12 @@ function ExperimentTutorial(ifeed,experiment){
                     
             '<p>As we have seen in the previous example, there is a trade-off between these two conditions. If you try to make a feature cover more targets, you might make it too general, and make it cover non-target designs as well (too many pink dots). On the other hand, if you try to make a feature too specific, it may not cover many target designs (too few purple dots). </p>',
                     
-            '<p>Therefore, the key is finding the right balance between those two criteria. You can test the features again and see how they are distributed in the scatter plot by clicking the buttons shown on the experiment prompt box. (Reminder: Feature (a) is has good coverage but is not specific enough. Feature (b) is specific but has very low coverage of the targets.)</p>',
+            '<p>Therefore, the key is finding the right balance between those two criteria. You can test the features again and see how they are distributed in the scatter plot by clicking the buttons shown on the experiment prompt box.</p>',
                     
             '<p>Understanding this concept is important. If you are not sure about the concept introduced here, please ask questions to the experimenter for clarification.</p>']
 
-        classname='introjs_tooltip_large';
-        prompt = '';
+        classname='introjs_tooltip_extra_large';
+        prompt = '<p>Highlight and compare the two features by clicking the buttons below.</p> <p>Note: Feature (a) is has good coverage but is not specific enough. Feature (b) is specific but has very low coverage of the targets.</p>';
         
         
     }
@@ -415,11 +415,6 @@ function ExperimentTutorial(ifeed,experiment){
         
         ifeed.main_plot.cancel_selection();
         experiment.select_archs_using_ids(tutorial_selection);
-        
-//        // Run data mining
-        ifeed.UI_states.selection_changed= true;
-        ifeed.data_mining.run();
-        ifeed.data_mining.update_feature_plot(ifeed.data_mining.all_features, false, 0.28, 0.85);
         
         ifeed.main_plot.highlight_support_panel();
         document.getElementById('tab2').click();
@@ -707,129 +702,139 @@ function ExperimentTutorial(ifeed,experiment){
 //    		.style('border-color','#FF2D65');
 //    }
 
-    else if(current_view==19){
+    else if(self.current_view==19){
         
-    	d3.select("#tutorial_header").text("What happens when you apply a filter?")
-    	d3.select("#tutorial_text_1").html('<p>When you apply a filter, you will notice three changes are made in the interface:'
-                                           +'<p>1. Some dots are highlighted in pink (and purple) color in the scatter plot. These dots represent all designs that have the particular feature you just defined.</p>'
-                                           +'<p>2. If you go to the "Feature Analysis" tab, you will see a Venn diagram. The area of the pink circle is proportional to the number of pink dots in the scatter plot. Similarly, the area of the light blue circle corresponds to the number of blue dots in the scatter plot. The intersecting area corresponds to the purple dots, which are the target designs that have the specified feature. </p>'
-                                           +'<p>3. On the feature application status panel (on the right side of the screen), you can see the current feature that is applied. </p>');
-    
-    	document.getElementById('tab3').click();
-    	highlight_support_panel(); 
+        ifeed.main_plot.cancel_selection();
+        experiment.select_archs_using_ids(tutorial_selection);
+        experiment.condition_number=3;
         
-
-
-        ifeed.main_plot.cancel_selection('remove_highlighted');
+//        // Run data mining
+        ifeed.UI_states.selection_changed= true;
+        ifeed.data_mining.mined_features=null;
         
-    	document.getElementById('tab2').click();
-    	ifeed.main_plot.highlight_support_panel();
-                
-        d3.select('.filter.options.dropdown')[0][0].value = "present";
-        ifeed.filter.initialize_preset_filter_input("present"); 
+        ifeed.data_mining.run();
+        ifeed.data_mining.update_feature_plot(ifeed.data_mining.all_features, false);
+    	        
+        document.getElementById('tab3').click();
+        ifeed.main_plot.highlight_support_panel();
         
-        
-        title = 'Preset Filters: Present';
+        title = 'Feature Analysis';
         objects = [d3.selectAll('#support_panel')[0][0]];
 
-        contents = ["<p>The filter called \'Present\' is used to selectively highlight designs that contain a specific instrument. It takes in one instrument name as an argument, and selects all designs that use that instrument.</p>",
+        contents = ["Feature Analysis tab contains a plot that shows how much coverage and specificity each feature has. ",
                     
-                   "<p>To apply the filter, put in an argument to the appropriate input field and click [Apply Filter] button. </p>",
+                    "Each feature is represented by a triangle or a cross, depending on how it is generated. Triangles represent features that are generated automatically using a data mining algorithm, whereas crosses are the features that you explored.",
                     
-                    "<p>As a result of applying the filter, a group of dots on the scatter plot are highlighted in pink color. These dots represent designs that have the feature you just defined.</p>"]
+                   "The horizontal axis corresponds to the specificity, and the vertical axis corresponds to the coverage of a feature. Since we want both high specificity and good coverage, your goal is to find features that will be located on the top-right corner of the plot. The star on the top-right shows the goal that you should try to reach."];
 
-        classname='introjs_tooltip';
+        classname = 'introjs_tooltip';
         
-        prompt = '<p>To continue, follow the steps below:</p>'
-                +'<p>1. Select \'Present\' option from the dropdown menu. </p>'
-    			+'<p>2. In the input field that appears, type in an instrument name. The instrument should be an alphabet letter ranging from A to L. </p>'
-    			+'<p>3. Then click [Apply Filter] button to apply the filter.</p>';
+        callback = null;
         
-        
-        
-        
+        prompt = "";
         
     }
+    else if(self.current_view==20){
+                
+        document.getElementById('tab3').click();
+        ifeed.main_plot.highlight_support_panel();
+        ifeed.feature_application.clear_all_features();
+        
+        title = 'Feature Analysis - Inspecting Features';
+        objects = [d3.selectAll('#support_panel')[0][0], d3.select('.main_plot.figure')[0][0], d3.selectAll('#support_panel')[0][0], d3.select(".column.c2")[0][0]];
 
+        contents = ["If you hover your mouse over each feature, you will notice three changes occurring in the interface.",
+                   
+                   "First, a set of dots on the scatter plot will be highlighted in pink and purple color, in the same way as when you used the filter. Again, those designs have the feature that you are currently inspecting.",
+                   
+                   "Second, a Venn diagram appears on the right side of the Feature Analysis tab. The Venn diagram shows the composition of the designs under different sets. The blue circle represents designs that are inside the target region, and the pink circle represents the designs that have the current feature.",
+                   
+                   "Third, a logical expression and a graphical representation of the feature will appear in the Feature Application Status panel. The logical expression is shown on the upper part of the panel, and the lower part will display the graphical representation. More explanation about this will be provided in the next section."];
+
+        classname = 'introjs_tooltip_large';
+        
+        callback = function(targetElement) {
+            if(this._currentStep==1){
+                ifeed.feature_application.update_feature_application("direct-update","({absent[;10;]}&&{notInOrbit[0;1,11;]})");
+            }
+        }    
+        
+        prompt = "";
+        
+    }        
+    else if(self.current_view==21){
+
+        document.getElementById('tab3').click();
+        ifeed.main_plot.highlight_support_panel();
+        ifeed.feature_application.clear_all_features();
+        
+        title = 'Feature Application Status Panel';
+        
+        objects = [d3.select('.column.c2')[0][0],
+                   d3.selectAll('#support_panel')[0][0],
+                   null,
+                   d3.select('#feature_application_panel')[0][0],
+                  null,
+                  d3.select('#feature_expression_panel')[0][0]];
+
+        contents = ["Feature Application Status panel allows you to modify and combine different features to create more complicated ones.",
+                   
+                   "To add features to the Feature Application Status panel, you have to click on one of the features shown on the Feature Analysis tab. Hovering your mouse over the features will result in temporary change in the Feature Application Status, and by clicking you can fix the change.",
+                    
+                   "Once a feature is added, you will see a black cross blinking in the figure. It shows where the current feature is located",
+                   
+                   "Now you can modify the feature using the graphical representation shown in the lower part of the Feautre Application Status Panel.",
+                   
+                   "In the graphical representation, there are two kinds of nodes: nodes for logical connectives and nodes for individual features. The logical connectives are colored in blue, and they can be either AND or OR.",
+                    
+                   "As shown in the feature expression displayed above, all feature nodes inside the same logical connective node are inside the same bracket and combined using the same logical connection.",
+                   
+                   "You can view possible actions by right-clicking on each node. There may be different set of options depending on which node it is. We will go over these in the next section."];
+
+        classname = 'introjs_tooltip_large';
+        
+        prompt = "";        
+    }
+    else if(self.current_view==22){
+
+        document.getElementById('tab3').click();
+        ifeed.main_plot.highlight_support_panel();
+        
+        title = 'Interaction with Nodes in Feature Application Status Panel';
+        
+        objects = [d3.select('.column.c2')[0][0],
+                  null,
+                  null,
+                  null,
+                  null,
+                  d3.select('#support_panel')[0][0],
+                  d3.select('.column.c2')[0][0],
+                  d3.select('#feature_expression_panel:first-child')[0][0]];
+
+        contents = ["We will go over some of the options associated with each node. First, right-click on one of the feature nodes, and select \"Add Parent Branch\". It adds a new logical connective node as a parent.",
+                   
+                   "Right-click the same node and select \"Duplicate\". A new branch will appear, duplicating the content of the original node.",
+                   
+                   "Right-click any of the node and select \"Deactivate\". The node and the connected links will turn gray. If you check the feature expression that is displayed on the upper part of the panel, you will be able to see that the expression corresponding to the deactivated branch has disappeared.",
+                   
+                   "You can also delete nodes by selecting \"Delete\" option.",
+                   
+                   "For logical connectives, there is an option called \"Add Feature\". If you select this option, the color of the node will turn red. This indicates that when you add a new feature, it will be added under this selected node.",
+                   
+                   "Try adding a new feature by hovering your mouse over one of the features in the Feature Analysis tab. You will see that the new feature does not replace the whole graphical representation, but is simply added to the current one. To finalize the addition of the new feature, you need to click the feature.",
+                   
+                   "You can change the location of each node by drag and drop. When you drag each node, temporary circles will appear around all other logical connective nodes. If you drop a node in one of those circles, the node will be added under that particular logical connective.",
+                   
+                   "Finally, you can delete the current feature by clicking \"clear\" button."];
+
+        classname = 'introjs_tooltip_large';
+        
+        prompt = "";        
+    }    
         
         
-    //else if(current_view==18){
-    //    
-    //	if(max_view_reached<18){
-    //		deactivate_continue_button();
-    //	}
-    //    
-    //	d3.select("#tutorial_header").text("How to use Feature Application Status Panel")
-    //	d3.select("#tutorial_text_1").html('<p>The Feature Application Status panel shows the currently applied feature in two different ways. First, the upper part displays the logical expression of the currently applied feature. The lower part is an interactive interface that you can use to combine multiple features and generate more complex features. '
-    //
-    //                                      +'<p>The check box located on the left of each feature indicates whether a certain feature is being applied or not. If it is checked, it means that the corresponding feature is being used to highlight pink dots on the scatter plot. When multiple ones are checked, then it combines the effect of those features. </p>'
-    //                                      
-    //                                      +'<p>When you have multiple features defined, there appears a dropdown menu in between those two features. This allows you to select the logical connective used to combine the two features. For example, if AND is used, that means two features are combined using a logical conjunction (AND) to highlight pink dots.</p>'
-    //                                      
-    //                                      +'<p>To continue, try activating and deactivating some features, and also changing some logical connectives in between features. Note that the change is reflected on the upper part of the feature application status panel, as well as on the scatter plot in real time. </p>');
-    // 
-    //    
-    //	document.getElementById('tab3').click();
-    //	highlight_support_panel(); 
-    //    
-    //	d3.select('#panel_2').select('div')
-    //		.style('border-width','5px')
-    //		.style('border-style','solid')
-    //		.style('border-color','#FF2D65');
-    //}
-    //    
-    //    
-    //else if(current_view==19){
-    //    
-    //	if(max_view_reached<19){
-    //		deactivate_continue_button();
-    //	}
-    //    
-    //	d3.select("#tutorial_header").text("How to use Feature Application Status Panel - continued")
-    //	d3.select("#tutorial_text_1").html('<p>The arrows next to a feature name allow you to change the location of each feature. By clicking left and right arrows, you can adjust the indentation levels of features. The indentation acts just like parentheses in a mathematical expression. If two features are at the same indentation level, they are evaluation together as if they are inside brackets. </p>'
-    //                
-    //                                       +'<p>For example, let\'s say you want to express A OR (B AND C), where A, B, and C are all an arbitrary feature. Then you need to place place features B and C in the same level indentation level different from A (more to the right). To continue, try generating a combined feature that has a form: \'A AND (B OR C)\', where A, B, and C are different features. You will also have to adjust the indentation of the logical connectives. </p>'
-    //                                
-    //                                       +'<p>(hint: Notice that whenever you make a change, you can see the current interpretation on the upper window labeled "Currently Applied Feature Expression". To implement \'A and (B or C)\', you first need to activate three features. Then, place B and C in the same indentation level. The logical connective between B and C need to be OR, and the connective between A and B need to be AND. If you have any question on how this work, please ask the experimenter.)</p>');
-    //    
-    //    
-    //	document.getElementById('tab3').click();
-    //	highlight_support_panel(); 
-    //    
-    //	d3.select('#panel_2').select('div')
-    //		.style('border-width','5px')
-    //		.style('border-style','solid')
-    //		.style('border-color','#FF2D65');
-    //} 
-    //    
-    //    
-    //
+  
 
-    //
-    //else if(current_view==24){
-    //
-    //	d3.select("#tutorial_header").text("Different options to apply features")
-    //	d3.select("#tutorial_text_1").html('<p>So far, we have only used [Apply new feature] button to apply the feature you define. This makes all the previous features listed in the Feature Application Status window automatically disabled.</p>'
-    //                                      
-    //                                      +'<p>You can also use [Apply OR] and [Apply AND] buttons. As the name suggests, [Apply OR] combines the new feature with the previous ones using logical disjunction (or). [Apply AND] combines the new feature with the previous ones using logical conjunction (and). [Replace placeholder] can be used to add the new feature to a certain location. The explanation about the placeholder will be provided later in the tutorial. </p>');
-    //
-    //	document.getElementById('tab2').click();
-    //	highlight_support_panel();
-    //
-    //	d3.select('#applyFilterButton_add')
-    //		.style('border-width','5px')
-    //		.style('border-style','solid')
-    //		.style('border-color','#FF2D65');
-    //	
-    //    d3.select('#applyFilterButton_within')
-    //		.style('border-width','5px')
-    //		.style('border-style','solid')
-    //		.style('border-color','#FF2D65');   
-    //}
-    //    
-    //    
-    //
-    //
     //else if(current_view==25){ // Show only for testType= 3
     //
     //    initialize_tabs_driving_features();
@@ -856,77 +861,6 @@ function ExperimentTutorial(ifeed,experiment){
     //}
     //
     //    
-    //else if(current_view==26){ // Show only for testType= 3
-    //	
-    //	d3.select("#tutorial_header").text("Mined Features Explained")
-    //	d3.select("#tutorial_text_1").html('<p>The features obtained using data mining are presented as as another scatter plot. Each triangle '
-    //			+'represents one feature. The vertical axis represents the coverage of target region, and the horizontal axis represents the specificity'
-    //			+' of the feature. The scores for coverage and specificity can range from 0 to 1 (larger is better).'
-    //			+' As you hover your mouse over each triangle, the relevant information is presented in 4 ways.</p>'
-    //			+'<p>1. Tooltip shows the scores for the coverage and specificity.</p>'
-    //			+'<p>2. Scatterplot highlights all the designs that have the given feature (combined with whatever is shown on the Feature Application Status panel) with pink (and purple) dots. If you want to see the effect of a single feature only (without combining them with the previously added features), click [deactivate all features] button on the feature application status panel first, and then hover over the triangles. </p>'
-    //			+'<p>3. A Venn Diagram is presented to show the composition of designs with the feature and the'
-    //			+' selected designs.</p>'
-    //            +'<p>4. The current feature replaces the placeholder displayed on the feature application status panel.</p>');            				
-    //	
-    //	document.getElementById('tab3').click();
-    //	highlight_support_panel();
-    //	d3.select('#supportPanel')
-    //		.style('border-width','5px')
-    //		.style('border-style','solid')
-    //		.style('border-color','#FF2D65');  
-    //    
-    //	d3.select('#panel_2').select('div')
-    //		.style('border-width','5px')
-    //		.style('border-style','solid')
-    //		.style('border-color','#FF2D65');
-    //    
-    //    d3.select('#dfplot_venn_diagram')
-    //        .style('border-width','5px')
-    //		.style('border-style','solid')
-    //		.style('border-color','#FF2D65');
-    //}
-    // 
-    //    
-    //else if(current_view==27){ // Show only for testType= 3
-    //	
-    //	d3.select("#tutorial_header").text("Adding features to the feature application status panel")
-    //	d3.select("#tutorial_text_1").html('<p>If you click one of the triangles, the feature is added to the feature application status panel.'
-    //			                                 +' This way, you can easily add and combine multiple features to create better features.</p>'
-    //                                      
-    //                                      +'<p></p>');            				
-    //	
-    //	document.getElementById('tab3').click();
-    //	highlight_support_panel();
-    //
-    //	d3.select('#panel_2').select('div')
-    //		.style('border-width','5px')
-    //		.style('border-style','solid')
-    //		.style('border-color','#FF2D65');
-    //}
-    //  
-    //    
-    //else if(current_view==28){ // Show only for testType= 3
-    //    
-    //    d3.select('#test_feature_scheme')[0][0].disabled=false;  
-    //	d3.select('#test_feature_scheme').on('click',test_feature);  
-    //    
-    //	d3.select("#tutorial_header").text("Testing features")
-    //	d3.select("#tutorial_text_1").html('<p>Inside the feature analysis panel, there is a button [Test current feature].'
-    //                                       +' Clicking this button will add a new point on the mined features plot as a green star. This new point shows how much coverage and specificity the currently applied feature has. The most recent one is presented as a star, but it turns into a triangle as you generate new points on the plot. </p>'
-    //                                      
-    //                                       +'<p>To make a feature more specific and cover many target designs, you should try to make a feature that is located at the top-right corner of the mined features plot.</p>'
-    //                                      
-    //                                      +'<p>Note that the features generated using data mining are provided as a starting point, and you should try to improve these features by combining them (using ANDs and ORs). Or, you can use the information you get from these basic features to try to define your own feature using Filter Settings.</p>');         				
-    //	
-    //	document.getElementById('tab3').click();
-    //	highlight_support_panel();
-    //
-    //	d3.select('#panel_2').select('div')
-    //		.style('border-width','5px')
-    //		.style('border-style','solid')
-    //		.style('border-color','#FF2D65');
-    //}
     //    
     //    
     //else if(current_view==29){ 
