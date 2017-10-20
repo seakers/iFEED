@@ -834,7 +834,7 @@ function ExperimentTutorial(ifeed,experiment){
         ifeed.main_plot.highlight_support_panel();
         ifeed.feature_application.clear_all_features();
         
-        title = 'Basic strategies for new exploring features';
+        title = 'Basic strategies for exploring new features';
         
         objects = [d3.select('.columns')[0][0]];
 
