@@ -10,8 +10,12 @@ function DataMining(ifeed){
     var self = this;
 
     self.support_threshold = 0.002;
-    self.confidence_threshold = 0.10;
-    self.lift_threshold = 0.1;
+    self.confidence_threshold = 0.2;
+    self.lift_threshold = 1;
+    
+//    self.support_threshold = 0.0;
+//    self.confidence_threshold = 0.0;
+//    self.lift_threshold = 0;    
     
     self.all_features = [];
     self.mined_features = [];

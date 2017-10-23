@@ -547,6 +547,7 @@ function MainPlot(ifeed){
         d3.select("#num_of_archs").text(""+self.get_num_of_archs());
     }
 
+    
 
     self.show_all_archs = function(){
         
