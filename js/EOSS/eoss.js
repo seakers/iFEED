@@ -104,16 +104,9 @@ function EOSS(ifeed){
         var output = [];
         
         data.forEach(function (d) {  
-            
-            // convert string to numbers
-            d.science = +d.science;
-            d.cost = +d.cost;
-            if (d.cost == 100000) {
-                d.cost = 0;
-                d.science = 0;
-            }
-            var outputs = [d.science, d.cost];
-            var inputs = d.bitString;
+
+            var outputs = d.outputs;
+            var inputs = d.inputs;
             var id = +d.id;
             
             var arch = new Architecture(id,inputs,outputs);
