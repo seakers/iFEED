@@ -42,9 +42,6 @@ function IFEED(){
                      "selection_changed":true,
                      "selection_mode":"zoom-pan"};
     
-    
-    
-    
 
     
     self.get_data_ids = function(data){

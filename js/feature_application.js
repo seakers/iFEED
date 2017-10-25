@@ -198,7 +198,7 @@ function FeatureApplication(ifeed){
 
 
         // Normalize for fixed-depth.
-        nodes.forEach(function(d) { d.y = d.depth * 140; });
+        nodes.forEach(function(d) { d.y = d.depth * 180; });
         
 
         var svg = d3.select('#feature_application')
@@ -558,6 +558,7 @@ function FeatureApplication(ifeed){
                 self.draw_feature_application_tree(expression)
             }
 
+            self.check_tree_structure();
             ifeed.filter.apply_filter_expression(self.parse_tree(self.root));
             
         }else if(option=='restore'){
@@ -1031,25 +1032,25 @@ function FeatureApplication(ifeed){
 
         d3.select('#feature_expression').html("<p>"+expression+"</p>");
     }
-
-
-
-    // Remove all features
-    d3.select('#clear_all_features').on('click',function(){
-
+    
+    
+    self.clear_feature_application = function(){
+        
         self.root = null;
         self.update(self.root);
         
         ifeed.data_mining.add_feature_to_plot(self.parse_tree(self.root));
         self.update_feature_expression(self.parse_tree(self.root));
-        ifeed.data_mining.draw_venn_diagram();      
+        ifeed.data_mining.draw_venn_diagram(); 
+        
+    }
 
-    }); 
-    
+
+
+    // Remove all features
+    d3.select('#clear_all_features').on('click',self.clear_feature_application); 
     
 
-    
-    
     
 }
 

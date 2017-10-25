@@ -13,9 +13,9 @@ function DataMining(ifeed){
     self.confidence_threshold = 0.2;
     self.lift_threshold = 1;
     
-//    self.support_threshold = 0.0;
-//    self.confidence_threshold = 0.0;
-//    self.lift_threshold = 0;    
+//    self.support_threshold = 0.07;
+//    self.confidence_threshold = 0.5;
+//    self.lift_threshold = 1;    
     
     self.all_features = [];
     self.mined_features = [];
@@ -84,29 +84,44 @@ function DataMining(ifeed){
                 .text("Run data mining");
         
         d3.selectAll("#run_data_mining_button").on("click", self.run);
-
+        
+        self.all_features = [];
+        self.mined_features = [];
+        self.added_features = [];
+        
     }
     
     
 
     self.run = function(){
 
-        // If the target selection hasn't changed, then use previously obtained driving features to display
-        if(ifeed.UI_states.selection_changed == false && mined_features != null){
-            self.display_features(self.all_features);
-            return;
+        var base_feature = null;
+        
+        if(ifeed.feature_application.root){
+            base_feature = ifeed.feature_application.parse_tree(ifeed.feature_application.root);
         }
+        
+        if(base_feature){
+            
+            var highlightedArchs = d3.selectAll(".dot.main_plot.highlighted:not(.hidden)")[0];
+            
+        }else{
+            // If the target selection hasn't changed, then use previously obtained driving features to display
+            if(ifeed.UI_states.selection_changed == false && self.mined_features != null){
+                self.display_features(self.all_features);
+                return;
+            }
 
-        // Remove all highlights in the scatter plot (retain target solutions)
-        ifeed.main_plot.cancel_selection('remove_highlighted');
-
+            // Remove all highlights in the scatter plot (retain target solutions)
+            ifeed.main_plot.cancel_selection('remove_highlighted');   
+            
+        }
+        
         var selectedArchs = d3.selectAll(".dot.main_plot.selected:not(.hidden)")[0];
         var nonSelectedArchs =  d3.selectAll(".dot.main_plot:not(.selected):not(.hidden)")[0];
 
-        var numOfSelectedArchs = selectedArchs.length;
-        var numOfNonSelectedArchs = nonSelectedArchs.length;
 
-        if (numOfSelectedArchs==0){
+        if (selectedArchs.length==0){
             
             alert("First select target solutions!");
             
@@ -116,31 +131,70 @@ function DataMining(ifeed){
             var selected = [];
             var non_selected = [];
 
-            for (var i = 0; i < numOfSelectedArchs; i++) {
+            for (var i = 0; i < selectedArchs.length; i++) {
                 var id = selectedArchs[i].__data__.id;
                 selected.push(id);
             }
-            for (var i = 0; i < numOfNonSelectedArchs; i++) {
+            for (var i = 0; i < nonSelectedArchs.length; i++) {
                 var id = nonSelectedArchs[i].__data__.id;
                 non_selected.push(id);
             }
-
-            self.mined_features = self.get_driving_features(selected,non_selected,self.support_threshold,self.confidence_threshold,self.lift_threshold);
-
-            self.all_features = self.mined_features;
             
-            if(self.all_features.length==0){
-                return;
+            
+            
+            if(base_feature){
+                
+                var highlighted = [];
+
+                for (var i = 0; i < highlightedArchs.length; i++) {
+                    var id = highlightedArchs[i].__data__.id;
+                    highlighted.push(id);
+                }   
+                
+                var extracted_features = self.get_marginal_driving_features(selected, non_selected, base_feature, highlighted, 
+                                                                 self.support_threshold,self.confidence_threshold,self.lift_threshold);
+
+                var newly_added = [];
+
+                for(var i=0;i<extracted_features.length;i++){
+
+                    var this_feature = extracted_features[i];
+
+                    if(self.check_if_non_dominated(this_feature)){
+                        // non-dominated
+                        self.mined_features.push(this_feature);
+                        newly_added.push(this_feature);
+                    }
+                }
+
+                console.log(newly_added);
+
+                self.all_features = self.mined_features.concat(self.added_features);
+                
+                self.update_feature_plot(self.all_features);
+                
+                
+            }else{
+                
+                self.mined_features = self.get_driving_features(selected,non_selected,self.support_threshold,self.confidence_threshold,self.lift_threshold);
+                
+                self.all_features = self.mined_features;
+                
+                if(self.all_features.length==0){
+                    return;
+                }
+
+                self.display_features(self.all_features);                
+                
             }
             
-            self.display_features(self.all_features);
-
             ifeed.UI_states.selection_changed = false;
         }
     }
+
     
     
-    
+
     self.get_driving_features = function(selected,non_selected,support_threshold,confidence_threshold,lift_threshold){
 
         var output;
@@ -170,8 +224,34 @@ function DataMining(ifeed){
     }
     
     
+    self.get_marginal_driving_features = function(selected,non_selected,featureName,highlighted,
+                                                   support_threshold,confidence_threshold,lift_threshold){
+        
+        var output;
+        $.ajax({
+            url: "/api/data-mining/get-marginal-driving-features/",
+            type: "POST",
+            data: {featureName: featureName,
+                   highlighted: JSON.stringify(highlighted),
+                    selected: JSON.stringify(selected),
+                    non_selected:JSON.stringify(non_selected),
+                    supp:support_threshold,
+                    conf:confidence_threshold,
+                    lift:lift_threshold
+                  },
+            async: false,
+            success: function (data, textStatus, jqXHR)
+            {
+                output = data;
+            },
+            error: function (jqXHR, textStatus, errorThrown)
+            {alert("error");}
+        });
 
-
+        return output;
+    }
+    
+    
     self.display_features = function(source){
 
         document.getElementById('tab3').click();
@@ -754,7 +834,24 @@ function DataMining(ifeed){
     }
     
     
-    
+    self.check_if_non_dominated = function(test_feature){  
+        
+        var features = self.all_features;
+        var non_dominated = true;
+        
+        for (var j=0;j<features.length;j++){
+            
+            var this_feature = features[j];
+            
+            if(dominates(this_feature.metrics.slice(2), test_feature.metrics.slice(2))){
+                non_dominated = false;
+            }
+        }
+        
+        return non_dominated;
+    }
+
+        
     
     
     self.draw_venn_diagram = function(){

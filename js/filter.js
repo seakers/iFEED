@@ -588,6 +588,7 @@ function Filter(ifeed){
             break;
         case "absent":
             if(instr==-1) return false;
+                
             resu=true;
             instr = + instr;
             for(var i=0;i<norb;i++){
@@ -596,6 +597,7 @@ function Filter(ifeed){
                 }
             }
             break;
+                
         case "inOrbit":
             orbit = + orbit;
             if(instr.indexOf(',')==-1){
@@ -660,17 +662,23 @@ function Filter(ifeed){
         case "separate":
             resu=true;
             var instruments = instr.split(",");
+            
             for(var i=0;i<norb;i++){
-                var together = true;
+                
+                var found = false;
+                
                 for(var j=0;j<instruments.length;j++){
                     var temp = +instruments[j];
-                    if(bitString[i*ninstr+temp]===false){
-                        together=false;
+                    if(bitString[i*ninstr+temp]===true){
+                        if(found){
+                            resu=false;
+                            break;
+                        }else{
+                            found=true;
+                        }
                     }
                 }
-                if(together===true){
-                    resu= false;break;
-                }
+                if(resu===false) break;
             }
             break;
 
