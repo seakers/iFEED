@@ -669,7 +669,7 @@ function MainPlot(ifeed){
         ifeed.UI_states.support_panel_active=false;
     }
     
-
+    
     
     self.initialize();
 

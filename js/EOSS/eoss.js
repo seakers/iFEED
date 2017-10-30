@@ -247,12 +247,26 @@ function EOSS(ifeed){
     }
 
     
+
+    
+    self.get_critique = function(architecture) {
+                
+        $.ajax({
+            url: "/api/critic/criticize-architecture/",
+            type: "POST",
+            data: {
+                    inputs: JSON.stringify(architecture.inputs),
+                  },
+            async: false,
+            success: function (data, textStatus, jqXHR)
+            {
+                var critique = data;
+            },
+            error: function (jqXHR, textStatus, errorThrown)
+            {
+                alert("error");
+            }
+        });
+    }
     
 }
-
-
-
-
-
-
-
