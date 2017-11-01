@@ -96,16 +96,25 @@ function DataMining(ifeed){
     self.run = function(){
 
         var base_feature = null;
+        var add_feature_node = null;
         
+        
+        // If the feature application tree exists:
         if(ifeed.feature_application.root){
-            base_feature = ifeed.feature_application.parse_tree(ifeed.feature_application.root);
-        }
-        
-        if(base_feature){
             
+            // Save the node where the placeholder is to be located
+            ifeed.feature_application.visit_nodes(ifeed.feature_application.root,function(d){
+                if(d.add){add_feature_node=d;}                        
+            })            
+            
+            // Save the currently applied feature
+            base_feature = ifeed.feature_application.parse_tree(ifeed.feature_application.root,add_feature_node);    
+            
+            // Save the architectures that have the currently applied feature
             var highlightedArchs = d3.selectAll(".dot.main_plot.highlighted:not(.hidden)")[0];
             
         }else{
+            
             // If the target selection hasn't changed, then use previously obtained driving features to display
             if(ifeed.UI_states.selection_changed == false && self.mined_features != null){
                 self.display_features(self.all_features);
@@ -116,13 +125,13 @@ function DataMining(ifeed){
             ifeed.main_plot.cancel_selection('remove_highlighted');   
             
         }
+
         
         var selectedArchs = d3.selectAll(".dot.main_plot.selected:not(.hidden)")[0];
         var nonSelectedArchs =  d3.selectAll(".dot.main_plot:not(.selected):not(.hidden)")[0];
 
 
         if (selectedArchs.length==0){
-            
             alert("First select target solutions!");
             
         }else{        
@@ -141,25 +150,32 @@ function DataMining(ifeed){
             }
             
             
-            
             if(base_feature){
                 
                 var highlighted = [];
+                var extracted_features = null;
 
                 for (var i = 0; i < highlightedArchs.length; i++) {
                     var id = highlightedArchs[i].__data__.id;
                     highlighted.push(id);
                 }   
                 
-                var extracted_features = self.get_marginal_driving_features(selected, non_selected, base_feature, highlighted, 
+                if(base_feature.indexOf("{PLACEHOLDER}")!=-1){
+                    
+                    extracted_features = self.get_marginal_driving_features(selected, non_selected, base_feature, 
                                                                  self.support_threshold,self.confidence_threshold,self.lift_threshold);
+                }else{
+                    extracted_features = self.get_marginal_driving_features_conjunctive(selected, non_selected, base_feature, highlighted, 
+                                                                     self.support_threshold,self.confidence_threshold,self.lift_threshold);
+                }
+                
 
                 var newly_added = [];
 
                 for(var i=0;i<extracted_features.length;i++){
 
                     var this_feature = extracted_features[i];
-
+                    
                     if(self.check_if_non_dominated(this_feature)){
                         // non-dominated
                         self.mined_features.push(this_feature);
@@ -167,11 +183,11 @@ function DataMining(ifeed){
                     }
                 }
 
-                console.log(newly_added);
+                console.log("Number of newly added features: " +newly_added.length);
 
                 self.all_features = self.mined_features.concat(self.added_features);
                 
-                self.update_feature_plot(self.all_features);
+                self.update_feature_plot();
                 
                 
             }else{
@@ -224,12 +240,40 @@ function DataMining(ifeed){
     }
     
     
-    self.get_marginal_driving_features = function(selected,non_selected,featureName,highlighted,
+    self.get_marginal_driving_features = function(selected,non_selected,featureExpression,
                                                    support_threshold,confidence_threshold,lift_threshold){
         
         var output;
         $.ajax({
             url: "/api/data-mining/get-marginal-driving-features/",
+            type: "POST",
+            data: {featureExpression: featureExpression,
+                    selected: JSON.stringify(selected),
+                    non_selected:JSON.stringify(non_selected),
+                    supp:support_threshold,
+                    conf:confidence_threshold,
+                    lift:lift_threshold
+                  },
+            async: false,
+            success: function (data, textStatus, jqXHR)
+            {
+                output = data;
+            },
+            error: function (jqXHR, textStatus, errorThrown)
+            {alert("error");}
+        });
+
+        return output;
+    }    
+    
+    
+    
+    self.get_marginal_driving_features_conjunctive = function(selected,non_selected,featureName,highlighted,
+                                                   support_threshold,confidence_threshold,lift_threshold){
+        
+        var output;
+        $.ajax({
+            url: "/api/data-mining/get-marginal-driving-features-conjunctive/",
             type: "POST",
             data: {featureName: featureName,
                    highlighted: JSON.stringify(highlighted),
@@ -299,14 +343,14 @@ function DataMining(ifeed){
             source[i].id = df_i++;
         }
 
-        self.update_feature_plot(source);
+        self.update_feature_plot();
     }
     
     
     
     
 
-    self.update_feature_plot = function(source, remove_last_feature){
+    self.update_feature_plot = function(remove_last_feature){
         
         function get_utopia_point(){
             // Utopia point
@@ -357,9 +401,7 @@ function DataMining(ifeed){
             var score = 1-Math.sqrt(Math.pow(1-conf1s[i],2)+Math.pow(1-conf2s[i],2));
             scores.push(score);
 
-            if(score > maxScore){
-                maxScore = score;
-            }
+            if(score > maxScore) maxScore = score;
         }
 
         
@@ -558,6 +600,7 @@ function DataMining(ifeed){
             }
         }
 
+        // Clear the previously existing interval
         if(self.current_feature_blink_interval != null){
             clearInterval(self.current_feature_blink_interval);
             
@@ -771,10 +814,10 @@ function DataMining(ifeed){
 
             // Assign new indices for the added features
             for(var i=0;i<self.added_features.length;i++){
-                self.all_features[self.all_features.length-self.added_features.length+i].added = ""+self.added_features.length-i + 1;
+                self.all_features[self.all_features.length-self.added_features.length+i].added = ""+self.added_features.length - i + 1;
             }        
             
-            self.update_feature_plot([self.current_feature],false);
+            self.update_feature_plot(false);
 
         }else{        
 
@@ -825,9 +868,9 @@ function DataMining(ifeed){
 
             // Display the driving features with newly added feature
             if(matched){ 
-                self.update_feature_plot([self.current_feature],true);
+                self.update_feature_plot(true);
             }else{
-                self.update_feature_plot([self.current_feature],false);
+                self.update_feature_plot(false);
             }
 
         }

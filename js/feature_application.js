@@ -798,7 +798,7 @@ function FeatureApplication(ifeed){
     
     
     
-    self.parse_tree = function(root){
+    self.parse_tree = function(root, placeholderNode){
 
         function deactivated(node){
             // Check if all of the children nodes have been deactivated. If so, then the current node is also deactivated
@@ -839,7 +839,22 @@ function FeatureApplication(ifeed){
                 expression="";
             }
             else{
-                expression=root.name;
+                if(placeholderNode){
+                    // If placeholder exists
+                    if(placeholderNode==root.parent){
+                        // If the current node is the first child of the add-node feature
+                        if(placeholderNode.name=="AND"){
+                            
+                            expression="{PLACEHOLDER}&&"+root.name;
+                        }else{
+                            expression="{PLACEHOLDER}||"+root.name;
+                        }
+                    }else{
+                        expression=root.name;
+                    }
+                }else{
+                    expression=root.name;
+                }
             }
 
         }else if(root.type=="logic" && (deactivated(root) || !root.children)){
@@ -860,7 +875,7 @@ function FeatureApplication(ifeed){
                     logic="||";
                 }
 
-                var new_expression = self.parse_tree(child);
+                var new_expression = self.parse_tree(child,placeholderNode);
 
                 if(expression!="" && new_expression!=""){
                     expression = expression + logic;
