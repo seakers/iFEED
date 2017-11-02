@@ -39,9 +39,7 @@ function FeatureApplication(ifeed){
     
  
     
-    
-    
-    
+        
     
     self.draw_feature_application_tree = function(expression){
 
@@ -168,7 +166,6 @@ function FeatureApplication(ifeed){
             }
 
             self.update(self.root);
-            self.check_tree_structure();
             
             PubSub.publish(ADD_FEATURE, self.parse_tree(self.root));
             
@@ -198,6 +195,13 @@ function FeatureApplication(ifeed){
             PubSub.publish(APPLY_FEATURE_EXPRESSION, null);
             return;
         }    
+        
+        
+        PubSub.publish(APPLY_FEATURE_EXPRESSION, self.parse_tree(self.root));
+        
+        
+        self.check_tree_structure();
+        
 
         var duration = d3.event && d3.event.altKey ? 5000 : 500;
         // Compute the new tree layout.
@@ -441,7 +445,7 @@ function FeatureApplication(ifeed){
         });    
 
         self.update_feature_expression(self.parse_tree(self.root));
-        PubSub.publish(APPLY_FEATURE_EXPRESSION, self.parse_tree(self.root));
+        
 
     }
 
@@ -545,7 +549,6 @@ function FeatureApplication(ifeed){
                     parentNode.children.push(subtree); 
 
                     self.update(self.root);
-                    self.check_tree_structure();
                 }else{    
                     // No parentNode
 
@@ -564,8 +567,6 @@ function FeatureApplication(ifeed){
                 self.stashed_root = {};
                 self.draw_feature_application_tree(expression)
             }
-
-            self.check_tree_structure();
             
             
             if(direct_update){ // Make a direct update to the feature application status; not temporary
@@ -627,7 +628,6 @@ function FeatureApplication(ifeed){
             }
 
             self.update(self.root);
-            self.check_tree_structure();
 
             self.stashed_root = null;
             self.stashed_node_ids=null;
@@ -982,9 +982,6 @@ function FeatureApplication(ifeed){
         self.visit_nodes(self.root, delete_logic_node_without_children);
         self.visit_nodes(self.root, remove_redundant_logical_connectives);
         self.visit_nodes(self.root, remove_redundant_features); 
-
-        self.update(self.root);
-
     }
     
     
@@ -1065,7 +1062,18 @@ function FeatureApplication(ifeed){
     }
     
     
-
+    PubSub.subscribe(CANCEL_ADD_FEATURE, (msg, data) => {
+        
+        self.visit_nodes(self.root, function(d){
+            // Find the node to which to add new features
+            if(d.add){
+                d.add=false;
+                return d;
+            }     
+        });
+        self.update(self.root); 
+    }); 
+    
     
     PubSub.subscribe(INITIALIZE_FEATURE_APPLICATION, (msg, data) => {
         self.clear_feature_application()

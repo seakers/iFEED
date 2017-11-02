@@ -197,8 +197,9 @@ function DataMining(ifeed){
                 var y=self.current_feature.y;
                 self.current_feature.x0=x;
                 self.current_feature.y0=y;
-
                 self.update_feature_plot(features_to_add);
+                
+                PubSub.publish(CANCEL_ADD_FEATURE, null);
                 
             }else{
                 
@@ -778,7 +779,8 @@ function DataMining(ifeed){
     
     
     self.add_feature_to_plot = function(expression){
-
+        
+                
         function find_equivalent_feature(metrics,indices){
 
             for(var i=0;i<self.all_features.length;i++){
@@ -797,14 +799,16 @@ function DataMining(ifeed){
             return null;
         }
         
-
+        
         if(!expression || expression==""){
 
             self.current_feature=null;
             // Assign new indices for the added features
             self.update_feature_plot();
 
-        }else{        
+        }else{       
+            
+            ifeed.filter.apply_filter_expression(expression);
 
             // Compute the metrics of a feature
             var total = ifeed.main_plot.get_num_of_archs();
@@ -838,7 +842,7 @@ function DataMining(ifeed){
             // Check if there exists a feature whose metrics match with the current feature's metrics
             var matched = find_equivalent_feature(metrics,[2,3]);       
 
-            if(!matched){
+            if(!matched){                
                 var new_feature =  JSON.parse(JSON.stringify(self.current_feature));
                 new_feature.id = featureID++;
                 // Add new feature to the list of features

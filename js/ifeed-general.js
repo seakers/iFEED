@@ -3,7 +3,7 @@ const INITIALIZE_FEATURE_APPLICATION = "initialize_feature_application";
 const INITIALIZE_DATA_MINING = "initialize_data_mining";
 const ADD_FEATURE = "add_feature";
 const APPLY_FEATURE_EXPRESSION = "apply_feature_expression";
-
+const CANCEL_ADD_FEATURE = "cancel_add_feature";
 const DATA_IMPORTED = "data_imported";
 const DATA_PROCESSED = "data_processed";
 

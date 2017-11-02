@@ -346,12 +346,13 @@ function ContextMenu(ifeed) {
             default:
                 break;
         }    
-                
-        ifeed.feature_application.update(ifeed.feature_application.root);
         
-        ifeed.feature_application.check_tree_structure();
+        var root = ifeed.feature_application.root;
+        var exp = ifeed.feature_application.parse_tree(root);
+
+        ifeed.feature_application.update(root);
         
-        ifeed.data_mining.add_feature_to_plot(feature_application.parse_tree(ifeed.feature_application.root));
+        PubSub.publish(ADD_FEATURE, feature_application.parse_tree(root));
         
         ifeed.data_mining.draw_venn_diagram();   
     }

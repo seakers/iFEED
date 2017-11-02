@@ -782,9 +782,8 @@ function Filter(ifeed){
     }
     
     
-    
     PubSub.subscribe(APPLY_FEATURE_EXPRESSION, (msg, data) => {
-        self.apply_filter_expression(data)
+        self.apply_filter_expression(data);
     });     
     
     self.initialize();
