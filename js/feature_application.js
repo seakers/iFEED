@@ -37,6 +37,12 @@ function FeatureApplication(ifeed){
     self.contextMenu = null;
     
     
+ 
+    
+    
+    
+    
+    
     self.draw_feature_application_tree = function(expression){
 
         var margin = self.margin;
@@ -162,10 +168,9 @@ function FeatureApplication(ifeed){
             }
 
             self.update(self.root);
-
             self.check_tree_structure();
-
-            ifeed.data_mining.add_feature_to_plot(self.parse_tree(self.root));
+            
+            PubSub.publish(ADD_FEATURE, self.parse_tree(self.root));
             
             self.update_feature_expression(self.parse_tree(self.root));            
 
@@ -185,10 +190,12 @@ function FeatureApplication(ifeed){
 
 
     self.update = function(source) {
+                
         
         if(source==null){
             d3.selectAll('.treeNode').remove();
             d3.selectAll('.treeLink').remove();
+            PubSub.publish(APPLY_FEATURE_EXPRESSION, null);
             return;
         }    
 
@@ -433,8 +440,9 @@ function FeatureApplication(ifeed){
             }
         });    
 
-
         self.update_feature_expression(self.parse_tree(self.root));
+        PubSub.publish(APPLY_FEATURE_EXPRESSION, self.parse_tree(self.root));
+
     }
 
 
@@ -500,18 +508,23 @@ function FeatureApplication(ifeed){
             }
         }
         
+        
+        
+        
         var direct_update = false;
-        if(option=='direct-update'){
+        
+        if(option=='direct-update'){ // Make the direct update to the feature application status
             
             option='temp';
             direct_update = true;
-            
         }
-
+        
+        
         if(option=='temp'){
-            // Mouseover
+            // Mouseover on the feature plot
 
             var parentNode = null;
+            
             if(self.root){
                 // There already exists a tree: Find the node to add new features and append children temporarily
                 parentNode = self.visit_nodes(self.root, get_node_to_add_features)
@@ -528,16 +541,12 @@ function FeatureApplication(ifeed){
                     self.visit_nodes(subtree,function(d){
                         d.temp=true;
                     })
-
+                    // Add to the parent node
                     parentNode.children.push(subtree); 
-                    
-                    if(!direct_update){
-                        self.update(self.root);
-                        self.check_tree_structure();
-                    }
 
+                    self.update(self.root);
+                    self.check_tree_structure();
                 }else{    
-
                     // No parentNode
 
                     // Stash the current root 
@@ -550,17 +559,27 @@ function FeatureApplication(ifeed){
                 }
 
             }else{
-
+                // There is no tree. Build a new one
                 self.stashed_node_ids = [];
                 self.stashed_root = {};
-
-                // There is no tree. Build a new one
                 self.draw_feature_application_tree(expression)
             }
 
             self.check_tree_structure();
-            ifeed.filter.apply_filter_expression(self.parse_tree(self.root));
             
+            
+            if(direct_update){ // Make a direct update to the feature application status; not temporary
+                // Remove the stashed information
+                
+                self.stashed_node_ids = null;
+                self.stashed_root = null;
+                
+                self.visit_nodes(self.root,function(d){
+                    d.temp=false;
+                })           
+            }
+            
+
         }else if(option=='restore'){
             // Restore the stashed tree
 
@@ -572,6 +591,7 @@ function FeatureApplication(ifeed){
                 }
 
             }else if(self.stashed_root != null){
+                
                 // The whole tree is stashed
                 self.root = self.stashed_root;  
 
@@ -607,14 +627,12 @@ function FeatureApplication(ifeed){
             }
 
             self.update(self.root);
+            self.check_tree_structure();
 
             self.stashed_root = null;
             self.stashed_node_ids=null;
 
-            self.check_tree_structure();
 
-            ifeed.filter.apply_filter_expression(self.parse_tree(self.root));
-            
         }else if(option=='update'){
 
             self.stashed_node_ids = null;
@@ -622,25 +640,12 @@ function FeatureApplication(ifeed){
             self.visit_nodes(self.root,function(d){
                 d.temp=false;
             })
-
-            ifeed.data_mining.add_feature_to_plot(self.parse_tree(self.root));
-        }
-        
-        
-        if(direct_update){
             
-            self.stashed_node_ids = null;
-            self.stashed_root = null;
-            self.visit_nodes(self.root,function(d){
-                d.temp=false;
-            })
-
-            self.update(self.root);
-            self.check_tree_structure();
-                    
-            ifeed.data_mining.add_feature_to_plot(self.parse_tree(self.root));
+            PubSub.publish(ADD_FEATURE, self.parse_tree(self.root));
+            
         }
         
+
         self.update_feature_expression(self.parse_tree(self.root));
         ifeed.data_mining.draw_venn_diagram();   
     }
@@ -1053,15 +1058,20 @@ function FeatureApplication(ifeed){
         
         self.root = null;
         self.update(self.root);
-        
-        ifeed.data_mining.add_feature_to_plot(self.parse_tree(self.root));
+                
+        PubSub.publish(ADD_FEATURE, null);
         self.update_feature_expression(self.parse_tree(self.root));
         ifeed.data_mining.draw_venn_diagram(); 
-        
     }
+    
+    
 
-
-
+    
+    PubSub.subscribe(INITIALIZE_FEATURE_APPLICATION, (msg, data) => {
+        self.clear_feature_application()
+    });   
+    
+    
     // Remove all features
     d3.select('#clear_all_features').on('click',self.clear_feature_application); 
     

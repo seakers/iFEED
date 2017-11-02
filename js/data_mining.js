@@ -17,20 +17,19 @@ function DataMining(ifeed){
 //    self.confidence_threshold = 0.5;
 //    self.lift_threshold = 1;    
     
-    self.all_features = [];
-    self.mined_features = [];
-    self.added_features = [];
-    
     self.margin = {top: 20, right: 20, bottom: 30, left:65};
     self.width = 770 - 35 - self.margin.left - self.margin.right;
     self.height = 400 - 20 - self.margin.top - self.margin.bottom;
     
-    var df_i = 0;
+    var featureID = 1;
     
-
-    self.current_feature = {id:null,name:null,expression:null,metrics:null,added:"0",x0:-1,y0:-1,x:-1,y:-1};
+    self.all_features = [];
+    self.mined_features_id = [];
+    self.user_added_features_id = [];   
+    self.recent_features_id = [];    
+    self.current_feature = null;
     self.current_feature_blink_interval=null;
-    self.utopia_point = {id:null,name:'utopiaPoint',expression:null,metrics:null,x0:-1,y0:-1,x:-1,y:-1};
+    self.utopia_point = {id:0,name:'utopiaPoint',expression:null,metrics:null,x0:-1,y0:-1,x:-1,y:-1};
     
 
     self.coloursRainbow = ["#2c7bb6", "#00a6ca","#00ccbc","#90eb9d","#ffff8c","#f9d057","#f29e2e","#e76818","#d7191c"];
@@ -55,7 +54,7 @@ function DataMining(ifeed){
     self.yAxis = null;
     
     
-    
+
     self.initialize = function(){
         
         ifeed.UI_states.selection_changed=true;
@@ -86,9 +85,15 @@ function DataMining(ifeed){
         d3.selectAll("#run_data_mining_button").on("click", self.run);
         
         self.all_features = [];
-        self.mined_features = [];
-        self.added_features = [];
+        self.mined_features_id = [];
+        self.user_added_features_id = [];   
+        self.recent_features_id = [];    
+        self.current_feature = null;
+        self.current_feature_blink_interval=null;
         
+        PubSub.publish(INITIALIZE_FEATURE_APPLICATION, null);
+        
+        featureID=1;
     }
     
     
@@ -115,11 +120,10 @@ function DataMining(ifeed){
             
         }else{
             
-            // If the target selection hasn't changed, then use previously obtained driving features to display
-            if(ifeed.UI_states.selection_changed == false && self.mined_features != null){
-                self.display_features(self.all_features);
-                return;
-            }
+            // Run data mining from the scratch (no local search)
+            
+            // Clear the feature application
+            PubSub.publish(INITIALIZE_FEATURE_APPLICATION, null);
 
             // Remove all highlights in the scatter plot (retain target solutions)
             ifeed.main_plot.cancel_selection('remove_highlighted');   
@@ -135,7 +139,7 @@ function DataMining(ifeed){
             alert("First select target solutions!");
             
         }else{        
-
+            
             // Store the id's of all dots
             var selected = [];
             var non_selected = [];
@@ -153,12 +157,14 @@ function DataMining(ifeed){
             if(base_feature){
                 
                 var highlighted = [];
-                var extracted_features = null;
-
                 for (var i = 0; i < highlightedArchs.length; i++) {
                     var id = highlightedArchs[i].__data__.id;
                     highlighted.push(id);
                 }   
+                
+                var extracted_features = null;
+                var features_to_add = [];
+                self.recent_features_id = [];
                 
                 if(base_feature.indexOf("{PLACEHOLDER}")!=-1){
                     
@@ -170,41 +176,45 @@ function DataMining(ifeed){
                 }
                 
 
-                var newly_added = [];
-
                 for(var i=0;i<extracted_features.length;i++){
 
                     var this_feature = extracted_features[i];
                     
                     if(self.check_if_non_dominated(this_feature)){
+                        var id = featureID++;
                         // non-dominated
-                        self.mined_features.push(this_feature);
-                        newly_added.push(this_feature);
+                        self.mined_features_id.push(id);
+                        self.recent_features_id.push(id); 
+                        
+                        this_feature.id=id;
+                        features_to_add.push(this_feature);
                     }
                 }
-
-                console.log("Number of newly added features: " +newly_added.length);
-
-                self.all_features = self.mined_features.concat(self.added_features);
                 
-                self.update_feature_plot();
                 
+                // Update the location of the current feature
+                var x=self.current_feature.x;
+                var y=self.current_feature.y;
+                self.current_feature.x0=x;
+                self.current_feature.y0=y;
+
+                self.update_feature_plot(features_to_add);
                 
             }else{
                 
-                self.mined_features = self.get_driving_features(selected,non_selected,self.support_threshold,self.confidence_threshold,self.lift_threshold);
-                
-                self.all_features = self.mined_features;
+                self.all_features = self.get_driving_features(selected,non_selected,self.support_threshold,self.confidence_threshold,self.lift_threshold);
                 
                 if(self.all_features.length==0){
                     return;
+                }else{
+                    for(var i=0;i<self.all_features.length;i++){
+                        self.mined_features_id.push(self.all_features[i].id);
+                    }
                 }
 
-                self.display_features(self.all_features);                
-                
+                self.display_features();                
             }
             
-            ifeed.UI_states.selection_changed = false;
         }
     }
 
@@ -296,14 +306,13 @@ function DataMining(ifeed){
     }
     
     
-    self.display_features = function(source){
+    
+    
+    self.display_features = function(){
 
         document.getElementById('tab3').click();
         
         ifeed.main_plot.highlight_support_panel();
-
-        // Set variables
-        df_i=0;
 
         // Remove previous plot
         d3.select("#view3").select("g").remove();
@@ -337,10 +346,10 @@ function DataMining(ifeed){
                 .style('margin-bottom','30px');
 
         // Initialize location
-        for(var i=0;i<source.length;i++){
-            source[i].x0 = -1;
-            source[i].y0 = -1;
-            source[i].id = df_i++;
+        for(var i=0;i<self.all_features.length;i++){
+            self.all_features[i].x0 = -1;
+            self.all_features[i].y0 = -1;
+            self.all_features[i].id = featureID++;
         }
 
         self.update_feature_plot();
@@ -348,30 +357,27 @@ function DataMining(ifeed){
     
     
     
-    
-
-    self.update_feature_plot = function(remove_last_feature){
+    self.update_feature_plot = function(newly_added_features){
         
         function get_utopia_point(){
             // Utopia point
             return d3.selectAll('.dot.feature_plot').filter(function(d){
-                if(d.name=="utopiaPoint"){
-                   return true;
-                }
+                if(d.id===self.utopia_point.id) return true;
                 return false;
             });
         }
 
-
+        
         function get_current_feature(){
+            var id;
+            if(self.current_feature){
+                id = self.current_feature.id;
+            }
             // The current feature
             return d3.selectAll('.dot.feature_plot').filter(function(d){
-                if(d.added=="0"){
-                   return true;
-                }
+                if(d.id==id) return true;
                 return false;
             });
-
         }
 
 
@@ -389,7 +395,24 @@ function DataMining(ifeed){
 
         var scores=[];   
         var maxScore = -1;
-
+        
+        // Remove unnecessary points (cursor)
+        d3.select(".objects.feature_plot")
+                .selectAll('.dot.feature_plot')
+                .data(self.all_features)
+                .exit()
+                .remove();
+        
+        // Clear the previously existing interval
+        if(self.current_feature_blink_interval != null){
+            
+            clearInterval(self.current_feature_blink_interval);
+            d3.selectAll('.dot.feature_plot').style('opacity',1);
+        }
+        
+        if(newly_added_features){
+            self.all_features = self.all_features.concat(newly_added_features);
+        }
         
         for (var i=0;i<self.all_features.length;i++){
             
@@ -410,15 +433,20 @@ function DataMining(ifeed){
         var max_conf2 = Math.max.apply(null, conf2s);
         var max_conf = Math.max(max_conf1, max_conf2);
 
-        // Add utopia point
+        // Adjust the location of the utopia point
         self.utopia_point.metrics=[Math.max.apply(null, lifts),Math.max.apply(null, supps),max_conf,max_conf];
 
         // Insert the utopia point to the list of features
         self.all_features.splice(0, 0, self.utopia_point);
-
         // Add score for the utopia point (0.2 more than the best score found so far)
         scores.splice(0,0,Math.max.apply(null,scores)+0.2); 
 
+        
+        if(self.current_feature){
+            // Add the current feature
+            self.all_features.push(self.current_feature);
+        }
+        
         
         // Set the axis to be Conf(F->S) and Conf(S->F)
         var x = 2;
@@ -589,7 +617,9 @@ function DataMining(ifeed){
         var _current_feature = get_current_feature().attr('d',d3.symbol().type(d3.symbolCross).size(120));
 
         _current_feature.shown=true;
-
+        // The current feature
+        _current_feature.style('fill',"black");    
+        
         function blink() {
             if(_current_feature.shown) {
                 _current_feature.style("opacity",0);
@@ -600,69 +630,34 @@ function DataMining(ifeed){
             }
         }
 
-        // Clear the previously existing interval
-        if(self.current_feature_blink_interval != null){
-            clearInterval(self.current_feature_blink_interval);
-            
-            d3.selectAll('.dot.feature_plot').filter(function(d){
-                if(d.added=="1"){
-                   return true;
-                }
-                return false;
-            }).style('opacity',1);
-        }
         self.current_feature_blink_interval = setInterval(blink, 350);
 
 
-        d3.selectAll('.dot.feature_plot').filter(function(d,i){
-                if(d.name=="utopiaPoint"){
-                    return false;
-                }
+        
+        d3.selectAll('.dot.feature_plot').filter(function(d){
+                if(d.id===self.utopia_point.id) return false;
                 return true;
             })
             .on("mouseover", self.feature_mouseover)
             .on('mouseout', self.feature_mouseout)
             .on('click', self.feature_click);   
 
-
-    //    var legend = svg.selectAll(".legend")
-    //      .data(color.domain())
-    //    .enter().append("g")
-    //      .attr("class", "legend")
-    //      .attr("transform", function(d, i) { return "translate(0," + i * 20 + ")"; });
-    //
-    //    legend.append("rect")
-    //      .attr("x", width - 18)
-    //      .attr("width", 18)
-    //      .attr("height", 18)
-    //      .style("fill", color);
-    //
-    //    legend.append("text")
-    //      .attr("x", width - 24)
-    //      .attr("y", 9)
-    //      .attr("dy", ".35em")
-    //      .style("text-anchor", "end")
-    //      .text(function(d) { return d; });
-
-
+        
         //Transition the colors to a rainbow
         function updateRainbow() {
             d3.selectAll(".dot.feature_plot")
                 .style("fill", function (d,i) { return self.colorScaleRainbow(self.colorInterpolateRainbow(scores[i])); })
         }
+        
         updateRainbow();
 
-        // Remove the utopia point
+        // Remove the utopia point from the list
         self.all_features.splice(0,1);
 
-        if(remove_last_feature){
+        if(self.current_feature){
             // Remove the last feature, as it had been added temporarily to display the cursor
             self.all_features.pop();
-            self.added_features.pop();
         }
-
-        // The current feature
-        _current_feature.style('fill',"black");    
 
         d3.selectAll('.dot.feature_plot').transition()
             .duration(duration)
@@ -671,7 +666,6 @@ function DataMining(ifeed){
             });   
                 
     }
-    
     
     
     
@@ -699,8 +693,8 @@ function DataMining(ifeed){
         var mouseLoc_y = d3.mouse(d3.select(".objects.feature_plot")[0][0])[1];
 
         var tooltip_location = {x:0,y:0};
-        var tooltip_width = 360;
-        var tooltip_height = 200;
+        var tooltip_width = 250;
+        var tooltip_height = 120;
 
         var h_threshold = (width + margin.left + margin.right)*0.5;
         var v_threshold = (height + margin.top + margin.bottom)*0.55;
@@ -748,7 +742,7 @@ function DataMining(ifeed){
                         })
                         .data([{id:id, expression:expression, metrics:metrics}]) 
                         .html(function(d){
-                            var output= "" + ifeed.label.pp_feature(d.expression) + "<br><br> lift: " + round_num(d.metrics[1]) + 
+                            var output= "lift: " + round_num(d.metrics[1]) + 
                             "<br> Support: " + round_num(d.metrics[0]) + 
                             "<br> Confidence(F->S): " + round_num(d.metrics[2]) + 
                             "<br> Confidence(S->F): " + round_num(d.metrics[3]) +"";
@@ -760,7 +754,6 @@ function DataMining(ifeed){
 
         // Update the placeholder with the driving feature and stash the expression    
         ifeed.feature_application.update_feature_application('temp',expression);
-        ifeed.filter.apply_filter_expression(ifeed.feature_application.parse_tree(ifeed.feature_application.root));
         self.draw_venn_diagram(); 
     }
 
@@ -776,10 +769,8 @@ function DataMining(ifeed){
         // Remove all the features created temporarily
 
         // Bring back the previously stored feature expression
-        ifeed.feature_application.update_feature_application('restore');
-        ifeed.filter.apply_filter_expression(ifeed.feature_application.parse_tree(ifeed.feature_application.root));
+        ifeed.feature_application.update_feature_application('restore');        
         self.draw_venn_diagram();       
-
     }
 
 
@@ -806,18 +797,12 @@ function DataMining(ifeed){
             return null;
         }
         
-        
-        ifeed.filter.apply_filter_expression(expression);
-        
 
         if(!expression || expression==""){
 
+            self.current_feature=null;
             // Assign new indices for the added features
-            for(var i=0;i<self.added_features.length;i++){
-                self.all_features[self.all_features.length-self.added_features.length+i].added = ""+self.added_features.length - i + 1;
-            }        
-            
-            self.update_feature_plot(false);
+            self.update_feature_plot();
 
         }else{        
 
@@ -838,28 +823,33 @@ function DataMining(ifeed){
             var metrics = [supp, lift, conf, conf2];
 
             // Stash the previous location
-            var x=self.current_feature.x;
-            var y=self.current_feature.y;
+            var x,y;
+            if(self.current_feature){
+                x=self.current_feature.x;
+                y=self.current_feature.y;
+            }else{
+                x=-1,y=-1;
+            }
+
 
             // Define new feature
-            self.current_feature = {id:df_i++,name:expression,expression:expression,metrics:metrics,added:"0",x0:x,x:x,y0:y,y:y};
+            self.current_feature = {id:-1,name:expression,expression:expression,metrics:metrics,x0:x,x:x,y0:y,y:y};
 
             // Check if there exists a feature whose metrics match with the current feature's metrics
             var matched = find_equivalent_feature(metrics,[2,3]);       
 
-            // Add new feature to the list of added features
-            self.added_features.push(self.current_feature);
-            self.all_features.push(self.current_feature);  
-
+            if(!matched){
+                var new_feature =  JSON.parse(JSON.stringify(self.current_feature));
+                new_feature.id = featureID++;
+                // Add new feature to the list of features
+                self.user_added_features_id.push(new_feature.id);
+                self.all_features.push(new_feature);
+            }
+            
             // Stash the previous locations of all features
             for(var i=0;i<self.all_features.length;i++){
                 self.all_features[i].x0 = self.all_features[i].x;
                 self.all_features[i].y0 = self.all_features[i].y;
-            }
-
-            // Assign new indices for the added features
-            for(var i=0;i<self.added_features.length;i++){
-                self.all_features[self.all_features.length-self.added_features.length+i].added = ""+self.added_features.length-1-i;
             }
 
             document.getElementById('tab3').click();
@@ -867,12 +857,7 @@ function DataMining(ifeed){
             ifeed.main_plot.highlight_support_panel();
 
             // Display the driving features with newly added feature
-            if(matched){ 
-                self.update_feature_plot(true);
-            }else{
-                self.update_feature_plot(false);
-            }
-
+            self.update_feature_plot();
         }
     }
     
@@ -1030,6 +1015,10 @@ function DataMining(ifeed){
     }
 
 
+    PubSub.subscribe(ADD_FEATURE, (msg, data) => {
+        self.add_feature_to_plot(data)
+    });      
+        
     
     self.initialize();
     

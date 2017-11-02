@@ -117,18 +117,20 @@ function EOSS(ifeed){
         return output;
     }
     
-    
-    
-    ifeed.import_callback = function(data){
 
+    PubSub.subscribe(DATA_IMPORTED, (msg, data) => {
+        
         self.orbit_list = self.get_orbit_list();
         self.instrument_list = self.get_instrument_list(); 
         self.orbit_num = self.orbit_list.length;
         self.instrument_num = self.instrument_list.length;   
-        ifeed.data=self.preprocessing(data);
+        
+        var preprocessed = self.preprocessing(data);
+        
+        PubSub.publish(DATA_PROCESSED,preprocessed);
+    });     
 
-    }
-
+    
 
     self.display_arch_info = function(data) {
 

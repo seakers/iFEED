@@ -671,6 +671,14 @@ function MainPlot(ifeed){
     
     
     
+    
+    
+    PubSub.subscribe(DATA_PROCESSED, (msg, data) => {
+        self.update(data,0,1);
+    });    
+    
+    
+    
     self.initialize();
 
 }

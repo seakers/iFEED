@@ -385,7 +385,7 @@ function Filter(ifeed){
     
     
     self.apply_filter_expression = function(input_expression){
-
+        
         var feature_expression = input_expression;
 
         // Cancel all previous selections
@@ -393,6 +393,7 @@ function Filter(ifeed){
 
         // If filter expression is empty, return
         if(feature_expression==="" || !feature_expression){
+            
             return;
             
         }else{
@@ -779,6 +780,12 @@ function Filter(ifeed){
         }
 
     }
+    
+    
+    
+    PubSub.subscribe(APPLY_FEATURE_EXPRESSION, (msg, data) => {
+        self.apply_filter_expression(data)
+    });     
     
     self.initialize();
     
