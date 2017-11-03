@@ -354,7 +354,8 @@ function ContextMenu(ifeed) {
         
         PubSub.publish(ADD_FEATURE, feature_application.parse_tree(root));
         
-        ifeed.data_mining.draw_venn_diagram();   
+        PubSub.publish(DRAW_VENN_DIAGRAM, feature_application.parse_tree(root));
+        
     }
     
 

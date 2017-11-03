@@ -98,7 +98,7 @@ function DataMining(ifeed){
     
     
 
-    self.run = function(){
+    self.run = function(option){
 
         var base_feature = null;
         var add_feature_node = null;
@@ -166,14 +166,25 @@ function DataMining(ifeed){
                 var features_to_add = [];
                 self.recent_features_id = [];
                 
+                
+                
+                
                 if(base_feature.indexOf("{PLACEHOLDER}")!=-1){
                     
                     extracted_features = self.get_marginal_driving_features(selected, non_selected, base_feature, 
                                                                  self.support_threshold,self.confidence_threshold,self.lift_threshold);
                 }else{
+                    
                     extracted_features = self.get_marginal_driving_features_conjunctive(selected, non_selected, base_feature, highlighted, 
                                                                      self.support_threshold,self.confidence_threshold,self.lift_threshold);
                 }
+                
+                
+                
+                
+
+                
+                
                 
 
                 for(var i=0;i<extracted_features.length;i++){
@@ -197,6 +208,7 @@ function DataMining(ifeed){
                 var y=self.current_feature.y;
                 self.current_feature.x0=x;
                 self.current_feature.y0=y;
+                
                 self.update_feature_plot(features_to_add);
                 
                 PubSub.publish(CANCEL_ADD_FEATURE, null);
@@ -611,8 +623,29 @@ function DataMining(ifeed){
                 .style("stroke-width",1);
 
 
+
+        d3.selectAll('.dot.feature_plot').filter(function(d){
+            if(self.recent_features_id.indexOf(d.id)==-1){
+                return true;
+            }
+            return false;
+        })
+        .attr("d", d3.svg.symbol().type('triangle-up').size(120));
+        
+        
+        // Modify the shape of all features that were added recently
+        d3.selectAll('.dot.feature_plot').filter(function(d){
+            if(self.recent_features_id.indexOf(d.id)!=-1){
+                return true;
+            }
+            return false;
+        })
+        .attr('d',d3.symbol().type(d3.symbolCross).size(120));
+        
         // Utopia point: modify the shape to a star
-        get_utopia_point().attr('d',d3.symbol().type(d3.symbolStar).size(120));
+        get_utopia_point().attr('d',d3.symbol().type(d3.symbolStar).size(120));        
+        
+
 
         // The current feature: modify the shape to a cross
         var _current_feature = get_current_feature().attr('d',d3.symbol().type(d3.symbolCross).size(120));
@@ -1021,11 +1054,13 @@ function DataMining(ifeed){
 
     PubSub.subscribe(ADD_FEATURE, (msg, data) => {
         self.add_feature_to_plot(data)
-    });      
-        
+    });  
+    
+    PubSub.subscribe(DRAW_VENN_DIAGRAM, (msg, data) => {
+        self.draw_venn_diagram()
+    });     
     
     self.initialize();
-    
 }
 
 

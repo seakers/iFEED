@@ -15,6 +15,7 @@
     font-size: 20px;
 }
 
+/*
 #clear_all_features{
     float:left;
     margin-top:5px;
@@ -22,6 +23,7 @@
     margin-left:20px;
     margin-right:10px;
 }
+*/
 
 
 #feature_expression{
@@ -53,7 +55,12 @@
     
 }
 
-
+.feature_application_options_button{
+    float:left;
+    margin-top:5px;
+    margin-bottom: 5px;
+    margin-left: 20px;
+}
 
 
 

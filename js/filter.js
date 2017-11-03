@@ -372,7 +372,8 @@ function Filter(ifeed){
             self.apply_filter_expression(filter_expression);
 
         }else{
-            ifeed.feature_application.update_feature_application('direct-update',filter_expression);
+            PubSub.publish(UPDATE_FEATURE_APPLICATION, {"option":"direct-update","expression":filter_expression});
+            //ifeed.feature_application.update_feature_application('direct-update',filter_expression);
             //self.apply_filter_expression(filter_expression);
         }
 
