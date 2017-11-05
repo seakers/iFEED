@@ -372,7 +372,8 @@ function Filter(ifeed){
             self.apply_filter_expression(filter_expression);
 
         }else{
-            ifeed.feature_application.update_feature_application('direct-update',filter_expression);
+            PubSub.publish(UPDATE_FEATURE_APPLICATION, {"option":"direct-update","expression":filter_expression});
+            //ifeed.feature_application.update_feature_application('direct-update',filter_expression);
             //self.apply_filter_expression(filter_expression);
         }
 
@@ -385,7 +386,7 @@ function Filter(ifeed){
     
     
     self.apply_filter_expression = function(input_expression){
-
+        
         var feature_expression = input_expression;
 
         // Cancel all previous selections
@@ -393,6 +394,7 @@ function Filter(ifeed){
 
         // If filter expression is empty, return
         if(feature_expression==="" || !feature_expression){
+            
             return;
             
         }else{
@@ -590,6 +592,7 @@ function Filter(ifeed){
             break;
         case "absent":
             if(instr==-1) return false;
+                
             resu=true;
             instr = + instr;
             for(var i=0;i<norb;i++){
@@ -598,6 +601,7 @@ function Filter(ifeed){
                 }
             }
             break;
+                
         case "inOrbit":
             orbit = + orbit;
             if(instr.indexOf(',')==-1){
@@ -662,17 +666,23 @@ function Filter(ifeed){
         case "separate":
             resu=true;
             var instruments = instr.split(",");
+            
             for(var i=0;i<norb;i++){
-                var together = true;
+                
+                var found = false;
+                
                 for(var j=0;j<instruments.length;j++){
                     var temp = +instruments[j];
-                    if(bitString[i*ninstr+temp]===false){
-                        together=false;
+                    if(bitString[i*ninstr+temp]===true){
+                        if(found){
+                            resu=false;
+                            break;
+                        }else{
+                            found=true;
+                        }
                     }
                 }
-                if(together===true){
-                    resu= false;break;
-                }
+                if(resu===false) break;
             }
             break;
 
@@ -773,6 +783,11 @@ function Filter(ifeed){
         }
 
     }
+    
+    
+    PubSub.subscribe(APPLY_FEATURE_EXPRESSION, (msg, data) => {
+        self.apply_filter_expression(data);
+    });     
     
     self.initialize();
     

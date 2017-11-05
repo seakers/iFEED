@@ -118,7 +118,7 @@ function dominates(metrics1,metrics2,objective){
     var better_than_in_one = false;
     
     if(!objective){
-        objecitve = [];
+        objective = [];
         for(var i=0;i<metrics1.length;i++){
             objective.push(1);
         }

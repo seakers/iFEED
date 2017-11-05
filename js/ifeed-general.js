@@ -1,4 +1,14 @@
 
+const INITIALIZE_FEATURE_APPLICATION = "initialize_feature_application";
+const INITIALIZE_DATA_MINING = "initialize_data_mining";
+const DRAW_VENN_DIAGRAM = "draw_venn_diagram";
+const ADD_FEATURE = "add_feature";
+const APPLY_FEATURE_EXPRESSION = "apply_feature_expression";
+const UPDATE_FEATURE_APPLICATION = "update_feature_application";
+const CANCEL_ADD_FEATURE = "cancel_add_feature";
+const DATA_IMPORTED = "data_imported";
+const DATA_PROCESSED = "data_processed";
+
 
 function Architecture(id,inputs,outputs){
     this.id=id;
@@ -23,9 +33,6 @@ function IFEED(){
                     };
     
     self.data = null; // Array containing the imported data
-    
-    // Functions
-    self.import_callback = null, // Callback function to be called after importing data (preprocessing)
     
         
     // Instances of Classes
@@ -80,12 +87,7 @@ function IFEED(){
             success: function (data, textStatus, jqXHR){
 
                 self.data=data;
-                
-                if(self.import_callback){
-                    self.import_callback(data);   
-                }else{
-                    alert('Preprocessing not defined');
-                }
+                PubSub.publish(DATA_IMPORTED,data);
                 
             },
             error: function (jqXHR, textStatus, errorThrown){
@@ -93,8 +95,6 @@ function IFEED(){
             }   
         });
         
-        
-        ifeed.main_plot.update(ifeed.data,0,1);
     }
     
     

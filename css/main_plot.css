@@ -116,17 +116,6 @@
     float:left;
 }
 
-#feature_expression_panel{
-    width:100%;
-    height:30px;
-    float:left;
-}
-
-#feature_expression_panel > div{
-    float:left;
-    margin-right:10px;
-    font-weight:bold;
-}
 
 #arch_info_display_table_div{
     float:left;

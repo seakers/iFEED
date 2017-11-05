@@ -548,6 +548,7 @@ function MainPlot(ifeed){
         d3.select("#num_of_archs").text(""+self.get_num_of_archs());
     }
 
+    
 
     self.show_all_archs = function(){
         
@@ -669,7 +670,15 @@ function MainPlot(ifeed){
         ifeed.UI_states.support_panel_active=false;
     }
     
-
+    
+    
+    
+    
+    PubSub.subscribe(DATA_PROCESSED, (msg, data) => {
+        self.update(data,0,1);
+    });    
+    
+    
     
     self.initialize();
 
