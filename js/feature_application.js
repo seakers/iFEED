@@ -68,7 +68,7 @@ function FeatureApplication(ifeed){
             d.temp=true;
         });
 
-        self.update(self.root);  
+        self.update();  
     }
     
     
@@ -165,7 +165,7 @@ function FeatureApplication(ifeed){
                 //console.log('selectedNode undefined');            
             }
 
-            self.update(self.root);
+            self.update();
             
             PubSub.publish(ADD_FEATURE, self.parse_tree(self.root));
             
@@ -216,8 +216,10 @@ function FeatureApplication(ifeed){
         var remove_redundant_logical_connectives = function(node){
 
             if(!node){
-                return;            
+                return;      
+                
             }else if(node.type=="logic" && node.parent){
+                
                 if(node.name==node.parent.name){
 
                     var children = node.children;
@@ -279,10 +281,10 @@ function FeatureApplication(ifeed){
     
 
 
-    self.update = function(source) {
+    self.update = function() {
                 
         
-        if(source==null){
+        if(self.root==null){
             d3.selectAll('.treeNode').remove();
             d3.selectAll('.treeLink').remove();
             PubSub.publish(APPLY_FEATURE_EXPRESSION, null);
@@ -290,7 +292,7 @@ function FeatureApplication(ifeed){
         }    
         
         self.check_tree_structure();
-        
+                
         PubSub.publish(APPLY_FEATURE_EXPRESSION, self.parse_tree(self.root));
         
         var duration = d3.event && d3.event.altKey ? 5000 : 500;
@@ -315,7 +317,7 @@ function FeatureApplication(ifeed){
         // Enter any new nodes at the parent's previous position.
         var nodeEnter = node.enter().append("g")
             .attr("class", "treeNode")
-            .attr("transform", function(d) { return "translate(" + source.y0 + "," + source.x0 + ")"; });
+            .attr("transform", function(d) { return "translate(" + self.root.y0 + "," + self.root.x0 + ")"; });
 
         nodeEnter.append("svg:circle")
             .attr("r", 1e-6);
@@ -349,7 +351,7 @@ function FeatureApplication(ifeed){
         // Transition exiting nodes to the parent's new position.
         var nodeExit = node.exit().transition()
             .duration(duration)
-            .attr("transform", function(d) { return "translate(" + source.y + "," + source.x + ")"; })
+            .attr("transform", function(d) { return "translate(" + self.root.y + "," + self.root.x + ")"; })
             .remove();
 
         // Transition nodes to their new position.
@@ -423,7 +425,7 @@ function FeatureApplication(ifeed){
         link.enter().insert("svg:path", "g")
             .attr("class", "treeLink")
             .attr("d", function(d) {
-              var o = {x: source.x0, y: source.y0};
+              var o = {x: self.root.x0, y: self.root.y0};
               return self.diagonal({source: o, target: o});
             })
             .style("stroke-width",function(d){
@@ -449,7 +451,7 @@ function FeatureApplication(ifeed){
         link.exit().transition()
             .duration(duration)
             .attr("d", function(d) {
-              var o = {x: source.x, y: source.y};
+              var o = {x: self.root.x, y: self.root.y};
               return self.diagonal({source: o, target: o});
             })
             .remove();
@@ -597,7 +599,7 @@ function FeatureApplication(ifeed){
                     // Add to the parent node
                     parentNode.children.push(subtree); 
                     
-                    self.update(self.root);  
+                    self.update();  
                 }else{    
                     // No parentNode
 
@@ -675,7 +677,7 @@ function FeatureApplication(ifeed){
                 })
             }
 
-            self.update(self.root);
+            self.update();
 
             self.stashed_root = null;
             self.stashed_node_ids=null;
@@ -1033,7 +1035,7 @@ function FeatureApplication(ifeed){
     self.clear_feature_application = function(){
         
         self.root = null;
-        self.update(self.root);
+        self.update();
                 
         PubSub.publish(ADD_FEATURE, null);
         
@@ -1054,7 +1056,7 @@ function FeatureApplication(ifeed){
                 return d;
             }     
         });
-        self.update(self.root); 
+        self.update(); 
     }); 
     
     
@@ -1068,9 +1070,14 @@ function FeatureApplication(ifeed){
     
     // Remove all features
     d3.select('#clear_all_features').on('click',self.clear_feature_application); 
+        
+    d3.select('#conjunctive_local_search').on('click',function(){
+        ifeed.data_mining.run();
+    }); 
     
-    // Run local search
-    d3.select('#run_local_search').on('click',self.clear_feature_application);
+    d3.select('#disjunctive_local_search').on('click',function(d){
+        ifeed.data_mining.run("asdf");
+    }); 
     
 }
 

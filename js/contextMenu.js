@@ -9,6 +9,11 @@ function ContextMenu(ifeed) {
     
     self.root = feature_application.root;
     
+    
+    
+    
+    
+    
     var marginRatio = 0.13,
         //items = [], 
         style = {
@@ -68,13 +73,25 @@ function ContextMenu(ifeed) {
         items = items.concat(contextItems['default']);
         
         var x,y;
-        if(type=='logic' || depth==0){
-            x = coord[0]+80;
-            y = coord[1]+40;
-        }else{
-            x = coord[0]-105;
-            y = coord[1]+40;
+        if(coord[0] >= 240){
+            x = coord[0] - 105;
+        } else{
+            x = coord[0] + 80;
         }
+        if(coord[1] < 370){
+            y = coord[1] + 40;
+        } else{
+            if(type=="logic"){
+                if(depth==0){
+                    y = coord[1] - 180;
+                }else{
+                    y = coord[1] - 150;
+                }                
+            }else{
+                y = coord[1]  - 120;
+            }
+        }
+
         
         d3.select('.context-menu').remove();
         scaleItems(context,items);

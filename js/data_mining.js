@@ -99,25 +99,125 @@ function DataMining(ifeed){
     
 
     self.run = function(option){
-
-        var base_feature = null;
-        var add_feature_node = null;
         
+        var selectedArchs = d3.selectAll(".dot.main_plot.selected:not(.hidden)")[0];
+        var nonSelectedArchs =  d3.selectAll(".dot.main_plot:not(.selected):not(.hidden)")[0];
+
+        // Store the id's of all dots
+        var selected = [];
+        var non_selected = [];
+
+        for (var i = 0; i < selectedArchs.length; i++) {
+            var id = selectedArchs[i].__data__.id;
+            selected.push(id);
+        }
+        for (var i = 0; i < nonSelectedArchs.length; i++) {
+            var id = nonSelectedArchs[i].__data__.id;
+            non_selected.push(id);
+        }                
+        
+        
+        if (selectedArchs.length==0){
+            alert("First select target solutions!");
+            return;
+        }     
+                
         
         // If the feature application tree exists:
         if(ifeed.feature_application.root){
+            // Run data mining in the marginal feature space
+                        
+            var selected_node = null;            
             
             // Save the node where the placeholder is to be located
             ifeed.feature_application.visit_nodes(ifeed.feature_application.root,function(d){
-                if(d.add){add_feature_node=d;}                        
+                if(d.add){selected_node=d;}                        
             })            
             
             // Save the currently applied feature
-            base_feature = ifeed.feature_application.parse_tree(ifeed.feature_application.root,add_feature_node);    
+            var base_feature = ifeed.feature_application.parse_tree(ifeed.feature_application.root,selected_node);
+
+            var extracted_features = null;
+
+            if(selected_node){
+
+                extracted_features = self.get_marginal_driving_features(selected, non_selected, base_feature, 
+                                                             self.support_threshold,self.confidence_threshold,self.lift_threshold);           
+
+            }else if(!option){
+
+                // Save the architectures that have the currently applied feature
+                var highlightedArchs = d3.selectAll(".dot.main_plot.highlighted:not(.hidden)")[0];                    
+
+                var highlighted = [];
+                for (var i = 0; i < highlightedArchs.length; i++) {
+                    var id = highlightedArchs[i].__data__.id;
+                    highlighted.push(id);
+                }                       
+
+                extracted_features = self.get_marginal_driving_features_conjunctive(selected, non_selected, base_feature, highlighted, 
+                                                                 self.support_threshold,self.confidence_threshold,self.lift_threshold);
+            }else{
+
+                var root = ifeed.feature_application.root;
+
+                extracted_features = [];
+
+                var all_extracted_features = [];
+
+                for(var i=0;i<root.children.length;i++){
+
+                    selected_node = root.children[i];  
+                    
+                    if(selected_node.type=="logic"){
+                        continue;
+                    }
+                    
+                    var test_feature = ifeed.feature_application.parse_tree(root,selected_node); 
+
+                    var temp_features = self.get_marginal_driving_features(selected, non_selected, test_feature, 
+                                                             self.support_threshold,self.confidence_threshold,self.lift_threshold);
+
+                    all_extracted_features = all_extracted_features.concat(temp_features);
+
+                }
+
+                // Check non-dominance against the extracted features
+                for(var j=0;j<all_extracted_features.length;j++){
+                    var this_feature = all_extracted_features[j];
+                    if(self.check_if_non_dominated(this_feature, all_extracted_features)) extracted_features.push(this_feature);
+                }                    
+            }
             
-            // Save the architectures that have the currently applied feature
-            var highlightedArchs = d3.selectAll(".dot.main_plot.highlighted:not(.hidden)")[0];
             
+            
+            var features_to_add = [];
+            self.recent_features_id = [];
+
+            // Check non-dominance against all existing features
+            for(var i=0;i<extracted_features.length;i++){
+
+                var this_feature = extracted_features[i];
+                if(self.check_if_non_dominated(this_feature,self.all_features)){
+                    var id = featureID++;
+                    // non-dominated
+                    self.mined_features_id.push(id);
+                    self.recent_features_id.push(id); 
+
+                    this_feature.id=id;
+                    features_to_add.push(this_feature);
+                }
+            }     
+
+            // Update the location of the current feature
+            var x=self.current_feature.x;
+            var y=self.current_feature.y;
+            self.current_feature.x0=x;
+            self.current_feature.y0=y;
+
+            self.update_feature_plot(features_to_add);
+            PubSub.publish(CANCEL_ADD_FEATURE, null);
+                        
         }else{
             
             // Run data mining from the scratch (no local search)
@@ -128,124 +228,20 @@ function DataMining(ifeed){
             // Remove all highlights in the scatter plot (retain target solutions)
             ifeed.main_plot.cancel_selection('remove_highlighted');   
             
-        }
+            self.all_features = self.get_driving_features(selected,non_selected,self.support_threshold,self.confidence_threshold,self.lift_threshold);
 
-        
-        var selectedArchs = d3.selectAll(".dot.main_plot.selected:not(.hidden)")[0];
-        var nonSelectedArchs =  d3.selectAll(".dot.main_plot:not(.selected):not(.hidden)")[0];
-
-
-        if (selectedArchs.length==0){
-            alert("First select target solutions!");
-            
-        }else{        
-            
-            // Store the id's of all dots
-            var selected = [];
-            var non_selected = [];
-
-            for (var i = 0; i < selectedArchs.length; i++) {
-                var id = selectedArchs[i].__data__.id;
-                selected.push(id);
-            }
-            for (var i = 0; i < nonSelectedArchs.length; i++) {
-                var id = nonSelectedArchs[i].__data__.id;
-                non_selected.push(id);
-            }
-            
-            
-            if(base_feature){
-                                
-                var highlighted = [];
-                for (var i = 0; i < highlightedArchs.length; i++) {
-                    var id = highlightedArchs[i].__data__.id;
-                    highlighted.push(id);
-                }   
-                
-                var extracted_features = null;
-                var features_to_add = [];
-                self.recent_features_id = [];
-                
-                
-                if(base_feature.indexOf("{PLACEHOLDER}")!=-1){
-                    
-                    extracted_features = self.get_marginal_driving_features(selected, non_selected, base_feature, 
-                                                                 self.support_threshold,self.confidence_threshold,self.lift_threshold);           
-                
-                }else if(!option){
-                    
-                    extracted_features = self.get_marginal_driving_features_conjunctive(selected, non_selected, base_feature, highlighted, 
-                                                                     self.support_threshold,self.confidence_threshold,self.lift_threshold);
-                                             
-                }else{
-
-                    var root = ifeed.feature_application.root;
-                    
-                    extracted_features = [];
-                    
-                    var all_extracted_features = [];
-                    
-                    for(var i=0;i<root.children.length;i++){
-                        
-                        var add_feature_node = root.children[i];         
-                        var test_feature = ifeed.feature_application.parse_tree(root,add_feature_node); 
-                                                
-                        var temp_features = self.get_marginal_driving_features(selected, non_selected, test_feature, 
-                                                                 self.support_threshold,self.confidence_threshold,self.lift_threshold);
-                        
-                        all_extracted_features = all_extracted_features.concat(temp_features);
-                        
-                    }
-                                        
-                    // Check non-dominance against the extracted features
-                    for(var j=0;j<all_extracted_features.length;j++){
-                        var this_feature = all_extracted_features[j];
-                        if(self.check_if_non_dominated(this_feature, all_extracted_features)) extracted_features.push(this_feature);
-                    }                    
-                }
-                
-                
-                // Check non-dominance against all existing features
-                for(var i=0;i<extracted_features.length;i++){
-
-                    var this_feature = extracted_features[i];
-                    if(self.check_if_non_dominated(this_feature,self.all_features)){
-                        var id = featureID++;
-                        // non-dominated
-                        self.mined_features_id.push(id);
-                        self.recent_features_id.push(id); 
-
-                        this_feature.id=id;
-                        features_to_add.push(this_feature);
-                    }
-                }     
-                
-                // Update the location of the current feature
-                var x=self.current_feature.x;
-                var y=self.current_feature.y;
-                self.current_feature.x0=x;
-                self.current_feature.y0=y;
-                
-                self.update_feature_plot(features_to_add);
-                
-                PubSub.publish(CANCEL_ADD_FEATURE, null);
-                
+            if(self.all_features.length==0){
+                return;
             }else{
-                
-                self.all_features = self.get_driving_features(selected,non_selected,self.support_threshold,self.confidence_threshold,self.lift_threshold);
-                
-                if(self.all_features.length==0){
-                    return;
-                }else{
-                    for(var i=0;i<self.all_features.length;i++){
-                        self.mined_features_id.push(self.all_features[i].id);
-                    }
+                for(var i=0;i<self.all_features.length;i++){
+                    self.mined_features_id.push(self.all_features[i].id);
                 }
-
-                self.display_features();                
             }
+
+            self.display_features();              
             
         }
+ 
     }
 
     
