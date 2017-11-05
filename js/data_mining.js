@@ -155,7 +155,7 @@ function DataMining(ifeed){
             
             
             if(base_feature){
-                
+                                
                 var highlighted = [];
                 for (var i = 0; i < highlightedArchs.length; i++) {
                     var id = highlightedArchs[i].__data__.id;
@@ -167,41 +167,58 @@ function DataMining(ifeed){
                 self.recent_features_id = [];
                 
                 
-                
-                
                 if(base_feature.indexOf("{PLACEHOLDER}")!=-1){
                     
                     extracted_features = self.get_marginal_driving_features(selected, non_selected, base_feature, 
-                                                                 self.support_threshold,self.confidence_threshold,self.lift_threshold);
-                }else{
+                                                                 self.support_threshold,self.confidence_threshold,self.lift_threshold);           
+                
+                }else if(!option){
                     
                     extracted_features = self.get_marginal_driving_features_conjunctive(selected, non_selected, base_feature, highlighted, 
                                                                      self.support_threshold,self.confidence_threshold,self.lift_threshold);
+                                             
+                }else{
+
+                    var root = ifeed.feature_application.root;
+                    
+                    extracted_features = [];
+                    
+                    var all_extracted_features = [];
+                    
+                    for(var i=0;i<root.children.length;i++){
+                        
+                        var add_feature_node = root.children[i];         
+                        var test_feature = ifeed.feature_application.parse_tree(root,add_feature_node); 
+                                                
+                        var temp_features = self.get_marginal_driving_features(selected, non_selected, test_feature, 
+                                                                 self.support_threshold,self.confidence_threshold,self.lift_threshold);
+                        
+                        all_extracted_features = all_extracted_features.concat(temp_features);
+                        
+                    }
+                                        
+                    // Check non-dominance against the extracted features
+                    for(var j=0;j<all_extracted_features.length;j++){
+                        var this_feature = all_extracted_features[j];
+                        if(self.check_if_non_dominated(this_feature, all_extracted_features)) extracted_features.push(this_feature);
+                    }                    
                 }
                 
                 
-                
-                
-
-                
-                
-                
-
+                // Check non-dominance against all existing features
                 for(var i=0;i<extracted_features.length;i++){
 
                     var this_feature = extracted_features[i];
-                    
-                    if(self.check_if_non_dominated(this_feature)){
+                    if(self.check_if_non_dominated(this_feature,self.all_features)){
                         var id = featureID++;
                         // non-dominated
                         self.mined_features_id.push(id);
                         self.recent_features_id.push(id); 
-                        
+
                         this_feature.id=id;
                         features_to_add.push(this_feature);
                     }
-                }
-                
+                }     
                 
                 // Update the location of the current feature
                 var x=self.current_feature.x;
@@ -899,14 +916,15 @@ function DataMining(ifeed){
     }
     
     
-    self.check_if_non_dominated = function(test_feature){  
+    self.check_if_non_dominated = function(test_feature, all_features){  
         
-        var features = self.all_features;
         var non_dominated = true;
         
-        for (var j=0;j<features.length;j++){
+        for (var j=0;j<all_features.length;j++){
             
-            var this_feature = features[j];
+            var this_feature = all_features[j];
+            
+            if(this_feature==test_feature) continue;
             
             if(dominates(this_feature.metrics.slice(2), test_feature.metrics.slice(2))){
                 non_dominated = false;

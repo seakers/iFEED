@@ -223,6 +223,7 @@ function ContextMenu(ifeed) {
 
                     if(node.add){
                         node.add=false;
+                        
                     }else{
                         var id = node.id;
                         visit_nodes(ifeed.feature_application.root,function(d){
