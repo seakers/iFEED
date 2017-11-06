@@ -128,6 +128,8 @@ function EOSS(ifeed){
         var preprocessed = self.preprocessing(data);
         
         PubSub.publish(DATA_PROCESSED,preprocessed);
+        
+        PubSub.publish(EXPERIMENT_START,null);
     });     
 
     
