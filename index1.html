@@ -1,0 +1,196 @@
+<!DOCTYPE html>
+<!--
+To change this license header, choose License Headers in Project Properties.
+To change this template file, choose Tools | Templates
+and open the template in the editor.
+-->
+<html>
+
+<head>
+    <title>iFEED Web Application</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <script src="js/lib/jquery.js" type="text/javascript"></script>
+    <script src="js/lib/d3.js"></script>
+    <script src="js/lib/d3-shape.v1.min.js"></script>
+    <script src="js/lib/d3-path.v1.min.js"></script>
+    <script src="js/lib/tabcontent.js" type="text/javascript"></script>
+    <link href="js/lib/tabcontent.css" rel="stylesheet" type="text/css"/>
+    <script src="js/lib/intro.js"></script>
+    <link href="js/lib/introjs.css" rel="stylesheet" type="text/css"/>
+    
+    
+    <link href="css/main_plot.css" rel="stylesheet" type="text/css"/>
+    <link href="css/filter.css" rel="stylesheet" type="text/css"/>
+    <link href="css/data_mining.css" rel="stylesheet" type="text/css"/>
+    <link href="css/feature_application.css" rel="stylesheet" type="text/css"/>
+
+    <link href="css/experiment.css" rel="stylesheet" type="text/css"/>
+    
+    <script src="https://apis.google.com/js/platform.js" async defer></script>
+    <meta name="google-signin-client_id" content="564804694787-lnsp9md3u0q8086nftbamu43drid6d4t.apps.googleusercontent.com">
+
+</head>
+
+<body>
+    
+    
+    
+<div class='title'>
+    <h2>iFEED GUI</h2>
+</div>
+
+
+<div class='content'>
+    
+
+    <div id="experiment_prompt_div">
+        <div>
+            <div id="experiment_prompt">
+                <h3 id="prompt_header"></h3>
+                <div id="prompt_body">
+                    <p id="prompt_body_text_1" style="font-size:22px"></p>
+                    <p id="prompt_body_text_2" style="font-size:22px"></p>
+
+                    <div></div>
+                </div>
+
+                <div id="arrow_div">
+                    <img src="img/rightarrow.png" class="img-hor-vert" id="move_backward_button" width="48" height="31">
+                    <img src="img/rightarrow.png" id="move_forward_button" width="48" height="31">
+                    <div id="task_number"></div>
+                </div>
+            </div>
+            <div id='clock' style='float:right;'>
+                <div id="clockdiv">
+                      <div>
+                        <span class="minutes"></span>
+                        <div class="smalltext">Minutes</div>
+                      </div>
+                      <div>
+                        <span class="seconds"></span>
+                        <div class="smalltext">Seconds</div>
+                      </div>
+                </div>	
+            </div>
+        </div>
+
+        <div id="prompt_page_number">
+            <div>
+            </div>
+        </div>
+
+    </div>	
+
+
+    <div id='status_display'>
+        <div>
+            <div>Number of designs:</div>
+            <div id="num_of_archs"></div>
+        </div>
+        <div>
+            <div>Number of target designs:</div>
+            <div id="num_of_selected_archs"></div> 
+        </div>
+        <div class="clearfix"></div>
+    </div>
+    
+    <div class='columns'>
+        
+        <div class='column c1'>
+
+            <div class='row c1 r1'>
+                <figure class='main_plot figure'></figure>
+            </div>
+            <div class="row c1 r2">
+                <div id="support_panel"> 
+                    <ul class="tabs" data-persist="true">
+                        <li><a id="tab1" href="#view1">Inspect Design</a></li>
+                        <li><a id="tab2" href="#view2">Filter Setting</a></li>
+                        <li><a id="tab3" href="#view3">Feature Analysis</a></li>
+                    </ul>
+                    <div class="tabcontents">
+                        <div id="view1"></div>
+                        <div id="view2"></div>
+                        <div id="view3"></div>
+                    </div>
+                </div>
+            </div>
+        </div>   
+        <div class='column c2'>
+            <div>
+                <div id='feature_expression_panel'>
+                    <div>
+                        <div>Currently Applied Feature</div>
+                        <button id='clear_all_features' class='feature_application_options_button'>Clear</button>
+                    </div>
+                    <div id='feature_expression'></div>
+                </div>
+                <div id='feature_application_panel'>
+                    <div id='feature_application'></div>
+                </div>
+            </div>
+        </div>
+        
+        
+        
+    </div>
+
+</div>
+
+    
+<script src="js/util.js" type="text/javascript"></script>
+<script src="js/ifeed-general.js" type="text/javascript"></script>
+<script src="js/EOSS/eoss.js" type="text/javascript"></script>
+<script src="js/main_plot.js" type="text/javascript"></script>
+<script src="js/EOSS/relabel.js" type="text/javascript"></script>
+<script src="js/filter.js" type="text/javascript"></script>
+<script src="js/data_mining.js" type="text/javascript"></script>   
+<script src="js/feature_application.js" type="text/javascript"></script>       
+<script src="js/contextMenu.js" type="text/javascript"></script>
+<script src="js/experiment.js" type="text/javascript"></script>
+<script src="js/experiment-tutorial.js" type="text/javascript"></script>   
+    
+<script>
+    
+    var ifeed = new IFEED();
+    
+    var eoss = new EOSS(ifeed);
+    ifeed.problem=eoss;
+    
+    var main_plot = new MainPlot(ifeed);
+    ifeed.main_plot=main_plot;
+    
+    var filter = new Filter(ifeed);
+    ifeed.filter=filter;
+    
+    var data_mining = new DataMining(ifeed);
+    ifeed.data_mining = data_mining;
+    
+    var feature_application = new FeatureApplication(ifeed);
+    ifeed.feature_application = feature_application;
+    
+
+    ifeed.import_new_data(ifeed.result_path);
+    ifeed.calculate_pareto_ranking();
+    
+    //ifeed.main_plot.toggle_selection_mode();
+    
+    var experiment = new Experiment(ifeed);
+    ifeed.experiment = experiment;
+    
+    var tutorial = new ExperimentTutorial(ifeed,experiment);
+    ifeed.experiment.tutorial = tutorial;   
+    
+    tutorial.display_views();
+    
+    ifeed.experiment.remainingTime = + 25*60*1000; // 25 minutes
+    ifeed.experiment.resetTimer();
+    
+    
+</script>
+
+    
+</body>
+</html>
