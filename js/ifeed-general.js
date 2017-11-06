@@ -8,6 +8,8 @@ const UPDATE_FEATURE_APPLICATION = "update_feature_application";
 const CANCEL_ADD_FEATURE = "cancel_add_feature";
 const DATA_IMPORTED = "data_imported";
 const DATA_PROCESSED = "data_processed";
+const EXPERIMENT_START = "experiment_start";
+
 
 
 function Architecture(id,inputs,outputs){

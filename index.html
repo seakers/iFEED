@@ -161,16 +161,17 @@ and open the template in the editor.
     var feature_application = new FeatureApplication(ifeed);
     ifeed.feature_application = feature_application;
     
-
     ifeed.import_new_data(ifeed.result_path);
     ifeed.calculate_pareto_ranking();
-    
     ifeed.main_plot.toggle_selection_mode();
     
     var experiment = new Experiment(ifeed);
     ifeed.experiment = experiment;
     
+    
+    
     experiment.update_task_direction();
+
     
 </script>
 

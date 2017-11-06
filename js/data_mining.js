@@ -136,6 +136,7 @@ function DataMining(ifeed){
             
             // Save the currently applied feature
             var base_feature = ifeed.feature_application.parse_tree(ifeed.feature_application.root,selected_node);
+            base_feature = ifeed.experiment.label.restore_randomized_variable(base_feature);
 
             var extracted_features = null;
 
@@ -174,7 +175,8 @@ function DataMining(ifeed){
                     }
                     
                     var test_feature = ifeed.feature_application.parse_tree(root,selected_node); 
-
+                    test_feature = ifeed.experiment.label.restore_randomized_variable(test_feature);
+                    
                     var temp_features = self.get_marginal_driving_features(selected, non_selected, test_feature, 
                                                              self.support_threshold,self.confidence_threshold,self.lift_threshold);
 
@@ -205,6 +207,8 @@ function DataMining(ifeed){
                     self.recent_features_id.push(id); 
 
                     this_feature.id=id;
+                    this_feature.expression = ifeed.experiment.label.relabel_randomized_variable(this_feature.expression);
+                    this_feature.name=this_feature.expression;
                     features_to_add.push(this_feature);
                 }
             }     
@@ -234,7 +238,15 @@ function DataMining(ifeed){
                 self.all_features=[];
                 self.mined_features_id = [];
             }else{
-                self.all_features = self.get_driving_features(selected,non_selected,self.support_threshold,self.confidence_threshold,self.lift_threshold);
+                self.all_features = [];
+                var extracted_features = self.get_driving_features(selected,non_selected,self.support_threshold,self.confidence_threshold,self.lift_threshold);    
+                
+                for(var j=0;j<extracted_features.length;j++){
+                    var this_feature = extracted_features[j];
+                    this_feature.expression = ifeed.experiment.label.relabel_randomized_variable(this_feature.expression);
+                    this_feature.name=this_feature.expression;
+                    self.all_features.push(this_feature);
+                }
                 
                 if(self.all_features.length==0){
                     return;
@@ -469,9 +481,11 @@ function DataMining(ifeed){
 
         // Adjust the location of the utopia point
         self.utopia_point.metrics=[Math.max.apply(null, lifts),Math.max.apply(null, supps),max_conf,max_conf];
-
-        // Insert the utopia point to the list of features        
-        self.all_features.splice(0, 0, self.utopia_point);
+        
+        if(self.all_features.length!=0){
+            // Insert the utopia point to the list of features        
+            self.all_features.splice(0, 0, self.utopia_point);
+        }
 
         // Add score for the utopia point (0.2 more than the best score found so far)
         scores.splice(0,0,Math.max.apply(null,scores)+0.2); 
@@ -748,8 +762,6 @@ function DataMining(ifeed){
         var id= d.id; 
         var expression = d.expression;
         
-        expression = ifeed.experiment.label.relabel_randomized_variable(expression);
-
         var metrics = d.metrics;
         var conf = d.metrics[2];
         var conf2 = d.metrics[3];
@@ -822,7 +834,6 @@ function DataMining(ifeed){
                         .style('word-wrap','break-word')
                         .style('font-size','21px;');   
 
-
         // Update the placeholder with the driving feature and stash the expression    
         ifeed.feature_application.update_feature_application('temp',expression);
         self.draw_venn_diagram(); 
@@ -869,6 +880,8 @@ function DataMining(ifeed){
             return null;
         }
         
+        if(!d3.select('.feature_plot.figure')) return null;
+        
         
         if(!expression || expression==""){
 
@@ -877,9 +890,9 @@ function DataMining(ifeed){
             self.update_feature_plot();
 
         }else{       
-            
+                        
             ifeed.filter.apply_filter_expression(expression);
-
+            
             // Compute the metrics of a feature
             var total = ifeed.main_plot.get_num_of_archs();
             var intersection = d3.selectAll('.dot.main_plot.selected.highlighted')[0].length;
@@ -904,7 +917,6 @@ function DataMining(ifeed){
             }else{
                 x=-1,y=-1;
             }
-
 
             // Define new feature
             self.current_feature = {id:-1,name:expression,expression:expression,metrics:metrics,x0:x,x:x,y0:y,y:y};
