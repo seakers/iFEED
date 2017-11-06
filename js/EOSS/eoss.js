@@ -105,16 +105,9 @@ function EOSS(ifeed){
         var output = [];
         
         data.forEach(function (d) {  
-            
-            // convert string to numbers
-            d.science = +d.science;
-            d.cost = +d.cost;
-            if (d.cost == 100000) {
-                d.cost = 0;
-                d.science = 0;
-            }
-            var outputs = [d.science, d.cost];
-            var inputs = d.bitString;
+
+            var outputs = d.outputs;
+            var inputs = d.inputs;
             var id = +d.id;
             
             var arch = new Architecture(id,inputs,outputs);
@@ -125,18 +118,20 @@ function EOSS(ifeed){
         return output;
     }
     
-    
-    
-    ifeed.import_callback = function(data){
 
+    PubSub.subscribe(DATA_IMPORTED, (msg, data) => {
+        
         self.orbit_list = self.get_orbit_list();
         self.instrument_list = self.get_instrument_list(); 
         self.orbit_num = self.orbit_list.length;
         self.instrument_num = self.instrument_list.length;   
-        ifeed.data=self.preprocessing(data);
+        
+        var preprocessed = self.preprocessing(data);
+        
+        PubSub.publish(DATA_PROCESSED,preprocessed);
+    });     
 
-    }
-
+    
 
     self.display_arch_info = function(data) {
 
@@ -257,12 +252,26 @@ function EOSS(ifeed){
     }
 
     
+
+    
+    self.get_critique = function(architecture) {
+                
+        $.ajax({
+            url: "/api/critic/criticize-architecture/",
+            type: "POST",
+            data: {
+                    inputs: JSON.stringify(architecture.inputs),
+                  },
+            async: false,
+            success: function (data, textStatus, jqXHR)
+            {
+                var critique = data;
+            },
+            error: function (jqXHR, textStatus, errorThrown)
+            {
+                alert("error");
+            }
+        });
+    }
     
 }
-
-
-
-
-
-
-

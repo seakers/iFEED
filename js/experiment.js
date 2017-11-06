@@ -60,6 +60,9 @@ function Experiment(ifeed){
 //    }else{
 //        account_id = '123123123';
 //    }
+    
+    
+    
     self.account_id = '123123123';
     
     
@@ -120,7 +123,8 @@ function Experiment(ifeed){
         ifeed.main_plot.cancel_selection();
         ifeed.filter.initialize();
         ifeed.data_mining.initialize();
-        ifeed.feature_application.reset();
+        ifeed.feature_application.clear_feature_application();
+        
 
         // Change the prompt message and the target selection
         if(self.condition_number==1){
@@ -153,7 +157,7 @@ function Experiment(ifeed){
             d3.select('#experiment_prompt_div').style('background-color','#ABFFB3');
         }
 
-
+        
         if(self.task_number==0){
             self.select_archs_using_ids(self.low_cost_low_perf);
         }else if(self.task_number==1){
@@ -162,8 +166,9 @@ function Experiment(ifeed){
             self.select_archs_using_ids(self.high_cost_high_perf);
         }
 
+        
         d3.select("#num_of_archs").text(""+ifeed.main_plot.get_num_of_archs());
-
+        
 
         //Experiment
         if(self.condition_number=="1"){
@@ -190,8 +195,9 @@ function Experiment(ifeed){
             ifeed.data_mining.run();
         }
         
-        ifeed.feature_application.reset();
+        ifeed.feature_application.clear_feature_application();
         self.resetTimer();
+        
     }
     
     
@@ -277,17 +283,7 @@ function Experiment(ifeed){
     
     
     
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
+
 
 
     var buttonClickCount_applyFilter = 0;
@@ -402,9 +398,8 @@ function Experiment(ifeed){
         self.orbitOrder = self.orbitOrderStore[self.variable_scheme_number];
         self.instrOrder = self.instrOrderStore[self.variable_scheme_number];
         self.condition_number=3;
-        self.update_task_direction(self.task_number,self.task_order);
+        self.update_task_direction();
         self.stopTimer();
-        initialize_tabs_driving_features();
         added_features=[];
     }
 
@@ -664,7 +659,6 @@ function Experiment(ifeed){
             return ppexpression;
         }
 
-
         
         self.relabel_randomized_variable = function(expression){
             
@@ -713,7 +707,7 @@ function Experiment(ifeed){
             }
             var featureName = exp.split("[")[0];
 
-            if(featureName==="paretoFront" || featureName==='Placeholder'){return exp;}
+            if(featureName==="paretoFront" || featureName==='PLACEHOLDER'){return exp;}
 
             if(featureName[0]=='~'){
                 featureName = 'NOT '+ featureName.substring(1);
@@ -786,6 +780,14 @@ function Experiment(ifeed){
 
         
     }
+    
+    
+    
+    
+    PubSub.subscribe(EXPERIMENT_START, (msg, data) => {
+        self.update_task_direction();
+    });       
+    
     
 }
 

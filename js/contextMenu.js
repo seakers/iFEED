@@ -9,6 +9,11 @@ function ContextMenu(ifeed) {
 
     self.root = feature_application.root;
     
+    
+    
+    
+    
+    
     var marginRatio = 0.13,
         //items = [], 
         style = {
@@ -68,13 +73,25 @@ function ContextMenu(ifeed) {
         items = items.concat(contextItems['default']);
         
         var x,y;
-        if(type=='logic' || depth==0){
-            x = coord[0]+80;
-            y = coord[1]+40;
-        }else{
-            x = coord[0]-105;
-            y = coord[1]+40;
+        if(coord[0] >= 240){
+            x = coord[0] - 105;
+        } else{
+            x = coord[0] + 80;
         }
+        if(coord[1] < 370){
+            y = coord[1] + 40;
+        } else{
+            if(type=="logic"){
+                if(depth==0){
+                    y = coord[1] - 180;
+                }else{
+                    y = coord[1] - 150;
+                }                
+            }else{
+                y = coord[1]  - 120;
+            }
+        }
+
         
         d3.select('.context-menu').remove();
         scaleItems(context,items);
@@ -222,6 +239,7 @@ function ContextMenu(ifeed) {
 
                     if(node.add){
                         node.add=false;
+                        
                     }else{
                         var id = node.id;
 
@@ -351,13 +369,16 @@ function ContextMenu(ifeed) {
                 break;
         }    
 
-        ifeed.feature_application.update(ifeed.feature_application.root);
+        
+        var root = ifeed.feature_application.root;
+        var exp = ifeed.feature_application.parse_tree(root);
+
+        ifeed.feature_application.update(root);
+        
+        PubSub.publish(ADD_FEATURE, feature_application.parse_tree(root));
                 
-        ifeed.feature_application.check_tree_structure();
+        PubSub.publish(DRAW_VENN_DIAGRAM, feature_application.parse_tree(root));
         
-        ifeed.data_mining.add_feature_to_plot(feature_application.parse_tree(ifeed.feature_application.root));
-        
-        ifeed.data_mining.draw_venn_diagram();   
     }
     
 

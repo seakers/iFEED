@@ -110,6 +110,7 @@ function EOSSLabel(eoss){
 
             if(self.orbit_relabeled.indexOf(name)==-1 && self.instrument_relabeled.indexOf(name)==-1){
                 //alert('Invalid input argument');
+
                 return null;
             }
             
