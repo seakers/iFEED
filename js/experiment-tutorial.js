@@ -451,7 +451,7 @@ function ExperimentTutorial(ifeed,experiment){
     	}
         
 
-        ifeed.feature_application.clear_all_features();
+        ifeed.feature_application.clear_feature_application();
         
     	document.getElementById('tab2').click();
     	ifeed.main_plot.highlight_support_panel();
@@ -505,7 +505,7 @@ function ExperimentTutorial(ifeed,experiment){
     	}
         
 
-        ifeed.feature_application.clear_all_features();
+        ifeed.feature_application.clear_feature_application();
     	document.getElementById('tab2').click();
     	ifeed.main_plot.highlight_support_panel();
                 
@@ -553,7 +553,7 @@ function ExperimentTutorial(ifeed,experiment){
             
     	}
         
-        ifeed.feature_application.clear_all_features();
+        ifeed.feature_application.clear_feature_application();
     	document.getElementById('tab2').click();
     	ifeed.main_plot.highlight_support_panel();
                 
@@ -598,7 +598,7 @@ function ExperimentTutorial(ifeed,experiment){
             
     	}
         
-        ifeed.feature_application.clear_all_features();
+        ifeed.feature_application.clear_feature_application();
         
     	document.getElementById('tab2').click();
     	ifeed.main_plot.highlight_support_panel();
@@ -731,7 +731,7 @@ function ExperimentTutorial(ifeed,experiment){
                 
         document.getElementById('tab3').click();
         ifeed.main_plot.highlight_support_panel();
-        ifeed.feature_application.clear_all_features();
+        ifeed.feature_application.clear_feature_application();
         
         title = 'Feature Analysis - Inspecting Features';
         objects = [d3.selectAll('#support_panel')[0][0], d3.select('.main_plot.figure')[0][0], d3.selectAll('#support_panel')[0][0], d3.select(".column.c2")[0][0]];
@@ -759,7 +759,7 @@ function ExperimentTutorial(ifeed,experiment){
 
         document.getElementById('tab3').click();
         ifeed.main_plot.highlight_support_panel();
-        ifeed.feature_application.clear_all_features();
+        ifeed.feature_application.clear_feature_application();
         
         title = 'Feature Application Status Panel';
         
@@ -832,7 +832,7 @@ function ExperimentTutorial(ifeed,experiment){
         
         document.getElementById('tab3').click();
         ifeed.main_plot.highlight_support_panel();
-        ifeed.feature_application.clear_all_features();
+        ifeed.feature_application.clear_feature_application();
         
         title = 'Basic strategies for exploring new features';
         
@@ -861,7 +861,7 @@ function ExperimentTutorial(ifeed,experiment){
     	
         document.getElementById('tab3').click();
         ifeed.main_plot.highlight_support_panel();
-        ifeed.feature_application.clear_all_features();
+        ifeed.feature_application.clear_feature_application();
         
         title = 'Tutorial Finished';
         
