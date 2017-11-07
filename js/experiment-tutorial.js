@@ -5,7 +5,7 @@ function ExperimentTutorial(ifeed,experiment){
     var self = this;
     
     self.current_view = 5;
-    self.max_view = 24;
+    self.max_view = 25;
     
     self.max_view_reached = 0;
     
@@ -767,7 +767,7 @@ function ExperimentTutorial(ifeed,experiment){
                    null,
                    d3.select('#feature_application_panel')[0][0],
                   null,
-                  d3.select('#feature_expression > p')[0][0],
+                  d3.select('#feature_expression_panel:first-child')[0][0]];
                   d3.select('#feature_application_panel')[0][0]
                   ];
 
@@ -802,8 +802,7 @@ function ExperimentTutorial(ifeed,experiment){
                   null,
                   null,
                   d3.select('#support_panel')[0][0],
-                  d3.select('.column.c2')[0][0],
-                  d3.select('#feature_expression_panel:first-child')[0][0]];
+                  d3.select('.column.c2')[0][0]];
 
         contents = ["<p>We will go over some of the options associated with each node. </p><p>First, right-click on one of the feature nodes, and select \"Add Parent Branch\". It adds a new logical connective node as a parent.</p>",
                    
@@ -819,15 +818,49 @@ function ExperimentTutorial(ifeed,experiment){
                    
                    "<p>You can change the location of each node by drag and drop (with the exception of the root node - the leftmost node). </p><p>When you drag each node, temporary circles will appear around all other logical connective nodes. If you drop a node in one of those circles, the node will be added under that particular logical connective.</p><p>If the movement happens within the same parent node, the node will be added to the lower location.</p>",
                                        
-                   "Finally, you can remove the current feature by clicking \"clear\" button."];
+                   ];
 
         classname = 'introjs_tooltip_large';
         
         prompt = "";    
         
         
-    }    
-    else if(self.current_view==23){ 
+    }   
+    else if(self.current_view==23){
+
+        document.getElementById('tab3').click();
+        ifeed.main_plot.highlight_support_panel();
+        ifeed.feature_application.clear_feature_application();
+        
+        title = 'Improving Specificity and Coverage of a Feature';
+        
+        objects = [d3.select('#feature_expression_panel')[0][0],
+                  d3.select('#support_panel')[0][0],
+                  d3.select('#feature_expression_panel')[0][0],
+                  d3.select('#support_panel')[0][0],
+                   null,
+                  d3.select('#clear_all_features')[0][0]];
+        
+
+        contents = ["You can automatically improve the currently selected feature by clicking the buttons in Feature Application Panel.",
+                   
+                   "First, select a feature that you want to improve, and add it to the feature application panel by clicking it",
+                   
+                   "Then click either \"Improve specificity\", or \"Improve coverage\" button to improve one of the metrics",
+                    
+                    "If there is a feature that improves currently existing set of features, it will appear in the Feature plot as a cross.",
+                    
+                    "You can use this capability to improve features until you get close to the utopia point."
+                   
+                   "Finally, you can remove the current feature by clicking \"clear\" button."];
+
+        classname = 'introjs_tooltip';
+        
+        prompt = "";    
+        
+        
+    }          
+    else if(self.current_view==24){ 
         
         document.getElementById('tab3').click();
         ifeed.main_plot.highlight_support_panel();
@@ -855,7 +888,7 @@ function ExperimentTutorial(ifeed,experiment){
         
         
     }    
-    else if(self.current_view==24){ 
+    else if(self.current_view==25){ 
     	self.deactivate_continue_button();
     	
         document.getElementById('tab3').click();
@@ -904,7 +937,7 @@ function ExperimentTutorial(ifeed,experiment){
     
     self.write_prompt(title,prompt);
     
-    if(self.current_view!=24){
+    if(self.current_view!=25){
         self.start_intro(objects,contents,classname,callback);
     }    
 
@@ -976,6 +1009,9 @@ function select_driving_features(expression){
         }).style("stroke-width",3); 
     }
 }
+
+
+
 
 
 var tutorial_feature_example_b = "{present[;1;]}&&{notInOrbit[2;1;]}&&{notInOrbit[3;1;]}&&{absent[;3;]}&&{notInOrbit[2;8;]}&&{notInOrbit[0;4;]}&&{notInOrbit[3;5;]}&&{notInOrbit[2;4;]}&&{separate[;4,2;]}&&{notInOrbit[2;7;]}&&{notInOrbit[4;0;]}&&{notInOrbit[3;0;]}&&{notInOrbit[2;2;]}&&{notInOrbit[3;9;]}&&{notInOrbit[4;2;]}";

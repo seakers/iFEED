@@ -479,13 +479,7 @@ function DataMining(ifeed){
 
         // Add utopia point
         if(ifeed.experiment){
-            if(ifeed.experiment.tutorial){
-                var utopia_x = ifeed.experiment.tutorial.tutorial_utopia_point_x;
-                var utopia_y = ifeed.experiment.tutorial.tutorial_utopia_point_y;
-                self.utopia_point.metrics=[Math.max.apply(null, lifts),Math.max.apply(null, supps),utopia_x,utopia_y];
-            }else{
                 self.utopia_point.metrics=[Math.max.apply(null, lifts),Math.max.apply(null, supps),max_conf,max_conf];
-            }
         }else{
             self.utopia_point.metrics=[Math.max.apply(null, lifts),Math.max.apply(null, supps),max_conf,max_conf];
         }
