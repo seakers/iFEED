@@ -253,7 +253,7 @@ function ExperimentTutorial(ifeed,experiment){
 
             
             objects = d3.select('.column.c1')[0];
-            contents = ['The borderline of either the scatter plot or the analysis panel will be represented by bold lines. The bold line means that the panel is currently focused.',
+            contents = ['The borderline of either the scatter plot or the analysis panel is highlighted using bold lines. The bold line means that the panel is currently focused.',
                         'When the analysis panel is focused, hovering the mouse over a dot on the scatter plot will not change the information already displayed on the analysis panel. ',
                         'To enable the inspection of designs by hovering, click the scatter plot to bring the focus back to the scatter plot.'];
             
@@ -467,7 +467,7 @@ function ExperimentTutorial(ifeed,experiment){
                     
                    "<p>To apply the filter, type in an argument to the input text field and click [Apply Filter] button. </p>",
                     
-                    "<p>As a result of applying the filter, a group of dots on the scatter plot are highlighted in pink color. These dots represent designs that have the feature you just defined.</p>"]
+                    "<p>As a result of applying the filter, a group of dots on the scatter plot is highlighted in pink color. These dots represent designs that have the feature you just defined.</p>"]
 
         classname='introjs_tooltip';
         
@@ -705,10 +705,9 @@ function ExperimentTutorial(ifeed,experiment){
         
 //        // Run data mining
         ifeed.UI_states.selection_changed= true;
-        ifeed.data_mining.mined_features=null;
         
+        ifeed.data_mining.initialize();
         ifeed.data_mining.run();
-        ifeed.data_mining.update_feature_plot(ifeed.data_mining.all_features, false);
     	        
         document.getElementById('tab3').click();
         ifeed.main_plot.highlight_support_panel();
@@ -718,7 +717,7 @@ function ExperimentTutorial(ifeed,experiment){
 
         contents = ["Feature Analysis tab contains a plot that shows how much coverage and specificity each feature has. ",
                     
-                    "Each feature is represented by a triangle or a cross, depending on how it is generated. Triangles represent features that are generated automatically using a data mining algorithm, whereas crosses are the features that you explored manually.",
+                    "Each feature is represented by a triangle or a cross. Crosses represent the features that are added recently, and the rest of the features are represented by triangles.",
                     
                    "<p>The horizontal axis corresponds to the specificity, and the vertical axis corresponds to the coverage of a feature. </p><p>Since we want both high specificity and good coverage, your goal is to find features that will be located on the top-right corner of the plot. The star on the top-right shows the goal that you should try to reach.</p>"];
 
@@ -742,7 +741,7 @@ function ExperimentTutorial(ifeed,experiment){
                    
                    "<p>Second, a Venn diagram appears on the right side of the Feature Analysis tab. The Venn diagram shows the composition of the designs under different sets.</p><p> The size of the blue circle corresponds to the number of designs that are inside the target region, and the size of the pink circle corresponds to the number of designs that have the current feature.</p>",
                    
-                   "<p>Third, a logical expression and a graphical representation of the feature will appear in the Feature Application Status panel. </p><p>The logical expression is shown on the upper part of the panel, and the lower part will display the graphical representation.</p><p>More explanation about this will be provided in the next section.</p>"];
+                   "<p>Third, a logical expression and a graphical representation of the feature will appear in the Feature Application panel. </p><p>The logical expression is shown on the upper part of the panel, and the lower part will display the graphical representation.</p><p>More explanation about this will be provided in the next section.</p>"];
 
         classname = 'introjs_tooltip_large';
         
@@ -761,20 +760,20 @@ function ExperimentTutorial(ifeed,experiment){
         ifeed.main_plot.highlight_support_panel();
         ifeed.feature_application.clear_feature_application();
         
-        title = 'Feature Application Status Panel';
+        title = 'Feature Application Panel';
         
         objects = [d3.select('.column.c2')[0][0],
                    d3.selectAll('#support_panel')[0][0],
                    null,
                    d3.select('#feature_application_panel')[0][0],
                   null,
-                  d3.select('#feature_expression_panel')[0][0],
+                  d3.select('#feature_expression > p')[0][0],
                   d3.select('#feature_application_panel')[0][0]
                   ];
 
-        contents = ["Feature Application Status panel allows you to modify and combine different features to create more complicated ones.",
+        contents = ["Feature Application Panel allows you to modify and combine different features to create more complicated ones.",
                    
-                   "<p>To add features to the Feature Application Status panel, you have to click on one of the features shown on the Feature Analysis tab.</p><p> Hovering your mouse over the features will result in temporary change in the Feature Application Status, and by clicking you can fix the change.</p>",
+                   "<p>To add features to the Feature Application Panel, you have to click on one of the features shown on the Feature Analysis tab.</p><p> Hovering your mouse over the features will result in temporary change in the Feature Application Panel, and by clicking you can fix the change.</p>",
                     
                    "Once a feature is added, you will see a black cross blinking in the figure. It shows where the current feature is located",
                    
@@ -795,7 +794,7 @@ function ExperimentTutorial(ifeed,experiment){
         document.getElementById('tab3').click();
         ifeed.main_plot.highlight_support_panel();
         
-        title = 'Interaction with Nodes in Feature Application Status Panel';
+        title = 'Interaction with Nodes in Feature Application Panel';
         
         objects = [d3.select('.column.c2')[0][0],
                   null,
