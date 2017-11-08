@@ -5,49 +5,47 @@ function Experiment(ifeed){
 
     var self = this;
     
-
     self.timeinterval;
     self.session_timed_out;
-
-    self.orbitOrder = [0,1,2,3,4];
-    self.instrOrder = [0,1,2,3,4,5,6,7,8,9,10,11];
-
-    self.norb = self.orbitOrder.length;
-    self.ninstr = self.instrOrder.length;
 
     self.orbitList = ifeed.label.orbit_relabeled;
     self.instrList = ifeed.label.instrument_relabeled;
 
-    self.orbitList_random = [];
-    self.instrList_random = [];
-
-    self.task_order = shuffleArray([0, 1, 2]); // low-cost-low-perf, mid-cost-mid-perf, high-cost-high-perf
-    self.condition_order = shuffleArray([1, 2, 3]); // Scatter plot only, scatter plot + filter, scatter plot + filter + data mining
-    self.variable_scheme_order = shuffleArray([0, 1, 2]); // variable ordering
-
+    // Set the order of the task (target region) and the treatment condition
+    self.task_order = shuffleArray([0, 1]); // low-cost-low-perf, mid-cost-mid-perf, high-cost-high-perf
+    self.condition_order = shuffleArray([0, 1]); // Scatter plot only, scatter plot + filter, scatter plot + filter + data mining
     self.task_number = self.task_order[0];
     self.condition_number = self.condition_order[0];
-    self.variable_scheme_number = self.variable_scheme_order[0];
-
+    
 
     // Randomize variable order
-    self.orbitOrderStore = [[3, 1, 0, 4, 2],
-                       [4, 2, 3, 0, 1],
-                       [0, 1, 4, 3, 2]];
+    self.orbitOrderStore = [
+                            [3, 1, 0, 4, 2],  // Task 0: low-cost, low-perf
+                            [4, 2, 3, 0, 1]   // Task 1: high-cost, high-perf
+                                            ];
 
-    self.instrOrderStore = [[6, 9, 1, 10, 4, 8, 5, 11, 2, 0, 3, 7],
-                       [3, 1, 8, 7, 5, 6, 2, 0, 4, 9, 11, 10],
-                       [7, 8, 1, 9, 11, 5, 6, 2, 10, 0, 3, 4]];
-
-    self.orbitOrder = self.orbitOrderStore[self.variable_scheme_number];
-    self.instrOrder = self.instrOrderStore[self.variable_scheme_number];
-
-
+    self.instrOrderStore = [
+                            [6, 9, 1, 10, 4, 8, 5, 11, 2, 0, 3, 7],
+                            [3, 1, 8, 7, 5, 6, 2, 0, 4, 9, 11, 10]
+                                                                    ];
+    
+    self.orbitOrder = [0,1,2,3,4];
+    self.instrOrder = [0,1,2,3,4,5,6,7,8,9,10,11];
+    self.orbitOrder = self.orbitOrderStore[self.task_number];
+    self.instrOrder = self.instrOrderStore[self.task_number];
+    
+    self.norb = self.orbitOrder.length;
+    self.ninstr = self.instrOrder.length;
+    
+    
     var deadline;
     var remainingTime = + 10*60*1000; // 10 minutes
+
     
     self.label = new Label(this);
 
+    
+    
 
 //    // Get account info
 //    var sessionInfo = window.location.search;
@@ -59,11 +57,13 @@ function Experiment(ifeed){
 //        
 //    }else{
 //        account_id = '123123123';
-//    }
-    
-    
+//    }    
     
     self.account_id = '123123123';
+    
+    
+    
+    
     
     
     function getTimeRemaining(endtime){
@@ -124,7 +124,7 @@ function Experiment(ifeed){
         
 
         // Change the prompt message and the target selection
-        if(self.condition_number==1){
+        if(self.condition_number==0){
 
             d3.select("#prompt_header").text("Task "+(self.task_order.indexOf(self.task_number)+1)+": Find features using visual inspection");
             d3.select('#prompt_body_text_1').html('<p> - You can hover your mouse over each design to see the relevant information.</p>'
@@ -134,16 +134,7 @@ function Experiment(ifeed){
             d3.select('body').style('background-color','#FFEDF3');
             d3.select('#experiment_prompt_div').style('background-color','#FFC1D4');   
         }
-        else if(self.condition_number==2){
-            d3.select("#prompt_header").text("Task "+(self.task_order.indexOf(self.task_number)+1)+": Find features using visual inspection and filters");
-            d3.select('#prompt_body_text_1').html('<p> - You can hover your mouse over each design to see the relevant information.</p>'
-                                        +'<p> - You can use filters to selectively highlight designs sharing certain features. </p>'
-                                        +'<br><p>You have at maximum 10 minutes, but you can finish early if you feel like you found a good enough feature with good coverage and specificy. </p>');
-
-            d3.select('body').style('background-color','#F0EBFF');
-            d3.select('#experiment_prompt_div').style('background-color','#CDC1FF');        
-        }
-        else if(self.condition_number==3){
+        else if(self.condition_number==1){
             d3.select("#prompt_header").text("Task "+(self.task_order.indexOf(self.task_number)+1)+": Find features using visual inspection, filters, and data mining");
             d3.select('#prompt_body_text_1').html('<p> - You can hover your mouse over each design to see the relevant information.</p>'
                                         +'<p> - You can use filters to selectively highlight designs sharing certain features. </p>'
@@ -156,45 +147,42 @@ function Experiment(ifeed){
 
         
         if(self.task_number==0){
-            self.select_archs_using_ids(self.low_cost_low_perf);
+            self.select_archs_using_ids(lower_cost_lower_perf);
         }else if(self.task_number==1){
-            self.select_archs_using_ids(self.mid_cost_mid_perf);
-        }else if(self.task_number==2){
-            self.select_archs_using_ids(self.high_cost_high_perf);
+            self.select_archs_using_ids(higher_cost_higher_perf);
         }
-
         
         d3.select("#num_of_archs").text(""+ifeed.main_plot.get_num_of_archs());
         
 
+        
         //Experiment
-        if(self.condition_number=="1"){
+        if(self.condition_number=="0"){
 
             d3.select("#tab2").text('-');
             d3.select("#view2").selectAll('g').remove();
             d3.select("#tab3").text('-');
             d3.select("#view3").selectAll('g').remove();
 
-        }else if(self.condition_number=="2"){
-
+        }else if(self.condition_number=="1"){
+            
+            d3.select("#tab2").text('Filter Setting');
+            d3.select("#tab3").text('Feature Analysis');
             ifeed.data_mining.run();
             
-            document.getElementById('tab1').click();
-
-            d3.select("#tab2").text('Filter Setting');
-            d3.select("#tab3").text('Feature Analysis');
-
-        }else { // condition_number == "3"
-
-            d3.select("#tab2").text('Filter Setting');
-            d3.select("#tab3").text('Feature Analysis');
-
-            ifeed.data_mining.run();
         }
+        
+//        else { // condition_number == "3"
+//            
+//            document.getElementById('tab1').click();
+//            ifeed.data_mining.run();
+//            d3.select("#tab2").text('Filter Setting');
+//            d3.select("#tab3").text('Feature Analysis');
+//
+//        }
         
         self.resetTimer();
     }
-    
     
     
     
@@ -206,15 +194,8 @@ function Experiment(ifeed){
         }else if(i==1){
             self.task_number = self.task_order[0];
             self.condition_number = self.condition_order[0];
-            self.variable_scheme_number = self.variable_scheme_order[0];
-            self.orbitOrder = self.orbitOrderStore[self.variable_scheme_number];
-            self.instrOrder = self.instrOrderStore[self.variable_scheme_number];
-        }else if(i==2){
-            self.task_number = self.task_order[1];
-            self.condition_number = self.condition_order[1];
-            self.variable_scheme_number = self.variable_scheme_order[1];
-            self.orbitOrder = self.orbitOrderStore[self.variable_scheme_number];
-            self.instrOrder = self.instrOrderStore[self.variable_scheme_number];
+            self.orbitOrder = self.orbitOrderStore[self.task_number];
+            self.instrOrder = self.instrOrderStore[self.task_number];
         }
         self.update_task_direction();
     }
@@ -225,20 +206,12 @@ function Experiment(ifeed){
         //store_task_specific_information();
 
         var i = self.task_order.indexOf(self.task_number);
-
         if(i==0){
             self.task_number = self.task_order[1];
             self.condition_number = self.condition_order[1];
-            self.variable_scheme_number = self.variable_scheme_order[1];
-            self.orbitOrder = self.orbitOrderStore[self.variable_scheme_number];
-            self.instrOrder = self.instrOrderStore[self.variable_scheme_number];
+            self.orbitOrder = self.orbitOrderStore[self.task_number];
+            self.instrOrder = self.instrOrderStore[self.task_number];
         }else if(i==1){
-            self.task_number = self.task_order[2];
-            self.condition_number = self.condition_order[2];
-            self.variable_scheme_number = self.variable_scheme_order[2];
-            self.orbitOrder = self.orbitOrderStore[self.variable_scheme_number];
-            self.instrOrder = self.instrOrderStore[self.variable_scheme_number];
-        }else if(i==2){
             // finished all tasks
 
             clearInterval(self.timeinterval);
@@ -277,7 +250,6 @@ function Experiment(ifeed){
     
     
     
-    
 
 
 
@@ -292,8 +264,6 @@ function Experiment(ifeed){
     var buttonClickCount_feature_store = [];
     var numOfArchViewed_store = [];
     var numOfDrivingFeatureViewed_store = [];
-
-
 
     var added_features_store = [];
     var remainingTimeStore = [];
@@ -310,7 +280,7 @@ function Experiment(ifeed){
 
         var printout = [];
 
-        var header = ['account_id','condition','task','variable_scheme'];
+        var header = ['account_id','condition','task'];
 
         header = header.concat(['clkCnt_filter','clkCnt_feature','clkCnt_testFeature','numArchsViewed','numFeatureViewed']);
 
@@ -328,7 +298,6 @@ function Experiment(ifeed){
             var condition = i+1;
             var index = condition_order.indexOf(condition);
             var task = task_order[index];
-            var var_scheme = variable_scheme_order[index];
 
             var clkCnt_filter = buttonClickCount_applyFilter_store[index];
             var clkCnt_feature = buttonClickCount_feature_store[index];
@@ -336,7 +305,7 @@ function Experiment(ifeed){
             var numArchsViewed = numOfArchViewed_store[index];
             var numFeatureViewed = numOfDrivingFeatureViewed_store[index];
 
-            row=row.concat([account_id,condition,task,var_scheme]);
+            row=row.concat([account_id,condition,task]);
             row=row.concat([clkCnt_filter,clkCnt_feature,clkCnt_testFeature,numArchsViewed,numFeatureViewed]);
 
             row.push(600-remainingTimeStore[index]);
@@ -387,18 +356,15 @@ function Experiment(ifeed){
 
 
 
-    function set_variable_and_task_order(task, variable_scheme){
+    function set_variable_and_task_order(task){
         self.task_number=task;
-        self.variable_scheme_number=variable_scheme;
-        self.orbitOrder = self.orbitOrderStore[self.variable_scheme_number];
-        self.instrOrder = self.instrOrderStore[self.variable_scheme_number];
+        self.orbitOrder = self.orbitOrderStore[self.task_number];
+        self.instrOrder = self.instrOrderStore[self.task_number];
         self.condition_number=3;
         self.update_task_direction();
         self.stopTimer();
         added_features=[];
     }
-
-
 
 
     function session_timeout(){
@@ -475,19 +441,6 @@ function Experiment(ifeed){
     
 
 
-    self.high_cost_high_perf = "1701,1702,1703,1729,1736,1738,1739,1740,1741,1742,1744,1745,1746,1761,1786,1787,1788,1789,1790,1792,1795,1797,1798,1802,1803,1804,1805,1821,1828,1830,1833,1841,1851,1855,1857,1861,1873,1876,1877,1882,1883,1886,1888,1892,1893,1894,1901,1906,1912,1914,1924,1926,1928,1931,1944,1949,1981,1989,1991,1992,1998,2002,2012,2013,2015,2022,2024,2044,2045,2057,2074,2082,2084,2122,2177,2179,2180,2184,2186,2187,2188,2189,2195,2200,2235,2237,2239,2241,2245,2249,2251,2255,2260,2262,2274,2276,2280,2281,2282,2287,2288,2293,2296,2303,2308,2312,2336,2344,2353,2356,2358,2359,2360,2361,2372,2376,2409,2464,2467,2472,2474,2479,2480,2481,2482,2485,2487,2491,2495,2505,2510,2534,2542,2567,2572,2584,2605,2608,2609,2615";
-    
-    self.mid_cost_mid_perf = "1701,1702,1717,1718,1720,1721,1722,1723,1724,1725,1726,1727,1731,1732,1733,1735,1739,1741,1742,1758,1759,1760,1761,1762,1774,1782,1783,1784,1786,1788,1795,1802,1803,1812,1818,1819,1820,1821,1823,1828,1830,1833,1841,1847,1853,1854,1862,1863,1873,1874,1876,1877,1886,1887,1888,1889,1892,1894,1906,1918,1920,1924,1926,1928,1931,1932,1935,1937,1939,2002,2006,2012,2024,2026,2032,2044,2045,2049,2051,2057,2067,2120,2180,2184,2186,2188,2190,2193,2208,2210,2235,2239,2241,2245,2248,2255,2256,2263,2266,2267,2270,2272,2281,2291,2293,2300,2301,2303,2306,2308,2312,2320,2330,2353,2356,2358,2359,2360,2361,2362,2372,2376,2377,2378,2383,2400,2401,2403,2409,2411,2414,2415,2419,2451,2454,2455,2458,2495,2501,2517,2521,2534,2537,2539,2541,2567,2573,2584,2612,2615";
-    
-    self.low_cost_low_perf = "19,25,26,34,44,77,81,106,108,168,1690,1692,1693,1695,1696,1697,1698,1706,1707,1710,1713,1718,1719,1731,1732,1752,1757,1763,1765,1770,1771,1773,1774,1776,1777,1779,1781,1806,1808,1809,1810,1813,1815,1817,1835,1836,1837,1838,1844,1848,1849,1850,1852,1853,1854,1856,1858,1866,1867,1868,1869,1905,1907,1910,1913,1916,1917,1925,1933,1934,1941,1943,1945,1954,1956,1960,1961,1965,2027,2033,2047,2049,2052,2062,2086,2088,2105,2107,2115,2123,2136,2143,2146,2153,2156,2157,2163,2165,2174,2202,2205,2206,2213,2217,2222,2225,2248,2263,2271,2272,2306,2319,2325,2334,2346,2354,2380,2389,2391,2400,2417,2419,2425,2426,2433,2436,2437,2444,2448,2450,2488,2494,2496,2513,2520,2521,2527,2531,2532,2541,2544,2545,2549,2552,2553,2554,2559,2576,2579,2596,2602";
-    
-    
-    self.higher_cost_higher_perf = "1701,1702,1703,1717,1725,1726,1727,1729,1739,1740,1741,1742,1744,1745,1746,1760,1761,1762,1783,1784,1786,1788,1795,1797,1798,1802,1803,1804,1805,1818,1820,1821,1823,1828,1830,1833,1841,1851,1855,1857,1861,1862,1863,1873,1874,1876,1877,1882,1883,1886,1887,1888,1892,1894,1901,1906,1912,1914,1920,1924,1926,1928,1931,1944,1992,1998,2002,2006,2012,2013,2015,2024,2026,2032,2044,2045,2051,2057,2074,2082,2084,2120,2179,2180,2184,2186,2187,2188,2189,2235,2237,2239,2241,2245,2249,2251,2255,2260,2262,2266,2267,2270,2281,2287,2291,2293,2300,2301,2303,2308,2312,2320,2330,2336,2344,2353,2356,2358,2359,2360,2361,2362,2372,2376,2377,2383,2401,2409,2464,2472,2474,2479,2481,2485,2487,2491,2495,2501,2505,2510,2534,2542,2567,2572,2584,2615";
-    
-    self.lower_cost_lower_perf = "1690,1692,1693,1696,1697,1698,1707,1710,1718,1719,1720,1721,1722,1723,1724,1731,1732,1733,1735,1752,1757,1758,1759,1763,1765,1770,1771,1773,1774,1782,1808,1809,1810,1812,1815,1817,1819,1835,1836,1837,1844,1847,1848,1849,1850,1853,1854,1856,1858,1867,1869,1889,1905,1907,1913,1916,1918,1932,1934,1935,1937,1939,1943,1945,2033,2049,2052,2067,2115,2123,2146,2156,2163,2165,2190,2193,2202,2205,2206,2208,2210,2225,2248,2263,2271,2272,2306,2325,2346,2354,2380,2391,2400,2403,2411,2417,2419,2425,2433,2436,2437,2450,2451,2454,2458,2494,2496,2513,2517,2520,2521,2527,2531,2532,2541,2545,2549,2553,2554,2559,2573,2596,2602,2612";
-    
-    
-    
 
 
     self.turn_highlighted_to_selected = function(){
@@ -765,8 +718,14 @@ function Experiment(ifeed){
 
 
 
+high_cost_high_perf = "1701,1702,1703,1729,1736,1738,1739,1740,1741,1742,1744,1745,1746,1761,1786,1787,1788,1789,1790,1792,1795,1797,1798,1802,1803,1804,1805,1821,1828,1830,1833,1841,1851,1855,1857,1861,1873,1876,1877,1882,1883,1886,1888,1892,1893,1894,1901,1906,1912,1914,1924,1926,1928,1931,1944,1949,1981,1989,1991,1992,1998,2002,2012,2013,2015,2022,2024,2044,2045,2057,2074,2082,2084,2122,2177,2179,2180,2184,2186,2187,2188,2189,2195,2200,2235,2237,2239,2241,2245,2249,2251,2255,2260,2262,2274,2276,2280,2281,2282,2287,2288,2293,2296,2303,2308,2312,2336,2344,2353,2356,2358,2359,2360,2361,2372,2376,2409,2464,2467,2472,2474,2479,2480,2481,2482,2485,2487,2491,2495,2505,2510,2534,2542,2567,2572,2584,2605,2608,2609,2615";
+
+mid_cost_mid_perf = "1701,1702,1717,1718,1720,1721,1722,1723,1724,1725,1726,1727,1731,1732,1733,1735,1739,1741,1742,1758,1759,1760,1761,1762,1774,1782,1783,1784,1786,1788,1795,1802,1803,1812,1818,1819,1820,1821,1823,1828,1830,1833,1841,1847,1853,1854,1862,1863,1873,1874,1876,1877,1886,1887,1888,1889,1892,1894,1906,1918,1920,1924,1926,1928,1931,1932,1935,1937,1939,2002,2006,2012,2024,2026,2032,2044,2045,2049,2051,2057,2067,2120,2180,2184,2186,2188,2190,2193,2208,2210,2235,2239,2241,2245,2248,2255,2256,2263,2266,2267,2270,2272,2281,2291,2293,2300,2301,2303,2306,2308,2312,2320,2330,2353,2356,2358,2359,2360,2361,2362,2372,2376,2377,2378,2383,2400,2401,2403,2409,2411,2414,2415,2419,2451,2454,2455,2458,2495,2501,2517,2521,2534,2537,2539,2541,2567,2573,2584,2612,2615";
+
+low_cost_low_perf = "19,25,26,34,44,77,81,106,108,168,1690,1692,1693,1695,1696,1697,1698,1706,1707,1710,1713,1718,1719,1731,1732,1752,1757,1763,1765,1770,1771,1773,1774,1776,1777,1779,1781,1806,1808,1809,1810,1813,1815,1817,1835,1836,1837,1838,1844,1848,1849,1850,1852,1853,1854,1856,1858,1866,1867,1868,1869,1905,1907,1910,1913,1916,1917,1925,1933,1934,1941,1943,1945,1954,1956,1960,1961,1965,2027,2033,2047,2049,2052,2062,2086,2088,2105,2107,2115,2123,2136,2143,2146,2153,2156,2157,2163,2165,2174,2202,2205,2206,2213,2217,2222,2225,2248,2263,2271,2272,2306,2319,2325,2334,2346,2354,2380,2389,2391,2400,2417,2419,2425,2426,2433,2436,2437,2444,2448,2450,2488,2494,2496,2513,2520,2521,2527,2531,2532,2541,2544,2545,2549,2552,2553,2554,2559,2576,2579,2596,2602";
 
 
+higher_cost_higher_perf = "1701,1702,1703,1717,1725,1726,1727,1729,1739,1740,1741,1742,1744,1745,1746,1760,1761,1762,1783,1784,1786,1788,1795,1797,1798,1802,1803,1804,1805,1818,1820,1821,1823,1828,1830,1833,1841,1851,1855,1857,1861,1862,1863,1873,1874,1876,1877,1882,1883,1886,1887,1888,1892,1894,1901,1906,1912,1914,1920,1924,1926,1928,1931,1944,1992,1998,2002,2006,2012,2013,2015,2024,2026,2032,2044,2045,2051,2057,2074,2082,2084,2120,2179,2180,2184,2186,2187,2188,2189,2235,2237,2239,2241,2245,2249,2251,2255,2260,2262,2266,2267,2270,2281,2287,2291,2293,2300,2301,2303,2308,2312,2320,2330,2336,2344,2353,2356,2358,2359,2360,2361,2362,2372,2376,2377,2383,2401,2409,2464,2472,2474,2479,2481,2485,2487,2491,2495,2501,2505,2510,2534,2542,2567,2572,2584,2615";
 
-
+lower_cost_lower_perf = "1690,1692,1693,1696,1697,1698,1707,1710,1718,1719,1720,1721,1722,1723,1724,1731,1732,1733,1735,1752,1757,1758,1759,1763,1765,1770,1771,1773,1774,1782,1808,1809,1810,1812,1815,1817,1819,1835,1836,1837,1844,1847,1848,1849,1850,1853,1854,1856,1858,1867,1869,1889,1905,1907,1913,1916,1918,1932,1934,1935,1937,1939,1943,1945,2033,2049,2052,2067,2115,2123,2146,2156,2163,2165,2190,2193,2202,2205,2206,2208,2210,2225,2248,2263,2271,2272,2306,2325,2346,2354,2380,2391,2400,2403,2411,2417,2419,2425,2433,2436,2437,2450,2451,2454,2458,2494,2496,2513,2517,2520,2521,2527,2531,2532,2541,2545,2549,2553,2554,2559,2573,2596,2602,2612";
 
