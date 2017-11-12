@@ -100,8 +100,8 @@ function DataMining(ifeed){
 
     self.run = function(option){
         
-        var selectedArchs = d3.selectAll(".dot.main_plot.selected:not(.hidden)")[0];
-        var nonSelectedArchs =  d3.selectAll(".dot.main_plot:not(.selected):not(.hidden)")[0];
+        var selectedArchs = d3.selectAll(".dot.main_plot.selected:not(.hidden):not(.cursor)")[0];
+        var nonSelectedArchs =  d3.selectAll(".dot.main_plot:not(.selected):not(.hidden):not(.cursor)")[0];
 
         // Store the id's of all dots
         var selected = [];
@@ -148,7 +148,7 @@ function DataMining(ifeed){
             }else if(!option){
 
                 // Save the architectures that have the currently applied feature
-                var highlightedArchs = d3.selectAll(".dot.main_plot.highlighted:not(.hidden)")[0];                    
+                var highlightedArchs = d3.selectAll(".dot.main_plot.highlighted:not(.hidden):not(.cursor)")[0];                    
 
                 var highlighted = [];
                 for (var i = 0; i < highlightedArchs.length; i++) {
@@ -895,9 +895,9 @@ function DataMining(ifeed){
             
             // Compute the metrics of a feature
             var total = ifeed.main_plot.get_num_of_archs();
-            var intersection = d3.selectAll('.dot.main_plot.selected.highlighted')[0].length;
-            var selected = d3.selectAll('.dot.main_plot.selected')[0].length;
-            var highlighted = d3.selectAll('.dot.main_plot.highlighted')[0].length;
+            var intersection = d3.selectAll('.dot.main_plot.selected.highlighted:not(.cursor)')[0].length;
+            var selected = d3.selectAll('.dot.main_plot.selected:not(.cursor)')[0].length;
+            var highlighted = d3.selectAll('.dot.main_plot.highlighted:not(.cursor)')[0].length;
 
             var p_snf = intersection/total;
             var p_s = selected/total;
@@ -990,9 +990,9 @@ function DataMining(ifeed){
 
         
         var total = ifeed.main_plot.get_num_of_archs();
-        var intersection = d3.selectAll('.dot.main_plot.selected.highlighted:not(.hidden)')[0].length;
-        var selected = d3.selectAll('.dot.main_plot.selected:not(.hidden)')[0].length;
-        var highlighted = d3.selectAll('.dot.main_plot.highlighted:not(.hidden)')[0].length;
+        var intersection = d3.selectAll('.dot.main_plot.selected.highlighted:not(.hidden):not(.cursor)')[0].length;
+        var selected = d3.selectAll('.dot.main_plot.selected:not(.hidden):not(.cursor)')[0].length;
+        var highlighted = d3.selectAll('.dot.main_plot.highlighted:not(.hidden):not(.cursor)')[0].length;
 
         
         var left_margin = 50;

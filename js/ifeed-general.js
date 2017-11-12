@@ -10,6 +10,11 @@ const DATA_IMPORTED = "data_imported";
 const DATA_PROCESSED = "data_processed";
 const EXPERIMENT_START = "experiment_start";
 
+const ADD_ARCHITECTURE = "add_architecture";
+const SET_CURRENT_ARCHITECTURE = "set_current_architecutre";
+const VIEW_ARCHITECTURE = "view_architecture";
+const HIGHLIGHT_SUPPORT_PANEL = "highlight_support_panel";
+const RUN_LOCAL_SEARCH = "run_local_search";
 
 
 function Architecture(id,inputs,outputs){

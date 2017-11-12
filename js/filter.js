@@ -406,7 +406,7 @@ function Filter(ifeed){
 
             var id_list = ifeed.get_data_ids(filtered_data);
 
-            d3.selectAll('.dot.main_plot')[0].forEach(function(d){
+            d3.selectAll('.dot.main_plot:not(.cursor)')[0].forEach(function(d){
 
                 if(id_list.indexOf(d.__data__.id)!=-1){
 
