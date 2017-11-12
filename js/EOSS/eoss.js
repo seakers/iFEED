@@ -19,11 +19,13 @@ function EOSS(ifeed){
     // Set the path to the result file
     //ifeed.metadata.result_path="EOSS_data.csv";
     ifeed.metadata.result_path="reduced_data.csv";
-    
-    
+
     ifeed.label = new EOSSLabel(self);
+    
+    ifeed.current_bitString = null;
 
 
+    
     /*
     Returns the list of orbits
     @return orbitList: a string list containing the names of orbits
@@ -89,7 +91,7 @@ function EOSS(ifeed){
         var boolArray = [];
         boolArray.length = 0;
         for (var i = 0; i < bitString.length; i++) {
-            if (bitString.charAt(i) == "0") {
+            if (bitString.charAt(i) == "1") {
                 boolArray.push(true);
             } else {
                 boolArray.push(false);
@@ -104,6 +106,14 @@ function EOSS(ifeed){
         
         var output = [];
         
+        var input_is_array = false;
+        
+        if(Array.isArray(data)){
+            input_is_array=true;
+        }else{
+            data = [data];
+        }
+        
         data.forEach(function (d) {  
 
             var outputs = d.outputs;
@@ -115,7 +125,8 @@ function EOSS(ifeed){
             output.push(arch);
         });
         
-        return output;
+        if(input_is_array) return output;
+        else return output[0];
     }
     
 
@@ -129,15 +140,21 @@ function EOSS(ifeed){
         var preprocessed = self.preprocessing(data);
         
         PubSub.publish(DATA_PROCESSED,preprocessed);
+        
+        PubSub.publish(EXPERIMENT_START,null);
     });     
 
     
 
     self.display_arch_info = function(data) {
-
-        var booleanArray = ifeed.experiment.encodeBitStringBool(data.inputs);
         
-        var bitString = self.booleanArray2String(booleanArray);
+        var bitString = null;
+        
+        if(typeof data == "string"){
+            bitString = data;
+        }else{
+            bitString = self.booleanArray2String(data.inputs);
+        }
         
         var json_arch=[];
         
@@ -172,7 +189,7 @@ function EOSS(ifeed){
         }
 
         d3.select("#support_panel").select("#view1")
-                .select("g").select("table").remove();
+                .select("g").select("#arch_info_display_table_div").remove();
 
         var supportPanel = d3.select("#support_panel").select("#view1").select("g");
 
@@ -212,6 +229,7 @@ function EOSS(ifeed){
             .selectAll('tr')
             .data(json_arch).enter()
             .append('tr')
+            .attr('class','arch_info_display_cell_container')
             .attr("name", function (d) {
                 return d.orbit;
             })
@@ -235,7 +253,13 @@ function EOSS(ifeed){
                     return "#D0D0D0";
                 }
             })
-            .attr("class", "arch_info_display_cell")
+            .attr("class", function(d){
+                if(d.type=="orbit"){
+                    return "arch_info_display_cell orbit not_draggable";
+                }else{
+                    return "arch_info_display_cell instrument";
+                }
+            })
             .attr("width", function (d, i) {
                 if (d.type == "orbit") {
                     return "120px";
@@ -249,8 +273,197 @@ function EOSS(ifeed){
               }
               return ifeed.label.actualName2DisplayName(d.content,"instrument");
             });
-    }
+        
+        
+        
 
+        $('.arch_info_display_cell_container').sortable({
+    
+            items: ':not(.not_draggable)',
+            start: function(){
+                $('.not_draggable', this).each(function(){
+                    var $this = $(this);
+                    $this.data('pos', $this.index());
+                });
+            },
+                               
+            connectWith: '.arch_info_display_cell_container',
+            cursor: 'pointer',
+            update: function(ui){
+                var bitString_save = self.current_bitString;
+                
+                self.current_bitString = self.update_current_architecture();
+                
+                if(bitString_save!=self.current_bitString) self.enable_evaluate_architecture();
+            }
+        })
+        .droppable({
+            accept: '.arch_info_display_cell.candidates',
+            drop: function(event, ui) {
+                
+                var bitString_save = self.current_bitString;
+
+                var instrNode = d3.select(ui.draggable.context);
+                var orbitNode = d3.select(this);
+
+                var instrName = instrNode.attr('name');
+                var orbitName = orbitNode.attr('name');           
+
+                var Iindex = self.instrument_list.indexOf(instrName);
+                var OIndex = self.orbit_list.indexOf(orbitName);
+
+                var index = self.instrument_num*OIndex+Iindex;
+                                
+                self.current_bitString = self.current_bitString.split('');
+                self.current_bitString[index] = '1';
+                self.current_bitString = self.current_bitString.join('');
+                                
+                self.display_arch_info(self.current_bitString);
+                
+                if(bitString_save!=self.current_bitString) self.enable_evaluate_architecture();
+            }
+        });
+    }
+    
+    
+    self.enable_evaluate_architecture = function(){
+        
+        d3.select('#run_design_local_search').remove();
+        
+        if(d3.select('#arch_info_display_outputs > p')[0][0]){
+
+            var output_display_slot = d3.select('#arch_info_display_outputs');
+            output_display_slot.selectAll('p').remove();
+            output_display_slot.append('button')
+                                .attr('id','evaluate_architecture_button')
+                                .text('Evaluate this design')
+                                .on('click',function(d){
+                                    var inputs = self.string2BooleanArray(self.current_bitString);
+                                    self.evaluate_architecture(inputs);
+                                });
+        }           
+                
+    }
+    
+    
+    
+    
+    self.update_current_architecture = function(){
+        
+        var indices = [];
+        var bitString = "";
+
+        d3.selectAll('.arch_info_display_cell_container')[0].forEach(function(d){                            
+
+            var orbitName = d3.select(d).attr('name');                    
+            var OIndex = self.orbit_list.indexOf(orbitName);
+
+            d3.select(d).selectAll('.arch_info_display_cell.instrument')[0].forEach(function(d){
+                var instrName = d3.select(d).attr('name');
+
+                var Iindex = self.instrument_list.indexOf(instrName);
+                var index = self.instrument_num*OIndex+Iindex;
+                indices.push(index);
+            });
+        });
+
+        for(var i=0;i<self.orbit_num;i++){
+            for(var j=0;j<self.instrument_num;j++){
+                if(indices.indexOf(i*self.instrument_num+j)==-1){
+                    bitString = bitString + "0";
+                }else{
+                    bitString = bitString + "1";
+                }
+            }
+        }
+        
+        return bitString;
+    }
+    
+    
+
+
+    self.display_instrument_options = function(){
+        
+        var support_panel = d3.select("#support_panel")
+                .select("#view1")
+                .select("g");
+        
+        if(d3.select('#instr_options_display')[0][0]){
+            return;
+        }
+        
+        var instrOptions = support_panel.insert("div","#arch_info_display_outputs + *").attr('id','instr_options_display');
+        
+        var table = instrOptions
+                .append("table")
+                .attr("id", "instr_options_table");
+
+        var candidate_instruments = [];
+        for(var i=0;i<Math.round(self.instrument_num/2);i++){
+            var temp = [];
+            for(var j=0;j<2;j++){
+                var index = j*Math.round(self.instrument_num/2) + i;
+                if(index < self.instrument_num){
+                    temp.push(self.instrument_list[index]);
+                }
+            }
+            candidate_instruments.push(temp);
+        }
+
+        // create table body
+        table.append('tbody')
+                .selectAll('tr')
+                .data(candidate_instruments)
+                .enter()
+                .append('tr')
+                .selectAll('td')
+                .data(function(row,i){
+                    return candidate_instruments[i];
+                })
+                .enter()
+                .append('td')
+                .attr("name", function (d) {
+                    return d;
+                })
+                .attr("width", function (d, i) {
+                    return "70px";
+                })
+                .attr('class',function(d){
+                    return 'arch_info_display_cell candidates';
+                })
+                .text(function (d) {
+                    return ifeed.label.actualName2DisplayName(d,"instrument")
+                });    
+        
+
+        $('.arch_info_display_cell.candidates').draggable({
+            connectWith: '.arch_info_display_cell.orbit',
+            helper: 'clone',
+            cursor: 'pointer'
+        });    
+
+        instrOptions.append('div')
+                .attr('id','instr_options_trash')
+                .append('p')
+                .style('margin','auto')
+                .style('padding','15px')
+                .text('Drag here to remove')
+                .style('font-weight','bold');
+
+        $('#instr_options_trash').droppable({
+            accept: '.arch_info_display_cell.instrument',
+            drop: function (event, ui) {
+                var node = d3.select(ui.draggable.context);
+                if(node.classed('candidates')){
+                    return;
+                }else{
+                    ui.draggable.remove();
+                }
+            }
+        });    
+    }    
+    
     
 
     
@@ -273,5 +486,66 @@ function EOSS(ifeed){
             }
         });
     }
+    
+    
+    self.evaluate_architecture = function(inputs){
+        $.ajax({
+            url: "/api/vassar/evaluate-architecture/",
+            type: "POST",
+            data: {
+                    inputs: JSON.stringify(inputs),
+                  },
+            async: false,
+            success: function (data, textStatus, jqXHR)
+            {
+                var arch = self.preprocessing(data);                
+                                                
+                PubSub.publish(VIEW_ARCHITECTURE, arch);
+                PubSub.publish(ADD_ARCHITECTURE, {'previous':ifeed.data,'added':arch});
+                
+                //ifeed.data.push(arch); 
+            },
+            error: function (jqXHR, textStatus, errorThrown)
+            {
+                alert("error");
+            }
+        });        
+    }
+    
+    self.run_local_search = function(architecture){
+        
+        var inputs = architecture.inputs;
+        
+        $.ajax({
+            url: "/api/vassar/run-local-search/",
+            type: "POST",
+            data: {
+                    inputs: JSON.stringify(inputs),
+                  },
+            async: false,
+            success: function (data, textStatus, jqXHR)
+            {
+                var archs = self.preprocessing(data);
+                archs.push(architecture);
+                
+                PubSub.publish(ADD_ARCHITECTURE, {'previous':ifeed.data,'added':archs});
+                
+                //ifeed.data = ifeed.data.concat(archs);                 
+            },
+            error: function (jqXHR, textStatus, errorThrown)
+            {
+                alert("error");
+            }
+        });  
+    }
+    
+    
+    PubSub.subscribe(RUN_LOCAL_SEARCH, (msg, data) => {
+        self.run_local_search(data);
+    });   
+    
+    PubSub.subscribe(SET_CURRENT_ARCHITECTURE, (msg, data) => {
+        self.current_bitString = self.booleanArray2String(data.inputs)
+    });      
     
 }

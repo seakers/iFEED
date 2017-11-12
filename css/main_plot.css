@@ -116,10 +116,28 @@
     float:left;
 }
 
+#arch_info_display_outputs{
+    width:70%;
+    height:120px;
+    float:left;
+    margin-bottom: 5px;
+}
+
+#run_design_local_search{
+    float:left;
+    font-size:18px;
+    margin-right: 660px;
+    margin-bottom: 10px;
+}
+
+#evaluate_architecture_button{
+    float:left;
+    font-size:18px;
+}
+
 
 #arch_info_display_table_div{
     float:left;
-    width:100%;
 }
 
 .arch_info_display_cell{
@@ -127,6 +145,33 @@
     padding: 10px;
     vertical-align: central;
     font-size:15px;
+}
+
+.arch_info_display_cell.instrument:hover{
+    background-color: #EEEEEE;
+}
+
+
+#instr_options_display{
+    float:right;
+    width:220px;
+    margin-right: 5%;
+    margin-top: 0%;
+    background-color: #E6E6E6;
+    padding:20px;
+}
+
+#instr_options_table{
+    width:200px;
+    border-spacing: 10px;
+}
+
+#instr_options_trash{
+    
+    width:180px;
+    margin-left:10px;
+    height:50px;
+    background-color: #FF8B8B;
 }
 
 

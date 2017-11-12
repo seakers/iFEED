@@ -9,6 +9,8 @@ function MainPlot(ifeed){
     self.xIndex = null;
     self.yIndex = null;
     
+    self.cursor_blink_interval = null;
+    
 
     self.main_plot_params = {
         "margin":{top: 20, right: 20, bottom: 30, left: 60},
@@ -17,11 +19,12 @@ function MainPlot(ifeed){
     };
     
     self.color = {
-        "default": "#6E6E6E",
+        "default": "#8E8E8E",
         "selected": "#19BAD7",
         "highlighted": "#F86591",
         "overlap": "#A340F0",
         "mouseover":"#74FF6E",
+        "cursor":"black",
     };
         
 
@@ -42,12 +45,10 @@ function MainPlot(ifeed){
                 .style("width","100%")
                 .style("font-size","21px")
                 .text("If you hover the mouse over a design, relevant information will be displayed here.");
-     
     }
     
     
-
-    self.update = function(source,xIndex,yIndex) {
+    self.draw_tradespace_plot = function(source, xIndex, yIndex){
         /*
             Draws the scatter plot with architecture inputs
             @param source: a JSON object array containing the basic arch info
@@ -182,29 +183,9 @@ function MainPlot(ifeed){
                 .attr("x2", 0)
                 .attr("y2", height)
                 .attr("transform", "translate(" + (xScale(0)) + ",0)");
-
-        var dots = objects.selectAll(".main_plot.dot")
-                .data(source)
-                .enter().append("circle")
-                .attr("class", "dot main_plot")
-                .attr("r", 3.3)
-                .attr("transform", function (d) {
-                    var xCoord = xMap(d);
-                    var yCoord = yMap(d);
-                    return "translate(" + xCoord + "," + yCoord + ")";
-                })
-                .style("fill", self.color.default);
-
         
-        dots.on("mouseover", self.arch_mouseover);
-        dots.on('mouseout', self.arch_mouseout);
-
-        // Initialize all tabs
-        //initialize_tabs();
-
         d3.select(".main_plot.figure").on("click",self.unhighlight_support_panel);
-        d3.select("#support_panel").on("click",self.highlight_support_panel);
-
+        d3.select("#support_panel").on("click",self.highlight_support_panel);        
         
 //        // Set button click operations
 //        d3.select("[id=selectArchsWithinRangeButton]").on("click", selectArchsWithinRange);
@@ -214,13 +195,103 @@ function MainPlot(ifeed){
 
 //        d3.selectAll(".main_plot.dot")[0].forEach(function(d,i){
 //            d3.select(d).attr("paretoRank",-1);
-//        });
+//        });        
+        d3.select('#interaction_modes').selectAll('.tooltip').select('div').on('click',self.toggle_selection_mode);        
+        
+        
+        self.update(source, xIndex, yIndex);
+    }
+    
+    
+    
 
+    self.update = function(source,xIndex,yIndex) {
+
+        var dots = d3.select('.main_plot.objects').selectAll(".main_plot.dot")
+                .data(source)
+                .enter().append("circle")
+                .attr("class", "dot main_plot")
+                .attr("r", 3.3)
+                .attr("transform", function (d) {
+                    var xCoord = self.xMap(d);
+                    var yCoord = self.yMap(d);
+                    return "translate(" + xCoord + "," + yCoord + ")";
+                })
+                .style("fill", self.color.default);
+             
         
-        d3.select('#interaction_modes').selectAll('.tooltip').select('div').on('click',self.toggle_selection_mode);
-        
+        dots.on("click", self.arch_click);
+        dots.on("mouseover", self.arch_mouseover);
+        dots.on("mouseout", self.arch_mouseout);
+
         d3.select("#num_of_archs").text(""+self.get_num_of_archs());
     }
+    
+    
+
+    
+    self.arch_click = function(d){
+
+        var arch = d;
+        
+        d3.select('#arch_info_display_outputs')
+            .insert("button",":first-child")
+            .attr('id','run_design_local_search')
+            .text('Run local search')
+            .on('click',function(){
+                clearInterval(self.cursor_blink_interval);
+                d3.selectAll('.dot.main_plot.cursor.blink').style("opacity",1);
+                PubSub.publish(RUN_LOCAL_SEARCH,arch);
+            });
+        
+        
+        d3.selectAll('.main_plot.dot.cursor.blink')
+                .attr("transform", function (d) {
+                    var xCoord = self.xMap(d);
+                    var yCoord = self.yMap(d);
+                    return "translate(" + xCoord + "," + yCoord + ")";
+                })
+                .transition()
+                .duration(500);
+        
+        d3.selectAll('.main_plot.dot.cursor:not(.blink)').remove();     
+        
+
+        var _current_architecture = d3.select('.main_plot.objects').selectAll('.main_plot.dot.cursor.blink')
+                .data([arch])
+                .enter()
+                .append('path')
+                .attr("class","main_plot cursor dot blink")
+                .attr('d', d3.symbol().type(d3.symbolCross).size(120))
+                .attr("transform", function (d) {
+                    var xCoord = self.xMap(d);
+                    var yCoord = self.yMap(d);
+                    return "translate(" + xCoord + "," + yCoord + ")";
+                })
+                .style("stroke-width",1);
+        
+        
+        _current_architecture.shown=true;
+        // The current feature
+        _current_architecture.style('fill',"black");    
+        
+        function blink() {
+            if(_current_architecture.shown) {
+                _current_architecture.style("opacity",0);
+                _current_architecture.shown = false;
+            } else {
+                _current_architecture.style("opacity",1);
+                _current_architecture.shown = true;
+            }
+        }
+
+        self.cursor_blink_interval = setInterval(blink, 350);
+                
+        document.getElementById('tab1').click();       
+        
+        PubSub.publish(HIGHLIGHT_SUPPORT_PANEL,null);
+    }
+    
     
     
     self.toggle_selection_mode = function(){
@@ -592,9 +663,15 @@ function MainPlot(ifeed){
         if(ifeed.UI_states.support_panel_active){
             return;
         }
-
-        // Change the color of the dot temporarily
-        d3.select(this).style("fill",self.color.mouseover);
+                        
+        
+        if(this==self){  // If this function is called directly
+            // Do nothing
+        }else{
+            // If this function is called from mouseover action
+            // Change the color of the dot temporarily
+            d3.select(this).style("fill",self.color.mouseover);
+        }
 
         // Remove the previous info
         d3.select("#support_panel").select("#view1").select("g").remove();
@@ -603,16 +680,13 @@ function MainPlot(ifeed){
                 .append("g");
 
         // Display the current architecture info
-        var arch_info_display = support_panel.append('div')
-                .attr('id','arch_info_display')
-                .style('width','90%')
-                .style('float','left');
+        var arch_info_display_outputs = support_panel.append('div')
+                .attr('id','arch_info_display_outputs');
 
         
         for(var i=0;i<ifeed.metadata.output_num;i++){
             
-            arch_info_display.append("p")
-            
+            arch_info_display_outputs.append("p")
                             .text(function(d){
                 
                                 var out = ifeed.metadata.output_list[i] + ": ";
@@ -624,18 +698,29 @@ function MainPlot(ifeed){
                                 }
                 
                                 return out + val;
-                            });
+                            })
+                            .style('font-size','20px');
         }
-
-        ifeed.problem.display_arch_info(arch);
         
+
+        PubSub.publish(SET_CURRENT_ARCHITECTURE, arch);
+        
+        ifeed.problem.display_arch_info(arch);
+        ifeed.problem.display_instrument_options();
+
         document.getElementById('tab1').click();
+        
+        clearInterval(self.cursor_blink_interval);
+        d3.select('.main_plot.dot.cursor.blink').remove();
+        self.cursor_blink_interval=null;
     }    
+    
+    
+
     
     
     
     self.arch_mouseout = function(d) {
-        
         var dot = d3.select(this)
         if(dot.classed('selected') && dot.classed('highlighted')){
             dot.style('fill', self.color.overlap);
@@ -644,18 +729,22 @@ function MainPlot(ifeed){
         }else if(dot.classed('highlighted')){
             dot.style('fill',self.color.highlighted);
         }else{
-            dot.style("fill", self.color.default);
+            if(dot.classed('cursor')){
+                dot.style('fill',self.color.cursor);
+            }else{
+                dot.style("fill", self.color.default);
+            }
         }
     }
     
     
     self.highlight_support_panel = function(){
-        
+
         d3.select(".main_plot.figure")
             .style("border-width","1px");
         d3.select("#support_panel")
             .style("border-width","3.3px");
-        
+
         ifeed.UI_states.support_panel_active=true;
     }
 
@@ -672,13 +761,57 @@ function MainPlot(ifeed){
     
     
     
-    
-    
     PubSub.subscribe(DATA_PROCESSED, (msg, data) => {
-        self.update(data,0,1);
+        self.draw_tradespace_plot(data,0,1);
     });    
     
     
+    PubSub.subscribe(HIGHLIGHT_SUPPORT_PANEL, (msg, data) => {
+        self.highlight_support_panel();
+    });    
+    
+    
+    PubSub.subscribe(ADD_ARCHITECTURE, (msg, data) => {
+        
+        var allData = data.previous;
+        var added = data.added;
+
+        if(Array.isArray(added)){
+            //allData = allData.concat(added);
+            
+        }else{
+            //allData.push(added);
+            added = [added];
+        }
+
+        self.update(allData,0,1);
+        
+        clearInterval(self.cursor_blink_interval);
+        d3.select('.main_plot.dot.cursor').remove();
+        self.cursor_blink_interval=null;
+                        
+        d3.select('.main_plot.objects').selectAll('.main_plot.dot.cursor:not(.blink)')
+                .data(added)
+                .enter()
+                .append('path')
+                .attr("class","main_plot dot cursor")
+                .attr('d', d3.symbol().type(d3.symbolCross).size(120))
+                .attr("transform", function (d) {
+                    var xCoord = self.xMap(d);
+                    var yCoord = self.yMap(d);
+                    return "translate(" + xCoord + "," + yCoord + ")";
+                })
+                .style("stroke-width",1)
+                .on("mouseover",self.arch_mouseover)
+                .on("mouseout",self.arch_mouseout)
+                .on('click',self.arch_click);        
+    });        
+    
+    
+    PubSub.subscribe(VIEW_ARCHITECTURE, (msg, data) => {
+        ifeed.UI_states.support_panel_active=false;
+        self.arch_mouseover(data);
+    });     
     
     self.initialize();
 
