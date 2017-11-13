@@ -247,6 +247,7 @@ function MainPlot(ifeed){
         }
                 
         ifeed.problem.display_instrument_options();
+        ifeed.problem.enable_modify_architecture();
         
         d3.selectAll('.main_plot.dot.cursor.blink')
                 .attr("transform", function (d) {

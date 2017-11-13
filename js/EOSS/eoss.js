@@ -270,10 +270,13 @@ function EOSS(ifeed){
               }
               return ifeed.label.actualName2DisplayName(d.content,"instrument");
             });
-        
-        
-        
 
+    }
+    
+    
+    self.enable_modify_architecture = function(){
+        
+        
         $('.arch_info_display_cell_container').sortable({
     
             items: ':not(.not_draggable)',
@@ -316,11 +319,16 @@ function EOSS(ifeed){
                 self.current_bitString = self.current_bitString.join('');
                                 
                 self.display_arch_info(self.current_bitString);
+                self.enable_modify_architecture();
                 
                 if(bitString_save!=self.current_bitString) self.enable_evaluate_architecture();
             }
-        });
+        });        
+        
+        
     }
+    
+
     
     
     self.enable_evaluate_architecture = function(){
