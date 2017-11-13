@@ -146,14 +146,18 @@ function EOSS(ifeed){
     
 
     self.display_arch_info = function(data) {
-        
-        var booleanArray = ifeed.experiment.encodeBitStringBool(data.inputs);
+                
         
         var bitString = null;
         
         if(typeof data == "string"){
+            
             bitString = data;
+
         }else{
+            
+            var booleanArray = ifeed.experiment.encodeBitStringBool(data.inputs);
+            
             bitString = self.booleanArray2String( booleanArray );
         }
         
@@ -347,7 +351,8 @@ function EOSS(ifeed){
                                 .attr('id','evaluate_architecture_button')
                                 .text('Evaluate this design')
                                 .on('click',function(d){
-                                    var inputs = self.string2BooleanArray(self.current_bitString);
+                                    var decodedbitString = ifeed.experiment.decodeBitString(self.current_bitString);
+                                    var inputs = self.string2BooleanArray(decodedbitString);
                                     self.evaluate_architecture(inputs);
                                 });
         }           
@@ -560,7 +565,7 @@ function EOSS(ifeed){
     });   
     
     PubSub.subscribe(SET_CURRENT_ARCHITECTURE, (msg, data) => {
-        self.current_bitString = self.booleanArray2String(data.inputs)
+        self.current_bitString = ifeed.experiment.encodeBitString(self.booleanArray2String(data.inputs))
     });      
     
 }

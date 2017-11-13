@@ -157,7 +157,7 @@ function Experiment(ifeed){
             d3.select("#tab3").text('Feature Analysis');
             ifeed.data_mining.run();
             
-            d3.selectAll('.dot.main_plot').on('click',null);  
+            //d3.selectAll('.dot.main_plot').on('click',null);  
             
             d3.select('#conjunctive_local_search').on('click',function(){
                 ifeed.data_mining.run();
@@ -521,9 +521,6 @@ function Experiment(ifeed){
     
     
     
-    
-    
-    
     function Label(experiment){
         
         
@@ -702,6 +699,75 @@ function Experiment(ifeed){
     
     
 }
+
+
+
+var encodeArch = function(inputString){
+    
+    var inputSplit = inputString.split(";");
+    
+    var bitString = [];
+    for(var i=0;i<60;i++){
+        bitString.push(false);
+    }
+    
+    for(var i=0;i<5;i++){
+        var thisOrbitRelabeled = experiment.orbitOrder.indexOf(i);
+        var instruments = inputSplit[i];
+        for(var j=0;j<instruments.length;j++){
+            var thisInstr = experiment.instrList.indexOf(instruments[j]);
+            var thisInstrRelabeled = experiment.instrOrder.indexOf(thisInstr);
+            bitString[thisOrbitRelabeled*12+thisInstrRelabeled]=true;
+        }
+    }
+
+    
+    var out = "";
+    for(var i=0;i<5;i++){
+        for(var j=0;j<12;j++){
+            if(bitString[i*12+j]){
+                out = out + experiment.instrList[j];
+            }
+        }
+        out=out+";";
+    }
+    return out;
+}
+
+
+
+var decodeArch = function(inputString){
+    
+    var inputSplit = inputString.split(";");
+    
+    var bitString = [];
+    for(var i=0;i<60;i++){
+        bitString.push(false);
+    }
+    
+    for(var i=0;i<5;i++){
+        var thisOrbitRelabeled = experiment.orbitOrder[i];
+        var instruments = inputSplit[i];
+        for(var j=0;j<instruments.length;j++){
+            var thisInstr = experiment.instrList[instruments[j]];
+            var thisInstrRelabeled = experiment.instrOrder.indexOf(thisInstr);
+            bitString[thisOrbitRelabeled*12+thisInstrRelabeled]=true;
+        }
+    }
+                //ppinstruments = ppinstruments + instrOrder[+instruments[i]];
+
+    var out = "";
+    for(var i=0;i<5;i++){
+        for(var j=0;j<12;j++){
+            if(bitString[i*12+j]){
+                out = out + experiment.instrList[j];
+            }
+        }
+        out=out+";";
+    }
+    return out;
+}
+
 
 
 
