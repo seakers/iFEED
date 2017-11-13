@@ -43,8 +43,11 @@ function Experiment(ifeed){
     
     self.label = new Label(this);
 
-    self.account_id = '123123123';
-    
+        
+    self.account_id = "";
+    for(var i=0;i<10;i++){
+        self.account_id += "" + Math.floor(Math.random()*10)
+    }
     
 
     function getTimeRemaining(endtime){
@@ -136,9 +139,10 @@ function Experiment(ifeed){
             self.select_archs_using_ids(higher_cost_higher_perf);
         }
         
+        d3.selectAll('.dot.main_plot.cursor').remove();
+        
         d3.select("#num_of_archs").text(""+ifeed.main_plot.get_num_of_archs());
         
-
         
         //Experiment
         if(self.condition_number=="0"){
@@ -149,6 +153,7 @@ function Experiment(ifeed){
             d3.select('#conjunctive_local_search').on('click',null); 
             d3.select('#disjunctive_local_search').on('click',null);  
             
+            
             d3.selectAll('.dot.main_plot').on('click',ifeed.main_plot.arch_click);  
             
             
@@ -158,7 +163,7 @@ function Experiment(ifeed){
             ifeed.data_mining.run();
             
             d3.selectAll('.dot.main_plot').on('click',null);  
-            
+                        
             d3.select('#conjunctive_local_search').on('click',function(){
                 ifeed.data_mining.run();
             }); 
@@ -192,7 +197,7 @@ function Experiment(ifeed){
     
     self.next_task = function(){
 
-        //store_task_specific_information();
+        store_task_specific_information();
 
         var i = self.task_order.indexOf(self.task_number);
         if(i==0){
@@ -226,7 +231,7 @@ function Experiment(ifeed){
                 .text("Now follow the link to do a survey: https://cornell.qualtrics.com/jfe/form/SV_3xVqMtpF6vR8Qvj").style("width","1200px").style("margin","auto");
             d3.select('body').append('div').style("width","100%").style("height","30px"); 
 
-            //print_experiment_summary();
+            print_experiment_summary();
             return;
 
         }
@@ -238,26 +243,25 @@ function Experiment(ifeed){
     
     
     
+    self.counter_design_viewed = 0;
+    self.counter_feature_viewed = 0;
+    self.counter_new_design_evaluated = 0;
+    self.counter_design_local_search = 0;
+    self.counter_conjunctive_local_search = 0;
+    self.counter_disjunctive_local_search = 0;
+    self.counter_new_feature_tested = 0;
+    self.best_features_found = [];
     
-
-
-
-    var buttonClickCount_applyFilter = 0;
-    var buttonClickCount_testFeature = 0;
-    var buttonClickCount_feature = 0;
-    var numOfArchViewed =0;
-    var numOfDrivingFeatureViewed = 0;
-
-    var buttonClickCount_applyFilter_store = [];
-    var buttonClickCount_testFeature_store = [];
-    var buttonClickCount_feature_store = [];
-    var numOfArchViewed_store = [];
-    var numOfDrivingFeatureViewed_store = [];
-
-    var added_features_store = [];
-    var remainingTimeStore = [];
-
-
+    self.store_design_viewed = [];
+    self.store_feature_viewed = [];
+    self.store_new_design_evaluated = [];
+    self.store_design_local_search = [];
+    self.store_conjunctive_local_search = [];
+    self.store_disjunctive_local_search = [];
+    self.store_new_feature_tested = [];
+    self.store_best_features_found = [];
+    
+    
 
     function print_experiment_summary(){
 
@@ -265,46 +269,33 @@ function Experiment(ifeed){
         // orbitOrder, instrOrder
 
         var path = "";
-        var filename = path + account_id + '.csv';
+        var filename = path + self.account_id + '.csv';
 
         var printout = [];
 
-        var header = ['account_id','condition','task'];
-
-        header = header.concat(['clkCnt_filter','clkCnt_feature','clkCnt_testFeature','numArchsViewed','numFeatureViewed']);
-
-        header.push('timeSpent');
-        header.push('addedFeatures');
-
+        var header = ['account_id','condition','task','design_viewed','feature_viewed','new_design_evaluated','design_local_search','conjunctive_local_search','disjunctive_local_search','new_feature_tested','best_features_found'];
 
         header = header.join(',');
+        
         printout.push(header);
 
-        for(var i=0;i<3;i++){
+        for(var i=0;i<2;i++){
 
             var row = [];
+            
+            var condition = self.condition_order[i];
+            var task = self.task_order[i];
 
-            var condition = i+1;
-            var index = condition_order.indexOf(condition);
-            var task = task_order[index];
-
-            var clkCnt_filter = buttonClickCount_applyFilter_store[index];
-            var clkCnt_feature = buttonClickCount_feature_store[index];
-            var clkCnt_testFeature = buttonClickCount_testFeature_store[index];
-            var numArchsViewed = numOfArchViewed_store[index];
-            var numFeatureViewed = numOfDrivingFeatureViewed_store[index];
-
-            row=row.concat([account_id,condition,task]);
-            row=row.concat([clkCnt_filter,clkCnt_feature,clkCnt_testFeature,numArchsViewed,numFeatureViewed]);
-
-            row.push(600-remainingTimeStore[index]);
-
-            var tmp_added_features = [];
-            for(var j=0;j<added_features_store[index].length;j++){
-                tmp_added_features.push(added_features_store[index][j].expression);
-            }
-            row.push(JSON.stringify(tmp_added_features));
-
+            row=row.concat([self.account_id,condition,task]);
+            row=row.concat([self.store_design_viewed[i],
+                           self.store_feature_viewed[i],
+                           self.store_new_design_evaluated[i],
+                            self.store_design_local_search[i],
+                            self.store_conjunctive_local_search[i],
+                            self.store_disjunctive_local_search[i],
+                            self.store_new_feature_tested[i],
+                            self.store_best_features_found[i]
+                           ]);
 
             row=row.join(",");
             printout.push(row);
@@ -363,35 +354,28 @@ function Experiment(ifeed){
 
 
 
-    //function store_task_specific_information(){
-    //    
-    //    added_features_store.push(JSON.parse(JSON.stringify(added_features)));
-    //    buttonClickCount_applyFilter_store.push(buttonClickCount_applyFilter);
-    //    buttonClickCount_testFeature_store.push(buttonClickCount_testFeature);
-    //    buttonClickCount_feature_store.push(buttonClickCount_feature);
-    //    numOfArchViewed_store.push(numOfArchViewed);
-    //    numOfDrivingFeatureViewed_store.push(numOfDrivingFeatureViewed);
-    //    
-    //    // Reset task-specific info
-    //    added_features=[];
-    //    buttonClickCount_applyFilter = 0;
-    //    buttonClickCount_testFeature = 0;
-    //    buttonClickCount_feature = 0;
-    //    numOfArchViewed = 0
-    //    numOfDrivingFeatureViewed = 0;
-    //
-    //    var rt = getTimeRemaining(deadline).total/1000;
-    //    remainingTimeStore.push(rt);
-    //    
-    //}
+    function store_task_specific_information(){
+        self.store_design_viewed.push(self.counter_design_viewed);
+        self.store_feature_viewed.push(self.counter_feature_viewed);
+        self.store_new_design_evaluated.push(self.counter_new_design_evaluated);
+        self.store_design_local_search.push(self.counter_design_local_search);
+        self.store_conjunctive_local_search.push(self.counter_conjunctive_local_search);
+        self.store_disjunctive_local_search.push(self.counter_disjunctive_local_search);
+        self.store_new_feature_tested.push(self.counter_new_feature_tested);
+        self.store_best_features_found.push(JSON.parse(JSON.stringify(self.best_features_found)));        
+        
+        self.counter_design_viewed = 0;
+        self.counter_feature_viewed = 0;
+        self.counter_new_design_evaluated = 0;
+        self.counter_design_local_search = 0;
+        self.counter_conjunctive_local_search = 0;
+        self.counter_disjunctive_local_search = 0;
+        self.counter_new_feature_tested = 0;
+        self.best_features_found = [];             
+    }
 
     
 
-
-    
-    
-    
-    
 
     self.get_selected_arch_ids = function(){
         var target_string = "";
