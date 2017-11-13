@@ -157,7 +157,7 @@ function Experiment(ifeed){
             d3.select("#tab3").text('Feature Analysis');
             ifeed.data_mining.run();
             
-            //d3.selectAll('.dot.main_plot').on('click',null);  
+            d3.selectAll('.dot.main_plot').on('click',null);  
             
             d3.select('#conjunctive_local_search').on('click',function(){
                 ifeed.data_mining.run();
