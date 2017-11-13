@@ -107,7 +107,7 @@ function Experiment(ifeed){
         // Change the prompt message and the target selection
         if(self.condition_number==0){
 
-            d3.select("#prompt_header").text("Task "+(self.task_order.indexOf(self.task_number)+1)+": Find patterns in the target region using visual inspection");
+            d3.select("#prompt_header").text("Task "+(self.task_order.indexOf(self.task_number)+1)+": Target Region (a)");
             d3.select('#prompt_body_text_1').html('<p> - You can hover your mouse over each design to see the relevant information.</p>'
                                         +'<p> - You can modify the existing design and check its performance and cost.</p>'
                                         +'<p> - You can run a local search that randomly tries several designs with the similar configurations.</p>'
@@ -118,7 +118,7 @@ function Experiment(ifeed){
             
         }
         else if(self.condition_number==1){
-            d3.select("#prompt_header").text("Task "+(self.task_order.indexOf(self.task_number)+1)+": Find patterns in the target region using data mining");
+            d3.select("#prompt_header").text("Task "+(self.task_order.indexOf(self.task_number)+1)+": Target Region (b)");
             d3.select('#prompt_body_text_1').html('<p> - You can hover your mouse over each design to see the relevant information.</p>'
                                         +'<p> - You can view the feature analysis tab with data mining results displayed on it.</p>'
                                         +'<p> - You can try making features more general or specific by modifying each feature. </p>'
@@ -223,7 +223,7 @@ function Experiment(ifeed){
             d3.select('body').append('h2')
                 .text("Key number: "+ key_number).style("width","1200px").style("margin","auto");
             d3.select('body').append('h2')
-                .text("Now follow the link to do a survey: https://www.surveymonkey.com/r/8X7QPBS").style("width","1200px").style("margin","auto");
+                .text("Now follow the link to do a survey: https://cornell.qualtrics.com/jfe/form/SV_3xVqMtpF6vR8Qvj").style("width","1200px").style("margin","auto");
             d3.select('body').append('div').style("width","100%").style("height","30px"); 
 
             //print_experiment_summary();
