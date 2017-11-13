@@ -652,15 +652,14 @@ function ExperimentTutorial(ifeed,experiment){
 
         contents = ["<p>We went over all the features of iFEED! Here you will learn some basic strategies you can take to find the good features. </p><p>Try to follow the directions now and generate your own feature. </p>",
                     
-                    "<p>First, it is a good idea to build upon the features that are found by the data mining, as they provide relatively good starting points.</p><p>Select with a general feature (having good coverage), and try making it more specific using \"Improve specificity\" button.</p>",
+                    "<p>First, it is a good idea to build upon the features that are found by the data mining, as they provide relatively good starting points.</p><p>Start with a general feature (having good coverage), and try making it more specific using \"Improve specificity\" button.</p>",
                     
-                    "<p>In other words, start with a feature that is on the top-left corner (in the figure inside Feature Analysis tab), and try to move the cursur to the right side of the plot.</p>",
+                    "<p>In other words, start with one of the features that are on the top-left corner (in the figure inside Feature Analysis tab), and try to move the cursur to the right side of the plot.</p>",
                     
-                    "<p>Then select one of the generated features (crosses). If you think the feature is too specific (having poor coverage), then try making it more general by using \"Improve coverage\" button. </p>",
+                    "<p>Keep selecting one of the newly generated features and run \"Improve specificity\" function iteratively. When the features become too specific (having poor coverage), then try making it more general by using \"Improve coverage\" button. </p>",
                     
-                    "<p>Now try to make it specific again using \"Improve specificity\" buttonn. </p>",        
-        
-                    '<p>As shown in before, a good feature will likely be the result of repeating this process, improving the coverage and the specificity of the features.</p>'];
+                    "<p>You can alternate between \"Improve specificity\" and \"Improve coverage\", as they play complementary roles in improving the features.</p>",        
+                    '<p>A good feature is likely to be found using such process, alternately improving the coverage and the specificity of the features.</p>'];
 
         classname = 'introjs_tooltip_large';
         
@@ -691,11 +690,11 @@ function ExperimentTutorial(ifeed,experiment){
         
             +'<p>The goal of all tasks is to learn what are the good features that have good specificity and coverage.</p>'
 
-    		+'<p style="font-weight:bold">After each task is finished, you will be given a problem set to solve. The problem set asks you to identify whether an arbitrary design will be located in the target region or not. It is designed to test how much you have learned about what features make a good design. </p>' 
+    		+'<p style="font-weight:bold">After each task is finished, you will be given a problem set to solve. The problem set contains 25 questions. It will ask you to classify whether an arbitrary design will be located in the target region or not. It is designed to test how much you have learned about what features make a good design. </p>' 
         
             +'<p>Please let the experimenter know when you finish each task. </p>'
         
-    		+'<p>Now you can move on to the experiment by clicking the button below. Good luck!</p>';
+    		+'<p>Now you are ready to start the experiment. You can move on to the experiment by clicking the button below. Good luck!</p>';
         
         
         d3.select('#prompt_body')
