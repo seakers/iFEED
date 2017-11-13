@@ -160,12 +160,6 @@ function DataMining(ifeed){
                 extracted_features = self.get_marginal_driving_features_conjunctive(selected, non_selected, base_feature, highlighted, 
                                                                  self.support_threshold,self.confidence_threshold,self.lift_threshold);
                 
-                for(var a=0;a<extracted_features.length;a++){
-                    ifeed.experiment.best_features_found.push(extracted_features[a].name);         
-                }
-                
-                
-                
             }else{
 
                 var root = ifeed.feature_application.root;
@@ -206,6 +200,8 @@ function DataMining(ifeed){
             
             var features_to_add = [];
             self.recent_features_id = [];
+            
+            ifeed.experiment.best_features_found = [];
 
             // Check non-dominance against all existing features
             for(var i=0;i<extracted_features.length;i++){
