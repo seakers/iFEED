@@ -12,8 +12,8 @@ function Experiment(ifeed){
     self.instrList = ifeed.label.instrument_relabeled;
 
     // Set the order of the task (target region) and the treatment condition
-    self.task_order = shuffleArray([0, 1]); // low-cost-low-perf, mid-cost-mid-perf, high-cost-high-perf
-    self.condition_order = shuffleArray([0, 1]); // Scatter plot only, scatter plot + filter, scatter plot + filter + data mining
+    self.task_order = shuffleArray([0, 1]); // low-cost-low-perf, high-cost-high-perf
+    self.condition_order = shuffleArray([0, 1]); // Scatter plot only, scatter plot + data mining
     self.task_number = self.task_order[0];
     self.condition_number = self.condition_order[0];
     
@@ -33,7 +33,6 @@ function Experiment(ifeed){
     self.instrOrder = [0,1,2,3,4,5,6,7,8,9,10,11];
     self.orbitOrder = self.orbitOrderStore[self.task_number];
     self.instrOrder = self.instrOrderStore[self.task_number];
-    
     self.norb = self.orbitOrder.length;
     self.ninstr = self.instrOrder.length;
     
@@ -44,28 +43,10 @@ function Experiment(ifeed){
     
     self.label = new Label(this);
 
-    
-    
-
-//    // Get account info
-//    var sessionInfo = window.location.search;
-//    
-//    if(sessionInfo){
-//        
-//        sessionInfo = sessionInfo.substring(1);
-//        account_id = sessionInfo;
-//        
-//    }else{
-//        account_id = '123123123';
-//    }    
-    
     self.account_id = '123123123';
     
     
-    
-    
-    
-    
+
     function getTimeRemaining(endtime){
           var t = Date.parse(endtime) - Date.parse(new Date());
           var seconds = Math.floor( (t/1000) % 60 );
@@ -126,20 +107,23 @@ function Experiment(ifeed){
         // Change the prompt message and the target selection
         if(self.condition_number==0){
 
-            d3.select("#prompt_header").text("Task "+(self.task_order.indexOf(self.task_number)+1)+": Find features using visual inspection");
+            d3.select("#prompt_header").text("Task "+(self.task_order.indexOf(self.task_number)+1)+": Find patterns in the target region using visual inspection");
             d3.select('#prompt_body_text_1').html('<p> - You can hover your mouse over each design to see the relevant information.</p>'
-                                        +'<p>** for this task, you are encouraged to take notes (either physically on a piece of paper or electronically using a notepad</p>'
-                                        +'<br><p>You have at maximum 10 minutes, but you can finish early if you feel like you found a good enough feature with good coverage and specificy. </p>');
+                                        +'<p> - You can modify the existing design and check its performance and cost.</p>'
+                                        +'<p> - You can run a local search that randomly tries several designs with the similar configurations.</p>'
+                                        +'<p>** You are encouraged to take notes (either physically on a piece of paper or electronically using a notepad)</p>');
 
             d3.select('body').style('background-color','#FFEDF3');
             d3.select('#experiment_prompt_div').style('background-color','#FFC1D4');   
+            
         }
         else if(self.condition_number==1){
-            d3.select("#prompt_header").text("Task "+(self.task_order.indexOf(self.task_number)+1)+": Find features using visual inspection, filters, and data mining");
+            d3.select("#prompt_header").text("Task "+(self.task_order.indexOf(self.task_number)+1)+": Find patterns in the target region using data mining");
             d3.select('#prompt_body_text_1').html('<p> - You can hover your mouse over each design to see the relevant information.</p>'
-                                        +'<p> - You can use filters to selectively highlight designs sharing certain features. </p>'
-                                        +'<p> - You can use data mining to automatically extract some features for you. </p>'
-                                        +'<br><p>You have at maximum 10 minutes, but you can finish early if you feel like you found a good enough feature with good coverage and specificy. </p>');
+                                        +'<p> - You can view the feature analysis tab with data mining results displayed on it.</p>'
+                                        +'<p> - You can try making features more general or specific by modifying each feature. </p>'
+                                        +'<p>** You are encouraged to take notes (either physically on a piece of paper or electronically using a notepad)</p>');
+
 
             d3.select('body').style('background-color','#F5FFF6');
             d3.select('#experiment_prompt_div').style('background-color','#ABFFB3');
@@ -159,27 +143,32 @@ function Experiment(ifeed){
         //Experiment
         if(self.condition_number=="0"){
 
-            d3.select("#tab2").text('-');
-            d3.select("#view2").selectAll('g').remove();
             d3.select("#tab3").text('-');
             d3.select("#view3").selectAll('g').remove();
-
+            
+            d3.select('#conjunctive_local_search').on('click',null); 
+            d3.select('#disjunctive_local_search').on('click',null);  
+            
+            d3.selectAll('.dot.main_plot').on('click',ifeed.main_plot.arch_click);  
+            
+            
         }else if(self.condition_number=="1"){
             
-            d3.select("#tab2").text('Filter Setting');
             d3.select("#tab3").text('Feature Analysis');
             ifeed.data_mining.run();
             
+            d3.selectAll('.dot.main_plot').on('click',null);  
+            
+            d3.select('#conjunctive_local_search').on('click',function(){
+                ifeed.data_mining.run();
+            }); 
+
+            d3.select('#disjunctive_local_search').on('click',function(d){
+                ifeed.data_mining.run("asdf");
+            });           
+                        
         }
-        
-//        else { // condition_number == "3"
-//            
-//            document.getElementById('tab1').click();
-//            ifeed.data_mining.run();
-//            d3.select("#tab2").text('Filter Setting');
-//            d3.select("#tab3").text('Feature Analysis');
-//
-//        }
+
         
         self.resetTimer();
     }
@@ -725,7 +714,7 @@ mid_cost_mid_perf = "1701,1702,1717,1718,1720,1721,1722,1723,1724,1725,1726,1727
 low_cost_low_perf = "19,25,26,34,44,77,81,106,108,168,1690,1692,1693,1695,1696,1697,1698,1706,1707,1710,1713,1718,1719,1731,1732,1752,1757,1763,1765,1770,1771,1773,1774,1776,1777,1779,1781,1806,1808,1809,1810,1813,1815,1817,1835,1836,1837,1838,1844,1848,1849,1850,1852,1853,1854,1856,1858,1866,1867,1868,1869,1905,1907,1910,1913,1916,1917,1925,1933,1934,1941,1943,1945,1954,1956,1960,1961,1965,2027,2033,2047,2049,2052,2062,2086,2088,2105,2107,2115,2123,2136,2143,2146,2153,2156,2157,2163,2165,2174,2202,2205,2206,2213,2217,2222,2225,2248,2263,2271,2272,2306,2319,2325,2334,2346,2354,2380,2389,2391,2400,2417,2419,2425,2426,2433,2436,2437,2444,2448,2450,2488,2494,2496,2513,2520,2521,2527,2531,2532,2541,2544,2545,2549,2552,2553,2554,2559,2576,2579,2596,2602";
 
 
-higher_cost_higher_perf = "1701,1702,1703,1717,1725,1726,1727,1729,1739,1740,1741,1742,1744,1745,1746,1760,1761,1762,1783,1784,1786,1788,1795,1797,1798,1802,1803,1804,1805,1818,1820,1821,1823,1828,1830,1833,1841,1851,1855,1857,1861,1862,1863,1873,1874,1876,1877,1882,1883,1886,1887,1888,1892,1894,1901,1906,1912,1914,1920,1924,1926,1928,1931,1944,1992,1998,2002,2006,2012,2013,2015,2024,2026,2032,2044,2045,2051,2057,2074,2082,2084,2120,2179,2180,2184,2186,2187,2188,2189,2235,2237,2239,2241,2245,2249,2251,2255,2260,2262,2266,2267,2270,2281,2287,2291,2293,2300,2301,2303,2308,2312,2320,2330,2336,2344,2353,2356,2358,2359,2360,2361,2362,2372,2376,2377,2383,2401,2409,2464,2472,2474,2479,2481,2485,2487,2491,2495,2501,2505,2510,2534,2542,2567,2572,2584,2615";
+higher_cost_higher_perf = "1701,1702,1703,1710,1717,1718,1719,1720,1722,1732,1734,1735,1737,1738,1749,1750,1751,1766,1767,1769,1771,1777,1778,1779,1783,1784,1785,1786,1793,1799,1801,1802,1804,1807,1809,1811,1818,1820,1828,1830,1833,1834,1835,1842,1843,1844,1845,1851,1852,1853,1855,1857,1859,1862,1866,1868,1872,1874,1876,1877,1879,1905,1909,1911,1913,1914,1919,1920,1922,1928,1929,1932,1934,1939,1949,1972,1973,1976,1977,1978,1979,1980,2002,2003,2004,2005,2006,2011,2014,2019,2020,2022,2028,2031,2033,2034,2039,2040,2041,2044,2046,2049,2054,2061,2064,2066,2068,2069,2070,2071,2072,2076,2078,2079,2080,2084,2091,2095,2097,2099,2100,2120,2125,2134,2138,2139,2144,2148,2155,2167,2168,2169,2171,2181,2184,2189,2202";
 
-lower_cost_lower_perf = "1690,1692,1693,1696,1697,1698,1707,1710,1718,1719,1720,1721,1722,1723,1724,1731,1732,1733,1735,1752,1757,1758,1759,1763,1765,1770,1771,1773,1774,1782,1808,1809,1810,1812,1815,1817,1819,1835,1836,1837,1844,1847,1848,1849,1850,1853,1854,1856,1858,1867,1869,1889,1905,1907,1913,1916,1918,1932,1934,1935,1937,1939,1943,1945,2033,2049,2052,2067,2115,2123,2146,2156,2163,2165,2190,2193,2202,2205,2206,2208,2210,2225,2248,2263,2271,2272,2306,2325,2346,2354,2380,2391,2400,2403,2411,2417,2419,2425,2433,2436,2437,2450,2451,2454,2458,2494,2496,2513,2517,2520,2521,2527,2531,2532,2541,2545,2549,2553,2554,2559,2573,2596,2602,2612";
+lower_cost_lower_perf = "1690,1692,1693,1695,1696,1697,1698,1706,1707,1711,1712,1713,1714,1715,1717,1724,1725,1726,1728,1744,1746,1747,1748,1752,1753,1755,1756,1757,1758,1763,1764,1765,1787,1789,1790,1791,1793,1794,1796,1798,1800,1813,1814,1815,1816,1819,1820,1821,1822,1823,1826,1827,1829,1831,1838,1840,1854,1861,1863,1865,1867,1869,1871,1880,1881,1882,1883,1884,1885,1886,1887,1889,1921,1923,1931,1933,1936,1944,1948,1951,1956,1958,1960,1961,1962,1964,1965,1981,1983,1990,1991,1992,1993,1995,1998,1999,2000,2007,2016,2023,2024,2043,2048,2052,2056,2062,2065,2081,2087,2090,2101,2102,2105,2107,2109,2110,2116,2117,2119,2122,2143,2145,2157,2159,2160,2161,2163,2165,2166,2170,2173,2174,2177,2178,2179,2192,2195,2201";
 

@@ -706,7 +706,10 @@ function MainPlot(ifeed){
         PubSub.publish(SET_CURRENT_ARCHITECTURE, arch);
         
         ifeed.problem.display_arch_info(arch);
-        ifeed.problem.display_instrument_options();
+        
+        if(ifeed.experiment.condition_number==0){
+            ifeed.problem.display_instrument_options();
+        }
 
         document.getElementById('tab1').click();
         

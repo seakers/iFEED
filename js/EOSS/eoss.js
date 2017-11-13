@@ -147,12 +147,14 @@ function EOSS(ifeed){
 
     self.display_arch_info = function(data) {
         
+        var booleanArray = ifeed.experiment.encodeBitStringBool(data.inputs);
+        
         var bitString = null;
         
         if(typeof data == "string"){
             bitString = data;
         }else{
-            bitString = self.booleanArray2String(data.inputs);
+            bitString = self.booleanArray2String( booleanArray );
         }
         
         var json_arch=[];

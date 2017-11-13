@@ -26,7 +26,7 @@ function Filter(ifeed){
     
     self.initialize = function(){
         
-        document.getElementById('tab2').click();
+        //document.getElementById('tab2').click();
         
         d3.select("#support_panel").select("#view2").select("g").remove();
 
@@ -379,7 +379,7 @@ function Filter(ifeed){
             //self.apply_filter_expression(filter_expression);
         }
 
-        document.getElementById('tab2').click();
+        //document.getElementById('tab2').click();
         return true;
     }
     
