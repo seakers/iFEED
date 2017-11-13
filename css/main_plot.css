@@ -138,6 +138,7 @@
 
 #arch_info_display_table_div{
     float:left;
+    width:70%;
 }
 
 .arch_info_display_cell{
