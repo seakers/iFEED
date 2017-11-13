@@ -362,7 +362,7 @@ function Experiment(ifeed){
         self.store_conjunctive_local_search.push(self.counter_conjunctive_local_search);
         self.store_disjunctive_local_search.push(self.counter_disjunctive_local_search);
         self.store_new_feature_tested.push(self.counter_new_feature_tested);
-        self.store_best_features_found.push(JSON.parse(JSON.stringify(self.best_features_found)));        
+        self.store_best_features_found.push(JSON.stringify(self.best_features_found));        
         
         self.counter_design_viewed = 0;
         self.counter_feature_viewed = 0;

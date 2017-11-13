@@ -160,7 +160,10 @@ function DataMining(ifeed){
                 extracted_features = self.get_marginal_driving_features_conjunctive(selected, non_selected, base_feature, highlighted, 
                                                                  self.support_threshold,self.confidence_threshold,self.lift_threshold);
                 
-                ifeed.experiment.best_features_found = ifeed.experiment.best_features_found.concat(extracted_features);         
+                for(var a=0;a<extracted_features.length;a++){
+                    ifeed.experiment.best_features_found.push(extracted_features[a].name);         
+                }
+                
                 
                 
             }else{
@@ -210,7 +213,7 @@ function DataMining(ifeed){
                 var this_feature = extracted_features[i];
                 if(self.check_if_non_dominated(this_feature,self.all_features)){
                     
-                    ifeed.experiment.best_features_found.push(this_feature);         
+                    ifeed.experiment.best_features_found.push(this_feature.name);         
                     
                     
                     var id = featureID++;
