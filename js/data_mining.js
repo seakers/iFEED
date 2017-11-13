@@ -141,6 +141,7 @@ function DataMining(ifeed){
             var extracted_features = null;
 
             if(selected_node){
+                ifeed.experiment.counter_disjunctive_local_search++;
 
                 extracted_features = self.get_marginal_driving_features(selected, non_selected, base_feature, 
                                                              self.support_threshold,self.confidence_threshold,self.lift_threshold);           
@@ -158,9 +159,16 @@ function DataMining(ifeed){
 
                 extracted_features = self.get_marginal_driving_features_conjunctive(selected, non_selected, base_feature, highlighted, 
                                                                  self.support_threshold,self.confidence_threshold,self.lift_threshold);
+                
+                ifeed.experiment.best_features_found = ifeed.experiment.best_features_found.concat(extracted_features);         
+                
+                
             }else{
 
                 var root = ifeed.feature_application.root;
+                
+                ifeed.experiment.counter_disjunctive_local_search++;
+
 
                 extracted_features = [];
 
@@ -201,6 +209,10 @@ function DataMining(ifeed){
 
                 var this_feature = extracted_features[i];
                 if(self.check_if_non_dominated(this_feature,self.all_features)){
+                    
+                    ifeed.experiment.best_features_found.push(this_feature);         
+                    
+                    
                     var id = featureID++;
                     // non-dominated
                     self.mined_features_id.push(id);
@@ -299,6 +311,7 @@ function DataMining(ifeed){
     self.get_marginal_driving_features = function(selected,non_selected,featureExpression,
                                                    support_threshold,confidence_threshold,lift_threshold){
         
+        
         var output;
         $.ajax({
             url: "/api/data-mining/get-marginal-driving-features/",
@@ -326,6 +339,9 @@ function DataMining(ifeed){
     
     self.get_marginal_driving_features_conjunctive = function(selected,non_selected,featureName,highlighted,
                                                    support_threshold,confidence_threshold,lift_threshold){
+
+        
+        ifeed.experiment.counter_conjunctive_local_search++;
         
         var output;
         $.ajax({
@@ -759,6 +775,10 @@ function DataMining(ifeed){
 
     self.feature_mouseover = function(d){
 
+ 
+        ifeed.experiment.counter_feature_viewed++;
+        
+        
         var id= d.id; 
         var expression = d.expression;
         

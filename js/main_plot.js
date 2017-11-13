@@ -656,11 +656,14 @@ function MainPlot(ifeed){
         return d3.selectAll('.dot.selected.main_plot:not(.hidden)')[0].length; 
     }
 
-    
+     
     
 
     self.arch_mouseover = function(d) {
 
+        ifeed.experiment.counter_design_viewed++;
+        
+        
         var arch = d;
         
         // The support panel is active, disable hovering 

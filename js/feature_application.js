@@ -290,6 +290,8 @@ function FeatureApplication(ifeed){
         
         self.check_tree_structure();
                 
+        ifeed.experiment.counter_new_feature_tested++;
+                
         PubSub.publish(APPLY_FEATURE_EXPRESSION, self.parse_tree(self.root));
         
         var duration = d3.event && d3.event.altKey ? 5000 : 500;

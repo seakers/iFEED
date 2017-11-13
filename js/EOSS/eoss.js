@@ -509,6 +509,11 @@ function EOSS(ifeed){
     
     
     self.evaluate_architecture = function(inputs){
+        
+ 
+        ifeed.experiment.counter_new_design_evaluated++;
+        
+        
         $.ajax({
             url: "/api/vassar/evaluate-architecture/",
             type: "POST",
@@ -533,6 +538,9 @@ function EOSS(ifeed){
     }
     
     self.run_local_search = function(architecture){
+        
+        ifeed.experiment.counter_design_local_search++;
+        
         
         var inputs = architecture.inputs;
         
