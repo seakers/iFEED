@@ -40,7 +40,7 @@ function Experiment(ifeed){
     
     var deadline;
 
-    var remainingTime = + 10*60*1000; // 10 minutes
+    var remainingTime = + 25*60*1000; // 10 minutes
 
     
     self.label = new Label(this);

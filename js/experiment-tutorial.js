@@ -5,7 +5,7 @@ function ExperimentTutorial(ifeed,experiment){
     var self = this;
     
     self.current_view = 5;
-    self.max_view = 25;
+    self.max_view = 22;
     
     self.max_view_reached = 0;
     
@@ -139,9 +139,9 @@ function ExperimentTutorial(ifeed,experiment){
             
             contents = ["Now we will go through each component of iFEED interface.", 
                         
-                           "During this part of the tutorial, please focus on the part that is currently being explained. Explanation about other parts of the interface may be provided later in the tutorial.",
+                        "During this part of the tutorial, please focus on the part that is currently being explained. Explanation about other parts of the interface may be provided later in the tutorial.",
                         
-                       "Each page will cover different topic. To go back to the previous topic, click the left-arrow button. To continue, click the right-arrow button. To review these explanations, click the \"Re-open messages\" button.",
+                       "Each page will cover different topic. To go back to the previous topic, click the left-arrow button. To continue, click the right-arrow button. To review these explanations, click the \"Reopen messages\" button.",
                         
                        "For some pages, you will have to do certain tasks to proceed. The detailed directions on how to do those tasks will be provided here.",
                        
@@ -204,25 +204,6 @@ function ExperimentTutorial(ifeed,experiment){
             title = "Analysis Panel and Inspecting Design by Hovering";
             prompt = '';
         }
-        
-        else if(self.current_view==9){ 
-            
-            document.getElementById('tab1').click();
-            ifeed.main_plot.unhighlight_support_panel();
-            
-            objects = [d3.selectAll('#support_panel')[0][0],d3.select('.column.c1')[0][0]];
-            
-            contents = ['The analysis panel is located below the scatter plot panel.',
-                       'If you hover your mouse over a design on the scatter plot, the relevant information will be displayed on the \"Inspect Design\" tab.',
-                        'The displayed information contains the science benefit score and the cost, as well as a figure that shows what instruments are assigned to each orbit.'];
-
-            classname = 'introjs_tooltip_large';
-            
-            title = "Modifying designs";
-            prompt = '';
-        }        
-        
-        
         
         
         else if(self.current_view==9){
@@ -291,14 +272,69 @@ function ExperimentTutorial(ifeed,experiment){
         }
 
         
-        else if(self.current_view==10){
+        else if(self.current_view==10){ 
+            
+            document.getElementById('tab1').click();
+            ifeed.main_plot.unhighlight_support_panel();
+            
+            objects = [d3.select('.main_plot.figure')[0][0],
+                       d3.selectAll('#support_panel')[0][0],
+                       null,
+                       null,
+                       null,
+                       d3.select('.column.c1')[0][0],
+                       ];
+            
+            contents = ['When you click a design in the scatter plot, a black, blinking cross appears. This cross indicates that you have selected that particular design.',
+                        'After a design has been selected, you can modify that design either by rearranging the instruments or by adding/removing instruments from the set of candidate instruments (shown right).',
+                        'Try dragging instrument boxes and dropping under different oribts.',
+                        'When you modify a design, a new button \"Evaluate this design\" will appear.',
+                        'If you click the button, the system will re-evaluate the design and update the science score and the cost.',
+                        'The black cross will be relocated based on the science score and the cost of the modified design.'
+                        ];
+
+            classname = 'introjs_tooltip_large';
+            
+            title = "Modifying designs";
+            prompt = '';
+        }        
+        
+        
+        else if(self.current_view==11){ 
+            
+            document.getElementById('tab1').click();
+            ifeed.main_plot.unhighlight_support_panel();
+            
+            objects = [d3.select('.main_plot.figure')[0][0],
+                       d3.selectAll('#support_panel')[0][0],
+                       null,
+                       d3.select('.column.c1')[0][0],
+                       ];
+            
+            contents = ['Try clicking another design from the scatter plot.',
+                       'When you click the button, you can see \"Run local search\" button above the science score and the cost display.',
+                       'This generates four additional designs that are similar to the current design and displays them on the scatter plot. They are generated by making small modifications to the selected design.',
+                       'Note that it takes some time (~1 minute) to generate and evaluate designs.',
+                       'This capability provides a method to explore multiple alternative designs at once and check their scores.'];
+
+            classname = 'introjs_tooltip_large';
+            
+            title = "Running local search to explore different design options";
+            prompt = '';
+        }                
+        
+
+        
+        else if(self.current_view==12){
+            
+            d3.selectAll('.dot.main_plot.cursor').remove();
 
             title = 'The features of the designs';
             
             objects = null;
-            contents = ['Now, we will define what features are. Your goal in this experiment is to find the “good” features that explain the target region well.',
+            contents = ['Now, we will define what features are. Your goal in this experiment is to learn which features best explain the target region (i.e. finding patterns that are shared by the targets).',
                         
-                       '<p> Below are some examples of how features might look like (these are just examples, so you don\'t have to pay attention to the details): </p>'
+                       '<p> Below are some examples of what features might look like (these are just examples, so you don\'t have to pay attention to the details): </p>'
                         +'<p>   1. Instrument A is assigned to orbit 1000 </p>'
                         +'<p>   2. Instrument A and instrument B are assigned together in one orbit</p>'
                         +'<p>   3. Instrument C and instrument D are not assigned to the same orbit</p>'
@@ -314,7 +350,7 @@ function ExperimentTutorial(ifeed,experiment){
             prompt = '';
         }
 
-        else if(self.current_view==11){
+        else if(self.current_view==13){
 
             ifeed.main_plot.cancel_selection();
             experiment.select_archs_using_ids(tutorial_selection);
@@ -346,7 +382,7 @@ function ExperimentTutorial(ifeed,experiment){
         }
         
 
-        else if(self.current_view==12){
+        else if(self.current_view==14){
             
             ifeed.main_plot.cancel_selection();
             experiment.select_archs_using_ids(tutorial_selection);
@@ -375,7 +411,7 @@ function ExperimentTutorial(ifeed,experiment){
         }
         
 
-    else if(self.current_view==13){
+    else if(self.current_view==15){
         
         ifeed.main_plot.cancel_selection();
         experiment.select_archs_using_ids(tutorial_selection);
@@ -423,300 +459,10 @@ function ExperimentTutorial(ifeed,experiment){
         
     }
         
-        
-    else if(self.current_view==14){
-        
-        ifeed.main_plot.cancel_selection();
-        experiment.select_archs_using_ids(tutorial_selection);
-        
-        ifeed.main_plot.highlight_support_panel();
-        document.getElementById('tab2').click();
 
-        title = 'Filters';
-        objects = [d3.selectAll('#support_panel')[0][0], d3.select('.filter .options .div')[0][0]];
-
-        contents = ['<p>Now we will learn how to use iFEED as a tool to find good features. </p>'
-                    +'<p> In the analysis panel, you can find a tab for filter settings. Filters are used to highlight a group of designs that share the common feature that you define. </p>',
-                    
-                    '<p>The most basic and useful features have been identified and built into the filter options. You can select one of these preset filters to specify what patterns you want to investigate. We will test some of these preset filters in the following pages.</p>']
-
-        classname='introjs_tooltip_large';
-        prompt = '';
-    }
-
-
-    else if(self.current_view==15){
-        
-    	if(self.max_view_reached < 15){
-
-            var applyFilter = function(){
-                
-                var filter_return_successful = ifeed.filter.applyFilter();
-
-                if(self.current_view==15){
-                    var dropdown = d3.select(".filter.options.dropdown")[0][0].value;                    
-                    if(dropdown=="present" && filter_return_successful){
-                        self.activate_continue_button();
-                        if(self.max_view_reached < 15)  self.max_view_reached=15;
-                    }                
-                }
-            }
-
-            self.deactivate_continue_button();
-            d3.select(".filter.buttons")
-                    .select('#apply_filter_button')
-                    .on("click",applyFilter);
-            
-    	}
-        
-
-        ifeed.feature_application.clear_feature_application();
-        
-    	document.getElementById('tab2').click();
-    	ifeed.main_plot.highlight_support_panel();
-                
-        d3.select('.filter.options.dropdown')[0][0].value = "present";
-        ifeed.filter.initialize_preset_filter_input("present"); 
-        
-        
-        title = 'Preset Filters: Present';
-        objects = [d3.selectAll('#support_panel')[0][0]];
-
-        contents = ["<p>The filter called \'Present\' is used to selectively highlight designs that contain a specific instrument. It takes in one instrument name as an argument, and selects all designs that use that instrument.</p>",
-                    
-                   "<p>To apply the filter, type in an argument to the input text field and click [Apply Filter] button. </p>",
-                    
-                    "<p>As a result of applying the filter, a group of dots on the scatter plot is highlighted in pink color. These dots represent designs that have the feature you just defined.</p>"]
-
-        classname='introjs_tooltip';
-        
-        prompt = '<p>To continue, follow the steps below:</p>'
-                +'<p>1. Select \'Present\' option from the dropdown menu. </p>'
-    			+'<p>2. In the input field that appears, type in an instrument name. The instrument should be an alphabet letter ranging from A to L. </p>'
-    			+'<p>3. Then click [Apply Filter] button to apply the filter.</p>';
-  
-    }
-        
-        
     else if(self.current_view==16){
         
-    	if(self.max_view_reached < 16){
-
-            var applyFilter = function(){
-                
-                var filter_return_successful = ifeed.filter.applyFilter();
-
-                if(self.current_view==16){
-                    
-                    var dropdown = d3.select(".filter.options.dropdown")[0][0].value;                    
-                    if(dropdown=="inOrbit" && filter_return_successful){
-                        self.activate_continue_button();
-                        if(self.max_view_reached < 16)  self.max_view_reached=16;
-                    }                
-                }
-            }
-
-            self.deactivate_continue_button();
-            d3.select(".filter.buttons")
-                    .select('#apply_filter_button')
-                    .on("click",applyFilter);
-            
-    	}
-        
-
-        ifeed.feature_application.clear_feature_application();
-    	document.getElementById('tab2').click();
-    	ifeed.main_plot.highlight_support_panel();
-                
-        d3.select('.filter.options.dropdown')[0][0].value = "inOrbit";
-        ifeed.filter.initialize_preset_filter_input("inOrbit"); 
-        
-        
-        title = "Preset Filters: InOrbit";
-        objects = [d3.selectAll('#support_panel')[0][0]];
-
-        contents = ["<p>The filter called \'InOrbit\' is used to selectively highlight designs that assign a specific instrument(s) to a given orbit. </p>",
-                    "<p>It takes in an orbit name and instrument name(s) as arguments. If more than one instrument name is given, then it highlights all designs that assign all those instruments into the specified orbit.</p>"]
-
-        classname='introjs_tooltip';
-        
-        prompt = '<p>To continue, follow the steps below:</p>'
-    			+'<p>1. Select \'InOrbit\' option from the dropdown menu. </p>'
-    			+'<p>2. In the first input field that appears, type in an orbit name. '
-    			+'The orbit name should be a number in thousands (1000, 2000, 3000, 4000, or 5000). </p>'
-    			+'<p>2. In the second input field, type in instrument names (1 or more). '
-    			+'The instrument should be an alphabet letter ranging from A to L. If there are more than one instrument, the names should be separated by commas.</p>'
-    			+'<p>3. Then click [Apply Filter] button to apply the filter.</p>';        
-    }        
-    else if(self.current_view==17){
-    	
-    	if(self.max_view_reached < 17){
-
-            var applyFilter = function(){
-                
-                var filter_return_successful = ifeed.filter.applyFilter();
-                if(self.current_view==17){
-                    
-                    var dropdown = d3.select(".filter.options.dropdown")[0][0].value;                    
-                    if(dropdown=="together" && filter_return_successful){
-                        self.activate_continue_button();
-                        if(self.max_view_reached < 17)  self.max_view_reached=17;
-                    }                
-                }
-            }
-
-            self.deactivate_continue_button();
-            d3.select(".filter.buttons")
-                    .select('#apply_filter_button')
-                    .on("click",applyFilter);
-            
-    	}
-        
-        ifeed.feature_application.clear_feature_application();
-    	document.getElementById('tab2').click();
-    	ifeed.main_plot.highlight_support_panel();
-                
-        d3.select('.filter.options.dropdown')[0][0].value = "together";
-        ifeed.filter.initialize_preset_filter_input("together"); 
-        
-        
-        title = "Preset Filters: Together";
-        objects = [d3.selectAll('#support_panel')[0][0]];
-
-        contents = ["The filter called \'together\' is used to selectively highlight designs that assign a group of instrument together in the same orbit. It is different from ‘inOrbit’ as the instruments can be assigned to any orbit."]
-
-        classname='introjs_tooltip';
-        
-        prompt = '<p> To continue, follow the steps below:</p>'
-    			+'<p>1. Select \'together\' option from the dropdown menu. </p>'
-    			+'<p>2. In the input field, type in multiple instrument names, separated by commas. '
-    			+'The instrument should be an alphabet letter ranging from A to L. </p>'
-    			+'<p>3. Then click [Apply Filter] button to apply the filter.</p>';           
-    }     
-    else if(self.current_view==18){
-    	
-    	if(self.max_view_reached < 18){
-
-            var applyFilter = function(){
-                
-                var filter_return_successful = ifeed.filter.applyFilter();
-                if(self.current_view==18){
-                    
-                    var dropdown = d3.select(".filter.options.dropdown")[0][0].value;                    
-                    if(dropdown=="emptyOrbit" && filter_return_successful){
-                        self.activate_continue_button();
-                        if(self.max_view_reached < 18)  self.max_view_reached=18;
-                    }                
-                }
-            }
-
-            self.deactivate_continue_button();
-            d3.select(".filter.buttons")
-                    .select('#apply_filter_button')
-                    .on("click",applyFilter);
-            
-    	}
-        
-        ifeed.feature_application.clear_feature_application();
-        
-    	document.getElementById('tab2').click();
-    	ifeed.main_plot.highlight_support_panel();
-                
-        d3.select('.filter.options.dropdown')[0][0].value = "emptyOrbit";
-        ifeed.filter.initialize_preset_filter_input("emptyOrbit"); 
-        
-        title = "Preset Filters: Empty orbit";
-        objects = [d3.selectAll('#support_panel')[0][0]];
-
-        contents = ["<p>The filter called \'Empty orbit\' is used to selectively highlight designs that do not assign any instrument to the specified orbit. It takes in a single orbit name as an argument.</p>"];
-
-        classname='introjs_tooltip';
-        
-        prompt = '<p>To continue, follow the steps below:</p>'
-    			+'<p>1. Select \'Empty orbit\' option from the dropdown menu. </p>'
-    			+'<p>2. In the input field, type in an orbit name. '
-    			+'The orbit name should be a number in thousands (1000, 2000, 3000, 4000, or 5000). </p>'
-    			+'<p>3. Then click [Apply Filter] button to apply the filter.</p>';   
-    }
-        
-        
-//    else if(self.current_view==19){        
-//    	if(self.max_view_reached < 19){
-//
-//            var applyFilter = function(){
-//                
-//                var filter_return_successful = ifeed.filter.applyFilter();
-//                if(self.current_view==19){
-//                    
-//                    var dropdown = d3.select(".filter.options.dropdown")[0][0].value;                    
-//                    if(dropdown=="numOfInstruments" && filter_return_successful){
-//                        self.activate_continue_button();
-//                        if(self.max_view_reached < 19)  self.max_view_reached=19;
-//                    }                
-//                }
-//            }
-//
-//            self.deactivate_continue_button();
-//            d3.select(".filter.buttons")
-//                    .select('#apply_filter_button')
-//                    .on("click",applyFilter);
-//            
-//    	}
-//        
-//        ifeed.main_plot.cancel_selection('remove_highlighted');
-//    	document.getElementById('tab2').click();
-//    	ifeed.main_plot.highlight_support_panel();
-//                
-//        d3.select('.filter.options.dropdown')[0][0].value = "numOfInstruments";
-//        ifeed.filter.initialize_preset_filter_input("numOfInstruments"); 
-//        
-//        title = "Preset Filters: Number of instruments";
-//        objects = [d3.selectAll('#support_panel')[0][0]];
-//
-//        contents = ['<p>The filter called \'Number of instruments\' is used to selectively highlight designs that '
-//    			+'use the specified number of instruments. '
-//    			+'It has some flexibility in what arguments you can enter to this filter. </p>'
-//    			+'<p> - If orbit name and instrument names are not given (input field empty), '
-//    			+'then it will count the number of all instruments used in the design. </p>'
-//    			+'<p> - If orbit name is given, then it will count the number of instruments in that particular orbit. </p>'
-//    			+'<p> - If instrument name is given, then it will count the number of those instruments. </p>'
-//    			+'<p> (IMPORTANT: Either one of orbit name or instrument name should be empty)'];
-//
-//        classname='introjs_tooltip';
-//        
-//        prompt = '<p>To continue, follow the steps below:</p>'
-//                +'<p>1. Select \'Number of instruments\' option from the dropdown menu. </p>'
-//    			+'<p>2. Fill in the input fields. At least one of instrument or orbit names should be empty. The number cannot be empty.</p>'
-//    			+'<p>3. Then click [Apply as new feature] button to apply the filter.</p>';   
-//    }
-//    else if(current_view==23){
-//    	if(max_view_reached<23){
-//    		deactivate_continue_button();
-//    	}
-//    	d3.select("#tutorial_header").text("Preset Filters: Num of instruments in a subset")
-//    	d3.select("#tutorial_text_1").html('<p>The filter called \'Num of instruments in a subset\' is used to selectively highlight designs that assign to an orbit a certain number of instruments from a given set. For example, you can specify that at least 2 instruments out of {A,B,C,D,E} should be assigned to orbit 1000.To continue, follow the steps below:</p>'
-//                +'<p>1. Select \'Num of instruments in a subset\' option from the dropdown menu.</p>'
-//    			+'<p>2. Put in an orbit name.</p>'
-//    			+'<p>3. Put in the minimum and the maximum number of instruments.</p>'
-//    			+'<p>4. Put in a group of instruments to be counted.</p>'
-//    			+'<p>5. Then click [Apply as new feature] button to apply the filter.</p>'
-//    			+'<p>Now We\'ve covered many of the preset filters, but not all of them. You can test other filters that we haven’t used and see if you understand what they do.</p>');
-//    
-//    	document.getElementById('tab2').click();
-//    	highlight_support_panel();
-//    	
-//    	d3.select('#filter_options').select('select')
-//    		.style('border-width','5px')
-//    		.style('border-style','solid')
-//    		.style('border-color','#FF2D65');
-//        
-//    	d3.select('#applyFilterButton_new')
-//    		.style('border-width','5px')
-//    		.style('border-style','solid')
-//    		.style('border-color','#FF2D65');
-//    }
-
-    else if(self.current_view==19){
+        d3.selectAll('.dot.main_plot.cursor').remove();
         
         ifeed.main_plot.cancel_selection();
         experiment.select_archs_using_ids(tutorial_selection);
@@ -735,17 +481,19 @@ function ExperimentTutorial(ifeed,experiment){
         objects = [d3.selectAll('#support_panel')[0][0]];
 
         contents = ["Feature Analysis tab contains a plot that shows how much coverage and specificity each feature has. ",
-                    
+                                        
                     "Each feature is represented by a triangle or a cross. Crosses represent the features that are added recently, and the rest of the features are represented by triangles.",
                     
-                   "<p>The horizontal axis corresponds to the specificity, and the vertical axis corresponds to the coverage of a feature. </p><p>Since we want both high specificity and good coverage, your goal is to find features that will be located on the top-right corner of the plot. The star on the top-right shows the goal that you should try to reach.</p>"];
+                    "The features that are already present in the plot are obtained by running a data mining algorithmn.",
+                    
+                   "<p>In the plot, the horizontal axis corresponds to the specificity, and the vertical axis corresponds to the coverage of a feature. </p><p>Since we want both high specificity and good coverage, your goal is to find features that will be located on the top-right corner of the plot. The star on the top-right shows the goal that you should try to reach.</p>"];
 
         classname = 'introjs_tooltip';
                 
         prompt = "";
         
     }
-    else if(self.current_view==20){
+    else if(self.current_view==17){
                 
         document.getElementById('tab3').click();
         ifeed.main_plot.highlight_support_panel();
@@ -756,7 +504,7 @@ function ExperimentTutorial(ifeed,experiment){
 
         contents = ["If you hover your mouse over each feature, you will notice three changes occurring in the interface.",
                    
-                   "First, a set of dots on the scatter plot will be highlighted in pink and purple color, in the same way as when you used the filter. Again, those designs have the feature that you are currently inspecting.",
+                   "First, a set of dots on the scatter plot will be highlighted in pink and purple color. Again, pink and purple dots represent designs have the feature that you are currently inspecting (purple is the overlap between pink and blue)",
                    
                    "<p>Second, a Venn diagram appears on the right side of the Feature Analysis tab. The Venn diagram shows the composition of the designs under different sets.</p><p> The size of the blue circle corresponds to the number of designs that are inside the target region, and the size of the pink circle corresponds to the number of designs that have the current feature.</p>",
                    
@@ -773,7 +521,7 @@ function ExperimentTutorial(ifeed,experiment){
         prompt = "";
         
     }        
-    else if(self.current_view==21){
+    else if(self.current_view==18){
 
         document.getElementById('tab3').click();
         ifeed.main_plot.highlight_support_panel();
@@ -790,7 +538,7 @@ function ExperimentTutorial(ifeed,experiment){
                   d3.select('#feature_application_panel')[0][0]
                   ];
 
-        contents = ["Feature Application Panel allows you to modify and combine different features to create more complicated ones.",
+        contents = ["Feature Application Panel shows the current feature that is applied.",
                    
                    "<p>To add features to the Feature Application Panel, you have to click on one of the features shown on the Feature Analysis tab.</p><p> Hovering your mouse over the features will result in temporary change in the Feature Application Panel, and by clicking you can fix the change.</p>",
                     
@@ -800,15 +548,14 @@ function ExperimentTutorial(ifeed,experiment){
                    
                    "In the graphical representation, there are two kinds of nodes: nodes for logical connectives and nodes for individual features. The logical connectives are colored in blue, and they can be either AND or OR.",
                     
-                   "As shown in the corresponding feature expression, all feature nodes inside the same logical connective node are inside the same bracket and are combined using the same logical connection.",
-                   
-                   "You can view possible actions by right-clicking on each node. There may be different set of options depending on which node it is. We will go over these in the next section."];
+                   "As shown in the corresponding feature expression, all feature nodes inside the same logical connective node are inside the same bracket and are combined using the same logical connection."];
 
         classname = 'introjs_tooltip_large';
         
         prompt = "";        
     }
-    else if(self.current_view==22){
+        
+    else if(self.current_view==19){
 
         document.getElementById('tab3').click();
         ifeed.main_plot.highlight_support_panel();
@@ -820,10 +567,11 @@ function ExperimentTutorial(ifeed,experiment){
                   null,
                   null,
                   null,
-                  d3.select('#support_panel')[0][0],
+                  d3.select('.columns')[0][0],
                   d3.select('.column.c2')[0][0]];
 
-        contents = ["<p>We will go over some of the options associated with each node. </p><p>First, right-click on one of the feature nodes, and select \"Add Parent Branch\". It adds a new logical connective node as a parent.</p>",
+        contents = [
+                   "<p>You can view possible actions on the feature application display, by right-clicking each node. There may be different set of options depending on which node it is. We will go over some of the options associated with each node. </p><p>First, right-click on one of the feature nodes, and select \"Add Parent Branch\". It adds a new logical connective node as a parent.</p>",
                    
                    "Right-click the same node and select \"Duplicate\". A new branch will appear, duplicating the content of the original node.",
                    
@@ -844,8 +592,10 @@ function ExperimentTutorial(ifeed,experiment){
         prompt = "";    
         
         
-    }   
-    else if(self.current_view==23){
+    }           
+        
+        
+    else if(self.current_view==20){
 
         document.getElementById('tab3').click();
         ifeed.main_plot.highlight_support_panel();
@@ -856,20 +606,27 @@ function ExperimentTutorial(ifeed,experiment){
         objects = [d3.select('#feature_expression_panel')[0][0],
                   d3.select('#support_panel')[0][0],
                   d3.select('#feature_expression_panel')[0][0],
+                   null,
                   d3.select('#support_panel')[0][0],
+                  d3.select('#feature_expression_panel')[0][0],
+                   null,
                    null,
                   d3.select('#clear_all_features')[0][0]];
         
 
-        contents = ["You can automatically improve the currently selected feature by clicking the buttons in Feature Application Panel.",
-                   
+        contents = ["While you can test different features by manually modifying the feature, there are also automatic helper functions that improve the currently selected feature.",
+                                       
                    "First, select a feature that you want to improve, and add it to the feature application panel by clicking it",
                    
-                   "Then click either \"Improve specificity\", or \"Improve coverage\" button to improve one of the metrics",
+                   "Then click either \"Improve specificity\", or \"Improve coverage\" button to improve one of the metrics. ",
+                    
+                    "\"Improve specificity\" button improves specificity by adding a new feature using AND (conjucntion), while \"Improve coverage\" improves coverage by adding a new feature using OR (disjunction).",
                     
                     "If there is a feature that improves currently existing set of features, it will appear in the Feature plot as a cross.",
                     
-                    "You can use this capability to improve features until you get close to the utopia point.",
+                    "You can use this capability to generate features that are as close to the utopia point (feature with both good coverage and specificity) as possible.",
+                    
+                    "Using this capability is very important for finding and learning about the feature.",
                    
                    "Finally, you can remove the current feature by clicking \"clear\" button."];
 
@@ -879,7 +636,11 @@ function ExperimentTutorial(ifeed,experiment){
         
         
     }          
-    else if(self.current_view==24){ 
+                    
+        
+        
+        
+    else if(self.current_view==21){ 
         
         document.getElementById('tab3').click();
         ifeed.main_plot.highlight_support_panel();
@@ -891,15 +652,15 @@ function ExperimentTutorial(ifeed,experiment){
 
         contents = ["<p>We went over all the features of iFEED! Here you will learn some basic strategies you can take to find the good features. </p><p>Try to follow the directions now and generate your own feature. </p>",
                     
-                    "<p>First, it is a good idea to build upon the features that are found by the data mining, as they provide relatively good starting points.</p><p>Start with a general feature (having good coverage), and try to combine it with other features using ANDs to make it more specific.</p>",
+                    "<p>First, it is a good idea to build upon the features that are found by the data mining, as they provide relatively good starting points.</p><p>Select with a general feature (having good coverage), and try making it more specific using \"Improve specificity\" button.</p>",
                     
                     "<p>In other words, start with a feature that is on the top-left corner (in the figure inside Feature Analysis tab), and try to move the cursur to the right side of the plot.</p>",
                     
-                    "<p>If you think the feature is too specific (having poor coverage), then put it inside an OR node by using \"Add Parent Branch\" on the root node (the leftmost node). </p><p>Then, add a new general feature inside the OR node.</p>",
+                    "<p>Then select one of the generated features (crosses). If you think the feature is too specific (having poor coverage), then try making it more general by using \"Improve coverage\" button. </p>",
                     
-                    "<p>Now try to make it specific again by adding new nodes under the newly created AND node.</p>",        
+                    "<p>Now try to make it specific again using \"Improve specificity\" buttonn. </p>",        
         
-                    '<p>A good feature will likely consist of both ANDs and ORs in combination.</p>'];
+                    '<p>As shown in before, a good feature will likely be the result of repeating this process, improving the coverage and the specificity of the features.</p>'];
 
         classname = 'introjs_tooltip_large';
         
@@ -907,7 +668,7 @@ function ExperimentTutorial(ifeed,experiment){
         
         
     }    
-    else if(self.current_view==25){ 
+    else if(self.current_view==22){ 
     	self.deactivate_continue_button();
     	
         document.getElementById('tab3').click();
@@ -925,9 +686,15 @@ function ExperimentTutorial(ifeed,experiment){
         prompt = '<p style="font-weight:bold;">This is the end of the tutorial. '
     		+'Once you start the experiment, you will not be able to return to this tutorial. If you don\'t understand specific'
     		+' part of this tool, you can go back to that section now and review the material or ask questions to the experimenter. </p>'
-    		+'<p style="font-weight:bold;">In the experiment, you will be given 3 tasks. For each task, you will be provided with a different set of capabilities to do the analysis. For some tasks, you will have only a subset tools introduced in this tutorial.</p>'
-            +'<p>The goal of all tasks is to find good features that have good specificity and coverage.</p>'
-    		+'<p style="font-weight:bold">After each task is finished, you will be asked to verbally describe to us what interesting features you have just found. Please let the experimenter know when you finish each task. </p>'
+        
+    		+'<p style="font-weight:bold;">In the experiment, you will be given 2 tasks. For each task, you will be provided with only a subset capabilities introduced in this tutorial.</p>'
+        
+            +'<p>The goal of all tasks is to learn what are the good features that have good specificity and coverage.</p>'
+
+    		+'<p style="font-weight:bold">After each task is finished, you will be given a problem set to solve. The problem set asks you to identify whether an arbitrary design will be located in the target region or not. It is designed to test how much you have learned about what features make a good design. </p>' 
+        
+            +'<p>Please let the experimenter know when you finish each task. </p>'
+        
     		+'<p>Now you can move on to the experiment by clicking the button below. Good luck!</p>';
         
         
@@ -940,23 +707,13 @@ function ExperimentTutorial(ifeed,experiment){
                 .text('Start the Experiment')
                 .on('click',start_experiment);
 
-        
-//    	d3.select('#tutorial_text_1')
-//    		.insert('button')
-//    		.attr("type","button")
-//    		.attr("id","experiment_start_button")
-//    		.style("width","220px")
-//    		.style("height","30px")
-//    		.style("margin-top:20px");
-//    	d3.select("#experiment_start_button")
-//    		.text("Start the Experiment")
-//    		.on("click", start_experiment);
+
     }
         
     
     self.write_prompt(title,prompt);
     
-    if(self.current_view!=25){
+    if(self.current_view!=22){
         self.start_intro(objects,contents,classname,callback);
     }    
 
@@ -970,32 +727,8 @@ function ExperimentTutorial(ifeed,experiment){
 
 
 
-//function credential_check(){
-//
-//    var cred = window.location.search;
-//    if(cred){
-//        cred = cred.substring(1);
-//        account_id = cred;
-//        testType = "3";
-//    }else{
-//        testType = "3";
-//        account_id = "3123123123";
-//    }
-//    
-//
-//    max_view_reached = 5;
-//    current_view=5;
-//    displayed_view=5;
-//
-//    // Import data with reduced data set for tutorial
-//    import_new_data("/results/reduced_data.csv");
-//    display_views();
-//    unhighlight_support_panel();
-//}
-
-
 function start_experiment(){
-    window.location.replace("http://52.14.7.76/experiment");
+    window.location.replace("https://www.selva-research.com/experiment/");
 }
 
 

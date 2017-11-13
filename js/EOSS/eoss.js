@@ -148,7 +148,7 @@ function EOSS(ifeed){
 
     self.display_arch_info = function(data) {
         
-        var booleanArray = ifeed.experiment.encodeBitStringBool(data.inputs);
+        var booleanArray = data.inputs;
         
         var bitString = null;
         

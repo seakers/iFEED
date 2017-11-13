@@ -66,7 +66,7 @@
     
 var account_id;
 var current_view;
-var max_view=25;
+var max_view=22;
 
 
 function tutorial_go_back(){
@@ -183,7 +183,7 @@ function display_views(){
 		d3.select('#main_div').insert('p','#main_img2')
 				.attr('id','main_text2')
 				.style('font-size','22px')
-				.html('<p>The figure shows which set of measurement instruments are assigned to fly in each orbit. Each row represents one '
+				.html('<p>The figure shows which set of measurement instruments is assigned to fly in each orbit. Each row represents one '
                       +'spacecraft flying in a specified orbit. The columns represent what measurement instruments are onboard each of those spacecraft.</p>'
                      
                      +'<p>The real names of orbits and instruments were changed to numbers and alphabetical letters respectively, to simplify the analysis task. There are total 5 candidate orbits, and 12 available measurement instruments as shown below.</p>');
@@ -203,10 +203,8 @@ function display_views(){
 		d3.select('#main_div').insert('p','#main_img2')
 			.attr('id','main_text2')
 			.style('font-size','22px')
-			.html('<p>Your goal in this experiment is to find a “good” feature (e.g. instrument-to-orbit assignments) '
-                  +'that are shared uniquely by the good designs. The following sections of the tutorial will explain what we mean by a “good” feature, and how to find them using iFEED.</p>'
-                 
-                 +'<p>Now let\'s look at how the iFEED interface looks like. Loading the next page may take few seconds.</p>');					
+			.html('<p>Your goal in this experiment is to find and learn the patterns '
+                  +'that are shared uniquely by the good designs. The following sections of the tutorial will explain how to find those patterns using iFEED.</p>');					
 
 	}
 	
