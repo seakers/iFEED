@@ -749,8 +749,7 @@ var decodeArch = function(inputString){
         var thisOrbitRelabeled = experiment.orbitOrder[i];
         var instruments = inputSplit[i];
         for(var j=0;j<instruments.length;j++){
-            var thisInstr = experiment.instrList[instruments[j]];
-            var thisInstrRelabeled = experiment.instrOrder.indexOf(thisInstr);
+            var thisInstrRelabeled = experiment.instrOrder[instruments[j]];
             bitString[thisOrbitRelabeled*12+thisInstrRelabeled]=true;
         }
     }
