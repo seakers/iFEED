@@ -234,16 +234,19 @@ function MainPlot(ifeed){
 
         var arch = d;
         
-        d3.select('#arch_info_display_outputs')
-            .insert("button",":first-child")
-            .attr('id','run_design_local_search')
-            .text('Run local search')
-            .on('click',function(){
-                clearInterval(self.cursor_blink_interval);
-                d3.selectAll('.dot.main_plot.cursor.blink').style("opacity",1);
-                PubSub.publish(RUN_LOCAL_SEARCH,arch);
-            });
-        
+        if(!d3.select('#run_design_local_search')[0][0]){
+            d3.select('#arch_info_display_outputs')
+                .insert("button",":first-child")
+                .attr('id','run_design_local_search')
+                .text('Run local search')
+                .on('click',function(){
+                    clearInterval(self.cursor_blink_interval);
+                    d3.selectAll('.dot.main_plot.cursor.blink').style("opacity",1);
+                    PubSub.publish(RUN_LOCAL_SEARCH,arch);
+                });
+        }
+                
+        ifeed.problem.display_instrument_options();
         
         d3.selectAll('.main_plot.dot.cursor.blink')
                 .attr("transform", function (d) {
@@ -254,7 +257,7 @@ function MainPlot(ifeed){
                 .transition()
                 .duration(500);
         
-        d3.selectAll('.main_plot.dot.cursor:not(.blink)').remove();     
+        d3.selectAll('.main_plot.dot.cursor:not(.blink)').remove();   
         
         
         var _current_architecture = d3.select('.main_plot.objects').selectAll('.main_plot.dot.cursor.blink')
@@ -704,10 +707,11 @@ function MainPlot(ifeed){
         PubSub.publish(SET_CURRENT_ARCHITECTURE, arch);
         
         ifeed.problem.display_arch_info(arch);
-        ifeed.problem.display_instrument_options();
-
+        
         document.getElementById('tab1').click();
         
+        d3.select('#instr_options_display').remove();
+
         clearInterval(self.cursor_blink_interval);
         d3.select('.main_plot.dot.cursor.blink').remove();
         self.cursor_blink_interval=null;

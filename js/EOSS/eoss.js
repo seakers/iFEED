@@ -392,6 +392,12 @@ function EOSS(ifeed){
         
         var instrOptions = support_panel.insert("div","#arch_info_display_outputs + *").attr('id','instr_options_display');
         
+        instrOptions.append('p')
+                .text('Candidate Instruments')
+                .style('margin','auto')
+                .style('font-weight','bold')
+                .style('font-size','16px');
+        
         var table = instrOptions
                 .append("table")
                 .attr("id", "instr_options_table");
