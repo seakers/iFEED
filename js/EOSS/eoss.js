@@ -141,7 +141,7 @@ function EOSS(ifeed){
         
         PubSub.publish(DATA_PROCESSED,preprocessed);
         
-        PubSub.publish(EXPERIMENT_START,null);
+        //PubSub.publish(EXPERIMENT_START,null);
     });     
 
     

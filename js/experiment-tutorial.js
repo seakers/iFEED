@@ -54,7 +54,7 @@ function ExperimentTutorial(ifeed,experiment){
     
     d3.select('#arrow_div').insert('button','#move_forward_button')
             .attr('id','reopen_intro_button')
-            .text('Re-open messages')
+            .text('Reopen messages')
             .on('click',function(){self.intro.start();});
     
     d3.select("#move_forward_button").on("click",self.tutorial_continue);
@@ -204,6 +204,25 @@ function ExperimentTutorial(ifeed,experiment){
             title = "Analysis Panel and Inspecting Design by Hovering";
             prompt = '';
         }
+        
+        else if(self.current_view==9){ 
+            
+            document.getElementById('tab1').click();
+            ifeed.main_plot.unhighlight_support_panel();
+            
+            objects = [d3.selectAll('#support_panel')[0][0],d3.select('.column.c1')[0][0]];
+            
+            contents = ['The analysis panel is located below the scatter plot panel.',
+                       'If you hover your mouse over a design on the scatter plot, the relevant information will be displayed on the \"Inspect Design\" tab.',
+                        'The displayed information contains the science benefit score and the cost, as well as a figure that shows what instruments are assigned to each orbit.'];
+
+            classname = 'introjs_tooltip_large';
+            
+            title = "Modifying designs";
+            prompt = '';
+        }        
+        
+        
         
         
         else if(self.current_view==9){
@@ -767,7 +786,7 @@ function ExperimentTutorial(ifeed,experiment){
                    null,
                    d3.select('#feature_application_panel')[0][0],
                   null,
-                  d3.select('#feature_expression_panel:first-child')[0][0]];
+                  d3.select('#feature_expression_panel:first-child')[0][0],
                   d3.select('#feature_application_panel')[0][0]
                   ];
 
@@ -850,7 +869,7 @@ function ExperimentTutorial(ifeed,experiment){
                     
                     "If there is a feature that improves currently existing set of features, it will appear in the Feature plot as a cross.",
                     
-                    "You can use this capability to improve features until you get close to the utopia point."
+                    "You can use this capability to improve features until you get close to the utopia point.",
                    
                    "Finally, you can remove the current feature by clicking \"clear\" button."];
 
