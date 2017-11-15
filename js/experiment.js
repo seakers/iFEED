@@ -108,9 +108,16 @@ function Experiment(ifeed){
         
 
         // Change the prompt message and the target selection
+        
+        
         if(self.condition_number==0){
-
-            d3.select("#prompt_header").text("Task "+(self.task_order.indexOf(self.task_number)+1)+": Target Region (a)");
+            if(self.task_number==0){
+                d3.select("#prompt_header").text("Task "+(self.task_order.indexOf(self.task_number)+1)+": Target Region (a)");
+                self.select_archs_using_ids(lower_cost_lower_perf);
+            }else{
+                d3.select("#prompt_header").text("Task "+(self.task_order.indexOf(self.task_number)+1)+": Target Region (b)");
+                self.select_archs_using_ids(higher_cost_higher_perf);
+            }
             d3.select('#prompt_body_text_1').html('<p> - You can hover your mouse over each design to see the relevant information.</p>'
                                         +'<p> - You can modify the existing design and check its performance and cost.</p>'
                                         +'<p> - You can run a local search that randomly tries several designs with the similar configurations.</p>'
@@ -121,7 +128,13 @@ function Experiment(ifeed){
             
         }
         else if(self.condition_number==1){
-            d3.select("#prompt_header").text("Task "+(self.task_order.indexOf(self.task_number)+1)+": Target Region (b)");
+            if(self.task_number==0){
+                d3.select("#prompt_header").text("Task "+(self.task_order.indexOf(self.task_number)+1)+": Target Region (a)");
+                self.select_archs_using_ids(lower_cost_lower_perf);
+            }else{
+                d3.select("#prompt_header").text("Task "+(self.task_order.indexOf(self.task_number)+1)+": Target Region (b)");
+                self.select_archs_using_ids(higher_cost_higher_perf);
+            }
             d3.select('#prompt_body_text_1').html('<p> - You can hover your mouse over each design to see the relevant information.</p>'
                                         +'<p> - You can view the feature analysis tab with data mining results displayed on it.</p>'
                                         +'<p> - You can try making features more general or specific by modifying each feature. </p>'
@@ -132,12 +145,6 @@ function Experiment(ifeed){
             d3.select('#experiment_prompt_div').style('background-color','#ABFFB3');
         }
 
-        
-        if(self.task_number==0){
-            self.select_archs_using_ids(lower_cost_lower_perf);
-        }else if(self.task_number==1){
-            self.select_archs_using_ids(higher_cost_higher_perf);
-        }
         
         d3.selectAll('.dot.main_plot.cursor').remove();
         
