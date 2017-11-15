@@ -89,6 +89,11 @@ function Experiment(ifeed){
             if(t.total<=0){
                 self.stopTimer();
                 alert('The task is finished! Please let the experimenter know that you have finished the task. Do not proceed unless directed to do so.')
+                
+                if(self.task_order.indexOf(self.task_number)==1){
+                    self.next_task();
+                }
+                
                 return;
             }
         }
