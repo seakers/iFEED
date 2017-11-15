@@ -58,44 +58,48 @@ and open the template in the editor.
         <div class='row c1 r1'>
             <figure class='main_plot figure'></figure>
             <div class='main_plot options'>
-                <div id='interaction_modes'>
-                    <div>Mouse Selection</div>
-                    <div class="tooltip">
-<!--                        <span class="tooltiptext">Zoom/Pan: This option allows zooming/panning on the scatter plot</span>-->
-                        <div style="margin-top:3px">
-                            Zoom/Pan:
-                            <input class="main_plot interaction_mode" id="zoom-pan" type="radio" checked="True"/>
+                <div>                    
+                    <div id='interaction_modes'>
+                        <div>Mouse Selection</div>
+                        <div class="tooltip">
+    <!--                        <span class="tooltiptext">Zoom/Pan: This option allows zooming/panning on the scatter plot</span>-->
+                            <div style="margin-top:3px">
+                                Zoom/Pan:
+                                <input class="main_plot interaction_mode" id="zoom-pan" type="radio" checked="True"/>
+                            </div>
+                        </div>
+                        <div class="tooltip">
+    <!--                        <span class="tooltiptext">Drag-select: This option allows selecting designs by dragging over points</span>-->
+                            <div>
+                                Drag-select:
+                                <input class="main_plot interaction_mode" id="drag-select" type="radio"/>
+                            </div>
+                        </div>
+                        <div class="tooltip">
+    <!--                        <span class="tooltiptext">Deselect: This option allows de-selecting designs by dragging over points</span> -->
+                            <div>
+                                Deselect: 
+                                <input class="main_plot interaction_mode" id="de-select" type="radio"/>
+                            </div>
                         </div>
                     </div>
-                    <div class="tooltip">
-<!--                        <span class="tooltiptext">Drag-select: This option allows selecting designs by dragging over points</span>-->
+                    <div id='selection_options'>
+<!--
                         <div>
-                            Drag-select:
-                            <input class="main_plot interaction_mode" id="drag-select" type="radio"/>
+                            <div>Range Selection</div>
+                            Cost range: <br/>
+                            <input id="selectArchsWithinRange_minCost" class="select_within_range_text_box" type="text" value="0"/>&nbsp; ~&nbsp; <input id="selectArchsWithinRange_maxCost" class="select_within_range_text_box" type="text" value="inf"/>
+                            <br/>
+                            Science Benefit range: <br/>
+                            <input id="selectArchsWithinRange_minScience" class="select_within_range_text_box" type="text" value="0"/>&nbsp; ~&nbsp; <input id="selectArchsWithinRange_maxScience" class="select_within_range_text_box" type="text" value="1"/>
+                            <br/>
+                            <button type="button" id="selectArchsWithinRangeButton" >Select Designs</button>
                         </div>
-                    </div>
-                    <div class="tooltip">
-<!--                        <span class="tooltiptext">Deselect: This option allows de-selecting designs by dragging over points</span> -->
-                        <div>
-                            Deselect: 
-                            <input class="main_plot interaction_mode" id="de-select" type="radio"/>
-                        </div>
-                    </div>
-                </div>
-                <div id='selection_options'>
-                    <div>
-                        <div>Range Selection</div>
-                        Cost range: <br/>
-                        <input id="selectArchsWithinRange_minCost" class="select_within_range_text_box" type="text" value="0"/>&nbsp; ~&nbsp; <input id="selectArchsWithinRange_maxCost" class="select_within_range_text_box" type="text" value="inf"/>
-                        <br/>
-                        Science Benefit range: <br/>
-                        <input id="selectArchsWithinRange_minScience" class="select_within_range_text_box" type="text" value="0"/>&nbsp; ~&nbsp; <input id="selectArchsWithinRange_maxScience" class="select_within_range_text_box" type="text" value="1"/>
-                        <br/>
-                        <button type="button" id="selectArchsWithinRangeButton" >Select Designs</button>
-                    </div>
-                    <button type="button"  id="hide_selection">Hide selections</button>
-                    <button type="button"  id="show_all_archs">Show all architectures</button> 
-                    <button type="button"  id="cancel_selection">Cancel all selections</button>
+-->
+                        <button type="button"  id="hide_selection">Hide selections</button>
+                        <button type="button"  id="show_all_archs">Show all architectures</button> 
+                        <button type="button"  id="cancel_selection">Cancel all selections</button>
+                    </div>                    
                 </div>
             </div>
         </div>

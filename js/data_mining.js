@@ -794,7 +794,7 @@ function DataMining(ifeed){
                             "<br> Confidence(F->S): " + round_num(d.metrics[2]) + 
                             "<br> Confidence(S->F): " + round_num(d.metrics[3]) +"";
                             return output;
-                        }).style("padding","8px")
+                        }).style("padding","14px")
                         .style('color','#F7FF55')
                         .style('word-wrap','break-word');   
 

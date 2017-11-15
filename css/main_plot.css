@@ -85,6 +85,26 @@
     border:1px black double;
 }
 
+.main_plot.options > div{
+    width:200px;
+    margin:auto;
+}
+
+#interaction_modes{
+    margin-top:20px;
+    background: #D2D2D2;
+    padding:10px;
+}
+
+#selection_options{
+    margin-top:20px;
+}
+
+#selection_options > button{
+    width:180px;
+    margin-top: 10px;
+    margin-left: 5px;
+}
 
 
 .row.c1.r2{
