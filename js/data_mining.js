@@ -1067,12 +1067,17 @@ function DataMining(ifeed){
 
 
     PubSub.subscribe(ADD_FEATURE, (msg, data) => {
-        self.add_feature_to_plot(data)
+        self.add_feature_to_plot(data);
     });  
     
     PubSub.subscribe(DRAW_VENN_DIAGRAM, (msg, data) => {
-        self.draw_venn_diagram()
+        self.draw_venn_diagram();
     });     
+    
+    PubSub.subscribe(INITIALIZE_DATA_MINING, (msg, data) => {
+        self.initialize();
+    });     
+      
     
     self.initialize();
 }

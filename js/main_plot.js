@@ -355,6 +355,9 @@ function MainPlot(ifeed){
                 ifeed.data_mining.initialize();
             }
             
+            ifeed.UI_states.selection_changed=true;
+            PubSub.publish(INITIALIZE_DATA_MINING,null);
+            
         }else if(option=='remove_selection'){
             
             // Remove only selection only
@@ -374,6 +377,9 @@ function MainPlot(ifeed){
                 ifeed.UI_states.selection_changed=true;
                 ifeed.data_mining.initialize();
             }
+            
+            ifeed.UI_states.selection_changed=true;
+            PubSub.publish(INITIALIZE_DATA_MINING,null);
             
         }else if(option=='remove_highlighted'){
             
