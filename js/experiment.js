@@ -128,8 +128,8 @@ function Experiment(ifeed){
                                         +'<p> - You can run a local search that randomly tries several designs with the similar configurations.</p>'
                                         +'<p>** You are encouraged to take notes (either physically on a piece of paper or electronically using a notepad)</p>');
 
-            d3.select('body').style('background-color','#FFEDF3');
-            d3.select('#experiment_prompt_div').style('background-color','#FFFFFF');   
+            d3.select('body').style('background-color','#FFFFFF');
+            d3.select('#experiment_prompt_div').style('background-color','#FFC1D4');   
             
         }
         else if(self.condition_number==1){
@@ -146,8 +146,8 @@ function Experiment(ifeed){
                                         +'<p>** You are encouraged to take notes (either physically on a piece of paper or electronically using a notepad)</p>');
 
 
-            d3.select('body').style('background-color','#F5FFF6');
-            d3.select('#experiment_prompt_div').style('background-color','#FFFFFF');
+            d3.select('body').style('background-color','#FFFFFF');
+            d3.select('#experiment_prompt_div').style('background-color','#ABFFB3');
         }
 
         
