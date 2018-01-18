@@ -3,10 +3,12 @@ function EOSS(ifeed){
     var self = this;
 
     // Initialize the member attributes 
-    self.orbit_list = [];
-    self.instrument_list = [];
-    self.orbit_num = null;
-    self.instrument_num = null;
+    // self.orbit_list = [];
+    // self.instrument_list = [];
+    // self.orbit_num = null;
+    // self.instrument_num = null;
+
+
     //self.i = 0;
     
     // Set the problem instance
@@ -130,12 +132,7 @@ function EOSS(ifeed){
     
 
     PubSub.subscribe(DATA_IMPORTED, (msg, data) => {
-        
-        self.orbit_list = self.get_orbit_list();
-        self.instrument_list = self.get_instrument_list(); 
-        self.orbit_num = self.orbit_list.length;
-        self.instrument_num = self.instrument_list.length;   
-        
+                
         var preprocessed = self.preprocessing(data);
         
         PubSub.publish(DATA_PROCESSED,preprocessed);
@@ -561,6 +558,11 @@ function EOSS(ifeed){
     
     PubSub.subscribe(SET_CURRENT_ARCHITECTURE, (msg, data) => {
         self.current_bitString = self.booleanArray2String(data.inputs)
-    });      
-    
+    });   
+
+
+    self.orbit_list = self.get_orbit_list();
+    self.instrument_list = self.get_instrument_list(); 
+    self.orbit_num = self.orbit_list.length;
+    self.instrument_num = self.instrument_list.length;       
 }

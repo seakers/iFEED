@@ -147,3 +147,25 @@ function dominates(metrics1,metrics2,objective){
     }
 }
 
+
+// Returns if a value is an array
+function isArray (value) {
+	return value && typeof value === 'object' && value.constructor === Array;
+};
+
+
+// Get function from string, with or without scopes (by Nicolas Gauthier: https://stackoverflow.com/questions/912596/how-to-turn-a-string-into-a-javascript-function-call)
+function getFunctionFromString(string)
+{
+    var scope = this;
+    console.log(scope);
+    var scopeSplit = string.split('.');
+    for (i = 0; i < scopeSplit.length - 1; i++)
+    {
+        scope = scope[scopeSplit[i]];
+
+        if (scope == undefined) return;
+    }
+
+    return scope[scopeSplit[scopeSplit.length - 1]];
+}

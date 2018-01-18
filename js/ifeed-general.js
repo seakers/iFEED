@@ -1,12 +1,14 @@
 
-// Inspecting an architecture using a mouse
+// Inspecting an architecture using a mouse (tradespace_plot.js)
 const INSPECT_ARCH = "inspect_arch";
-// New selection made
+// New selection made (tradespace_plot.js)
 const SELECTION_UPDATED = "selection_updated";
 
+// Apply feature expression (filter.js)
+const APPLY_FEATURE_EXPRESSION = "apply_feature_expression";
 
-
-
+// Highlight architectures (tradespace_plot.js)
+const HIGHLIGHT_ARCHITECTURES = "highlight_architectures";
 
 
 
@@ -15,7 +17,6 @@ const INITIALIZE_FEATURE_APPLICATION = "initialize_feature_application";
 const INITIALIZE_DATA_MINING = "initialize_data_mining";
 const DRAW_VENN_DIAGRAM = "draw_venn_diagram";
 const ADD_FEATURE = "add_feature";
-const APPLY_FEATURE_EXPRESSION = "apply_feature_expression";
 const UPDATE_FEATURE_APPLICATION = "update_feature_application";
 const CANCEL_ADD_FEATURE = "cancel_add_feature";
 const DATA_IMPORTED = "data_imported";

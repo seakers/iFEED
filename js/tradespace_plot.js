@@ -47,6 +47,9 @@ class TradespacePlot{
             this.update(this.xIndex, this.yIndex);
         });
 
+        PubSub.subscribe(HIGHLIGHT_ARCHITECTURES, (msg, data) => {
+            this.highlight_architectures(data);
+        });
 
         // PubSub.subscribe("update_target_selection", (msg) => {
         //     this.update_target_selection();
@@ -740,8 +743,23 @@ class TradespacePlot{
         }
     }
 
-
-
+    highlight_architectures(arch_id_list){
+        if (!arch_id_list){
+            this.cancel_selection("remove_highlighted");
+        }
+        else if(arch_id_list.length == 0){
+            this.cancel_selection("remove_highlighted");
+        }
+        else{
+            this.data.forEach( (point) => {
+                if (arch_id_list.indexOf(point.id) != -1){
+                    point.highlighted = true;
+                    this.setPointColor(point);
+                }
+            }); 
+            this.drawPoints(this.context, false);
+        }
+    }    
 
 
 
@@ -751,57 +769,41 @@ class TradespacePlot{
 
     
     // self.hide_selection = function(){
-        
     //     var selected = d3.selectAll(".dot.tradespace_plot.selected");
-
     //     selected.classed('hidden',true)
     //             .classed('selected',false)
     //             .classed('highlighted',false)
     //             .style('fill',self.color.default)
     //             .style("opacity", 0.085);
-
     //     d3.select("#num_of_selected_archs").text(""+self.get_num_of_selected_archs());
     //     d3.select("#num_of_archs").text(""+self.get_num_of_archs());
     // }
 
-    
-
     // self.show_all_archs = function(){
-        
     //     var hidden = d3.selectAll(".dot.tradespace_plot.hidden");
     //     hidden.classed('hidden',false)
     //             .style("opacity",1);
-
     //     d3.select("#num_of_selected_archs").text(""+self.get_num_of_selected_archs());
     //     d3.select("#num_of_archs").text(""+self.get_num_of_archs());
     // }
-    
-    
 
 
 
 
-    highlight_support_panel(){
+
+    activate_support_panel(){
         d3.select(".tradespace_plot.figure")
             .style("border-width","1px");
         d3.select("#support_panel")
             .style("border-width","3.3px");
-
-        ifeed.UI_states.support_panel_active=true;
     }
 
-
-    unhighlight_support_panel(){
-
+    deactivate_support_panel(){
         d3.select(".tradespace_plot.figure")
                 .style("border-width","3.3px");
         d3.select("#support_panel")
-                .style("border-width","1px");
-        
-        ifeed.UI_states.support_panel_active=false;
+                .style("border-width","1px");        
     }
-    
-    
     
     
 }
