@@ -131,6 +131,7 @@ and open the template in the editor.
 
 <script src="js/util.js" type="text/javascript"></script>
 <script src="js/ifeed-general.js" type="text/javascript"></script>
+<script src="js/problem.js" type="text/javascript"></script>
 <script src="js/tradespace_plot.js" type="text/javascript"></script>
 <script src="js/filter.js" type="text/javascript"></script>
 <script src="js/label.js" type="text/javascript"></script>
@@ -147,13 +148,11 @@ and open the template in the editor.
     
     var ifeed = new IFEED();
 
-    var eoss = new EOSS(ifeed);
-    ifeed.problem = eoss;
+    var eoss = new EOSS();
 
-    var eossLabel = new EOSSLabel(false, eoss.orbit_list, eoss.instrument_list);
-    ifeed.label = eossLabel;
+    var eossLabel = new EOSSLabel();
     
-    var tradespace_plot = new TradespacePlot(ifeed.metadata.output_list);
+    var tradespace_plot = new TradespacePlot();
     ifeed.tradespace_plot=tradespace_plot;
     
     var filter = new EOSSFilter(eossLabel);
@@ -166,9 +165,7 @@ and open the template in the editor.
     // ifeed.feature_application = feature_application;
     
 
-    ifeed.import_new_data(ifeed.result_path);
-    ifeed.calculate_pareto_ranking();
-    
+    PubSub.publish(LOAD_DATA, null);
 
 </script>
 

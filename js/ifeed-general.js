@@ -1,16 +1,23 @@
-
-// Inspecting an architecture using a mouse (tradespace_plot.js)
+// Load data (pub: index.html, sub: ifeed-general.js)
+const LOAD_DATA = "load_data";
+// Finished loading the design problem specification (pub: eoss.js, sub: ifeed-general.js, tradespace_plot.js, eossLabel.js)
+const DESIGN_PROBLEM_LOADED = "design_problem_loaded";
+// Inspecting an architecture using a mouse (pub: tradespace_plot.js, sub: problem.js)
 const INSPECT_ARCH = "inspect_arch";
-// New selection made (tradespace_plot.js)
+// New selection made (pub: tradespace_plot.js)
 const SELECTION_UPDATED = "selection_updated";
-
-// Apply feature expression (filter.js)
+// Apply feature expression (sub: filter.js)
 const APPLY_FEATURE_EXPRESSION = "apply_feature_expression";
-
-// Highlight architectures (tradespace_plot.js)
+// Highlight architectures (pub: filter.js, sub: tradespace_plot.js)
 const HIGHLIGHT_ARCHITECTURES = "highlight_architectures";
-
-
+// Data imported (pub: ifeed-general.js, sub: problem.js, eoss.js)
+const DATA_IMPORTED = "data_imported";
+// Data preprocessing finished (pub: problem.js, sub: tradespace_plot.js, eossFilter.js)
+const DATA_PROCESSED = "data_processed";
+// Run local search in the design space (sub: problem.js)
+const RUN_LOCAL_SEARCH = "run_local_search";
+// Labeling scheme loaded (pub: eossLabel.js, sub: )
+const LABELING_SCHEME_LOADED = "labeling_scheme_loaded";
 
 
 const INITIALIZE_FEATURE_APPLICATION = "initialize_feature_application";
@@ -19,15 +26,10 @@ const DRAW_VENN_DIAGRAM = "draw_venn_diagram";
 const ADD_FEATURE = "add_feature";
 const UPDATE_FEATURE_APPLICATION = "update_feature_application";
 const CANCEL_ADD_FEATURE = "cancel_add_feature";
-const DATA_IMPORTED = "data_imported";
-const DATA_PROCESSED = "data_processed";
 const ADD_ARCHITECTURE = "add_architecture";
 const SET_CURRENT_ARCHITECTURE = "set_current_architecutre";
 const VIEW_ARCHITECTURE = "view_architecture";
 const HIGHLIGHT_SUPPORT_PANEL = "highlight_support_panel";
-const RUN_LOCAL_SEARCH = "run_local_search";
-
-
 const ARCH_SELECTED = "arch_selected";
 
 
@@ -57,18 +59,25 @@ class IFEED{
         this.data = null; // Array containing the imported data
         
         // Instances of Classes
-        this.problem = null; // Problem-specific class
-        this.tradespace_plot = null;
-        this.filter = null;
-        this.label = null;
-        this.data_mining = null;
-        this.feature_application = null;
+        // this.problem = null; // Problem-specific class
+        // this.tradespace_plot = null;
+        // this.filter = null;
+        // this.label = null;
+        // this.data_mining = null;
+        // this.feature_application = null;
         
         //Interaction states
         this.UI_states = {"support_panel_active":false,
                          "selection_changed":true,
                          "selection_mode":"zoom-pan"};
 
+        PubSub.subscribe(DESIGN_PROBLEM_LOADED, (msg, data) => {
+            this.metadata = data.metadata;
+        }); 
+
+        PubSub.subscribe(LOAD_DATA, (msg, data) => {
+            this.import_new_data(data);
+        }); 
     }
     
 
@@ -98,17 +107,16 @@ class IFEED{
         } 
 
         let that = this;
-
         $.ajax({
             url: "/api/ifeed/import-data/",
             type: "POST",
             data: {filename:path},
             async: false,
             success: function (data, textStatus, jqXHR){
-
                 that.data=data;
+                that.calculate_pareto_ranking();
                 PubSub.publish(DATA_IMPORTED,data);
-                
+
             },
             error: function (jqXHR, textStatus, errorThrown){
                 alert("error");

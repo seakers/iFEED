@@ -11,13 +11,19 @@
 
 class EOSSLabel extends Label{
 
-    constructor(disabled, orbit_list, instrument_list){
+    constructor(disabled){
         super(disabled);        
         
-        this.orbit_list = orbit_list;
-        this.instrument_list = instrument_list;
+        this.orbit_list = [];
+        this.instrument_list = [];
         this.orbit_relabeled = ["1000","2000","3000","4000","5000"];
         this.instrument_relabeld = ["A","B","C","D","E","F","G","H","I","J","K","L"];
+
+        PubSub.subscribe(DESIGN_PROBLEM_LOADED, (msg, data) => {
+            this.orbit_list = data.orbit_list;
+            this.instrument_list = data.instrument_list;
+            PubSub.publish(LABELING_SCHEME_LOADED, this);
+        });
     }
     
     

@@ -2,7 +2,7 @@
 
 class TradespacePlot{
     
-    constructor(output_list){
+    constructor(){
         
         this.xIndex = 0;
         this.yIndex = 1;
@@ -25,7 +25,7 @@ class TradespacePlot{
             "cursor": "rgba(0, 0, 0, 1)"
         };
 
-        this.output_list = output_list;
+        this.output_list = [];
 
         this.data = null;
         this.num_total_points = 0;
@@ -34,6 +34,10 @@ class TradespacePlot{
 
         this.transform = d3.zoomIdentity;
         this.lastHoveredArch = null;
+
+        PubSub.subscribe(DESIGN_PROBLEM_LOADED, (msg, data) => {
+            this.output_list = data.metadata.output_list;
+        });         
 
         PubSub.subscribe(DATA_PROCESSED, (msg, data) => {
             this.data = data;
