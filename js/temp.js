@@ -1,41 +1,49 @@
 
 
-function MainPlot(ifeed){
+class TradespacePlot{
     
-    var self = this;
-    
-    self.translate = [0,0];
-    self.scale = 1;
-    self.xIndex = null;
-    self.yIndex = null;
-    
-    self.cursor_blink_interval = null;
-    
-
-    self.main_plot_params = {
-        "margin":{top: 20, right: 20, bottom: 30, left: 60},
-        "width": 960,
-        "height": 540,
-    };
-    
-    self.color = {
-        "default": "#8E8E8E",
-        "selected": "#19BAD7",
-        "highlighted": "#F86591",
-        "overlap": "#A340F0",
-        "mouseover":"#74FF6E",
-        "cursor":"black",
-    };
+    constructor(output_list){
         
+        this.translate = [0,0];
+        this.scale = 1;
+        this.xIndex = null;
+        this.yIndex = null;
+        
+        this.cursor_blink_interval = null;
 
-    self.reset_main_plot = function() {
-        //Resets the main plot
-        d3.select(".main_plot.figure").selectAll("svg").remove();
+        this.tradespace_plot_params = {
+            "margin":{top: 20, right: 20, bottom: 30, left: 60},
+            "width": 960,
+            "height": 540,
+        };
+        
+        this.color = {
+            "default": "#8E8E8E",
+            "selected": "#19BAD7",
+            "highlighted": "#F86591",
+            "overlap": "#A340F0",
+            "mouseover":"#74FF6E",
+            "cursor":"black",
+        };
+
+        this.output_list = output_list;
+        this.initialize();
+
+
+
+
+
     }
 
+
+
+    reset_tradespace_plot() {
+        //Resets the main plot
+        d3.select('.tradespace_plot.figure').selectAll('svg').remove();
+        d3.select('.tradespace_plot.figure').selectAll('canvas').remove();
+    }
     
-    self.initialize = function(){
-        
+    initialize(){
         d3.select("#support_panel").select("#view1").select("g").remove();
         d3.select("#support_panel").select("#view1").append("g")
                 .append("div")
@@ -48,169 +56,204 @@ function MainPlot(ifeed){
     }
     
     
-    self.draw_tradespace_plot = function(source, xIndex, yIndex){
-        /*
-            Draws the scatter plot with architecture inputs
-            @param source: a JSON object array containing the basic arch info
-        */
+    /*
+        Draws the scatter plot with architecture inputs
+        @param source: a JSON object array containing the basic arch info
+    */    
+    update(source, xIndex, yIndex){
+
+        this.reset_tradespace_plot();
         
-        self.reset_main_plot();
-        
-        var margin = self.main_plot_params.margin;
-        var width = self.main_plot_params.width - margin.right - margin.left;
-        var height = self.main_plot_params.height - margin.top - margin.bottom;
+        let margin = this.tradespace_plot_params.margin;
+        this.width = this.tradespace_plot_params.width - margin.right - margin.left;
+        this.height = this.tradespace_plot_params.height - margin.top - margin.bottom;
 
         // setup x 
-        var xValue = function (d) {
+        this.xValue = function (d) {
             return d.outputs[xIndex];
         }; // data -> value
         
-        var xScale = d3.scale.linear().range([0, width]); // value -> display
+        this.xScale = d3.scale.linear().range([0, this.width]); // value -> display
 
         // don't want dots overlapping axis, so add in buffer to data domain 
-        var xBuffer = (d3.max(source, xValue) - d3.min(source, xValue)) * 0.05;
-        xScale.domain([d3.min(source, xValue) - xBuffer, d3.max(source, xValue) + xBuffer]);
+        let xBuffer = (d3.max(source, this.xValue) - d3.min(source, this.xValue)) * 0.05;
+        this.xScale.domain([d3.min(source, this.xValue) - xBuffer, d3.max(source, this.xValue) + xBuffer]);
         
-        var xMap = function (d) {
-            return xScale(xValue(d));
+        this.xMap = function (d) {
+            return this.xScale(this.xValue(d));
         }; // data -> display
-        var xAxis = d3.svg.axis().scale(xScale).orient("bottom");
+        let xAxis = d3.svg.axis().scale(this.xScale).orient("bottom");
 
         // setup y
-        var yValue = function (d) {
+        this.yValue = function (d) {
             return d.outputs[yIndex];
         }; // data -> value
-        var yScale = d3.scale.linear().range([height, 0]); // value -> display
+        this.yScale = d3.scale.linear().range([height, 0]); // value -> display
 
-        var yBuffer = (d3.max(source, yValue) - d3.min(source, yValue)) * 0.05;
-        yScale.domain([d3.min(source, yValue) - yBuffer, d3.max(source, yValue) + yBuffer]);
+        let yBuffer = (d3.max(source, this.yValue) - d3.min(source, this.yValue)) * 0.05;
+        yScale.domain([d3.min(source, this.yValue) - yBuffer, d3.max(source, this.yValue) + yBuffer]);
 
-        var yMap = function (d) {
-            return yScale(yValue(d));
+        this.yMap = function (d) {
+            return this.yScale(this.yValue(d));
         }; // data -> display
-        var yAxis = d3.svg.axis().scale(yScale).orient("left");
-                
-        self.xScale = xScale;
-        self.yScale = yScale;
-        self.xMap = xMap;
-        self.yMap = yMap;
-        self.xAxis = xAxis;
-        self.yAxis = yAxis;
-        self.xIndex = xIndex;
-        self.yIndex = yIndex;
+        let yAxis = d3.svg.axis().scale(this.yScale).orient("left");
+
+        this.zoom = d3.behavior.zoom()
+                        .x(this.xScale)
+                        .y(this.yScale)
+                        .scaleExtent([0.4, 25])
+                        .on("zoom", function (d) {
+
+                            // svg = d3.select(".tradespace_plot.figure")
+                            //         .select("svg");
+
+                            // svg.select(".tradespace_plot.x.axis").call(xAxis);
+                            // svg.select(".tradespace_plot.y.axis").call(yAxis);
+
+                            // objects.select(".hAxisLine").attr("transform", "translate(0," + yScale(0) + ")");
+                            // objects.select(".vAxisLine").attr("transform", "translate(" + xScale(0) + ",0)");
+                            // //d3.event.translate[0]
+
+                            // svg.selectAll(".tradespace_plot.dot")
+                            //         .attr("transform", function (d) {
+                            //             var xCoord = xMap(d);
+                            //             var yCoord = yMap(d);
+                            //             return "translate(" + xCoord + "," + yCoord + ")";
+                            //         });
+
+                            // self.translate = d3.event.translate;
+                            // self.scale = d3.event.scale;
+                        })
 
         // Create svg
-        var svg = d3.select(".main_plot.figure")
+        let svg = d3.select('.tradespace_plot.figure')
             .append("svg")
-            .attr("width", width + margin.left + margin.right)
-            .attr("height", height + margin.top + margin.bottom)
-            .call(
-                    d3.behavior.zoom()
-                    .x(xScale)
-                    .y(yScale)
-                    .scaleExtent([0.4, 25])
-                    .on("zoom", function (d) {
-
-                        svg = d3.select(".main_plot.figure")
-                                .select("svg");
-
-                        svg.select(".main_plot.x.axis").call(xAxis);
-                        svg.select(".main_plot.y.axis").call(yAxis);
-
-                        objects.select(".hAxisLine").attr("transform", "translate(0," + yScale(0) + ")");
-                        objects.select(".vAxisLine").attr("transform", "translate(" + xScale(0) + ",0)");
-                        //d3.event.translate[0]
-
-                        svg.selectAll(".main_plot.dot")
-                                .attr("transform", function (d) {
-                                    var xCoord = xMap(d);
-                                    var yCoord = yMap(d);
-                                    return "translate(" + xCoord + "," + yCoord + ")";
-                                });
-
-                        self.translate = d3.event.translate;
-                        self.scale = d3.event.scale;
-                    })
-                    )
+            .attr("width", this.width + margin.left + margin.right)
+            .attr("height", this.height + margin.top + margin.bottom)
+            .call(this.zoom)
             .append("g")
             .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
 
+        let canvas = d3.select(".tradespaceplot.figure")
+            .append("canvas")
+            .style("position","absolute")
+            .style("top", margin.top + "px")
+            .style("left", margin.left + "px")
+            .attr("width", this.width)
+            .attr("height", this.height)
+            .call(this.zoom);
+
+        this.context = canvas.node().getContext("2d");
+
+        let hiddenCanvas = d3.select('.tradespace_plot.figure')
+            .append("canvas")
+            .style("position", "absolute")
+            .style("top", margin.top + "px")
+            .style("left", margin.left + "px")
+            .style("display", "none")
+            .attr("width", this.width)
+            .attr("height", this.height);
+
+        this.hiddenContext = hiddenCanvas.node().getContext("2d");
+
         // x-axis
-        svg.append("g")
-                .attr("class", "main_plot x axis")
-                .attr("transform", "translate(0," + height + ")")
-                .call(xAxis)
-                .append("text")
-                .attr("class", "label")
-                .attr("x", width)
-                .attr("y", -6)
-                .style("text-anchor", "end")
-                .text(function(){
-                    return ifeed.metadata.output_list[xIndex];
-                });
+        let gX = svg.append("g")
+            .attr("class", "axis axis-x")
+            .attr("transform", "translate(0, " + this.height + ")")
+            .call(this.xAxis);
+            
+        svg.append("text")
+            .attr("transform", "translate(" + this.width + ", " + this.height + ")")
+            .attr("class", "label")
+            .attr("y", -6)
+            .style("text-anchor", "end")
+            .text(this.output_list[xIndex]);
 
         // y-axis
-        svg.append("g")
-                .attr("class", "main_plot y axis")
-                .call(yAxis)
-                .append("text")
-                .attr("class", "label")
-                .attr("transform", "rotate(-90)")
-                .attr("y", 6)
-                .attr("dy", ".71em")
-                .style("text-anchor", "end")
-                .text(function(){
-                    return ifeed.metadata.output_list[yIndex];
-                });
-
-        objects = svg.append("svg")
-                .attr("class", "main_plot objects")
-                .attr("width", width)
-                .attr("height", height);
-
-        //Create main 0,0 axis lines:
-        objects.append("svg:line")
-                .attr("class", "main_plot axisLine hAxisLine")
-                .attr("x1", 0)
-                .attr("y1", 0)
-                .attr("x2", width)
-                .attr("y2", 0)
-                .attr("transform", "translate(0," + (yScale(0)) + ")");
-        objects.append("svg:line")
-                .attr("class", "main_plot axisLine vAxisLine")
-                .attr("x1", 0)
-                .attr("y1", 0)
-                .attr("x2", 0)
-                .attr("y2", height)
-                .attr("transform", "translate(" + (xScale(0)) + ",0)");
+        let gY = svg.append("g")
+            .attr("class", "axis axis-y")
+            .call(this.yAxis);
         
-        d3.select(".main_plot.figure").on("click",self.unhighlight_support_panel);
-        d3.select("#support_panel").on("click",self.highlight_support_panel);        
+        svg.append("text")
+            .attr("class", "label")
+            .attr("transform", "rotate(-90)")
+            .attr("y", 6)
+            .attr("dy", ".71em")
+            .style("text-anchor", "end")
+            .text(this.output_list[yIndex]);
+
+        // Canvas related functions
+        let that = this;
+        // Function to create new colors for the picking.
+        let nextCol = 1;
+        function genColor(){ 
+            let ret = [];
+            if (nextCol < 16777215) {
+                ret.push(nextCol & 0xff); // R 
+                ret.push((nextCol & 0xff00) >> 8); // G 
+                ret.push((nextCol & 0xff0000) >> 16); // B
+                nextCol += 1;
+            }
+            let col = "rgb(" + ret.join(',') + ")";
+            return col;
+        }
+
+        // Add one unique color to each point and save the backreference
+        let colorMap = {};
+        this.data.forEach(function(point) {
+            point.interactColor = genColor();
+            colorMap[point.interactColor] = point;
+        });
+
+
+
+
+
+        this.drawPoints(this.context, false);
+
+        // Canvas interaction
+        canvas.on("mousemove.inspection", function() { that.canvas_mousemove(colorMap); });
         
+        // Set button click operations
+        d3.select("button#cancel_selection").on("click", () => { that.cancel_selection(); });
+        d3.select('#interaction_modes').selectAll("label").on("click", () => { that.toggle_selection_mode(); });
+        d3.select("#num_architectures").text(""+this.get_num_of_archs());
+        d3.select("#num_selected_architectures").text(""+this.get_num_of_selected_archs());
+
+
+
+
+
+
+
+
+
+        d3.select(".tradespace_plot.figure").on("click",this.unhighlight_support_panel);
+        d3.select("#support_panel").on("click",this.highlight_support_panel);        
+
 //        // Set button click operations
 //        d3.select("[id=selectArchsWithinRangeButton]").on("click", selectArchsWithinRange);
-        d3.select("#selection_options #cancel_selection").on("click",self.cancel_selection);
+        d3.select("#selection_options #cancel_selection").on("click",this.cancel_selection);
 //        d3.select("[id=hide_selection]").on("click",hideSelection);
 //        d3.select("[id=show_all_archs]").on("click",show_all_archs);
 
-//        d3.selectAll(".main_plot.dot")[0].forEach(function(d,i){
+//        d3.selectAll(".tradespace_plot.dot")[0].forEach(function(d,i){
 //            d3.select(d).attr("paretoRank",-1);
 //        });        
-        d3.select('#interaction_modes').selectAll('.tooltip').select('div').on('click',self.toggle_selection_mode);        
-        
-        
+        d3.select('#interaction_modes').selectAll('.tooltip').select('div').on('click',this.toggle_selection_mode);        
         self.update(source, xIndex, yIndex);
     }
     
     
     
 
+
     self.update = function(source,xIndex,yIndex) {
 
-        var dots = d3.select('.main_plot.objects').selectAll(".main_plot.dot")
+        var dots = d3.select('.tradespace_plot.objects').selectAll(".tradespace_plot.dot")
                 .data(source)
                 .enter().append("circle")
-                .attr("class", "dot main_plot")
+                .attr("class", "dot tradespace_plot")
                 .attr("r", 3.3)
                 .attr("transform", function (d) {
                     var xCoord = self.xMap(d);
@@ -227,6 +270,186 @@ function MainPlot(ifeed){
         d3.select("#num_of_archs").text(""+self.get_num_of_archs());
     }
     
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+    drawPoints(context, hidden) {
+        context.clearRect(0, 0, this.width, this.height);
+        context.save();
+        
+        this.data.forEach(point => {
+            let tx = this.transform.applyX(this.xMap(point));
+            let ty = this.transform.applyY(this.yMap(point));
+            context.beginPath();
+            context.fillStyle = hidden ? point.interactColor : point.drawingColor;
+            context.arc(tx, ty, 3.3, 0, 2 * Math.PI);
+            context.fill();
+        });
+
+        context.restore();
+    }
+
+    canvas_mousemove(colorMap) {
+        // Draw the hidden canvas.
+        this.drawPoints(this.hiddenContext, true);
+
+        // Get mouse positions from the main canvas.
+        let mouse_pos = d3.mouse(d3.select("#main_plot").select("canvas").node());
+        let mouseX = mouse_pos[0]; 
+        let mouseY = mouse_pos[1];
+
+        // Pick the colour from the mouse position and max-pool it. 
+        let color = this.hiddenContext.getImageData(mouseX-3, mouseY-3, 6, 6).data;
+        let color_list = {};
+        for (let i = 0; i < color.length; i += 4) {
+            let color_rgb = "rgb(" + color[i] + "," + color[i+1] + "," + color[i+2] + ")";
+            if (color_rgb in color_list) {
+                color_list[color_rgb] += 1;
+            }
+            else {
+                color_list[color_rgb] = 1;
+            }
+        }
+        let maxcolor, maxcolor_num = 0;
+        for (let key in color_list) {
+            if (maxcolor_num < color_list[key]) {
+                maxcolor_num = color_list[key];
+                maxcolor = key;
+            }
+        }
+
+        // Check if something changed
+        let changesHappened = false;
+
+        // Change color back to default if not selected anymore
+        if (this.lastHoveredArch in colorMap && this.lastHoveredArch != maxcolor) {
+            let oldPoint = colorMap[this.lastHoveredArch];
+            if (oldPoint.selected && oldPoint.highlighted) {
+                oldPoint.drawingColor = this.color.overlap;
+            }
+            else if (oldPoint.selected) {
+                oldPoint.drawingColor = this.color.selected;
+            }
+            else if (oldPoint.highlighted) {
+                oldPoint.drawingColor = this.color.highlighted;
+            }
+            else {
+                oldPoint.drawingColor = this.color.default;
+            }
+        }
+
+        // Get the data from our map!
+        if (maxcolor in colorMap) {
+            // Only update if there is a change in the selection
+            if (this.lastHoveredArch != maxcolor) {
+                let arch = colorMap[maxcolor];
+                this.lastHoveredArch = maxcolor;
+                changesHappened = true;
+                
+                // Change the color of the dot temporarily
+                arch.drawingColor = this.color.mouseover;
+
+                // Remove the previous info
+                d3.select(".design_inspector > .panel-block").select("g").remove();
+                
+                let design_inspector = d3.select(".design_inspector > .panel-block").append("g");
+
+                // Display the current architecture info
+                let arch_info_display = design_inspector.append("div")
+                    .attr("id", "arch_info_display");
+
+                arch_info_display.append("p").text(d => "Design ID: D" + arch.id);
+
+                for (let i = 0; i < this.output_list.length; i++) {
+                    arch_info_display.append("p")
+                        .text(d => {
+                            let out = this.output_list[i] + ": ";
+                            let val = arch.outputs[i];
+                            if (typeof val == "number") {
+                                if (val > 100) {
+                                    val = val.toFixed(2);
+                                }
+                                else {
+                                    val = val.toFixed(4);
+                                }
+                            }
+                            return out + val;
+                        });
+                }
+
+                PubSub.publish(ARCH_SELECTED, arch);
+            }
+        }
+        else {
+            // In case nothing is selected just revert everything back to normal
+            this.lastHoveredArch = null;
+            changesHappened = true;
+        }
+
+        // Only redraw if there have been changes
+        if (changesHappened) {
+            this.drawPoints(this.context, false);
+        }
+    }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
     
 
     
@@ -241,7 +464,7 @@ function MainPlot(ifeed){
                 .text('Run local search')
                 .on('click',function(){
                     clearInterval(self.cursor_blink_interval);
-                    d3.selectAll('.dot.main_plot.cursor.blink').style("opacity",1);
+                    d3.selectAll('.dot.tradespace_plot.cursor.blink').style("opacity",1);
                     PubSub.publish(RUN_LOCAL_SEARCH,arch);
                 });
         }
@@ -249,7 +472,7 @@ function MainPlot(ifeed){
         ifeed.problem.display_instrument_options();
         ifeed.problem.enable_modify_architecture();
         
-        d3.selectAll('.main_plot.dot.cursor.blink')
+        d3.selectAll('.tradespace_plot.dot.cursor.blink')
                 .attr("transform", function (d) {
                     var xCoord = self.xMap(d);
                     var yCoord = self.yMap(d);
@@ -258,14 +481,14 @@ function MainPlot(ifeed){
                 .transition()
                 .duration(500);
         
-        d3.selectAll('.main_plot.dot.cursor:not(.blink)').remove();   
+        d3.selectAll('.tradespace_plot.dot.cursor:not(.blink)').remove();   
         
         
-        var _current_architecture = d3.select('.main_plot.objects').selectAll('.main_plot.dot.cursor.blink')
+        var _current_architecture = d3.select('.tradespace_plot.objects').selectAll('.tradespace_plot.dot.cursor.blink')
                 .data([arch])
                 .enter()
                 .append('path')
-                .attr("class","main_plot cursor dot blink")
+                .attr("class","tradespace_plot cursor dot blink")
                 .attr('d', d3.symbol().type(d3.symbolCross).size(120))
                 .attr("transform", function (d) {
                     var xCoord = self.xMap(d);
@@ -345,7 +568,7 @@ function MainPlot(ifeed){
         if(option==null){
             
             // Remove both highlights and selections
-            d3.selectAll(".main_plot.dot")
+            d3.selectAll(".tradespace_plot.dot")
                 .classed('selected',false)
                 .classed('highlighted',false)
                 .style("fill",self.color.default);
@@ -361,7 +584,7 @@ function MainPlot(ifeed){
         }else if(option=='remove_selection'){
             
             // Remove only selection only
-            d3.selectAll('.main_plot.dot.selected')[0].forEach(function(d){
+            d3.selectAll('.tradespace_plot.dot.selected')[0].forEach(function(d){
                 var dot = d3.select(d);
                 dot.classed('selected',false);
                 if(dot.classed('highlighted')){
@@ -384,7 +607,7 @@ function MainPlot(ifeed){
         }else if(option=='remove_highlighted'){
             
             // Remove only highlights
-            d3.selectAll('.main_plot.dot.highlighted')[0].forEach(function(d){
+            d3.selectAll('.tradespace_plot.dot.highlighted')[0].forEach(function(d){
                 
                 var dot = d3.select(d);
                 dot.classed('highlighted',false);
@@ -408,9 +631,9 @@ function MainPlot(ifeed){
     
     self.change_interaction_mode = function(option){ // three options: zoom-pan, drag-select, de-select
 
-        var margin=self.main_plot_params.margin;
-        var width=self.main_plot_params.width;
-        var height=self.main_plot_params.height;
+        var margin=self.tradespace_plot_params.margin;
+        var width=self.tradespace_plot_params.width;
+        var height=self.tradespace_plot_params.height;
 
         var xScale = self.xScale;
         var xMap = self.xMap;
@@ -424,13 +647,13 @@ function MainPlot(ifeed){
             translate_local = self.translate;
             scale_local = self.scale;
 
-            var svg =  d3.select(".main_plot.figure")
+            var svg =  d3.select(".tradespace_plot.figure")
                 .select("svg")
                 .on("mousedown",null)
                 .on("mousemove",null)
                 .on("mouseup",null);
 
-            d3.select(".main_plot.figure")
+            d3.select(".tradespace_plot.figure")
                 .select("svg")
                 .call(
                     d3.behavior.zoom()
@@ -439,17 +662,17 @@ function MainPlot(ifeed){
                             .scaleExtent([0.4, 25])
                             .on("zoom", function (d) {
 
-                                var svg = d3.select(".main_plot.figure")
+                                var svg = d3.select(".tradespace_plot.figure")
                                             .select("svg");
 
-                                svg.select(".main_plot.x.axis").call(xAxis);
-                                svg.select(".main_plot.y.axis").call(yAxis);
+                                svg.select(".tradespace_plot.x.axis").call(xAxis);
+                                svg.select(".tradespace_plot.y.axis").call(yAxis);
 
-                                objects.select(".main_plot.hAxisLine").attr("transform", "translate(0," + yScale(0) + ")");
-                                objects.select(".main_plot.vAxisLine").attr("transform", "translate(" + xScale(0) + ",0)");
+                                objects.select(".tradespace_plot.hAxisLine").attr("transform", "translate(0," + yScale(0) + ")");
+                                objects.select(".tradespace_plot.vAxisLine").attr("transform", "translate(" + xScale(0) + ",0)");
                                 //d3.event.translate[0]
 
-                                svg.selectAll(".main_plot.dot")
+                                svg.selectAll(".tradespace_plot.dot")
                                         .attr("transform", function (d) {
                                             var xCoord = xMap(d);
                                             var yCoord = yMap(d);
@@ -475,7 +698,7 @@ function MainPlot(ifeed){
                 )  
         } else{
 
-            var svg =  d3.select(".main_plot.figure")
+            var svg =  d3.select(".tradespace_plot.figure")
                 .select("svg")
                 .call(d3.behavior.zoom().on("zoom",null));
 
@@ -486,7 +709,7 @@ function MainPlot(ifeed){
                             .attr({
                                 rx      : 0,
                                 ry      : 0,
-                                class   : "main_plot selection",
+                                class   : "tradespace_plot selection",
                                 x       : p[0],
                                 y       : p[1],
                                 width   : 0,
@@ -500,7 +723,7 @@ function MainPlot(ifeed){
                 })
                 .on( "mousemove", function() {
 
-                    var s = svg.select("rect.main_plot.selection");
+                    var s = svg.select("rect.tradespace_plot.selection");
                     if( !s.empty()) {
                         var p = d3.mouse( this);
 
@@ -535,7 +758,7 @@ function MainPlot(ifeed){
 
                         if(option=="drag-select"){ // Make selection
 
-                            d3.selectAll(".dot.main_plot:not(.selected)")[0].forEach(function(d,i){
+                            d3.selectAll(".dot.tradespace_plot:not(.selected)")[0].forEach(function(d,i){
                                 
                                 var xVal = d.__data__.outputs[self.xIndex];
                                 var yVal = d.__data__.outputs[self.yIndex];
@@ -567,7 +790,7 @@ function MainPlot(ifeed){
 
                         }else{	// De-select
                             
-                            d3.selectAll(".dot.main_plot.selected")[0].forEach(function(d,i){
+                            d3.selectAll(".dot.tradespace_plot.selected")[0].forEach(function(d,i){
                                 
                                 var xVal = d.__data__.outputs[self.xIndex];
                                 var yVal = d.__data__.outputs[self.yIndex];
@@ -606,7 +829,7 @@ function MainPlot(ifeed){
                 .on( "mouseup", function() {
                     //unhighlight_support_panel();
                     // remove selection frame
-                    d3.select('.main_plot.figure').select('svg').selectAll( "rect.selection").remove();
+                    d3.select('.tradespace_plot.figure').select('svg').selectAll( "rect.selection").remove();
                 })
         }               
     }
@@ -615,7 +838,7 @@ function MainPlot(ifeed){
     
     self.hide_selection = function(){
         
-        var selected = d3.selectAll(".dot.main_plot.selected");
+        var selected = d3.selectAll(".dot.tradespace_plot.selected");
 
         selected.classed('hidden',true)
                 .classed('selected',false)
@@ -631,7 +854,7 @@ function MainPlot(ifeed){
 
     self.show_all_archs = function(){
         
-        var hidden = d3.selectAll(".dot.main_plot.hidden");
+        var hidden = d3.selectAll(".dot.tradespace_plot.hidden");
         hidden.classed('hidden',false)
                 .style("opacity",1);
 
@@ -647,7 +870,7 @@ function MainPlot(ifeed){
             Counts the number of all archs displayed
             @return: the number of dots
         */
-        return d3.selectAll('.main_plot.dot:not(.hidden)')[0].length;
+        return d3.selectAll('.tradespace_plot.dot:not(.hidden)')[0].length;
     }
 
     
@@ -657,7 +880,7 @@ function MainPlot(ifeed){
             Counts the number of selected archs
             @return: the number of dots selected
         */
-        return d3.selectAll('.dot.selected.main_plot:not(.hidden)')[0].length; 
+        return d3.selectAll('.dot.selected.tradespace_plot:not(.hidden)')[0].length; 
     }
 
     
@@ -720,7 +943,7 @@ function MainPlot(ifeed){
         d3.select('#instr_options_display').remove();
 
         clearInterval(self.cursor_blink_interval);
-        d3.select('.main_plot.dot.cursor.blink').remove();
+        d3.select('.tradespace_plot.dot.cursor.blink').remove();
         self.cursor_blink_interval=null;
     }    
     
@@ -747,8 +970,8 @@ function MainPlot(ifeed){
     }
     
     
-    self.highlight_support_panel = function(){
-        d3.select(".main_plot.figure")
+    highlight_support_panel(){
+        d3.select(".tradespace_plot.figure")
             .style("border-width","1px");
         d3.select("#support_panel")
             .style("border-width","3.3px");
@@ -757,9 +980,9 @@ function MainPlot(ifeed){
     }
 
 
-    self.unhighlight_support_panel = function(){
+    unhighlight_support_panel(){
 
-        d3.select(".main_plot.figure")
+        d3.select(".tradespace_plot.figure")
                 .style("border-width","3.3px");
         d3.select("#support_panel")
                 .style("border-width","1px");
@@ -795,14 +1018,14 @@ function MainPlot(ifeed){
         self.update(allData,0,1);
         
         clearInterval(self.cursor_blink_interval);
-        d3.select('.main_plot.dot.cursor').remove();
+        d3.select('.tradespace_plot.dot.cursor').remove();
         self.cursor_blink_interval=null;
                         
-        d3.select('.main_plot.objects').selectAll('.main_plot.dot.cursor:not(.blink)')
+        d3.select('.tradespace_plot.objects').selectAll('.tradespace_plot.dot.cursor:not(.blink)')
                 .data(added)
                 .enter()
                 .append('path')
-                .attr("class","main_plot dot cursor")
+                .attr("class","tradespace_plot dot cursor")
                 .attr('d', d3.symbol().type(d3.symbolCross).size(120))
                 .attr("transform", function (d) {
                     var xCoord = self.xMap(d);

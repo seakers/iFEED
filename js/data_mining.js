@@ -37,13 +37,13 @@ function DataMining(ifeed){
     self.colourRangeRainbow.push(1);
 
     //Create color gradient
-    self.colorScaleRainbow = d3.scale.linear()
+    self.colorScaleRainbow = d3.scaleLinear()
         .domain(self.colourRangeRainbow)
         .range(self.coloursRainbow)
         .interpolate(d3.interpolateHcl);
 
     //Needed to map the values of the dataset to the color scale
-    self.colorInterpolateRainbow = d3.scale.linear()
+    self.colorInterpolateRainbow = d3.scaleLinear()
         .domain(d3.extent([]))
         .range([0,1]);
     
@@ -100,8 +100,8 @@ function DataMining(ifeed){
 
     self.run = function(option){
         
-        var selectedArchs = d3.selectAll(".dot.main_plot.selected:not(.hidden):not(.cursor)")[0];
-        var nonSelectedArchs =  d3.selectAll(".dot.main_plot:not(.selected):not(.hidden):not(.cursor)")[0];
+        var selectedArchs = d3.selectAll(".dot.tradespace_plot.selected:not(.hidden):not(.cursor)")[0];
+        var nonSelectedArchs =  d3.selectAll(".dot.tradespace_plot:not(.selected):not(.hidden):not(.cursor)")[0];
 
         // Store the id's of all dots
         var selected = [];
@@ -147,7 +147,7 @@ function DataMining(ifeed){
             }else if(!option){
 
                 // Save the architectures that have the currently applied feature
-                var highlightedArchs = d3.selectAll(".dot.main_plot.highlighted:not(.hidden):not(.cursor)")[0];                    
+                var highlightedArchs = d3.selectAll(".dot.tradespace_plot.highlighted:not(.hidden):not(.cursor)")[0];                    
 
                 var highlighted = [];
                 for (var i = 0; i < highlightedArchs.length; i++) {
@@ -226,7 +226,7 @@ function DataMining(ifeed){
             PubSub.publish(INITIALIZE_FEATURE_APPLICATION, null);
 
             // Remove all highlights in the scatter plot (retain target solutions)
-            ifeed.main_plot.cancel_selection('remove_highlighted');   
+            ifeed.tradespace_plot.cancel_selection('remove_highlighted');   
             
             self.all_features = self.get_driving_features(selected,non_selected,self.support_threshold,self.confidence_threshold,self.lift_threshold);
 
@@ -338,7 +338,7 @@ function DataMining(ifeed){
 
         document.getElementById('tab3').click();
         
-        ifeed.main_plot.highlight_support_panel();
+        ifeed.tradespace_plot.highlight_support_panel();
 
         // Remove previous plot
         d3.select("#view3").select("g").remove();
@@ -362,7 +362,7 @@ function DataMining(ifeed){
         feature_plot.append('div')
             .attr('class','feature_plot venn_diagram')
             .append('div')
-            .text('Total number of designs: ' + ifeed.main_plot.get_num_of_archs());
+            .text('Total number of designs: ' + ifeed.tradespace_plot.get_num_of_archs());
         
         
         var objects = svg.append("svg")
@@ -857,10 +857,10 @@ function DataMining(ifeed){
             ifeed.filter.apply_filter_expression(expression);
 
             // Compute the metrics of a feature
-            var total = ifeed.main_plot.get_num_of_archs();
-            var intersection = d3.selectAll('.dot.main_plot.selected.highlighted:not(.cursor)')[0].length;
-            var selected = d3.selectAll('.dot.main_plot.selected:not(.cursor)')[0].length;
-            var highlighted = d3.selectAll('.dot.main_plot.highlighted:not(.cursor)')[0].length;
+            var total = ifeed.tradespace_plot.get_num_of_archs();
+            var intersection = d3.selectAll('.dot.tradespace_plot.selected.highlighted:not(.cursor)')[0].length;
+            var selected = d3.selectAll('.dot.tradespace_plot.selected:not(.cursor)')[0].length;
+            var highlighted = d3.selectAll('.dot.tradespace_plot.highlighted:not(.cursor)')[0].length;
 
             var p_snf = intersection/total;
             var p_s = selected/total;
@@ -904,7 +904,7 @@ function DataMining(ifeed){
 
             document.getElementById('tab3').click();
             
-            ifeed.main_plot.highlight_support_panel();
+            ifeed.tradespace_plot.highlight_support_panel();
 
             // Display the driving features with newly added feature
             self.update_feature_plot();
@@ -953,10 +953,10 @@ function DataMining(ifeed){
                                     .style('margin-bottom','10px'); 
 
         
-        var total = ifeed.main_plot.get_num_of_archs();
-        var intersection = d3.selectAll('.dot.main_plot.selected.highlighted:not(.hidden):not(.cursor)')[0].length;
-        var selected = d3.selectAll('.dot.main_plot.selected:not(.hidden):not(.cursor)')[0].length;
-        var highlighted = d3.selectAll('.dot.main_plot.highlighted:not(.hidden):not(.cursor)')[0].length;
+        var total = ifeed.tradespace_plot.get_num_of_archs();
+        var intersection = d3.selectAll('.dot.tradespace_plot.selected.highlighted:not(.hidden):not(.cursor)')[0].length;
+        var selected = d3.selectAll('.dot.tradespace_plot.selected:not(.hidden):not(.cursor)')[0].length;
+        var highlighted = d3.selectAll('.dot.tradespace_plot.highlighted:not(.hidden):not(.cursor)')[0].length;
 
         
         var left_margin = 50;
@@ -1010,7 +1010,7 @@ function DataMining(ifeed){
             var a1 = Math.PI * Math.pow(r1,2);
             var a2 = Math.PI * Math.pow(r2,2);
             // Conf(F->S) * |F| = P(FnS)
-            var intersection = supp * ifeed.main_plot.get_num_of_archs() * a1 / S_size;
+            var intersection = supp * ifeed.tradespace_plot.get_num_of_archs() * a1 / S_size;
 
             var c2x;
             if (conf2 > 0.999){

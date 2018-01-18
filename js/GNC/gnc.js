@@ -550,10 +550,6 @@ function EOSS(ifeed){
         });  
     }
     
-
-    PubSub.subscribe(INSPECT_ARCH, (msg, data) => {
-        self.display_arch_info(data);
-    });       
     
     PubSub.subscribe(RUN_LOCAL_SEARCH, (msg, data) => {
         self.run_local_search(data);

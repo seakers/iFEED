@@ -68,16 +68,17 @@
     margin-bottom:15px;
 }
 
-.main_plot.figure{
+.tradespace_plot.figure{
     border-style:solid;
     border-width:3.3px;
     width:960px;
     height:540px;
     margin:0 0 0 0;
     float:left;
+    position: relative;
 }
 
-.main_plot.options{
+.tradespace_plot.options{
     float:left;
     margin-left:10px;
     width:240px;
@@ -85,7 +86,7 @@
     border:1px black double;
 }
 
-.main_plot.options > div{
+.tradespace_plot.options > div{
     width:200px;
     margin:auto;
 }

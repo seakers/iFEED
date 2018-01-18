@@ -1,4 +1,16 @@
 
+// Inspecting an architecture using a mouse
+const INSPECT_ARCH = "inspect_arch";
+// New selection made
+const SELECTION_UPDATED = "selection_updated";
+
+
+
+
+
+
+
+
 const INITIALIZE_FEATURE_APPLICATION = "initialize_feature_application";
 const INITIALIZE_DATA_MINING = "initialize_data_mining";
 const DRAW_VENN_DIAGRAM = "draw_venn_diagram";
@@ -15,51 +27,53 @@ const HIGHLIGHT_SUPPORT_PANEL = "highlight_support_panel";
 const RUN_LOCAL_SEARCH = "run_local_search";
 
 
-function Architecture(id,inputs,outputs){
-    this.id=id;
-    this.inputs=inputs;
-    this.outputs=outputs;    
+const ARCH_SELECTED = "arch_selected";
+
+
+class Architecture{
+    constructor(id,inputs,outputs){
+        this.id=id;
+        this.inputs=inputs;
+        this.outputs=outputs;  
+    }
 }
 
 
+class IFEED{
+    
+    constructor(){
 
-function IFEED(){
-    
-    var self = this;
-    
-    // Data
-    self.metadata = {
-                    "result_path":null, // String
-                    "input_num":null,
-                    "output_num":null,
-                    "input_list":[],
-                    "output_list":[],
-                    "output_obj":[], // 1 for lager-is-better, -1 for smaller-is-better
-                    };
-    
-    self.data = null; // Array containing the imported data
-    
+        // Data
+        this.metadata = {
+                        "result_path":null, // String
+                        "input_num":null,
+                        "output_num":null,
+                        "input_list":[],
+                        "output_list":[],
+                        "output_obj":[], // 1 for lager-is-better, -1 for smaller-is-better
+                        };
+
+        this.data = null; // Array containing the imported data
         
-    // Instances of Classes
-    self.problem = null; // Problem-specific class
-    self.main_plot = null;
-    self.filter = null;
-    self.label = null;
-    self.data_mining = null;
-    self.feature_application = null;
-    
-    
-    //Interaction states
-    self.UI_states = {"support_panel_active":false,
-                     "selection_changed":true,
-                     "selection_mode":"zoom-pan"};
+        // Instances of Classes
+        this.problem = null; // Problem-specific class
+        this.tradespace_plot = null;
+        this.filter = null;
+        this.label = null;
+        this.data_mining = null;
+        this.feature_application = null;
+        
+        //Interaction states
+        this.UI_states = {"support_panel_active":false,
+                         "selection_changed":true,
+                         "selection_mode":"zoom-pan"};
+
+    }
     
 
-    
-    self.get_data_ids = function(data){
-        
+    get_data_ids(data){
         if(!data){
-            data = self.data;
+            data = this.data;
         }
         
         var ids = [];
@@ -70,19 +84,19 @@ function IFEED(){
     }
     
     
-
     /*
     Imports a new data from a file
     @param path: a string path to the file
     */
-
-    self.import_new_data = function(path){
+    import_new_data(path){
 
         console.log('Importing data...');
 
         if(!path){
-           path = self.metadata.result_path; 
+           path = this.metadata.result_path; 
         } 
+
+        let that = this;
 
         $.ajax({
             url: "/api/ifeed/import-data/",
@@ -91,7 +105,7 @@ function IFEED(){
             async: false,
             success: function (data, textStatus, jqXHR){
 
-                self.data=data;
+                that.data=data;
                 PubSub.publish(DATA_IMPORTED,data);
                 
             },
@@ -104,7 +118,7 @@ function IFEED(){
     
     
 
-    self.calculate_pareto_ranking = function(limit){  
+    calculate_pareto_ranking(limit){  
         
         var rank=0;
         
@@ -112,7 +126,7 @@ function IFEED(){
             limit=15;
         }
         
-        var archs = self.data;
+        var archs = this.data;
         var remaining = [];
         
         while(archs.length > 0){
@@ -134,7 +148,7 @@ function IFEED(){
                     if (i==j){
                         continue;
                     
-                    }else if(dominates(archs[j].outputs, this_arch.outputs, self.metadata.output_obj)){
+                    }else if(dominates(archs[j].outputs, this_arch.outputs, this.metadata.output_obj)){
                         non_dominated = false;
                     }
                 }
@@ -151,15 +165,4 @@ function IFEED(){
     }
     
     
-    
-    
-    
-    
 }
-
-
-
-
-
-
-

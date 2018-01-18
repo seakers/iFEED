@@ -82,7 +82,7 @@ function Filter(ifeed){
             
         });    
 
-        ifeed.main_plot.highlight_support_panel()
+        ifeed.tradespace_plot.highlight_support_panel()
         
     }
     
@@ -390,7 +390,7 @@ function Filter(ifeed){
         var feature_expression = input_expression;
 
         // Cancel all previous selections
-        ifeed.main_plot.cancel_selection('remove_highlighted');
+        ifeed.tradespace_plot.cancel_selection('remove_highlighted');
 
         // If filter expression is empty, return
         if(feature_expression==="" || !feature_expression){
@@ -404,7 +404,7 @@ function Filter(ifeed){
 
             var id_list = ifeed.get_data_ids(filtered_data);
 
-            d3.selectAll('.dot.main_plot:not(.cursor)')[0].forEach(function(d){
+            d3.selectAll('.dot.tradespace_plot:not(.cursor)')[0].forEach(function(d){
 
                 if(id_list.indexOf(d.__data__.id)!=-1){
 
@@ -413,16 +413,16 @@ function Filter(ifeed){
 
                     if(dot.classed('selected')){
                         // selected and highlighted
-                        dot.style("fill", ifeed.main_plot.color.overlap);
+                        dot.style("fill", ifeed.tradespace_plot.color.overlap);
                     }else{
                         // not selected
-                        dot.style("fill", ifeed.main_plot.color.highlighted);            		
+                        dot.style("fill", ifeed.tradespace_plot.color.highlighted);            		
                     }
                 }
             });     
         }
 
-        d3.select("#num_of_selected_archs").text(""+ifeed.main_plot.get_num_of_selected_archs());
+        d3.select("#num_of_selected_archs").text(""+ifeed.tradespace_plot.get_num_of_selected_archs());
     }
     
     
