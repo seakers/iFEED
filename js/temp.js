@@ -1,4 +1,7 @@
 
+var myVar;
+
+
 class FeatureApplication{
 
     constructor(DataMiningScheme, filteringScheme, labelingScheme){
@@ -255,22 +258,23 @@ class FeatureApplication{
         nodeExit.select("text")
             .style("fill-opacity", 1e-6);
 
+        
         // Update the links…
         var link = svg.selectAll("path.treeLink")
             .data(links, function(d){
-            	return d.id;
-            });
+                    return d.id;
+                });
 
         // Enter any new links at the parent's previous position.
         let linkEnter = link.enter().insert("path", "g")
             .attr("class", "treeLink")
-            .attr('d', function(d){
-        		var o = {x: root.x0, y: root.y0}
-        		return that.diagonal(o, o)
-  			})
+            .attr("d", function(d) {
+                //var o = {x: root.x0, y: root.y0};
+                return that.diagonal(o,o);
+            })
             .style("stroke-width",function(d){
                     return 8;
-            })
+                })
             .style("fill-opacity", 0.94)
             .style('fill','none');
         
@@ -278,7 +282,9 @@ class FeatureApplication{
         
         linkUpdate.transition()
             .duration(duration)
-            .attr('d', function(d){ return that.diagonal(d, d.parent) })
+            .attr("d", function(d) {
+              return that.diagonal(d,d.parent);
+            })
             .style("stroke",function(d){
                 if(d.data.deactivated){
                     return that.color.deactivated;
@@ -292,10 +298,10 @@ class FeatureApplication{
         // Transition exiting nodes to the parent's new position.
         link.exit().transition()
             .duration(duration)
-            .attr('d', function(d) {
-	        	var o = {x: d.parent.x, y: d.parent.y}
-	        	return that.diagonal(o, o)
-	      	})
+            .attr("d", function(d) {
+              var o = {x: d.parent.x, y: d.parent.y};
+              return that.diagonal(o,o);
+            })
             .remove();
 
         // Stash the old positions for transition.
@@ -387,12 +393,18 @@ class FeatureApplication{
         if(this.dragStarted){    
 	        let mouse_pos = d3.mouse(d3.select("#feature_application_panel").select('svg').select('g').node());
 	        let mouseX = mouse_pos[0]; 
-	        let mouseY = mouse_pos[1];        
+	        let mouseY = mouse_pos[1];
+
+            d.x0 += mouseX;
+            d.y0 += mouseY;        
 
             var node = this.select_treeNode_by_id(d.id);
             node.attr("transform","translate("+ mouseX + "," + mouseY + ")");
 
-            this.updateTempConnector(node, mouseX, mouseY);            
+            var target = {};
+            target.x = mouseX;
+            target.y = mouseY;
+            this.updateTempConnector(target);            
         }
 
     }
@@ -424,7 +436,7 @@ class FeatureApplication{
                     this.selectedNode.children.push(this.draggingNode);
                 }
             }else{
-            	//console.log('selectedNode undefined');            
+            	console.log('selectedNode undefined');            
             }
 
             this.update();
@@ -945,16 +957,22 @@ class FeatureApplication{
         return expression;
     }    
   
-    updateTempConnector(node, xCoord, yCoord){
+    updateTempConnector(target){
 
     	let that = this;
-        let data = [];
 
+        let data = [];
         if (this.draggingNode !== null && this.selectedNode !== null) {
-        	node = node.node().__data__;
-        	node.x = yCoord;
-        	node.y = xCoord;
-            data = [node];
+            data = [{
+                source: {
+                    x: this.selectedNode.y0,
+                    y: this.selectedNode.x0
+                },
+                target: {
+                    x: target.x,
+                    y: target.y
+                }
+            }];
         }
 
         let link = d3.select('#feature_application_panel')
@@ -962,11 +980,10 @@ class FeatureApplication{
                         .select('g')
                         .selectAll(".tempTreeLink").data(data);
 
-        let linkEnter = link.enter()
-        	.append("path")
+        let linkEnter = link.enter().append("path")
             .attr("class", "tempTreeLink")
             .attr("d", function(d) {
-        		return that.diagonal(d,d.parent);
+              return that.diagonal(d,d.parent);
             })
             .attr('pointer-events', 'none')
             .style('fill','none')
@@ -976,43 +993,57 @@ class FeatureApplication{
         link.exit().remove();
     }
 
-	update_feature_expression(expression){
 
-	    let logic_color = "#FF9500";
-	    let bracket_color = "#FF0000";
 
-		if(expression==null){
-	       expression=="";
-
-      	}else if(expression != ""){
-
-       		expression = ifeed.label.pp_feature(expression);
-	        expression = expression.replace(/{/g,'');
-	        expression = expression.replace(/}/g,'');
-
-	        expression = expression.replace(/\(/g,'<span style="color:'+bracket_color+';font-weight:bold;font-size:28px">(</span>');
-	        expression = expression.replace(/\)/g,'<span style="color:'+bracket_color+';font-weight:bold;font-size:28px">)</span>');
-	        expression = expression.replace(/&&/g,' <span style="color:'+logic_color+';">AND</span> ');
-	        expression = expression.replace(/\|\|/g,' <span style="color:'+logic_color+';">OR</span> ');
-	    }
-   		d3.select('#feature_expression').html("<p>"+expression+"</p>");
-	}
+// TODO: Implement feature expression display
+//    self.update_feature_expression = function(expression){
+//
+//        var logic_color = "#FF9500";
+//        var bracket_color = "#FF0000";
+//
+//        if(expression==null){
+//            
+//            expression=="";
+//
+//        }else if(expression != ""){
+//
+//            expression = ifeed.label.pp_feature(expression);
+//            expression = expression.replace(/{/g,'');
+//            expression = expression.replace(/}/g,'');
+//
+//            expression = expression.replace(/\(/g,'<span style="color:'+bracket_color+';font-weight:bold;font-size:28px">(</span>');
+//            expression = expression.replace(/\)/g,'<span style="color:'+bracket_color+';font-weight:bold;font-size:28px">)</span>');
+//            expression = expression.replace(/&&/g,' <span style="color:'+logic_color+';">AND</span> ');
+//            expression = expression.replace(/\|\|/g,' <span style="color:'+logic_color+';">OR</span> ');
+//        }
+//
+//        d3.select('#feature_expression').html("<p>"+expression+"</p>");
+//    }
     
     
     clear_feature_application(){
+        
         this.data = null;
         this.update();
-        this.update_feature_expression(null);
         
+        //this.update_feature_expression(null);
         //PubSub.publish(ADD_FEATURE, null);
         //ifeed.data_mining.draw_venn_diagram(); 
     }
     
-    diagonal(s, d) {
-        let path = `M ${s.y} ${s.x}
-                C ${(s.y + d.y) / 2} ${s.x},
-                  ${(s.y + d.y) / 2} ${d.x},
-                  ${d.y} ${d.x}`;
+    
+    diagonal(d) {
+
+        // let path = `M ${s.y} ${s.x}
+        //         C ${(s.y + d.y) / 2} ${s.x},
+        //           ${(s.y + d.y) / 2} ${d.x},
+        //           ${d.y} ${d.x}`;
+
+      	let path = "M" + d.y + "," + d.x
+         + "C" + (d.y + d.parent.y) / 2 + "," + d.x
+         + " " + (d.y + d.parent.y) / 2 + "," + d.parent.x
+         + " " + d.parent.y + "," + d.parent.x;
+        
         return path;
     }
     
