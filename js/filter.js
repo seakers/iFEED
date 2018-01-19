@@ -26,7 +26,6 @@ class Filter{
     constructor(presetFeatureTypes, labelingScheme){
 
         this.presetFeatureTypes = presetFeatureTypes;
-
         this.label = labelingScheme;
 
         this.initialize();
@@ -142,7 +141,7 @@ class Filter{
 
         // If filter expression is empty, return
         if (feature_expression === ""){
-            return;
+            return [];
         }else{
             // Note that indices and ids are different!
             let filtered_data = this.process_filter_expression(feature_expression, this.data, "&&");
@@ -150,6 +149,8 @@ class Filter{
             let id_list = this.get_data_ids(filtered_data);
 
             PubSub.publish(HIGHLIGHT_ARCHITECTURES, id_list);
+
+            return id_list;
         }
     }
 

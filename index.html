@@ -150,20 +150,15 @@ and open the template in the editor.
 
     var eoss = new EOSS();
 
-    var eossLabel = new EOSSLabel();
+    var label = new EOSSLabel();
     
     var tradespace_plot = new TradespacePlot();
-    ifeed.tradespace_plot=tradespace_plot;
     
-    var filter = new EOSSFilter(eossLabel);
-    ifeed.filter=filter;
+    var filter = new EOSSFilter(label);
     
-    var data_mining = new DataMining(ifeed);
-    ifeed.data_mining = data_mining;
+    var data_mining = new DataMining(filter, label);
     
-    // var feature_application = new FeatureApplication(ifeed);
-    // ifeed.feature_application = feature_application;
-    
+    var feature_application = new FeatureApplication(data_mining, filter, label);    
 
     PubSub.publish(LOAD_DATA, null);
 

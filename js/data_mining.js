@@ -1,64 +1,83 @@
-/* 
- * To change this license header, choose License Headers in Project Properties.
- * To change this template file, choose Tools | Templates
- * and open the template in the editor.
- */
 
+class DataMining{
+    
+    constructor(filteringScheme, labelingScheme){
 
-function DataMining(ifeed){
-    
-    var self = this;
+        this.filter = filteringScheme;
+        this.label = labelingScheme;
+        this.feature_application = null;
 
-    self.support_threshold = 0.002;
-    self.confidence_threshold = 0.2;
-    self.lift_threshold = 1;
-    
-//    self.support_threshold = 0.07;
-//    self.confidence_threshold = 0.5;
-//    self.lift_threshold = 1;    
-    
-    self.margin = {top: 20, right: 20, bottom: 30, left:65};
-    self.width = 770 - 35 - self.margin.left - self.margin.right;
-    self.height = 400 - 20 - self.margin.top - self.margin.bottom;
-    
-    var featureID = 1;
-    
-    self.all_features = [];
-    self.mined_features_id = [];
-    self.user_added_features_id = [];   
-    self.recent_features_id = [];    
-    self.current_feature = null;
-    self.current_feature_blink_interval=null;
-    self.utopia_point = {id:0,name:'utopiaPoint',expression:null,metrics:null,x0:-1,y0:-1,x:-1,y:-1};
-    
+        this.selected_archs = [];
+        this.data = null;
 
-    self.coloursRainbow = ["#2c7bb6", "#00a6ca","#00ccbc","#90eb9d","#ffff8c","#f9d057","#f29e2e","#e76818","#d7191c"];
-    self.colourRangeRainbow = d3.range(0, 1, 1.0 / (self.coloursRainbow.length - 1));
-    self.colourRangeRainbow.push(1);
-
-    //Create color gradient
-    self.colorScaleRainbow = d3.scaleLinear()
-        .domain(self.colourRangeRainbow)
-        .range(self.coloursRainbow)
-        .interpolate(d3.interpolateHcl);
-
-    //Needed to map the values of the dataset to the color scale
-    self.colorInterpolateRainbow = d3.scaleLinear()
-        .domain(d3.extent([]))
-        .range([0,1]);
-    
-
-    self.xScale = null;
-    self.yScale = null;
-    self.xAxis = null;
-    self.yAxis = null;
-    
-    
-
-    self.initialize = function(){
+        this.support_threshold = 0.002;
+        this.confidence_threshold = 0.2;
+        this.lift_threshold = 1;
         
-        ifeed.UI_states.selection_changed=true;
+        this.margin = {top: 20, right: 20, bottom: 30, left:65};
+        this.width = 770 - 35 - this.margin.left - this.margin.right;
+        this.height = 400 - 20 - this.margin.top - this.margin.bottom;
+        
+        this.featureID = 1;
+        this.transform = d3.zoomIdentity;
 
+        this.all_features = [];
+        this.mined_features_id = [];
+        this.user_added_features_id = [];   
+        this.recent_features_id = [];    
+        this.current_feature = null;
+        this.current_feature_blink_interval=null;
+        this.utopia_point = {id:0,name:'utopiaPoint',expression:null,metrics:null,x0:-1,y0:-1,x:-1,y:-1};
+        
+
+        this.coloursRainbow = ["#2c7bb6", "#00a6ca","#00ccbc","#90eb9d","#ffff8c","#f9d057","#f29e2e","#e76818","#d7191c"];
+        this.colourRangeRainbow = d3.range(0, 1, 1.0 / (this.coloursRainbow.length - 1));
+        this.colourRangeRainbow.push(1);
+
+        //Create color gradient
+        this.colorScaleRainbow = d3.scaleLinear()
+            .domain(this.colourRangeRainbow)
+            .range(this.coloursRainbow)
+            .interpolate(d3.interpolateHcl);
+
+        //Needed to map the values of the dataset to the color scale
+        this.colorInterpolateRainbow = d3.scaleLinear()
+            .domain(d3.extent([]))
+            .range([0,1]);
+
+
+
+        // PubSub.subscribe(ADD_FEATURE, (msg, data) => {
+        //     self.add_feature_to_plot(data);
+        // });  
+        
+        // PubSub.subscribe(DRAW_VENN_DIAGRAM, (msg, data) => {
+        //     self.draw_venn_diagram();
+        // });     
+        
+        // PubSub.subscribe(INITIALIZE_DATA_MINING, (msg, data) => {
+        //     self.initialize();
+        // });     
+
+
+        // Save the data
+        PubSub.subscribe(DATA_PROCESSED, (msg, data) => {
+            this.data = data;
+        });         
+        
+        PubSub.subscribe(SELECTION_UPDATED, (msg, data) => {
+            this.initialize();
+            this.selected_archs = data;
+        });
+
+        PubSub.subscribe(FEATURE_APPLICATION_LOADED, (msg, data) => {
+            this.feature_application = data;
+        });  
+
+        this.initialize();        
+    }
+
+    initialize(){
         d3.select("#support_panel").select("#view3").select("g").remove();
         
         var guideline = d3.select("#support_panel").select("#view3")
@@ -82,172 +101,162 @@ function DataMining(ifeed){
                 .style("font-size","19px")
                 .text("Run data mining");
         
-        d3.selectAll("#run_data_mining_button").on("click", self.run);
+        d3.selectAll("#run_data_mining_button").on("click", () => {this.run();});
         
-        self.all_features = [];
-        self.mined_features_id = [];
-        self.user_added_features_id = [];   
-        self.recent_features_id = [];    
-        self.current_feature = null;
-        self.current_feature_blink_interval=null;
+        this.all_features = [];
+        this.mined_features_id = [];
+        this.user_added_features_id = [];   
+        this.recent_features_id = [];    
+        this.current_feature = null;
+        this.current_feature_blink_interval=null;
         
-        PubSub.publish(INITIALIZE_FEATURE_APPLICATION, null);
+        //PubSub.publish(INITIALIZE_FEATURE_APPLICATION, null);
         
-        featureID=1;
+        this.featureID = 1;
     }
     
     
-
-    self.run = function(option){
+    async run(option){
         
-        var selectedArchs = d3.selectAll(".dot.tradespace_plot.selected:not(.hidden):not(.cursor)")[0];
-        var nonSelectedArchs =  d3.selectAll(".dot.tradespace_plot:not(.selected):not(.hidden):not(.cursor)")[0];
-
         // Store the id's of all dots
-        var selected = [];
-        var non_selected = [];
+        let selected = [];
+        let non_selected = [];
 
-        for (var i = 0; i < selectedArchs.length; i++) {
-            var id = selectedArchs[i].__data__.id;
-            selected.push(id);
+        for (let i = 0; i< this.selected_archs.length; i++){
+            selected.push(this.selected_archs[i].id);
         }
-        for (var i = 0; i < nonSelectedArchs.length; i++) {
-            var id = nonSelectedArchs[i].__data__.id;
-            non_selected.push(id);
-        }                
-        
-        
-        if (selectedArchs.length==0){
+
+        for (let i = 0; i < this.data.length; i++){
+            let id = this.data[i].id;
+            if (selected.indexOf(id) === -1){
+                // non-selected
+                non_selected.push(id);
+            }
+        }
+
+        if (this.selected_archs.length==0){
             alert("First select target solutions!");
             return;
         }     
                 
-        
         // If the feature application tree exists:
-        if(ifeed.feature_application.root){
-            // Run data mining in the marginal feature space
-                        
-            var selected_node = null;            
+        if(this.feature_application.root){
+            // // Run data mining in the marginal feature space
+            // var selected_node = null;            
             
-            // Save the node where the placeholder is to be located
-            ifeed.feature_application.visit_nodes(ifeed.feature_application.root,function(d){
-                if(d.add){selected_node=d;}                        
-            })            
+            // // Save the node where the placeholder is to be located
+            // this.feature_application.visit_nodes(this.feature_application.root,function(d){
+            //     if(d.add){selected_node=d;}                        
+            // })            
             
-            // Save the currently applied feature
-            var base_feature = ifeed.feature_application.parse_tree(ifeed.feature_application.root,selected_node);
+            // // Save the currently applied feature
+            // let base_feature = this.feature_application.parse_tree(this.feature_application.root,selected_node);
 
-            var extracted_features = null;
+            // let extracted_features = null;
 
-            if(selected_node){
+            // if(selected_node){
 
-                extracted_features = self.get_marginal_driving_features(selected, non_selected, base_feature, 
-                                                             self.support_threshold,self.confidence_threshold,self.lift_threshold);           
+            //     extracted_features = this.get_marginal_driving_features(selected, non_selected, base_feature, 
+            //                                                  this.support_threshold,this.confidence_threshold,this.lift_threshold);           
 
-            }else if(!option){
+            // }else if(!option){
 
-                // Save the architectures that have the currently applied feature
-                var highlightedArchs = d3.selectAll(".dot.tradespace_plot.highlighted:not(.hidden):not(.cursor)")[0];                    
+            //     // Save the architectures that have the currently applied feature
+            //     let highlightedArchs = d3.selectAll(".dot.tradespace_plot.highlighted:not(.hidden):not(.cursor)")[0];                    
 
-                var highlighted = [];
-                for (var i = 0; i < highlightedArchs.length; i++) {
-                    var id = highlightedArchs[i].__data__.id;
-                    highlighted.push(id);
-                }                       
+            //     let highlighted = [];
+            //     for (var i = 0; i < highlightedArchs.length; i++) {
+            //         var id = highlightedArchs[i].__data__.id;
+            //         highlighted.push(id);
+            //     }                       
 
-                extracted_features = self.get_marginal_driving_features_conjunctive(selected, non_selected, base_feature, highlighted, 
-                                                                 self.support_threshold,self.confidence_threshold,self.lift_threshold);
-            }else{
+            //     extracted_features = this.get_marginal_driving_features_conjunctive(selected, non_selected, base_feature, highlighted, 
+            //                                                      this.support_threshold,this.confidence_threshold,this.lift_threshold);
+            // }else{
 
-                var root = ifeed.feature_application.root;
+            //     let root = this.feature_application.root;
 
-                extracted_features = [];
+            //     extracted_features = [];
 
-                var all_extracted_features = [];
+            //     let all_extracted_features = [];
 
-                for(var i=0;i<root.children.length;i++){
+            //     for(let i=0;i<root.children.length;i++){
 
-                    selected_node = root.children[i];  
+            //         selected_node = root.children[i];  
                     
-                    if(selected_node.type=="logic"){
-                        continue;
-                    }
+            //         if(selected_node.type=="logic"){
+            //             continue;
+            //         }
                     
-                    var test_feature = ifeed.feature_application.parse_tree(root,selected_node); 
+            //         let test_feature = this.feature_application.parse_tree(root,selected_node); 
 
-                    var temp_features = self.get_marginal_driving_features(selected, non_selected, test_feature, 
-                                                             self.support_threshold,self.confidence_threshold,self.lift_threshold);
+            //         let temp_features = this.get_marginal_driving_features(selected, non_selected, test_feature, 
+            //                                                  this.support_threshold,this.confidence_threshold,this.lift_threshold);
 
-                    all_extracted_features = all_extracted_features.concat(temp_features);
+            //         all_extracted_features = all_extracted_features.concat(temp_features);
 
-                }
+            //     }
 
-                // Check non-dominance against the extracted features
-                for(var j=0;j<all_extracted_features.length;j++){
-                    var this_feature = all_extracted_features[j];
-                    if(self.check_if_non_dominated(this_feature, all_extracted_features)) extracted_features.push(this_feature);
-                }                    
-            }
-            
-            
-            
-            var features_to_add = [];
-            self.recent_features_id = [];
-
-            // Check non-dominance against all existing features
-            for(var i=0;i<extracted_features.length;i++){
-
-                var this_feature = extracted_features[i];
-                if(self.check_if_non_dominated(this_feature,self.all_features)){
-                    var id = featureID++;
-                    // non-dominated
-                    self.mined_features_id.push(id);
-                    self.recent_features_id.push(id); 
-
-                    this_feature.id=id;
-                    features_to_add.push(this_feature);
-                }
-            }     
-
-            // Update the location of the current feature
-            var x=self.current_feature.x;
-            var y=self.current_feature.y;
-            self.current_feature.x0=x;
-            self.current_feature.y0=y;
-
-            self.update_feature_plot(features_to_add);
-            PubSub.publish(CANCEL_ADD_FEATURE, null);
+            //     // Check non-dominance against the extracted features
+            //     for(let j=0;j<all_extracted_features.length;j++){
+            //         let this_feature = all_extracted_features[j];
+            //         if(this.check_if_non_dominated(this_feature, all_extracted_features)) extracted_features.push(this_feature);
+            //     }                    
+            // }
                         
-        }else{
-            
+            // let features_to_add = [];
+            // this.recent_features_id = [];
+
+            // // Check non-dominance against all existing features
+            // for(let i=0;i<extracted_features.length;i++){
+
+            //     let this_feature = extracted_features[i];
+            //     if(this.check_if_non_dominated(this_feature,this.all_features)){
+            //         var id = featureID++;
+            //         // non-dominated
+            //         this.mined_features_id.push(id);
+            //         this.recent_features_id.push(id); 
+
+            //         this_feature.id=id;
+            //         features_to_add.push(this_feature);
+            //     }
+            // }     
+
+            // // Update the location of the current feature
+            // var x=this.current_feature.x;
+            // var y=this.current_feature.y;
+            // this.current_feature.x0=x;
+            // this.current_feature.y0=y;
+
+            // this.update(features_to_add);
+            // PubSub.publish(CANCEL_ADD_FEATURE, null);
+                        
+        }else{            
             // Run data mining from the scratch (no local search)
             
             // Clear the feature application
             PubSub.publish(INITIALIZE_FEATURE_APPLICATION, null);
 
             // Remove all highlights in the scatter plot (retain target solutions)
-            ifeed.tradespace_plot.cancel_selection('remove_highlighted');   
-            
-            self.all_features = self.get_driving_features(selected,non_selected,self.support_threshold,self.confidence_threshold,self.lift_threshold);
+            PubSub.publish(HIGHLIGHT_ARCHITECTURES, []);
 
-            if(self.all_features.length==0){
+            this.all_features = this.get_driving_features(selected, non_selected, this.support_threshold, this.confidence_threshold, this.lift_threshold);
+
+            if(this.all_features.length === 0){ // If there is no driving feature returned
                 return;
             }else{
-                for(var i=0;i<self.all_features.length;i++){
-                    self.mined_features_id.push(self.all_features[i].id);
+                for(let i = 0; i < this.all_features.length; i++){
+                    this.mined_features_id.push(this.all_features[i].id);
                 }
             }
 
-            self.display_features();              
-            
+            this.display_features();              
         }
- 
+
     }
 
     
-    
-
-    self.get_driving_features = function(selected,non_selected,support_threshold,confidence_threshold,lift_threshold){
+    get_driving_features(selected,non_selected,support_threshold,confidence_threshold,lift_threshold){
 
         var output;
         $.ajax({
@@ -275,8 +284,10 @@ function DataMining(ifeed){
         return output;
     }
     
-    
-    self.get_marginal_driving_features = function(selected,non_selected,featureExpression,
+    /*
+        Run local search: can be used for both conjunction and disjunction
+    */  
+    get_marginal_driving_features(selected,non_selected,featureExpression,
                                                    support_threshold,confidence_threshold,lift_threshold){
         
         var output;
@@ -303,8 +314,10 @@ function DataMining(ifeed){
     }    
     
     
-    
-    self.get_marginal_driving_features_conjunctive = function(selected,non_selected,featureName,highlighted,
+    /*
+        Run local search: only conjunction
+    */
+    get_marginal_driving_features_conjunctive(selected,non_selected,featureName,highlighted,
                                                    support_threshold,confidence_threshold,lift_threshold){
         
         var output;
@@ -332,63 +345,61 @@ function DataMining(ifeed){
     }
     
     
-    
-    
-    self.display_features = function(){
+    display_features(){
 
         document.getElementById('tab3').click();
         
-        ifeed.tradespace_plot.highlight_support_panel();
+        //ifeed.tradespace_plot.highlight_support_panel();
 
         // Remove previous plot
         d3.select("#view3").select("g").remove();
 
-        var tab = d3.select('#view3').append('g');
+        let tab = d3.select('#view3').append('g');
 
         // Create plot div's
-        var feature_plot = tab.append('div')
+        let feature_plot = tab.append('div')
             .attr('class','feature_plot')
-            .style('width', self.width + self.margin.left + self.margin.right)
-            .style('height', self.height + self.margin.top + self.margin.bottom);
+            .style('width', this.width + this.margin.left + this.margin.right)
+            .style('height', this.height + this.margin.top + this.margin.bottom);
 
         // Create a new svg
-        var svg = feature_plot.append("svg")
+        let svg = feature_plot.append("svg")
             .attr('class','feature_plot figure')
-            .attr("width", self.width + self.margin.left + self.margin.right)
-            .attr("height", self.height + self.margin.top + self.margin.bottom)
+            .attr("width", this.width + this.margin.left + this.margin.right)
+            .attr("height", this.height + this.margin.top + this.margin.bottom)
             .append("g")
-            .attr("transform", "translate(" + self.margin.left + "," + self.margin.top + ")");
+            .attr("transform", "translate(" + this.margin.left + "," + this.margin.top + ")");
 
-        feature_plot.append('div')
-            .attr('class','feature_plot venn_diagram')
-            .append('div')
-            .text('Total number of designs: ' + ifeed.tradespace_plot.get_num_of_archs());
-        
+        // feature_plot.append('div')
+        //     .attr('class','feature_plot venn_diagram')
+        //     .append('div')
+        //     .text('Total number of designs: ' + ifeed.tradespace_plot.get_num_of_archs());
         
         var objects = svg.append("svg")
                 .attr("class", "objects feature_plot")
-                .attr("width", self.width)
-                .attr("height", self.height)
+                .attr("width", this.width)
+                .attr("height", this.height)
                 .style('margin-bottom','30px');
 
         // Initialize location
-        for(var i=0;i<self.all_features.length;i++){
-            self.all_features[i].x0 = -1;
-            self.all_features[i].y0 = -1;
-            self.all_features[i].id = featureID++;
+        for (let i = 0; i < this.all_features.length; i++){
+            this.all_features[i].x0 = -1;
+            this.all_features[i].y0 = -1;
+            this.all_features[i].id = this.featureID++;
         }
 
-        self.update_feature_plot();
+        this.update();
     }
     
     
-    
-    self.update_feature_plot = function(newly_added_features){
+    update(newly_added_features){
+
+        let that = this;
         
         function get_utopia_point(){
             // Utopia point
             return d3.selectAll('.dot.feature_plot').filter(function(d){
-                if(d.id===self.utopia_point.id) return true;
+                if(d.id===that.utopia_point.id) return true;
                 return false;
             });
         }
@@ -396,63 +407,63 @@ function DataMining(ifeed){
         
         function get_current_feature(){
             var id;
-            if(self.current_feature){
-                id = self.current_feature.id;
+            if(that.current_feature){
+                id = that.current_feature.id;
             }
             // The current feature
             return d3.selectAll('.dot.feature_plot').filter(function(d){
-                if(d.id==id) return true;
+                if (d.id == id) return true;
                 return false;
             });
         }
 
 
         // Set variables
-        var margin = self.margin;
-        var width = self.width;
-        var height = self.height;
+        let margin = this.margin;
+        let width = this.width;
+        let height = this.height;
 
-        var duration = 500;
+        let gX, gY;
 
-        var supps = [];
-        var lifts = [];
-        var conf1s = [];
-        var conf2s = [];
+        let duration = 500;
 
-        var scores=[];   
-        var maxScore = -1;
+        let supps = [];
+        let lifts = [];
+        let conf1s = [];
+        let conf2s = [];
+        let scores=[];   
+        let maxScore = -1;
         
         // Remove unnecessary points (cursor)
         d3.select(".objects.feature_plot")
                 .selectAll('.dot.feature_plot')
-                .data(self.all_features)
+                .data(this.all_features)
                 .exit()
                 .remove();
         
         // Clear the previously existing interval
-        if(self.current_feature_blink_interval != null){
+        if(this.current_feature_blink_interval != null){
             
-            clearInterval(self.current_feature_blink_interval);
+            clearInterval(this.current_feature_blink_interval);
             d3.selectAll('.dot.feature_plot').style('opacity',1);
         }
         
         if(newly_added_features){
-            self.all_features = self.all_features.concat(newly_added_features);
+            this.all_features = this.all_features.concat(newly_added_features);
         }
         
-        for (var i=0;i<self.all_features.length;i++){
+        for (var i=0;i<this.all_features.length;i++){
             
-            supps.push(self.all_features[i].metrics[0]);
-            lifts.push(self.all_features[i].metrics[1]);
-            conf1s.push(self.all_features[i].metrics[2]);
-            conf2s.push(self.all_features[i].metrics[3]);
+            supps.push(this.all_features[i].metrics[0]);
+            lifts.push(this.all_features[i].metrics[1]);
+            conf1s.push(this.all_features[i].metrics[2]);
+            conf2s.push(this.all_features[i].metrics[3]);
             
             var score = 1-Math.sqrt(Math.pow(1-conf1s[i],2)+Math.pow(1-conf2s[i],2));
             scores.push(score);
 
             if(score > maxScore) maxScore = score;
         }
-
         
         // Add utopia point to the list
         var max_conf1 = Math.max.apply(null, conf1s);
@@ -460,195 +471,152 @@ function DataMining(ifeed){
         var max_conf = Math.max(max_conf1, max_conf2);
 
         // Adjust the location of the utopia point
-        self.utopia_point.metrics=[Math.max.apply(null, lifts),Math.max.apply(null, supps),max_conf,max_conf];
+        this.utopia_point.metrics=[Math.max.apply(null, lifts),Math.max.apply(null, supps),max_conf,max_conf];
 
         // Insert the utopia point to the list of features
-        self.all_features.splice(0, 0, self.utopia_point);
+        this.all_features.splice(0, 0, this.utopia_point);
         // Add score for the utopia point (0.2 more than the best score found so far)
         scores.splice(0,0,Math.max.apply(null,scores)+0.2); 
-
         
-        if(self.current_feature){
+        if(this.current_feature){
             // Add the current feature
-            self.all_features.push(self.current_feature);
+            this.all_features.push(this.current_feature);
         }
         
-        
         // Set the axis to be Conf(F->S) and Conf(S->F)
-        var x = 2;
-        var y = 3;
+        let x = 2;
+        let y = 3;
 
         // setup x
         // data -> value
-        var xValue = function (d) {
+        let xValue = function (d) {
             return d.metrics[x];
         }; 
         // value -> display
-        var xScale = d3.scale.linear().range([0, width]); 
+        let xScale = d3.scaleLinear().range([0, width]); 
 
         // don't want dots overlapping axis, so add in buffer to data domain 
-        var xBuffer = (d3.max(self.all_features, xValue) - d3.min(self.all_features, xValue)) * 0.05;
+        let xBuffer = (d3.max(this.all_features, xValue) - d3.min(this.all_features, xValue)) * 0.05;
 
-        xScale.domain([d3.min(self.all_features, xValue) - xBuffer, d3.max(self.all_features, xValue) + xBuffer]);
+        xScale.domain([d3.min(this.all_features, xValue) - xBuffer, d3.max(this.all_features, xValue) + xBuffer]);
 
         // data -> display
-        var xMap = function (d) {
+        let xMap = function (d) {
             return xScale(xValue(d));
         }; 
-        var xAxis = d3.svg.axis().scale(xScale).orient("bottom");
+        let xAxis = d3.axisBottom(xScale);
 
 
         // setup y
         // data -> value
-        var yValue = function (d) {
+        let yValue = function (d) {
             return d.metrics[y];
         };
         // value -> display
-        var yScale = d3.scale.linear().range([height, 0]); 
+        let yScale = d3.scaleLinear().range([height, 0]); 
 
-        var yBuffer = (d3.max(self.all_features, yValue) - d3.min(self.all_features, yValue)) * 0.05;
-        yScale.domain([d3.min(self.all_features, yValue) - yBuffer, d3.max(self.all_features, yValue) + yBuffer]);
+        let yBuffer = (d3.max(this.all_features, yValue) - d3.min(this.all_features, yValue)) * 0.05;
+        yScale.domain([d3.min(this.all_features, yValue) - yBuffer, d3.max(this.all_features, yValue) + yBuffer]);
         // data -> display
-        var yMap = function (d) {
+        let yMap = function (d) {
             return yScale(yValue(d));
         }; 
-        var yAxis = d3.svg.axis().scale(yScale).orient("left");
+        let yAxis = d3.axisLeft(yScale);
 
         // Set the new locations of all the features
-        for(var i=0;i<self.all_features.length;i++){
-            self.all_features[i].x = xMap(self.all_features[i]);
-            self.all_features[i].y = yMap(self.all_features[i]);
-            if(!self.all_features[i].x0){
+        for(let i = 0; i < this.all_features.length; i++){
+            this.all_features[i].x = xMap(this.all_features[i]);
+            this.all_features[i].y = yMap(this.all_features[i]);
+            if(!this.all_features[i].x0){
                 // If previous location has not been initialize, save the current location
-                self.all_features[i].x0 = self.all_features[i].x;
-                self.all_features[i].y0 = self.all_features[i].y;
+                this.all_features[i].x0 = this.all_features[i].x;
+                this.all_features[i].y0 = this.all_features[i].y;
             }
         }
-        
-        self.xScale=xScale;
-        self.yScale=yScale;
-        self.xAxis=xAxis;
-        self.yAxis=yAxis;
-
 
         //Needed to map the values of the dataset to the color scale
-        self.colorInterpolateRainbow = d3.scale.linear()
+        this.colorInterpolateRainbow = d3.scaleLinear()
                 .domain(d3.extent(scores))
                 .range([0,1]);
 
-        // Set zoom
-        d3.select('.feature_plot.figure').call(
+        // Setup zoom
+        this.zoom = d3.zoom()
+            .scaleExtent([0.2, 25])
+            .on("zoom", d => {
+                this.transform = d3.event.transform;
+                gX.call(xAxis.scale(this.transform.rescaleX(xScale)));
+                gY.call(yAxis.scale(this.transform.rescaleY(yScale)));
 
-                    d3.behavior.zoom()
-                    .x(xScale)
-                    .y(yScale)
-                    .scaleExtent([0.2, 50])
-                    .on("zoom", function (d) {
+                d3.selectAll('.dot.feature_plot')
+                    .attr("transform", function (d) {
+                        let xCoord = that.transform.applyX(xMap(d));
+                        let yCoord = that.transform.applyY(yMap(d));
+                        return "translate(" + xCoord + "," + yCoord + ")";
+                    });    
+            });
+        d3.select('.feature_plot.figure').call(this.zoom);
+       
 
-                        var scale = d3.event.scale;
-
-                        d3.select('.feature_plot.figure').select(".x.axis").call(xAxis);
-                        d3.select('.feature_plot.figure').select(".y.axis").call(yAxis);
-
-                        d3.selectAll('.dot.feature_plot')
-                            .attr("transform", function (d) {
-                                var xCoord = xMap(d);
-                                var yCoord = yMap(d);
-                                return "translate(" + xCoord + "," + yCoord + ")";
-                            });        
-                    })
-
-                )
-                .append("g")        
-                .attr("transform", "translate(" + self.margin.left + "," + self.margin.top + ")");
-
-
-
-        var svg = d3.select('.feature_plot.figure').select('g')
-
-        d3.select('.x.axis.feature_plot').remove();
-        d3.select('.y.axis.feature_plot').remove();
-        d3.select('.axisLine.hAxisLine.feature_plot').remove();
-        d3.select('.axisLine.vAxisLine.feature_plot').remove();
-
+        let svg = d3.select('.feature_plot.figure').select('g')
         // x-axis
-        svg.append('g')
-                .attr("class", "x axis feature_plot")
-                .attr("transform", "translate(0," + height + ")")
-                .call(xAxis)
-                .append("text")
-                .attr("class", "label feature_plot")
-                .attr("x", self.width)
-                .attr("y", -6)
-                .style("text-anchor", "end")
-                .text('Confidence(F->S)')
-                .style('font-size','15px');
+        gX = svg.append("g")
+            .attr("class", "axis axis-x")
+            .attr("transform", "translate(0, " + height + ")")
+            .call(xAxis);
+            
+        svg.append("text")
+            .attr("transform", "translate(" + width + ", " + height + ")")
+            .attr("class", "label")
+            .attr("y", -6)
+            .style("text-anchor", "end")
+            .text('Confidence(F->S)')
+            .style('font-size','15px');
 
         // y-axis
-        svg.append('g')
-                .attr("class", "y axis feature_plot")
-                .call(yAxis)
-                .append("text")
-                .attr("class", "feature_plot label")
-                .attr("transform", "rotate(-90)")
-                .attr("y", 6)
-                .attr("dy", ".71em")
-                .style("text-anchor", "end")
-                .text('Confidence(S->F)')
-                .style('font-size','15px');
-
+        gY = svg.append("g")
+            .attr("class", "axis axis-y")
+            .call(yAxis);
+        
+        svg.append("text")
+            .attr("class", "label")
+            .attr("transform", "rotate(-90)")
+            .attr("y", 6)
+            .attr("dy", ".71em")
+            .style("text-anchor", "end")
+            .text('Confidence(S->F)')
+            .style('font-size','15px');
 
         var objects = d3.select(".objects.feature_plot")
 
-        //Create main 0,0 axis lines:
-        objects.append("svg:line")
-                .attr("class", "axisLine hAxisLine feature_plot")
-                .attr("x1", 0)
-                .attr("y1", 0)
-                .attr("x2", self.width)
-                .attr("y2", 0)
-                .attr("transform", "translate(0," + yScale(0) + ")");
-
-        objects.append("svg:line")
-                .attr("class", "axisLine vAxisLine feature_plot")
-                .attr("x1", 0)
-                .attr("y1", 0)
-                .attr("x2", 0)
-                .attr("y2", self.height)
-                .attr("transform", "translate(" + xScale(0) + ",0)");
-
         // Remove unnecessary points
         objects.selectAll('.dot.feature_plot')
-                .data(self.all_features)
+                .data(this.all_features)
                 .exit()
                 .remove();
 
         // Create new dots
         objects.selectAll(".dot.feature_plot")
-                .data(self.all_features)
+                .data(this.all_features)
                 .enter()
                 .append('path')
                 .attr('class','point dot feature_plot')
-                .attr("d", d3.svg.symbol().type('triangle-up').size(120))
+                .attr("d", d3.symbol().type((d) => {return d3.symbolTriangle;}).size(120))
                 .attr("transform", function (d) {
                     return "translate(" + d.x0 + "," + d.y0 + ")";
                 })
                 .style("stroke-width",1);
 
-
-
         d3.selectAll('.dot.feature_plot').filter(function(d){
-            if(self.recent_features_id.indexOf(d.id)==-1){
+            if(that.recent_features_id.indexOf(d.id)==-1){
                 return true;
             }
             return false;
         })
-        .attr("d", d3.svg.symbol().type('triangle-up').size(120));
-        
+        .attr("d", d3.symbol().type((d) => {return d3.symbolTriangle;}).size(120));
         
         // Modify the shape of all features that were added recently
         d3.selectAll('.dot.feature_plot').filter(function(d){
-            if(self.recent_features_id.indexOf(d.id)!=-1){
+            if(that.recent_features_id.indexOf(d.id)!=-1){
                 return true;
             }
             return false;
@@ -658,7 +626,6 @@ function DataMining(ifeed){
         // Utopia point: modify the shape to a star
         get_utopia_point().attr('d',d3.symbol().type(d3.symbolStar).size(120));        
         
-
 
         // The current feature: modify the shape to a cross
         var _current_feature = get_current_feature().attr('d',d3.symbol().type(d3.symbolCross).size(120));
@@ -677,33 +644,36 @@ function DataMining(ifeed){
             }
         }
 
-        self.current_feature_blink_interval = setInterval(blink, 350);
-
+        this.current_feature_blink_interval = setInterval(blink, 350);
 
         
-        d3.selectAll('.dot.feature_plot').filter(function(d){
-                if(d.id===self.utopia_point.id) return false;
-                return true;
+        d3.selectAll('.dot.feature_plot').filter((d) => {
+                if (d.id === this.utopia_point.id) {
+                    return false;
+                }
+                else {
+                    return true;
+                }
             })
-            .on("mouseover", self.feature_mouseover)
-            .on('mouseout', self.feature_mouseout)
-            .on('click', self.feature_click);   
+            .on("mouseover", (d) => { this.feature_mouseover(d); })
+            .on('mouseout', (d) => { this.feature_mouseout(d); })
+            .on('click', (d) => { this.feature_click(d); });   
 
         
         //Transition the colors to a rainbow
         function updateRainbow() {
             d3.selectAll(".dot.feature_plot")
-                .style("fill", function (d,i) { return self.colorScaleRainbow(self.colorInterpolateRainbow(scores[i])); })
+                .style("fill", function (d,i) { return that.colorScaleRainbow(that.colorInterpolateRainbow(scores[i])); })
         }
         
         updateRainbow();
 
         // Remove the utopia point from the list
-        self.all_features.splice(0,1);
+        this.all_features.splice(0,1);
 
-        if(self.current_feature){
+        if(this.current_feature){
             // Remove the last feature, as it had been added temporarily to display the cursor
-            self.all_features.pop();
+            this.all_features.pop();
         }
 
         d3.selectAll('.dot.feature_plot').transition()
@@ -713,38 +683,34 @@ function DataMining(ifeed){
             });   
                 
     }
-    
-    
-    
 
-    self.feature_click = function(d){
+    feature_click(d){
         // Replaces the current feature expression with the stashed expression
-        ifeed.feature_application.update_feature_application('update');
+        this.feature_application.update_feature_application('update');
     }
 
+    feature_mouseover(d){
 
-    self.feature_mouseover = function(d){
-
-        var id= d.id; 
-        var expression = d.expression;
-        var metrics = d.metrics;
-        var conf = d.metrics[2];
-        var conf2 = d.metrics[3];
+        let id= d.id; 
+        let expression = d.expression;
+        let metrics = d.metrics;
+        let conf = d.metrics[2];
+        let conf2 = d.metrics[3];
 
         // Set variables
-        var margin = self.margin;
-        var width = self.width;
-        var height = self.height;
+        let margin = this.margin;
+        let width = this.width;
+        let height = this.height;
 
-        var mouseLoc_x = d3.mouse(d3.select(".objects.feature_plot")[0][0])[0];
-        var mouseLoc_y = d3.mouse(d3.select(".objects.feature_plot")[0][0])[1];
+        let mouseLoc_x = d3.mouse(d3.select(".objects.feature_plot").node())[0];
+        let mouseLoc_y = d3.mouse(d3.select(".objects.feature_plot").node())[1];
 
-        var tooltip_location = {x:0,y:0};
-        var tooltip_width = 250;
-        var tooltip_height = 120;
+        let tooltip_location = {x:0,y:0};
+        let tooltip_width = 250;
+        let tooltip_height = 120;
 
-        var h_threshold = (width + margin.left + margin.right)*0.5;
-        var v_threshold = (height + margin.top + margin.bottom)*0.55;
+        let h_threshold = (width + margin.left + margin.right)*0.5;
+        let v_threshold = (height + margin.top + margin.bottom)*0.55;
 
 
         if(mouseLoc_x >= h_threshold){
@@ -783,7 +749,7 @@ function DataMining(ifeed){
                         .attr("y",function(){
                            return mouseLoc_y + tooltip_location.y; 
                         })
-                        .attr({
+                        .attrs({
                             'width':tooltip_width,
                             'height':tooltip_height  
                         })
@@ -800,14 +766,11 @@ function DataMining(ifeed){
 
 
         // Update the placeholder with the driving feature and stash the expression    
-        ifeed.feature_application.update_feature_application('temp',expression);
-        self.draw_venn_diagram(); 
+        this.feature_application.update_feature_application('temp',expression);
+        //self.draw_venn_diagram(); 
     }
 
-
-
-    self.feature_mouseout = function(d){
-
+    feature_mouseout(d){
         var id = d.id;
 
         // Remove the tooltip
@@ -816,15 +779,11 @@ function DataMining(ifeed){
         // Remove all the features created temporarily
 
         // Bring back the previously stored feature expression
-        ifeed.feature_application.update_feature_application('restore');        
-        self.draw_venn_diagram();       
+        this.feature_application.update_feature_application('restore');        
+        //this.draw_venn_diagram();       
     }
-
-
     
-    
-    
-    self.add_feature_to_plot = function(expression){
+    add_feature_to_plot(expression){
         
                 
         function find_equivalent_feature(metrics,indices){
@@ -850,11 +809,11 @@ function DataMining(ifeed){
 
             self.current_feature=null;
             // Assign new indices for the added features
-            self.update_feature_plot();
+            self.update();
 
         }else{       
             
-            ifeed.filter.apply_filter_expression(expression);
+            this.filter.apply_filter_expression(expression);
 
             // Compute the metrics of a feature
             var total = ifeed.tradespace_plot.get_num_of_archs();
@@ -881,7 +840,6 @@ function DataMining(ifeed){
                 x=-1,y=-1;
             }
 
-
             // Define new feature
             self.current_feature = {id:-1,name:expression,expression:expression,metrics:metrics,x0:x,x:x,y0:y,y:y};
 
@@ -907,12 +865,12 @@ function DataMining(ifeed){
             ifeed.tradespace_plot.highlight_support_panel();
 
             // Display the driving features with newly added feature
-            self.update_feature_plot();
+            this.update();
         }
     }
     
     
-    self.check_if_non_dominated = function(test_feature, all_features){  
+    check_if_non_dominated(test_feature, all_features){  
         
         var non_dominated = true;
         
@@ -933,7 +891,7 @@ function DataMining(ifeed){
         
     
     
-    self.draw_venn_diagram = function(){
+    draw_venn_diagram(){
 
         var venn_diagram_container = d3.select('.feature_plot .venn_diagram').select('div');
         
@@ -1064,22 +1022,6 @@ function DataMining(ifeed){
             .attr("fill","brown")
             .text("Features:" + Math.round(F_size) );
     }
-
-
-    PubSub.subscribe(ADD_FEATURE, (msg, data) => {
-        self.add_feature_to_plot(data);
-    });  
-    
-    PubSub.subscribe(DRAW_VENN_DIAGRAM, (msg, data) => {
-        self.draw_venn_diagram();
-    });     
-    
-    PubSub.subscribe(INITIALIZE_DATA_MINING, (msg, data) => {
-        self.initialize();
-    });     
-      
-    
-    self.initialize();
 }
 
 

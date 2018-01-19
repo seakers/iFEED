@@ -4,7 +4,7 @@ const LOAD_DATA = "load_data";
 const DESIGN_PROBLEM_LOADED = "design_problem_loaded";
 // Inspecting an architecture using a mouse (pub: tradespace_plot.js, sub: problem.js)
 const INSPECT_ARCH = "inspect_arch";
-// New selection made (pub: tradespace_plot.js)
+// New selection made (pub: tradespace_plot.js, sub: data_mining.js)
 const SELECTION_UPDATED = "selection_updated";
 // Apply feature expression (sub: filter.js)
 const APPLY_FEATURE_EXPRESSION = "apply_feature_expression";
@@ -12,12 +12,15 @@ const APPLY_FEATURE_EXPRESSION = "apply_feature_expression";
 const HIGHLIGHT_ARCHITECTURES = "highlight_architectures";
 // Data imported (pub: ifeed-general.js, sub: problem.js, eoss.js)
 const DATA_IMPORTED = "data_imported";
-// Data preprocessing finished (pub: problem.js, sub: tradespace_plot.js, eossFilter.js)
+// Data preprocessing finished (pub: problem.js, sub: tradespace_plot.js, eossFilter.js, data_mining.js, feature_application.js)
 const DATA_PROCESSED = "data_processed";
 // Run local search in the design space (sub: problem.js)
 const RUN_LOCAL_SEARCH = "run_local_search";
 // Labeling scheme loaded (pub: eossLabel.js, sub: )
 const LABELING_SCHEME_LOADED = "labeling_scheme_loaded";
+// Feature application loaded (pub: feature_application.js, sub: data_mining.js)
+const FEATURE_APPLICATION_LOADED = "feature_application_loaded";
+
 
 
 const INITIALIZE_FEATURE_APPLICATION = "initialize_feature_application";

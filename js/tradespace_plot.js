@@ -35,6 +35,8 @@ class TradespacePlot{
         this.transform = d3.zoomIdentity;
         this.lastHoveredArch = null;
 
+        this.selection_updated = false;
+
         PubSub.subscribe(DESIGN_PROBLEM_LOADED, (msg, data) => {
             this.output_list = data.metadata.output_list;
         });         
@@ -428,7 +430,6 @@ class TradespacePlot{
         // document.getElementById('tab1').click();       
         
         // PubSub.publish(HIGHLIGHT_SUPPORT_PANEL,null);
-
     }
 
     canvas_mousemove(maxcolor, colorMap) {
@@ -554,7 +555,7 @@ class TradespacePlot{
             });
 
             // Selection updated
-            PubSub.publish(SELECTION_UPDATED, null);            
+            PubSub.publish(SELECTION_UPDATED, []);            
             //PubSub.publish(INITIALIZE_DATA_MINING,null);
             this.num_selected_points = 0;
             
@@ -566,7 +567,7 @@ class TradespacePlot{
             });
 
             // Selection updated
-            PubSub.publish(SELECTION_UPDATED, null);            
+            PubSub.publish(SELECTION_UPDATED, []);            
             //PubSub.publish(INITIALIZE_DATA_MINING,null);
             this.num_selected_points = 0;
 
@@ -635,7 +636,7 @@ class TradespacePlot{
             function select_mousemove() {
                 let selection = svg.select("rect.selection");
                 if (!selection.empty()) {
-                    let selection_updated = false;
+                    let selection_changed = false;
                     let mouse_pos = d3.mouse(this);
 
                     let box = {
@@ -690,7 +691,7 @@ class TradespacePlot{
                                         point.drawingColor = that.color.selected;
                                     }
 
-                                    selection_updated = true;
+                                    selection_changed = true;
                                     // Update the number of selected points
                                 }
                             }
@@ -717,14 +718,14 @@ class TradespacePlot{
                                         point.drawingColor = that.color.default;
                                     }
 
-                                    selection_updated = true;
+                                    selection_changed = true;
                                 }
                             }
                         });
                     }
 
-                    if (selection_updated) {
-                        PubSub.publish(SELECTION_UPDATED);
+                    if (selection_changed) {
+                        that.selection_updated = true;
                     }
                     d3.select("#num_of_selected_archs").text(""+that.num_selected_points);
                     that.drawPoints(that.context, false);
@@ -735,6 +736,15 @@ class TradespacePlot{
                 // remove selection frame
                 svg.selectAll("rect.selection").remove();
                 //PubSub.publish("update_target_selection")
+
+                if (that.selection_updated){
+                    // Get the selected archs
+                    let selected_archs = that.get_selected_architectures(that.data);
+
+                    PubSub.publish(SELECTION_UPDATED, selected_archs);
+                    // Reset the variable
+                    that.selection_updated = false;
+                }
             }
 
             svg.on("mousedown.modes", select_mousedown)
@@ -765,7 +775,15 @@ class TradespacePlot{
         }
     }    
 
-
+    get_selected_architectures(){
+        let out = [];
+        this.data.forEach(point => {
+            if (point.selected && !point.hidden){
+                out.push(point);
+            }
+        });    
+        return out;    
+    }
 
 
 
