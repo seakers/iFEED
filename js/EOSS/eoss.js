@@ -45,11 +45,12 @@ class EOSS extends Problem{
         this.instrument_num = this.instrument_list.length; 
 
         this.metadata = {
+            input_num: 1,
+            input_type: "BooleanArray",
             output_list: ['Science','Cost'],
-            input_num: 60,
             output_num: 2,
             output_obj: [1, -1], // 1 for lager-is-better, -1 for smaller-is-better
-            result_path: "EOSS_data_recalculated.csv"
+            file_path: "EOSS_data_recalculated.csv"
         };
 
         PubSub.subscribe(LABELING_SCHEME_LOADED, (msg, data) => {

@@ -4,21 +4,16 @@ class GNC extends Problem{
     constructor(){
         super();
 
-        // Initialize the member attributes 
-        // this.orbit_list = [];
-        // this.instrument_list = [];
-        // this.orbit_num = null;
-        // this.instrument_num = null;
-        // this.current_bitString = null;
 
         let that = this;
 
         this.metadata = {
-            output_list: ['Science','Cost'],
-            input_num: 60,
-            output_num: 2,
-            output_obj: [1, -1], // 1 for lager-is-better, -1 for smaller-is-better
-            result_path: "EOSS_data_recalculated.csv"
+            input_num: 16,
+            input_type: "Numbers",
+            output_list: ['m','R','MTTF','Nlinks','N9'],
+            output_num: 5,
+            output_obj: [-1, 1, 1, -1, 1], // 1 for lager-is-better, -1 for smaller-is-better
+            file_path: "gnc_scenario3_column_reduced.csv"
         };
 
         PubSub.subscribe(LABELING_SCHEME_LOADED, (msg, data) => {
