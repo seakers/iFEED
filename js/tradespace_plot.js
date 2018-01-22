@@ -2,17 +2,10 @@
 
 class TradespacePlot{
     
-    constructor(xIndex, yIndex){
+    constructor(){
         
-        if(!xIndex){
-            xIndex = 0;
-        }
-        if(!yIndex){
-            yIndex = 1;
-        }
-
-        this.xIndex = xIndex;
-        this.yIndex = yIndex;
+        this.xIndex = 0;
+        this.yIndex = 1;
         
         this.cursor_blink_interval = null;
 
@@ -46,6 +39,7 @@ class TradespacePlot{
 
         PubSub.subscribe(DESIGN_PROBLEM_LOADED, (msg, data) => {
             this.output_list = data.metadata.output_list;
+            this.initialize();
         });         
 
         PubSub.subscribe(DATA_PROCESSED, (msg, data) => {
@@ -114,7 +108,7 @@ class TradespacePlot{
         //     self.arch_mouseover(data);
         // }); 
 
-        this.initialize();
+        
     }
 
 
@@ -134,6 +128,44 @@ class TradespacePlot{
                 .style("width","100%")
                 .style("font-size","21px")
                 .text("If you hover the mouse over a design, relevant information will be displayed here.");
+
+        d3.select('#plot_options').selectAll('div').remove();
+        if(this.output_list){
+            if(this.output_list.length > 2){
+
+                d3.select('#plot_options')
+                    .append('div')
+                    .text('X axis: ')
+                    .append('select')
+                    .attr('id', 'x-axis-select');
+
+                d3.select('#plot_options') 
+                    .append('div')
+                    .text('Y axis: ')
+                    .append('select')
+                    .attr('id', 'y-axis-select');
+
+                d3.select('#plot_options').selectAll('select')
+                    .selectAll('option')
+                    .data(this.output_list)
+                    .enter()
+                    .append('option')
+                    .attr("value", function(d){
+                        return d;
+                    })
+                    .text(function(d){
+                        return d;
+                    });
+
+                d3.select("#plot_options")
+                    .selectAll('select')
+                    .on("change", (d) => {
+                        let x_axis_name = d3.select('#x-axis-select').node().value;
+                        let y_axis_name = d3.select('#y-axis-select').node().value;
+                        this.update(this.output_list.indexOf(x_axis_name), this.output_list.indexOf(y_axis_name));
+                    });   
+            }
+        }
     }
     
     

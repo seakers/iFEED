@@ -60,7 +60,17 @@ and open the template in the editor.
             <div class='tradespace_plot figure'></div>
 
             <div class='tradespace_plot options'>
-                <div>                    
+                <div>     
+                    <div id="plot_options">
+                        <div>
+                            X axis:
+                            <select id="x-axis-select"/>
+                        </div>
+                        <div>
+                            Y axis:
+                            <select id="y-axis-select"/>
+                        </div>
+                    </div>               
                     <div id='interaction_modes'>
                         <div>Mouse Selection</div>
                         <div style="margin-top:3px">
@@ -150,11 +160,11 @@ and open the template in the editor.
 
     var gnc = new GNC();
 
-    var label = new EOSSLabel();
+    var label = new GNCLabel();
     
     var tradespace_plot = new TradespacePlot(0, 4);
     
-    var filter = new EOSSFilter(label);
+    var filter = new GNCFilter(label);
     
     var data_mining = new DataMining(filter, label);
     

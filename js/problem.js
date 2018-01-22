@@ -21,6 +21,11 @@ class Problem{
         // });   
 
     }
+
+    preprocessing_problem_specific(data){
+        // To be implemented
+        return data;
+    }
     
     preprocessing(data){
         
@@ -40,6 +45,8 @@ class Problem{
             let arch = new Architecture(id,inputs,outputs);
             out.push(arch);
         });
+
+        out = this.preprocessing_problem_specific(out)
         
         if(input_is_array) return out;
         else return out[0];

@@ -91,6 +91,14 @@
     margin:auto;
 }
 
+#plot_options{
+    margin-top: 40px;
+}
+
+#plot_options > div{
+    margin-top: 7px;
+}
+
 #interaction_modes{
     margin-top:20px;
     background: #D2D2D2;

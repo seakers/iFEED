@@ -9,19 +9,17 @@
 //{"LEO-600-polar-NA","SSO-600-SSO-AM","SSO-600-SSO-DD","SSO-800-SSO-DD","SSO-800-SSO-PM"};
 
 
-class EOSSLabel extends Label{
+class GNCLabel extends Label{
 
     constructor(disabled){
         super(disabled);        
-        
-        this.orbit_list = [];
-        this.instrument_list = [];
-        this.orbit_relabeled = ["1000","2000","3000","4000","5000"];
-        this.instrument_relabeld = ["A","B","C","D","E","F","G","H","I","J","K","L"];
+
+        this.input_list = [];
+        this.output_list = [];
 
         PubSub.subscribe(DESIGN_PROBLEM_LOADED, (msg, data) => {
-            this.orbit_list = data.orbit_list;
-            this.instrument_list = data.instrument_list;
+            this.input_list = data.metadata.input_list;
+            this.output_list = data.metadata.output_list;
             PubSub.publish(LABELING_SCHEME_LOADED, this);
         });
     }
