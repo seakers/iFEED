@@ -45,6 +45,7 @@ class Problem{
         else return output[0];
     }
 
+
     display_arch_info(data) {  
         // To be implemented
     }     

@@ -51,12 +51,13 @@ class IFEED{
 
         // Data
         this.metadata = {
-                        "result_path":null, // String
-                        "input_num":null,
-                        "output_num":null,
-                        "input_list":[],
-                        "output_list":[],
-                        "output_obj":[], // 1 for lager-is-better, -1 for smaller-is-better
+                        "input_num": null,
+                        "input_type": null,
+                        "input_list": [],
+                        "output_list": [],
+                        "output_num": null,
+                        "output_obj": [], // 1 for lager-is-better, -1 for smaller-is-better
+                        "file_path": null, // String
                         };
 
         this.data = null; // Array containing the imported data
@@ -90,7 +91,7 @@ class IFEED{
         }
         
         var ids = [];
-        for(var i=0;i<data.length;i++){
+        for(let i = 0; i < data.length; i++){
             ids.push(data[i].id);
         }
         return ids;
@@ -105,27 +106,30 @@ class IFEED{
 
         console.log('Importing data...');
 
-        if(!path){
-           path = this.metadata.result_path; 
+        let metadata = this.metadata;
+        if(path){
+           metadata.file_path = path;
         } 
+
+        console.log(metadata);
 
         let that = this;
         $.ajax({
             url: "/api/ifeed/import-data/",
             type: "POST",
-            data: {filename:path},
+            data: this.metadata,
             async: false,
             success: function (data, textStatus, jqXHR){
-                that.data=data;
+                that.data = data;
                 that.calculate_pareto_ranking();
                 PubSub.publish(DATA_IMPORTED,data);
-
             },
             error: function (jqXHR, textStatus, errorThrown){
                 alert("error");
             }   
         });
         
+        console.log("Data imported!");
     }
     
     
