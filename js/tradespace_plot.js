@@ -456,33 +456,7 @@ class TradespacePlot{
 
                 // Remove the previous info
                 d3.select("#support_panel").select("#view1").select("g").remove();
-                
-                let support_panel = d3.select("#support_panel")
-                    .select("#view1")
-                    .append("g");
 
-                // Display the current architecture info
-                let arch_info_display_outputs = support_panel.append('div')
-                        .attr('id','arch_info_display_outputs');
-                
-                for(let i = 0; i < this.output_list.length; i++){
-                    arch_info_display_outputs.append("p")
-                        .text(d => {
-                            let out = this.output_list[i] + ": ";
-                            let val = arch.outputs[i];    
-                            if (typeof val == "number"){
-                                if (val > 100){ 
-                                    val = val.toFixed(2);
-                                }
-                                else{ 
-                                    val = val.toFixed(4); 
-                                }
-                            }
-                            return out + val;
-                        })
-                        .style('font-size','20px');
-                }
-                
                 PubSub.publish(INSPECT_ARCH, arch);
                 
                 //d3.select('#instr_options_display').remove();
