@@ -1,80 +1,54 @@
-function EOSS(ifeed){
-    
-    var self = this;
 
-    // Initialize the member attributes 
-    self.orbit_list = [];
-    self.instrument_list = [];
-    self.orbit_num = null;
-    self.instrument_num = null;
-    //self.i = 0;
-    
-    // Set the problem instance
-    ifeed.problem=self;
-    ifeed.metadata.output_list = ['Science','Cost'];
-    ifeed.metadata.input_num=60;
-    ifeed.metadata.output_num=2;
-    ifeed.metadata.output_obj =[1,-1]; // 1 for lager-is-better, -1 for smaller-is-better
-    
-    // Set the path to the result file
-    ifeed.metadata.result_path="EOSS_data_recalculated.csv";
-        
-    ifeed.label = new EOSSLabel(self);
-    
-    ifeed.current_bitString = null;
+class GNC extends Problem{
 
+    constructor(){
+        super();
 
+        // Initialize the member attributes 
+        // this.orbit_list = [];
+        // this.instrument_list = [];
+        // this.orbit_num = null;
+        // this.instrument_num = null;
+        // this.current_bitString = null;
+
+        let that = this;
+
+        this.metadata = {
+            output_list: ['Science','Cost'],
+            input_num: 60,
+            output_num: 2,
+            output_obj: [1, -1], // 1 for lager-is-better, -1 for smaller-is-better
+            result_path: "EOSS_data_recalculated.csv"
+        };
+
+        PubSub.subscribe(LABELING_SCHEME_LOADED, (msg, data) => {
+            this.label = data;
+        });
+
+        PubSub.publish(DESIGN_PROBLEM_LOADED, this);
+    }
     
+
     /*
     Returns the list of orbits
     @return orbitList: a string list containing the names of orbits
     */
-    self.get_orbit_list = function() {
-        var orbitList;
-        $.ajax({
-            url: "/api/vassar/get-orbit-list/",
-            type: "GET",
-            async: false,
-            success: function (data, textStatus, jqXHR)
-            {
-                orbitList = data;
-            },
-            error: function (jqXHR, textStatus, errorThrown)
-            {
-                alert("error");
-            }
-        });
-        return orbitList;
+    get_orbit_list() {
+
     }
     
-
     /*
     Returns the list of instruments
     @return instrumentList: a string list containing the names of instruments
     */
-    self.get_instrument_list = function() {
-        var instrumentList;
-        $.ajax({
-            url: "/api/vassar/get-instrument-list/",
-            type: "GET",
-            async: false,
-            success: function (data, textStatus, jqXHR)
-            {
-                instrumentList = data;
-            },
-            error: function (jqXHR, textStatus, errorThrown)
-            {
-                alert("error");
-            }
-        });
-        return instrumentList;
+    get_instrument_list() {
+
     }
     
-    
-    self.booleanArray2String = function(boolArray) {
-        var bitString = "";
-        for (var i = 0; i < boolArray.length; i++) {
-            var bool;
+    booleanArray2String(boolArray) {
+        let bitString = "";
+        for (let i = 0; i < boolArray.length; i++) {
+            let bool;
             if (boolArray[i] === true) {
                 bool = 1;
             } else {
@@ -85,11 +59,10 @@ function EOSS(ifeed){
         return bitString;
     }
 
-
-    self.string2BooleanArray = function(bitString) {
-        var boolArray = [];
+    string2BooleanArray(bitString) {
+        let boolArray = [];
         boolArray.length = 0;
-        for (var i = 0; i < bitString.length; i++) {
+        for (let i = 0; i < bitString.length; i++) {
             if (bitString.charAt(i) == "1") {
                 boolArray.push(true);
             } else {
@@ -98,72 +71,28 @@ function EOSS(ifeed){
         }
         return boolArray;
     }
-    
 
-    
-    self.preprocessing = function(data){
+    display_arch_info(data) {
         
-        var output = [];
-        
-        var input_is_array = false;
-        
-        if(Array.isArray(data)){
-            input_is_array=true;
-        }else{
-            data = [data];
-        }
-        
-        data.forEach(function (d) {  
-
-            var outputs = d.outputs;
-            var inputs = d.inputs;
-            var id = +d.id;
-            
-            var arch = new Architecture(id,inputs,outputs);
-
-            output.push(arch);
-        });
-        
-        if(input_is_array) return output;
-        else return output[0];
-    }
-    
-
-    PubSub.subscribe(DATA_IMPORTED, (msg, data) => {
-        
-        self.orbit_list = self.get_orbit_list();
-        self.instrument_list = self.get_instrument_list(); 
-        self.orbit_num = self.orbit_list.length;
-        self.instrument_num = self.instrument_list.length;   
-        
-        var preprocessed = self.preprocessing(data);
-        
-        PubSub.publish(DATA_PROCESSED,preprocessed);
-    });     
-
-    
-
-    self.display_arch_info = function(data) {
-        
-        var bitString = null;
+        let bitString = null;
         
         if(typeof data == "string"){
             bitString = data;
         }else{
-            bitString = self.booleanArray2String(data.inputs);
+            bitString = this.booleanArray2String(data.inputs);
         }
         
-        var json_arch=[];
+        let json_arch=[];
         
-        for(var i=0;i<self.orbit_num;i++){
+        for(let i=0;i<this.orbit_num;i++){
             
-            var orbit = self.orbit_list[i];
+            var orbit = this.orbit_list[i];
             var assigned = [];
             
-            for(var j=0;j<self.instrument_num;j++){
+            for(var j=0;j<this.instrument_num;j++){
 
-                if(bitString[i*self.instrument_num+j]=='1'){
-                    var instrument = self.instrument_list[j];
+                if(bitString[i*this.instrument_num+j]=='1'){
+                    var instrument = this.instrument_list[j];
                     //Store the instrument names assigned to jth orbit
                     assigned.push(instrument);
                 }
@@ -177,7 +106,7 @@ function EOSS(ifeed){
         var maxNInst = 0;
         var totalNInst = 0;
 
-        for (var i = 0; i < self.orbit_num; i++) {
+        for (var i = 0; i < this.orbit_num; i++) {
             var nInst = json_arch[i].children.length;
             totalNInst = totalNInst + nInst;
             if (nInst > maxNInst) {
@@ -220,6 +149,7 @@ function EOSS(ifeed){
             })
             .style("font-size", "13px");
 
+        let that = this;
 
         // create table body
         table.append('tbody')
@@ -266,16 +196,15 @@ function EOSS(ifeed){
             })
             .text(function (d) {
                if(d.type=="orbit"){
-                  return ifeed.label.actualName2DisplayName(d.content,"orbit");
+                  return that.label.actualName2DisplayName(d.content,"orbit");
               }
-              return ifeed.label.actualName2DisplayName(d.content,"instrument");
+              return that.label.actualName2DisplayName(d.content,"instrument");
             });
-
     }
     
-    
-    self.enable_modify_architecture = function(){
-        
+    enable_modify_architecture(){
+
+        let that = this;
         
         $('.arch_info_display_cell_container').sortable({
     
@@ -290,18 +219,18 @@ function EOSS(ifeed){
             connectWith: '.arch_info_display_cell_container',
             cursor: 'pointer',
             update: function(ui){
-                var bitString_save = self.current_bitString;
+                var bitString_save = that.current_bitString;
                 
-                self.current_bitString = self.update_current_architecture();
+                that.current_bitString = that.update_current_architecture();
                 
-                if(bitString_save!=self.current_bitString) self.enable_evaluate_architecture();
+                if(bitString_save!=that.current_bitString) that.enable_evaluate_architecture();
             }
         })
         .droppable({
             accept: '.arch_info_display_cell.candidates',
             drop: function(event, ui) {
                 
-                var bitString_save = self.current_bitString;
+                var bitString_save = that.current_bitString;
 
                 var instrNode = d3.select(ui.draggable.context);
                 var orbitNode = d3.select(this);
@@ -309,29 +238,27 @@ function EOSS(ifeed){
                 var instrName = instrNode.attr('name');
                 var orbitName = orbitNode.attr('name');           
 
-                var Iindex = self.instrument_list.indexOf(instrName);
-                var OIndex = self.orbit_list.indexOf(orbitName);
+                var Iindex = that.instrument_list.indexOf(instrName);
+                var OIndex = that.orbit_list.indexOf(orbitName);
 
-                var index = self.instrument_num*OIndex+Iindex;
+                var index = that.instrument_num*OIndex+Iindex;
                                 
-                self.current_bitString = self.current_bitString.split('');
-                self.current_bitString[index] = '1';
-                self.current_bitString = self.current_bitString.join('');
+                that.current_bitString = that.current_bitString.split('');
+                that.current_bitString[index] = '1';
+                that.current_bitString = that.current_bitString.join('');
                                 
-                self.display_arch_info(self.current_bitString);
-                self.enable_modify_architecture();
+                that.display_arch_info(that.current_bitString);
+                that.enable_modify_architecture();
                 
-                if(bitString_save!=self.current_bitString) self.enable_evaluate_architecture();
+                if(bitString_save!=that.current_bitString) that.enable_evaluate_architecture();
             }
         });        
-        
-        
     }
     
+    
+    enable_evaluate_architecture(){
 
-    
-    
-    self.enable_evaluate_architecture = function(){
+        let that = this;
         
         d3.select('#run_design_local_search').remove();
         
@@ -342,53 +269,50 @@ function EOSS(ifeed){
             output_display_slot.append('button')
                                 .attr('id','evaluate_architecture_button')
                                 .text('Evaluate this design')
-                                .on('click',function(d){
-                                    var inputs = self.string2BooleanArray(self.current_bitString);
-                                    self.evaluate_architecture(inputs);
+                                .on('click',(d) => {
+                                    var inputs = that.string2BooleanArray(that.current_bitString);
+                                    that.evaluate_architecture(inputs);
                                 });
-        }           
-                
+        }                       
     }
     
     
-    
-    
-    self.update_current_architecture = function(){
+    update_current_architecture(){
         
         var indices = [];
         var bitString = "";
 
+        let that = this;
+
         d3.selectAll('.arch_info_display_cell_container')[0].forEach(function(d){                            
 
             var orbitName = d3.select(d).attr('name');                    
-            var OIndex = self.orbit_list.indexOf(orbitName);
+            var OIndex = that.orbit_list.indexOf(orbitName);
 
             d3.select(d).selectAll('.arch_info_display_cell.instrument')[0].forEach(function(d){
                 var instrName = d3.select(d).attr('name');
 
-                var Iindex = self.instrument_list.indexOf(instrName);
-                var index = self.instrument_num*OIndex+Iindex;
+                var Iindex = that.instrument_list.indexOf(instrName);
+                var index = that.instrument_num*OIndex+Iindex;
                 indices.push(index);
             });
         });
 
-        for(var i=0;i<self.orbit_num;i++){
-            for(var j=0;j<self.instrument_num;j++){
-                if(indices.indexOf(i*self.instrument_num+j)==-1){
+        for(var i=0;i<that.orbit_num;i++){
+            for(var j=0;j<that.instrument_num;j++){
+                if(indices.indexOf(i*that.instrument_num+j)==-1){
                     bitString = bitString + "0";
                 }else{
                     bitString = bitString + "1";
                 }
             }
         }
-        
         return bitString;
     }
     
-    
+    display_instrument_options(){
 
-
-    self.display_instrument_options = function(){
+        let that = this;
         
         var support_panel = d3.select("#support_panel")
                 .select("#view1")
@@ -411,12 +335,12 @@ function EOSS(ifeed){
                 .attr("id", "instr_options_table");
 
         var candidate_instruments = [];
-        for(var i=0;i<Math.round(self.instrument_num/2);i++){
+        for(var i=0;i<Math.round(that.instrument_num/2);i++){
             var temp = [];
             for(var j=0;j<2;j++){
-                var index = j*Math.round(self.instrument_num/2) + i;
-                if(index < self.instrument_num){
-                    temp.push(self.instrument_list[index]);
+                var index = j*Math.round(that.instrument_num/2) + i;
+                if(index < that.instrument_num){
+                    temp.push(that.instrument_list[index]);
                 }
             }
             candidate_instruments.push(temp);
@@ -444,7 +368,7 @@ function EOSS(ifeed){
                     return 'arch_info_display_cell candidates';
                 })
                 .text(function (d) {
-                    return ifeed.label.actualName2DisplayName(d,"instrument")
+                    return that.label.actualName2DisplayName(d,"instrument")
                 });    
         
 
@@ -475,10 +399,7 @@ function EOSS(ifeed){
         });    
     }    
     
-    
-
-    
-    self.get_critique = function(architecture) {
+    get_critique(architecture) {
                 
         $.ajax({
             url: "/api/critic/criticize-architecture/",
@@ -498,8 +419,10 @@ function EOSS(ifeed){
         });
     }
     
-    
-    self.evaluate_architecture = function(inputs){
+    evaluate_architecture(inputs){
+
+        let that = this;
+
         $.ajax({
             url: "/api/vassar/evaluate-architecture/",
             type: "POST",
@@ -509,7 +432,7 @@ function EOSS(ifeed){
             async: false,
             success: function (data, textStatus, jqXHR)
             {
-                var arch = self.preprocessing(data);                
+                var arch = that.preprocessing(data);                
                                                 
                 PubSub.publish(VIEW_ARCHITECTURE, arch);
                 PubSub.publish(ADD_ARCHITECTURE, {'previous':ifeed.data,'added':arch});
@@ -523,8 +446,8 @@ function EOSS(ifeed){
         });        
     }
     
-    self.run_local_search = function(architecture){
-        
+    run_local_search(architecture){
+        let that = this;
         var inputs = architecture.inputs;
         
         $.ajax({
@@ -536,7 +459,7 @@ function EOSS(ifeed){
             async: false,
             success: function (data, textStatus, jqXHR)
             {
-                var archs = self.preprocessing(data);
+                var archs = that.preprocessing(data);
                 archs.push(architecture);
                 
                 PubSub.publish(ADD_ARCHITECTURE, {'previous':ifeed.data,'added':archs});
@@ -548,15 +471,5 @@ function EOSS(ifeed){
                 alert("error");
             }
         });  
-    }
-    
-    
-    PubSub.subscribe(RUN_LOCAL_SEARCH, (msg, data) => {
-        self.run_local_search(data);
-    });   
-    
-    PubSub.subscribe(SET_CURRENT_ARCHITECTURE, (msg, data) => {
-        self.current_bitString = self.booleanArray2String(data.inputs)
-    });      
-    
+    }    
 }

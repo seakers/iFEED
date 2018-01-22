@@ -1,11 +1,3 @@
-/* 
- * To change this license header, choose License Headers in Project Properties.
- * To change this template file, choose Tools | Templates
- * and open the template in the editor.
- */
-
-
-
 
 //        A          B         C          D         E        F
 // {"ACE_ORCA","ACE_POL","ACE_LID","CLAR_ERB","ACE_CPR","DESD_SAR",
@@ -17,15 +9,22 @@
 //{"LEO-600-polar-NA","SSO-600-SSO-AM","SSO-600-SSO-DD","SSO-800-SSO-DD","SSO-800-SSO-PM"};
 
 
+class EOSSLabel extends Label{
 
-function EOSSLabel(eoss){
-    
-    self = this;
-    
-    self.disabled = false;
-    
-    self.orbit_relabeled = ["1000","2000","3000","4000","5000"];
-    self.instrument_relabeld = ["A","B","C","D","E","F","G","H","I","J","K","L"];
+    constructor(disabled){
+        super(disabled);        
+        
+        this.orbit_list = [];
+        this.instrument_list = [];
+        this.orbit_relabeled = ["1000","2000","3000","4000","5000"];
+        this.instrument_relabeld = ["A","B","C","D","E","F","G","H","I","J","K","L"];
+
+        PubSub.subscribe(DESIGN_PROBLEM_LOADED, (msg, data) => {
+            this.orbit_list = data.orbit_list;
+            this.instrument_list = data.instrument_list;
+            PubSub.publish(LABELING_SCHEME_LOADED, this);
+        });
+    }
     
     
     /*
@@ -33,90 +32,84 @@ function EOSSLabel(eoss){
      * @param {String} type: Type of the input name. Could be either "orbit" or "instrument"
      * @returns The actual name of an instrument or an orbit
      */
-    self.index2ActualName = function(index, type){
+    index2ActualName(index, type){
         if(type=="orbit"){
-            return eoss.orbit_list[index];
+            return this.orbit_list[index];
         }else if(type=="instrument"){
-            return eoss.instrument_list[index];
+            return this.instrument_list[index];
         }else{
             return "Naming Error"
         }
     }
     
-    
     /*
      * @param {int} index: Number indicating either an orbit or an instrument
      * @param {String} type: Type of the variable. Could be either "orbit" or "instrument"
      */
-    self.index2DisplayName = function(index, type){
+    index2DisplayName(index, type){
         
-        if(self.disabled){
-            return self.index2ActualName(index,type);
+        if(this.disabled){
+            return this.index2ActualName(index,type);
         }
-
         if(type=="orbit"){
-            return self.orbit_relabeled[index];
+            return this.orbit_relabeled[index];
         }else if(type=="instrument"){
-            return self.instrument_relabeld[index];
+            return this.instrument_relabeld[index];
         }else{
             return "Naming Error";
         }
     }
     
-    
-    self.actualName2Index = function(name, type){
+    actualName2Index(name, type){
         
-        var name=name.trim();
-        if(name.indexOf(",")!=-1){
-            var names = name.split(",");
-            var newName = "";
-            for(var i=0;i<names.length;i++){
-                var comma = ",";
-                if(i==0){
+        name = name.trim();
+        if(name.indexOf(",") != -1){
+            let names = name.split(",");
+            let newName = "";
+            for(let i = 0; i < names.length; i++){
+                let comma = ",";
+                if(i == 0){
                     comma = "";
                 }
                 if(type=="orbit"){
-                    newName = newName + comma + $.inArray(names[i],eoss.orbit_list);
+                    newName = newName + comma + $.inArray(names[i],this.orbit_list);
                 }else if(type=="instrument"){
-                    newName = newName + comma + $.inArray(names[i],eoss.instrument_list);
+                    newName = newName + comma + $.inArray(names[i],this.instrument_list);
                 }else{
                     newName = newName + comma + "Naming Error";
                 }              
             }
             return newName;
         }else{
-            if(type=="orbit"){
-                return $.inArray(name,eoss.orbit_list);
+            if(type == "orbit"){
+                return $.inArray(name,this.orbit_list);
             }else if(type=="instrument"){
-                return $.inArray(name,eoss.instrument_list);
+                return $.inArray(name,this.instrument_list);
             }else{
                 return "Naming Error";
             }        
         }
     }
     
- 
-    
-    self.displayName2Index = function(input, type){
-        if(self.disabled){
-            return self.actualName2Index(input,type);
+    displayName2Index(input, type){
+        if(this.disabled){
+            return this.actualName2Index(input,type);
         }
 
-        var input=input.trim();
-        var split = input.split(',');
-        var output='';
-        for(var i=0;i<split.length;i++){
+        input = input.trim();
+        let split = input.split(',');
+        let output='';
+        for(let i = 0; i < split.length; i++){
             var name = split[i];
-
-            if(self.orbit_relabeled.indexOf(name)==-1 && self.instrument_relabeld.indexOf(name)==-1){
+            if(this.orbit_relabeled.indexOf(name)==-1 && this.instrument_relabeld.indexOf(name)==-1){
                 return null;
             }
-            if(i>0) output=output+",";
+            if(i > 0) output = output + ",";
 
-            if(type=="orbit"){
-                output=output+$.inArray(name,self.orbit_relabeled);
-            }else if(type=="instrument"){
-                output=output+$.inArray(name,self.instrument_relabeld);
+            if(type == "orbit"){
+                output = output + $.inArray(name,this.orbit_relabeled);
+            }else if(type == "instrument"){
+                output = output + $.inArray(name,this.instrument_relabeld);
             }else{
                 return "Naming Error";
             }
@@ -125,57 +118,55 @@ function EOSSLabel(eoss){
     }
     
     
-    self.actualName2DisplayName = function(name,type){
-        if(self.disabled){
+    actualName2DisplayName(name,type){
+        if(this.disabled){
             return name;
         }
 
-        var name = name.trim();
-        if(type=="orbit"){
+        name = name.trim();
+        if(type == "orbit"){
             
-            var nth = $.inArray(name,eoss.orbit_list);
+            var nth = $.inArray(name,this.orbit_list);
             if(nth==-1){// Couldn't find the name from the list
                 return name;
             }
-            return self.orbit_relabeled[nth];
+            return this.orbit_relabeled[nth];
             
         } else if(type=="instrument"){
-            var nth = $.inArray(name,eoss.instrument_list);
+            var nth = $.inArray(name,this.instrument_list);
             if(nth==-1){ // Couldn't find gthe name from the list
                 return name;
             }
-            return self.instrument_relabeld[nth];
+            return this.instrument_relabeld[nth];
         } else{
             return name;
         }
     }
     
-    self.displayName2ActualName = function(name,type){
-        if(self.disabled){
+    displayName2ActualName(name,type){
+        if(this.disabled){
             return name;
         }
-        var name = name.trim();
+        
+        name = name.trim();
         if(type=="orbit"){
-            var nth = $.inArray(name,self.orbit_relabeled);
+            var nth = $.inArray(name,this.orbit_relabeled);
             if(nth==-1){// Couldn't find the name from the list
                 return name;
             }
-            return eoss.orbit_list[nth];
+            return this.orbit_list[nth];
         } else if(type=="instrument"){
-            var nth = $.inArray(name,self.instrument_relabeld);
+            var nth = $.inArray(name,this.instrument_relabeld);
             if(nth==-1){ // Couldn't find gthe name from the list
                 return name;
             }
-            return eoss.instrument_list[nth];
+            return this.instrument_list[nth];
         } else{
             return name;
         }
     }
     
-    
-    
-    
-    self.pp_feature_type = function(expression){
+    pp_feature_type(expression){
         
         if(expression.indexOf('[')==-1){
             return expression;
@@ -193,11 +184,8 @@ function EOSSLabel(eoss){
         }
         return type;
     }
-
     
-    
-    
-    self.pp_feature_single = function(expression){
+    pp_feature_single(expression){
         
         var exp = expression;
         if(exp[0]==="{"){
@@ -225,29 +213,23 @@ function EOSSLabel(eoss){
                 continue;
             }
             if(i>0){pporbits = pporbits + ",";}
-            pporbits = pporbits + self.index2DisplayName(orbits[i], "orbit");
+            pporbits = pporbits + this.index2DisplayName(orbits[i], "orbit");
         }
         for(var i=0;i<instruments.length;i++){
             if(instruments[i].length===0){
                 continue;
             }
             if(i>0){ppinstruments = ppinstruments + ",";}
-            ppinstruments = ppinstruments + self.index2DisplayName(instruments[i], "instrument");
+            ppinstruments = ppinstruments + this.index2DisplayName(instruments[i], "instrument");
         }
         var ppexpression = featureName + "[" + pporbits + ";" + ppinstruments + ";" + numbers + "]";
         
         return ppexpression;
     }
     
-    
-    
-    
-    
+    pp_feature(expression){
 
-
-    self.pp_feature = function(expression){
-
-        var output = '';
+        let output = '';
 
     //    if(expression.indexOf('{FeatureToBeAdded}')>-1){
     //        expression=expression.replace('&&{FeatureToBeAdded}','');
@@ -256,10 +238,10 @@ function EOSSLabel(eoss){
     //        expression=expression.replace('{FeatureToBeAdded}||','');
     //    }
 
-        var save = false;
-        var savedString = '';
+        let save = false;
+        let savedString = '';
 
-        for(var i=0;i<expression.length;i++){
+        for(let i=0;i<expression.length;i++){
             if(expression[i]=='{'){
                 save = true;
                 savedString = '{';
@@ -267,7 +249,7 @@ function EOSSLabel(eoss){
                 save = false;
                 savedString = savedString + '}';
                 feature_expression = savedString;
-                output = output + '{' + self.pp_feature_single(feature_expression) + '}';
+                output = output + '{' + this.pp_feature_single(feature_expression) + '}';
             }else{
                 if(save){
                     savedString = savedString + expression[i];
@@ -278,9 +260,6 @@ function EOSSLabel(eoss){
         }
         return output;
     }
-
-
-    
 }
 
 

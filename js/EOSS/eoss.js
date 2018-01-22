@@ -59,23 +59,6 @@ class EOSS extends Problem{
         PubSub.publish(DESIGN_PROBLEM_LOADED, this);
     }
     
-
-    /*
-    Returns the list of orbits
-    @return orbitList: a string list containing the names of orbits
-    */
-    get_orbit_list() {
-
-    }
-    
-    /*
-    Returns the list of instruments
-    @return instrumentList: a string list containing the names of instruments
-    */
-    get_instrument_list() {
-
-    }
-    
     booleanArray2String(boolArray) {
         let bitString = "";
         for (let i = 0; i < boolArray.length; i++) {
