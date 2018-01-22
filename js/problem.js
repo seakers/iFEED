@@ -24,7 +24,7 @@ class Problem{
     
     preprocessing(data){
         
-        var output = [];
+        var out = [];
         var input_is_array = false;
         
         if(Array.isArray(data)){
@@ -34,15 +34,15 @@ class Problem{
         }
         
         data.forEach(function (d) {  
-            var outputs = d.outputs;
-            var inputs = d.inputs;
-            var id = +d.id;
-            var arch = new Architecture(id,inputs,outputs);
-            output.push(arch);
+            let outputs = d.outputs;
+            let inputs = d.inputs;
+            let id = +d.id;
+            let arch = new Architecture(id,inputs,outputs);
+            out.push(arch);
         });
         
-        if(input_is_array) return output;
-        else return output[0];
+        if(input_is_array) return out;
+        else return out[0];
     }
 
 

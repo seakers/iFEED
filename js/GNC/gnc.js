@@ -4,16 +4,15 @@ class GNC extends Problem{
     constructor(){
         super();
 
-
         let that = this;
-
         this.metadata = {
             input_num: 16,
             input_type: "Numbers",
             output_list: ['m','R','MTTF','Nlinks','N9'],
             output_num: 5,
             output_obj: [-1, 1, 1, -1, 1], // 1 for lager-is-better, -1 for smaller-is-better
-            file_path: "gnc_scenario3_column_reduced.csv"
+            //file_path: "gnc_scenario3_column_reduced.csv"
+            file_path: "gnc_scenario3_reduced.csv"
         };
 
         PubSub.subscribe(LABELING_SCHEME_LOADED, (msg, data) => {
@@ -23,49 +22,6 @@ class GNC extends Problem{
         PubSub.publish(DESIGN_PROBLEM_LOADED, this);
     }
     
-
-    /*
-    Returns the list of orbits
-    @return orbitList: a string list containing the names of orbits
-    */
-    get_orbit_list() {
-
-    }
-    
-    /*
-    Returns the list of instruments
-    @return instrumentList: a string list containing the names of instruments
-    */
-    get_instrument_list() {
-
-    }
-    
-    booleanArray2String(boolArray) {
-        let bitString = "";
-        for (let i = 0; i < boolArray.length; i++) {
-            let bool;
-            if (boolArray[i] === true) {
-                bool = 1;
-            } else {
-                bool = 0;
-            }
-            bitString = bitString + bool;
-        }
-        return bitString;
-    }
-
-    string2BooleanArray(bitString) {
-        let boolArray = [];
-        boolArray.length = 0;
-        for (let i = 0; i < bitString.length; i++) {
-            if (bitString.charAt(i) == "1") {
-                boolArray.push(true);
-            } else {
-                boolArray.push(false);
-            }
-        }
-        return boolArray;
-    }
 
     display_arch_info(data) {
         

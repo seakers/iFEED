@@ -2,10 +2,17 @@
 
 class TradespacePlot{
     
-    constructor(){
+    constructor(xIndex, yIndex){
         
-        this.xIndex = 0;
-        this.yIndex = 1;
+        if(!xIndex){
+            xIndex = 0;
+        }
+        if(!yIndex){
+            yIndex = 1;
+        }
+
+        this.xIndex = xIndex;
+        this.yIndex = yIndex;
         
         this.cursor_blink_interval = null;
 
@@ -475,6 +482,7 @@ class TradespacePlot{
                         })
                         .style('font-size','20px');
                 }
+                
                 PubSub.publish(INSPECT_ARCH, arch);
                 
                 //d3.select('#instr_options_display').remove();
