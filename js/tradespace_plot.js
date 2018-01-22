@@ -758,6 +758,7 @@ class TradespacePlot{
     }
 
     highlight_architectures(arch_id_list){
+        
         if (!arch_id_list){
             this.cancel_selection("remove_highlighted");
         }

@@ -140,7 +140,7 @@ class Filter{
         PubSub.publish(HIGHLIGHT_ARCHITECTURES, null);
 
         // If filter expression is empty, return
-        if (feature_expression === ""){
+        if (feature_expression === "" || !feature_expression){
             return [];
         }else{
             // Note that indices and ids are different!

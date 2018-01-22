@@ -1,22 +1,16 @@
 
 // Context info: node, depth, logic(AND or OR)
 
-function ContextMenu(ifeed) {
+class ContextMenu {
     
-    var self = this;
+    constructor(feature_application){
+
+        this.feature_application = feature_application;
+        this.root = feature_application.data;
     
-    var feature_application = ifeed.feature_application;
-    
-    self.root = feature_application.root;
-    
-    
-    
-    
-    
-    
-    var marginRatio = 0.13,
-        //items = [], 
-        style = {
+        this.marginRatio = 0.13;
+
+        this.style = {
             'rect': {
                 'mouseout': {
                     'fill': 'rgb(244,244,244)', 
@@ -31,10 +25,9 @@ function ContextMenu(ifeed) {
                 'fill': 'steelblue', 
                 'font-size': '17'
             }
-        },
-    
-    
-        contextItems = {
+        };      
+        
+        this.contextItems = {
             
             'logic':[{'value':'addChild','text':'Add Feature'},
                      {'value':'toggle-logic','text':'Change to X'}],
@@ -42,11 +35,9 @@ function ContextMenu(ifeed) {
             'leaf':[],
             
             'default':[{'value':'addParent','text':'Add Parent Branch'},{'value':'duplicate','text':'Duplicate'},{'value':'toggle-activation','text':'Activate/Deactivate'},{'value':'delete','text':'Delete'}]
-        }, 
-    
+        };
 
-    
-        contextMenuSize = {
+        this.contextMenuSize = {
             
             'logic':{'height':null,
                     'width':null,
@@ -58,21 +49,21 @@ function ContextMenu(ifeed) {
                     'margin':0.15,
                     'scaled':false}
         };
+    }    
 
-    
-    
-    self.showMenu = function(context, coord) {
+    showMenu (context, coord) {
+
+        let type = context.type;
+        let logic = context.name;
+        let depth = context.depth;    
+        let add = context.add;
+        let deactivated = context.deactivated;
+
+        let items = this.contextItems[type];
+        items = items.concat(this.contextItems['default']);
         
-        var type = context.type;
-        var logic = context.name;
-        var depth = context.depth;    
-        var add = context.add;
-        var deactivated = context.deactivated;
-        
-        var items = contextItems[type];
-        items = items.concat(contextItems['default']);
-        
-        var x,y;
+        let x,y;
+
         if(coord[0] >= 240){
             x = coord[0] - 105;
         } else{
@@ -92,41 +83,47 @@ function ContextMenu(ifeed) {
             }
         }
 
-        
         d3.select('.context-menu').remove();
-        scaleItems(context,items);
+        this.scaleItems(context,items);
         
-        if(type=='logic' && depth != 0){
+        if(type === 'logic' && depth != 0){
             // If the node is a logical connective, remove the 'addParent' option. If the node is the root node, then keep the option
-            var index;
-            for(var i=0;i<items.length;i++){
-                if(items[i].value=='addParent'){
-                   index=i;
+            let index;
+            for(let i = 0; i < items.length; i++){
+                if(items[i].value === 'addParent'){
+                    index = i;
                     break;
                 }
             }
             items.splice(index,1);
         }    
         
-        var size = contextMenuSize[type];
-        var width = size.width;
-        var height = size.height;
-        var margin = size.margin;
-
+        let size = this.contextMenuSize[type];
+        let width = size.width;
+        let height = size.height;
+        let margin = size.margin;
         
         // Draw the menu
-        d3.select('#feature_application').select('svg')
-            .append('g').attr('class', 'context-menu')
-            .selectAll('tmp')
-            .data(items).enter()
-            .append('g').attr('class', 'menu-entry')
-            .style({'cursor': 'pointer'})
-            .on('mouseover', function(){ 
-                d3.select(this).select('rect').style(style.rect.mouseover) })
-            .on('mouseout', function(){ 
-                d3.select(this).select('rect').style(style.rect.mouseout) })
-            .on('click', function(d){
-                ContextMenuAction(context,d.value);
+        let menu = d3.select('#feature_application')
+            .select('svg')
+            .append('g')
+            .attr('class', 'context-menu')
+            .selectAll('.tmp')
+            .data(items)
+            .enter()
+            .append('g')
+            .attr('class', 'menu-entry')
+            .styles({'cursor': 'pointer'});
+
+        let that = this;
+
+        d3.selectAll('.menu-entry')
+            .on('mouseover', function(d){ 
+                d3.select(this).select('rect').styles(that.style.rect.mouseover) })
+            .on('mouseout', function(d){ 
+                d3.select(this).select('rect').styles(that.style.rect.mouseout) })
+            .on('click', (d) => {
+                this.ContextMenuAction(context, d.value);
             });
         
         d3.selectAll('.menu-entry')
@@ -135,27 +132,26 @@ function ContextMenu(ifeed) {
             .attr('y', function(d, i){ return y + (i * height); })
             .attr('width', width)
             .attr('height', height)
-            .style(style.rect.mouseout);
+            .styles(this.style.rect.mouseout);
         
         d3.selectAll('.menu-entry')
             .append('text')
             .text(function(d){ 
             
-                if(d.value=='addChild'){
-                    
+                if(d.value === 'addChild'){
                     if(add){
                         return 'Cancel Add Feature';
                     }else{
                         return 'Add Feature';
                     }
                    
-                }else if(d.value=='toggle-logic'){
-                    if(logic=='AND'){
+                }else if(d.value === 'toggle-logic'){
+                    if(logic === 'AND'){
                         return 'Change to OR';
                     }else{
                         return 'Change to AND';
                     }
-                }else if(d.value=='toggle-activation'){
+                }else if(d.value === 'toggle-activation'){
                     if(deactivated){
                         return 'Activate';
                     }else{
@@ -169,49 +165,56 @@ function ContextMenu(ifeed) {
             .attr('y', function(d, i){ return y + (i * height); })
             .attr('dy', height - margin / 2)
             .attr('dx', margin)
-            .style(style.text);
+            .styles(this.style.text);
 
         // Other interactions
         d3.select('body')
             .on('click', function() {
                 d3.select('.context-menu').remove();
             });
-        
     }
     
     
     // Automatically set width, height, and margin;
-    function scaleItems(context,items) {
+    scaleItems(context,items) {
         
-        var type = context.type;
-        var logic = context.name;
-        var depth = context.depth;         
+        let type = context.type;
+        let logic = context.name;
+        let depth = context.depth;         
         
-        if(!contextMenuSize[type]['scaled']){
+        if(!this.contextMenuSize[type]['scaled']){
 
-            d3.select('#feature_application')
-                .select('svg').select('g')
-                .selectAll('tmp')
-                .data(items).enter()
+            let temp = d3.select('#feature_application')
+                .select('svg')
+                .select('g')
+                .selectAll('.tmp')
+                .data(items)
+                .enter()
                 .append('text')
-                .text(function(d){ return d.text; })
-                .style(style.text)
-                .attr('x', -1000)
+                .text(function(d){ return d.text; });
+
+            temp.attr('x', -1000)
                 .attr('y', -1000)
                 .attr('class', 'tmp');
 
-            var z = d3.select('#feature_application').select('svg').select('g').selectAll('.tmp')[0]
-                      .map(function(x){ return x.getBBox(); });
-            
-            var width = d3.max(z.map(function(x){ return x.width; }));
-            var margin = marginRatio * width;
-            width =  width + 2 * margin;
-            var height = d3.max(z.map(function(x){ return x.height + margin / 2; }));
+            temp.styles(this.style.text);
 
-            contextMenuSize[type]['width'] = width;
-            contextMenuSize[type]['height'] = height;
-            contextMenuSize[type]['margin'] = margin;
-            contextMenuSize[type]['scaled'] = true;
+            let z = d3.select('#feature_application')
+                .select('svg')
+                .select('g')
+                .selectAll('.tmp')
+                .nodes()
+                .map(function(x){ return x.getBBox(); });
+            
+            let width = d3.max(z.map(function(x){ return x.width; }));
+            let margin = this.marginRatio * width;
+            width =  width + 2 * margin;
+            let height = d3.max(z.map(function(x){ return x.height + margin / 2; }));
+
+            this.contextMenuSize[type]['width'] = width;
+            this.contextMenuSize[type]['height'] = height;
+            this.contextMenuSize[type]['margin'] = margin;
+            this.contextMenuSize[type]['scaled'] = true;
 
             // cleanup
             d3.select('#feature_application').selectAll('.tmp').remove();                        
@@ -220,14 +223,15 @@ function ContextMenu(ifeed) {
     }
     
     
-    function ContextMenuAction(context,option){
+    ContextMenuAction(context,option){
 
-        var node = context;
+        let node = context;
+        let visit_nodes = this.feature_application.visit_nodes;
+        let construct_tree = this.feature_application.construct_tree;
+        let parse_tree = this.feature_application.parse_tree;
 
-        var visit_nodes = ifeed.feature_application.visit_nodes;
-        var construct_tree = ifeed.feature_application.construct_tree;
-        var parse_tree = ifeed.feature_application.parse_tree;
-
+        let nodeID = node.id;
+        let parent = node.parent;
 
     // 'logic':[addChild, toggle-logic],     
     // 'leaf':[],
@@ -242,9 +246,8 @@ function ContextMenu(ifeed) {
                         node.add=false;
                         
                     }else{
-                        var id = node.id;
-                        visit_nodes(ifeed.feature_application.root,function(d){
-                            if(d.id==id){
+                        visit_nodes(this.feature_application.data,function(d){
+                            if(d.id === nodeID){
                                 d.add=true;
                             }else{
                                 d.add=false;
@@ -278,10 +281,11 @@ function ContextMenu(ifeed) {
         switch(option) {
 
             case 'addParent':
-                if(node.parent){ // This is a leaf node because of the condition set up previously (logic nodes do not have option to add parent)
 
-                    var index = node.parent.children.indexOf(node);
-                    var logic = node.parent.name;
+                if(parent){ // This is a leaf node because of the condition set up previously (logic nodes do not have option to add parent)
+
+                    var index = parent.children.indexOf(node);
+                    var logic = parent.name;
                     var depth = node.depth;
 
                     if(logic=="AND"){
@@ -289,7 +293,7 @@ function ContextMenu(ifeed) {
                     }else{
                         logic = "AND";
                     }
-                    node.parent.children.splice(index,1,{depth:depth,type:"logic",name:logic,children:[node]});
+                    parent.children.splice(index,1,{depth:depth,type:"logic", name:logic, children:[node], parent: parent});
 
                 }else{ // This is the root node
 
@@ -300,19 +304,18 @@ function ContextMenu(ifeed) {
                         logic = "AND";
                     }
 
-                    var x0 = ifeed.feature_application.root.x0;
-                    var y0 = ifeed.feature_application.root.y0;
+                    var x0 = this.feature_application.data.x0;
+                    var y0 = this.feature_application.data.y0;
 
-                    ifeed.feature_application.root = {depth:0,type:"logic",name:logic,children:[node],x0:x0,y0:y0};
+                    this.feature_application.data = {depth:0,type:"logic",name:logic,children:[node],x0:x0,y0:y0, parent: null};
                 }
-
                 break;
 
 
             case 'duplicate':
-                if(node.parent){
-                    var index = node.parent.children.indexOf(node);
-                    var logic = node.parent.name;
+                if(parent){
+                    var index = parent.children.indexOf(node);
+                    var logic = parent.name;
                     var depth = node.depth;
 
                     if(logic=="AND"){
@@ -323,7 +326,7 @@ function ContextMenu(ifeed) {
 
                     var duplicate = construct_tree(parse_tree(node));     
 
-                    node.parent.children.splice(index,0,{depth:depth,type:"logic",name:logic,children:[duplicate]});
+                    parent.children.splice(index,0,{depth:depth,type:"logic",name:logic,children:[duplicate], parent:parent});
                 }
                 break;
 
@@ -352,11 +355,12 @@ function ContextMenu(ifeed) {
             case 'delete':
 
                 if(node.depth==0){
-                    ifeed.feature_application.root=null;
+                    this.feature_application.data = null;
+
                 }else{
-                    var index = node.parent.children.indexOf(node);
+                    let index = parent.children.indexOf(node);
                     if (index > -1) {
-                        node.parent.children.splice(index, 1);
+                        parent.children.splice(index, 1);
                     }
                 }
                 break;
@@ -365,15 +369,14 @@ function ContextMenu(ifeed) {
                 break;
         }    
         
-        var root = ifeed.feature_application.root;
-        var exp = ifeed.feature_application.parse_tree(root);
+        var root = this.feature_application.data;
+        var exp = this.feature_application.parse_tree(root);
 
-        ifeed.feature_application.update(root);
+        this.feature_application.update(root);
         
-        PubSub.publish(ADD_FEATURE, feature_application.parse_tree(root));
+        PubSub.publish(ADD_FEATURE, this.feature_application.parse_tree(root));
         
-        PubSub.publish(DRAW_VENN_DIAGRAM, feature_application.parse_tree(root));
-        
+        //PubSub.publish(DRAW_VENN_DIAGRAM, this.feature_application.parse_tree(root)); 
     }
     
 

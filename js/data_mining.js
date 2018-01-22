@@ -55,11 +55,6 @@ class DataMining{
         //     self.draw_venn_diagram();
         // });     
         
-        // PubSub.subscribe(INITIALIZE_DATA_MINING, (msg, data) => {
-        //     self.initialize();
-        // });     
-
-
         // Save the data
         PubSub.subscribe(DATA_PROCESSED, (msg, data) => {
             this.data = data;
@@ -766,7 +761,7 @@ class DataMining{
 
 
         // Update the placeholder with the driving feature and stash the expression    
-        this.feature_application.update_feature_application('temp',expression);
+        this.feature_application.update_feature_application('temp', expression);
         //self.draw_venn_diagram(); 
     }
 

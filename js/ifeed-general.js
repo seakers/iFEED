@@ -23,8 +23,8 @@ const FEATURE_APPLICATION_LOADED = "feature_application_loaded";
 
 
 
+
 const INITIALIZE_FEATURE_APPLICATION = "initialize_feature_application";
-const INITIALIZE_DATA_MINING = "initialize_data_mining";
 const DRAW_VENN_DIAGRAM = "draw_venn_diagram";
 const ADD_FEATURE = "add_feature";
 const UPDATE_FEATURE_APPLICATION = "update_feature_application";

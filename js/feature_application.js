@@ -9,7 +9,6 @@ class FeatureApplication{
 
         this.data = [];
         
-        
         this.color = {"default":"#616161",
                      "logic":"#2383FF",
                      "add":"#FF7979",
@@ -27,8 +26,8 @@ class FeatureApplication{
 
         // top  right bottem left
         this.margin = {left:70,right:20,top:10,bottom:20},
-        this.width = 1500 - this.margin.left - this.margin.right,
-        this.height = 320 - this.margin.top - this.margin.bottom;
+        this.width = 1000 - this.margin.left - this.margin.right,
+        this.height = 800 - this.margin.top - this.margin.bottom;
 
 
         this.draggingNode = null;
@@ -40,10 +39,6 @@ class FeatureApplication{
 	        .on('start', (d) => { this.dragStart(d); })
 	        .on('drag', (d) => { this.drag(d); })
 	        .on('end', (d) => { this.dragEnd(d); });
-
-        PubSub.subscribe(DATA_PROCESSED, (msg, data) => {
-            this.data = data;
-        });         
 
         
 //    PubSub.subscribe(CANCEL_ADD_FEATURE, (msg, data) => {
@@ -66,10 +61,11 @@ class FeatureApplication{
         PubSub.subscribe(UPDATE_FEATURE_APPLICATION, (msg, data) => {
             this.update_feature_application(data.option,data.expression);
         });       
-//    
-//    // Remove all features
-//    d3.select('#clear_all_features').on('click',self.clear_feature_application); 
-//        
+   
+        // Remove all features
+        d3.select('#clear_all_features').on('click', (d) => { this.clear_feature_application(); }); 
+       
+
 //    d3.select('#conjunctive_local_search').on('click',function(){
 //        ifeed.data_mining.run();
 //    }); 
@@ -77,7 +73,6 @@ class FeatureApplication{
 //    d3.select('#disjunctive_local_search').on('click',function(d){
 //        ifeed.data_mining.run("asdf");
 //    }); 
-
 
 		PubSub.publish(FEATURE_APPLICATION_LOADED, this);
     }
@@ -121,22 +116,25 @@ class FeatureApplication{
         if(this.data === null){
             d3.selectAll('.treeNode').remove();
             d3.selectAll('.treeLink').remove();
-            //PubSub.publish(APPLY_FEATURE_EXPRESSION, null);
+            
+            PubSub.publish(APPLY_FEATURE_EXPRESSION, null);
             return;
         }    
-        //this.check_tree_structure();
+        
+        this.check_tree_structure();
                 
-        //PubSub.publish(APPLY_FEATURE_EXPRESSION, self.parse_tree(self.root));
+        PubSub.publish(APPLY_FEATURE_EXPRESSION, this.parse_tree(this.data));
         
         let duration = d3.event && d3.event.altKey ? 5000 : 500;
         let margin = this.margin;
         
-        let root = d3.hierarchy(this.data, function(d) { return d.children; });        
+        let root = d3.hierarchy(this.data, function(d) { return d.children; });  
+
         root.x0 = this.height / 2;
         root.y0 = 0;           
         
         let treeStructure = this.tree(root);
-        
+
         // Compute the new tree layout.
         let nodes = treeStructure.descendants();
         let links = treeStructure.descendants().slice(1);
@@ -158,8 +156,14 @@ class FeatureApplication{
             .attr("class", "treeNode")
             .attr("transform", function(d) { 
                 //return 'translate(' + (root.y0 + margin.top) + ',' + (root.x0 + margin.left) + ')';
-                if(d.depth==0) return "translate(" + d.y0 + "," + d.x0 + ")";
-                else return "translate(" + d.parent.y0+ "," + d.parent.x0 + ")";
+                if(d.depth === 0) {
+                    return "translate(" + d.y0 + "," + d.x0 + ")";
+                } else {
+                    if(!d.parent.x0){
+                        console.log(d);
+                    }
+                    return "translate(" + d.parent.y0+ "," + d.parent.x0 + ")";
+                }
             });
 
         nodeEnter.append("circle")
@@ -311,29 +315,21 @@ class FeatureApplication{
         d3.selectAll('.treeNode')
    			.call(this.dragListener);
 
-        // TODO: Implement context menu
-//        d3.selectAll('.treeNode')
-//            .on('contextmenu', function(d){ 
-//            
-//                d3.event.preventDefault();
-//                var coord = d3.mouse($('#feature_application_panel > svg > g').get(0)); 
-//                var context = d.type;
-//            
-//                if(!that.contextMenu){
-//                    that.contextMenu = new ContextMenu();
-//                }
-//                
-//                self.contextMenu.showMenu(d, coord);
-//            
-//            });
-
-        
-        // Highlight the node in which to add new features
-//        d3.selectAll('.treeNode')[0].forEach(function(d){
-//            if(d.__data__.add){
-//               d3.select(d).select('circle').style('fill',that.color.add);
-//            }
-//        });    
+        d3.selectAll('.treeNode')
+            .on('contextmenu', (d) => { 
+            
+                d3.event.preventDefault();
+                var context = d.type;
+                let mouse_pos = d3.mouse(d3.select("#feature_application_panel").select('svg').select('g').node());
+                let mouseX = mouse_pos[0]; 
+                let mouseY = mouse_pos[1];                       
+           
+                if(!this.contextMenu){
+                    this.contextMenu = new ContextMenu(this);
+                }
+               
+                this.contextMenu.showMenu(d.data, mouse_pos);
+            });
 
         //self.update_feature_expression(self.parse_tree(self.root));
     }
@@ -442,11 +438,11 @@ class FeatureApplication{
 
     check_tree_structure(){
 
-        if(self.root==null){
+        if(this.data === null){
             return;
         }   
 
-        var delete_logic_node_without_children = function(node){
+        let delete_logic_node_without_children = function(node){
 
             if(!node){
                 return;
@@ -456,7 +452,7 @@ class FeatureApplication{
                     self.root=null;
                     d3.selectAll('.treeNode').remove();
                 }else{
-                    var index = node.parent.children.indexOf(node);
+                    let index = node.parent.children.indexOf(node);
                     // Remove the current node
                     if (index > -1) {
                         node.parent.children.splice(index, 1);
@@ -465,29 +461,29 @@ class FeatureApplication{
             }        
         }
 
-        var remove_redundant_logical_connectives = function(node){
+        let remove_redundant_logical_connectives = function(node){
 
             if(!node){
                 return;      
                 
-            }else if(node.type=="logic" && node.parent){
+            }else if(node.type === "logic" && node.parent){
                 
-                if(node.name==node.parent.name){
+                if(node.name === node.parent.name){
 
-                    var children = node.children;
-                    var parent = node.parent;
-                    var index = parent.children.indexOf(node);
+                    let children = node.children;
+                    let parent = node.parent;
+                    let index = parent.children.indexOf(node);
 
                     node.parent.children.splice(index,1);
 
-                    for(var i=0;i<children.length;i++){
+                    for(let i = 0; i < children.length; i++){
                         parent.children.splice(index,0,children[i]);
                     }
                 }
             }
         }
 
-        var remove_redundant_features = function(node){
+        let remove_redundant_features = function(node){
 
             if(!node){
                 return;
@@ -522,36 +518,40 @@ class FeatureApplication{
 
         }
 
-        that.visit_nodes(self.root, delete_logic_node_without_children);
-        that.visit_nodes(self.root, remove_redundant_logical_connectives);
-        that.visit_nodes(self.root, remove_redundant_features); 
+        this.visit_nodes(this.data, delete_logic_node_without_children);
+        this.visit_nodes(this.data, remove_redundant_logical_connectives);
+        this.visit_nodes(this.data, remove_redundant_features); 
         
     }
 
  
     visit_nodes(source,func,reverse){
-        var re;
-        if(typeof func != 'undefined'){
-            re = func(source);
-            // If func is a function that returns something, stop traversing tree and return. Otherwise, apply func and keep traversing the tree
-            if(re) return re; 
-        }
-        if(reverse){
-            if(source.parent){
-                re = this.visit_nodes(source.parent,func,true);
-                if(re) return re;  
+
+        function recursive(source, func, reverse){
+            var re;
+            if(typeof func != 'undefined'){
+                re = func(source);
+                // If func is a function that returns something, stop traversing tree and return. Otherwise, apply func and keep traversing the tree
+                if(re) return re; 
             }
-        }else{
-            if(source){
-                if(source.children){
-                    for(var i=0;i<source.children.length;i++){
-                        re = this.visit_nodes(source.children[i],func)
-                        if(re) return re;
-                    }   
-                }  
+            if(reverse){
+                if(source.parent){
+                    re = recursive(source.parent,func,true);
+                    if(re) return re;  
+                }
+            }else{
+                if(source){
+                    if(source.children){
+                        for(var i=0;i<source.children.length;i++){
+                            re = recursive(source.children[i],func)
+                            if(re) return re;
+                        }   
+                    }  
+                }
             }
+            return null;
         }
-        return null;
+        return recursive(source, func, reverse);
     }
     
     update_feature_application(option,expression){
@@ -574,10 +574,10 @@ class FeatureApplication{
         
         let that = this;
                 
-        if(option=='temp'){
+        if(option === 'temp'){
             // Mouseover on the feature plot
 
-            var parentNode = null;
+            let parentNode = null;
             
             if(this.data){
                 // There already exists a tree: Find the node to add new features and append children temporarily
@@ -590,7 +590,7 @@ class FeatureApplication{
                     this.stashed_node_ids = this.get_node_ids(this.data,[]);
 
                     // Construct a subtree and append it as a child to the parent node
-                    var subtree = this.construct_tree(expression,parentNode.depth+1);
+                    let subtree = this.construct_tree(expression,parentNode.depth+1);
                     
                     if(!direct_update){
                         this.visit_nodes(subtree,function(d){
@@ -601,6 +601,7 @@ class FeatureApplication{
 
                     // Add to the parent node
                     parentNode.children.push(subtree); 
+                    subtree.parent = parentNode;
                     
                     this.update();  
                 }else{    
@@ -635,9 +636,10 @@ class FeatureApplication{
         }else if(option=='restore'){
             // Restore the stashed tree
 
+            // If there is no stashed root
             if(this.stashed_root != null && this.stashed_node_ids != null){ 
 
-                if(jQuery.isEmptyObject(this.stashed_root) && this.stashed_node_ids.length==0){
+                if(jQuery.isEmptyObject(this.stashed_root) && this.stashed_node_ids.length === 0){
                     // There was no tree before
                     this.data = null;
                 }
@@ -649,23 +651,28 @@ class FeatureApplication{
 
             }else if(this.stashed_node_ids != null){
                 // Tree has been modified by the temporary update
-                // Visit each node, and if node.indexOf(id)==-1, remove the index        
+                // Visit each node, and if stashed_node_id.indexOf(nodeID) === -1, remove the index        
 
-                var parentNode = null;
-                indices = [];
+                let parentNode = null;
+                let indices = []; // Indices of the nodes to be removed from the parent node
 
-                this.visit_nodes(this.data,function(d){  
-                    if(this.stashed_node_ids.indexOf(d.id)==-1){
-                        parentNode = d.parent;
-                        var index = d.parent.children.indexOf(d);
-                        indices.push(index);
+                this.visit_nodes(this.data, (d) => {  
+
+                    if(d.children){
+                        for(let i = 0; i < d.children.length; i++){
+                            if(this.stashed_node_ids.indexOf(d.children[i].id) === -1){
+                                parentNode = d;
+                                let index = d.children.indexOf(d.children[i]);
+                                indices.push(index);
+                            }
+                        }
+
+                        indices.reverse();
+                        for(let i = 0; i < indices.length; i++){
+                            parentNode.children.splice(indices[i],1);
+                        }
                     }
                 });
-
-                indices.reverse();
-                for(var i=0;i<indices.length;i++){
-                    parentNode.children.splice(indices[i],1);
-                }
 
             }else{
                 // Both are null: No stashed information
@@ -714,7 +721,7 @@ class FeatureApplication{
         var children = source.children;
         if(children){
             for(var i=0;i<children.length;i++){
-                self.get_node_ids(children[i],IDList);
+                this.get_node_ids(children[i],IDList);
             }
         }
         return IDList;
@@ -722,33 +729,58 @@ class FeatureApplication{
     
     remove_descendants(nodeID){
 
-        var childrenNodeID = [];
+        let descendantNodesID = [];
 
         d3.selectAll('.treeLink').filter(function(d){
-            if(d.source.id == nodeID){
-                childrenNodeID.push(d.target.id);
+            if (d.parent.id === nodeID){
+                descendantNodesID.push(d.id);
+                return true; // remove
+            }
+            else if(descendantNodesID.indexOf(d.parent.id) != -1){
+                descendantNodesID.push(d.id);
                 return true;
             }else{
                 return false;
-            }        
+            }
         }).remove();
 
-        if(childrenNodeID.length==0){
+        if(descendantNodesID.length === 0){
             return;
         }
 
-        d3.selectAll('.treeNode')[0].forEach(function(d){
-
-            var id = d.__data__.id;
-
-            if(childrenNodeID.indexOf(id)!=-1){
-                d3.select(d).remove();
-                self.remove_descendants(id);
+        d3.selectAll('.treeLink').filter((d) =>{
+            if (d.parent.id === nodeID){
+                descendantNodesID.push(d.id);
+                return true; // remove
             }
-        });
+            else if(descendantNodesID.indexOf(d.parent.id) != -1){
+                descendantNodesID.push(d.id);
+                return true;
+            }else{
+                return false;
+            }
+        }).remove();
+
+        d3.selectAll('.treeNode').filter((d) => {
+            if(descendantNodesID.indexOf(d.id) != -1){
+                return true;
+            }else{
+                return false;
+            }
+        }).remove();
+
+
+
+        // d3.selectAll('.treeNode')[0].forEach((d) => {
+
+        //     if(descendantNodesID.indexOf(d.id) != -1){
+        //         d3.select(d).remove();
+        //         self.remove_descendants(id);
+        //     }
+        // });
     }
 
-    construct_tree(expression,depth){
+    construct_tree(expression, depth){
 
         if(depth==null){
            depth = 0;
@@ -804,7 +836,7 @@ class FeatureApplication{
                     logic = "||";
                     name="OR";
                 }            
-                thisNode = {depth:d,type:"logic",name:name,children:[]};
+                thisNode = {depth:d,type:"logic",name:name,children:[], parent:null};
 
             }else{
                 _e = _e.substring(2);
@@ -815,6 +847,7 @@ class FeatureApplication{
                 // Last element in the list
                 var child = this.construct_tree(e,d+1);
                 thisNode.children.push(child);
+                child.parent = thisNode;
                 break;
             }else{
                 // Not last
@@ -826,6 +859,7 @@ class FeatureApplication{
                 // Add the child to the current node
                 var child = this.construct_tree(temp,d+1);
                 thisNode.children.push(child);
+                child.parent = thisNode;
 
                 // Get the rest of the expression for the next loop
                 _e = _e.substring(_temp.length);
@@ -833,6 +867,7 @@ class FeatureApplication{
             }
 
         }
+
         return thisNode;
     }
     
