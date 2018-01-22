@@ -121,7 +121,7 @@ class IFEED{
             async: false,
             success: function (data, textStatus, jqXHR){
                 that.data = data;
-                that.calculate_pareto_ranking();
+                //that.calculate_pareto_ranking();
                 PubSub.publish(DATA_IMPORTED,data);
             },
             error: function (jqXHR, textStatus, errorThrown){
