@@ -58,8 +58,12 @@ class DataMining{
         // Save the data
         PubSub.subscribe(DATA_PROCESSED, (msg, data) => {
             this.data = data;
-        });         
-        
+        });       
+
+        PubSub.subscribe(DESIGN_PROBLEM_LOADED, (msg, data) => {
+            this.metadata = data.metadata;
+        }); 
+
         PubSub.subscribe(SELECTION_UPDATED, (msg, data) => {
             this.initialize();
             this.selected_archs = data;
@@ -258,6 +262,8 @@ class DataMining{
             url: "/api/data-mining/get-driving-features/",
             type: "POST",
             data: {ID: "get_driving_features",
+                    problem: this.metadata.problem,  // eoss or gnc
+                    input_type: this.metadata.input_type, // Binary or Discrete
                     selected: JSON.stringify(selected),
                     non_selected:JSON.stringify(non_selected),
                     supp:support_threshold,
@@ -289,7 +295,9 @@ class DataMining{
         $.ajax({
             url: "/api/data-mining/get-marginal-driving-features/",
             type: "POST",
-            data: {featureExpression: featureExpression,
+            data: {
+                    problem: this.metadata.problem,
+                    featureExpression: featureExpression,
                     selected: JSON.stringify(selected),
                     non_selected:JSON.stringify(non_selected),
                     supp:support_threshold,
@@ -319,8 +327,10 @@ class DataMining{
         $.ajax({
             url: "/api/data-mining/get-marginal-driving-features-conjunctive/",
             type: "POST",
-            data: {featureName: featureName,
-                   highlighted: JSON.stringify(highlighted),
+            data: {
+                    problem: this.metadata.problem,
+                    featureName: featureName,
+                    highlighted: JSON.stringify(highlighted),
                     selected: JSON.stringify(selected),
                     non_selected:JSON.stringify(non_selected),
                     supp:support_threshold,

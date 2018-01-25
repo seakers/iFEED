@@ -189,40 +189,8 @@ class GNCLabel extends Label{
         if(exp[0]==="{"){
             exp = exp.substring(1,exp.length-1);
         }
-        var featureName = exp.split("[")[0];
 
-        if(featureName==="paretoFront" || featureName==='FeatureToBeAdded' || featureName==='AND' || featureName==='OR'){return exp;}
-
-        if(featureName[0]=='~'){
-            featureName = 'NOT '+ featureName.substring(1);
-        }
-
-        var featureArg = exp.split("[")[1];
-        featureArg = featureArg.substring(0,featureArg.length-1);
-
-        var orbits = featureArg.split(";")[0].split(",");
-        var instruments = featureArg.split(";")[1].split(",");
-        var numbers = featureArg.split(";")[2];
-
-        var pporbits="";
-        var ppinstruments="";
-        for(var i=0;i<orbits.length;i++){
-            if(orbits[i].length===0){
-                continue;
-            }
-            if(i>0){pporbits = pporbits + ",";}
-            pporbits = pporbits + this.index2DisplayName(orbits[i], "orbit");
-        }
-        for(var i=0;i<instruments.length;i++){
-            if(instruments[i].length===0){
-                continue;
-            }
-            if(i>0){ppinstruments = ppinstruments + ",";}
-            ppinstruments = ppinstruments + this.index2DisplayName(instruments[i], "instrument");
-        }
-        var ppexpression = featureName + "[" + pporbits + ";" + ppinstruments + ";" + numbers + "]";
-        
-        return ppexpression;
+        return expression;
     }
     
     pp_feature(expression){

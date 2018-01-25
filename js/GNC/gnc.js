@@ -6,8 +6,9 @@ class GNC extends Problem{
 
         let that = this;
         this.metadata = {
+            problem: "gnc",
             input_num: 16,
-            input_type: "Numbers",
+            input_type: "discrete",
             input_list: ["NS","NC","sensors","computers","Ibin_1","Ibin_2","Ibin_3",
                             "Ibin_4","Ibin_5","Ibin_6","Ibin_7","Ibin_8","Ibin_9","Inat_1","Inat_2","Inat_3"],
             output_list: ['m','R','MTTF','Nlinks','N9'],
@@ -23,7 +24,7 @@ class GNC extends Problem{
 
         PubSub.publish(DESIGN_PROBLEM_LOADED, this);
     }
-    
+
     preprocessing_problem_specific(data){
         let col1 = 4;
         let col2 = 12;

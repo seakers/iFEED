@@ -51,6 +51,7 @@ class IFEED{
 
         // Data
         this.metadata = {
+                        "problem": null,
                         "input_num": null,
                         "input_type": null,
                         "input_list": [],
@@ -110,8 +111,6 @@ class IFEED{
         if(path){
            metadata.file_path = path;
         } 
-
-        console.log(metadata);
 
         let that = this;
         $.ajax({

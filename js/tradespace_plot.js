@@ -38,7 +38,8 @@ class TradespacePlot{
         this.selection_updated = false;
 
         PubSub.subscribe(DESIGN_PROBLEM_LOADED, (msg, data) => {
-            this.output_list = data.metadata.output_list;
+            this.metadata = data.metadata;
+            this.output_list = this.metadata.output_list;
             this.initialize();
         });         
 
@@ -788,6 +789,8 @@ class TradespacePlot{
             }); 
             this.drawPoints(this.context, false);
         }
+
+        this.num_highlighted_points = this.get_highlighted_architectures().length;
     }    
 
     get_selected_architectures(){
@@ -800,7 +803,15 @@ class TradespacePlot{
         return out;    
     }
 
-
+    get_highlighted_architectures(){
+        let out = [];
+        this.data.forEach(point => {
+            if (point.highlighted && !point.hidden){
+                out.push(point);
+            }
+        });    
+        return out;    
+    }
 
 
 
