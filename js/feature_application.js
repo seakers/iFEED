@@ -64,15 +64,14 @@ class FeatureApplication{
    
         // Remove all features
         d3.select('#clear_all_features').on('click', (d) => { this.clear_feature_application(); }); 
-       
 
-//    d3.select('#conjunctive_local_search').on('click',function(){
-//        ifeed.data_mining.run();
-//    }); 
-//    
-//    d3.select('#disjunctive_local_search').on('click',function(d){
-//        ifeed.data_mining.run("asdf");
-//    }); 
+        d3.select('#conjunctive_local_search').on('click', (d) => {
+            this.data_mining.run();
+        }); 
+       
+        d3.select('#disjunctive_local_search').on('click',(d) => {
+            this.data_mining.run("asdf");
+        }); 
 
 		PubSub.publish(FEATURE_APPLICATION_LOADED, this);
     }
@@ -124,6 +123,7 @@ class FeatureApplication{
         this.check_tree_structure();
                 
         PubSub.publish(APPLY_FEATURE_EXPRESSION, this.parse_tree(this.data));
+
         
         let duration = d3.event && d3.event.altKey ? 5000 : 500;
         let margin = this.margin;
@@ -152,17 +152,18 @@ class FeatureApplication{
                         .data(nodes, function(d) {return d.id || (d.id = d.data.id); });
         
         // Enter any new nodes at the parent's previous position.
-        let nodeEnter = node.enter().append("g")
+        let nodeEnter = node.enter()
+            .append("g")
             .attr("class", "treeNode")
             .attr("transform", function(d) { 
-                //return 'translate(' + (root.y0 + margin.top) + ',' + (root.x0 + margin.left) + ')';
                 if(d.depth === 0) {
                     return "translate(" + d.y0 + "," + d.x0 + ")";
                 } else {
                     if(!d.parent.x0){
-                        console.log(d);
+                        //console.log(d);
+                    }else{
+                        return "translate(" + d.parent.y0+ "," + d.parent.x0 + ")";
                     }
-                    return "translate(" + d.parent.y0+ "," + d.parent.x0 + ")";
                 }
             });
 
@@ -309,7 +310,6 @@ class FeatureApplication{
             if(d.id==that.i-1){
                 that.last_modified_tree_node=d;
             }
-
         });    
 
         d3.selectAll('.treeNode')
@@ -898,8 +898,6 @@ class FeatureApplication{
             }
             return false;
         }
-        
-        
 
         var expression = null;
 

@@ -139,96 +139,100 @@ class DataMining{
         }     
                 
         // If the feature application tree exists:
-        if(this.feature_application.root){
-            // // Run data mining in the marginal feature space
-            // var selected_node = null;            
+        if(this.feature_application.data){
+
+            // Run data mining in the marginal feature space
+            let selected_node = null;            
             
-            // // Save the node where the placeholder is to be located
-            // this.feature_application.visit_nodes(this.feature_application.root,function(d){
-            //     if(d.add){selected_node=d;}                        
-            // })            
+            // Save the node where the placeholder is to be located
+            this.feature_application.visit_nodes(this.feature_application.data, (d) => {
+                if(d.add){
+                    selected_node=d;
+                }                        
+            })            
             
-            // // Save the currently applied feature
-            // let base_feature = this.feature_application.parse_tree(this.feature_application.root,selected_node);
+            // Save the currently applied feature
+            let base_feature = this.feature_application.parse_tree(this.feature_application.data, selected_node);
 
-            // let extracted_features = null;
+            let extracted_features = null;
 
-            // if(selected_node){
+            if(selected_node){
+                // There exists a specific node to run the local search on
+                extracted_features = this.get_marginal_driving_features(selected, non_selected, base_feature, 
+                                                             this.support_threshold, this.confidence_threshold, this.lift_threshold);           
 
-            //     extracted_features = this.get_marginal_driving_features(selected, non_selected, base_feature, 
-            //                                                  this.support_threshold,this.confidence_threshold,this.lift_threshold);           
+            }else if(!option){
+                // Run local search using conjunction
+                // Save the architectures with the current feature
+                let highlighted = [];
+                this.data.forEach(point => {
+                    if (point.highlighted && !point.hidden){
+                        highlighted.push(point.id);
+                    }
+                });    
 
-            // }else if(!option){
+                extracted_features = this.get_marginal_driving_features_conjunctive(selected, non_selected, base_feature, highlighted, 
+                                                                 this.support_threshold,this.confidence_threshold,this.lift_threshold);
+            }else{
+                // Run local search either using disjunction or conjunction
+                let root = this.feature_application.data;
 
-            //     // Save the architectures that have the currently applied feature
-            //     let highlightedArchs = d3.selectAll(".dot.tradespace_plot.highlighted:not(.hidden):not(.cursor)")[0];                    
+                extracted_features = [];
 
-            //     let highlighted = [];
-            //     for (var i = 0; i < highlightedArchs.length; i++) {
-            //         var id = highlightedArchs[i].__data__.id;
-            //         highlighted.push(id);
-            //     }                       
+                let all_extracted_features = [];
 
-            //     extracted_features = this.get_marginal_driving_features_conjunctive(selected, non_selected, base_feature, highlighted, 
-            //                                                      this.support_threshold,this.confidence_threshold,this.lift_threshold);
-            // }else{
+                for(let i = 0; i < root.children.length; i++){
 
-            //     let root = this.feature_application.root;
-
-            //     extracted_features = [];
-
-            //     let all_extracted_features = [];
-
-            //     for(let i=0;i<root.children.length;i++){
-
-            //         selected_node = root.children[i];  
+                    selected_node = root.children[i];  
                     
-            //         if(selected_node.type=="logic"){
-            //             continue;
-            //         }
+                    if(selected_node.type=="logic"){
+                        continue;
+                    }
                     
-            //         let test_feature = this.feature_application.parse_tree(root,selected_node); 
+                    let test_feature = this.feature_application.parse_tree(root, selected_node); 
 
-            //         let temp_features = this.get_marginal_driving_features(selected, non_selected, test_feature, 
-            //                                                  this.support_threshold,this.confidence_threshold,this.lift_threshold);
+                    let temp_features = this.get_marginal_driving_features(selected, non_selected, test_feature, 
+                                                             this.support_threshold,this.confidence_threshold,this.lift_threshold);
 
-            //         all_extracted_features = all_extracted_features.concat(temp_features);
+                    all_extracted_features = all_extracted_features.concat(temp_features);
 
-            //     }
+                }
 
-            //     // Check non-dominance against the extracted features
-            //     for(let j=0;j<all_extracted_features.length;j++){
-            //         let this_feature = all_extracted_features[j];
-            //         if(this.check_if_non_dominated(this_feature, all_extracted_features)) extracted_features.push(this_feature);
-            //     }                    
-            // }
+                // Check non-dominance against the extracted features
+                for(let j = 0; j < all_extracted_features.length; j++){
+                    let this_feature = all_extracted_features[j];
+                    if(this.check_if_non_dominated(this_feature, all_extracted_features)) extracted_features.push(this_feature);
+                }                    
+            }
                         
-            // let features_to_add = [];
-            // this.recent_features_id = [];
+            let features_to_add = [];
+            this.recent_features_id = [];
 
-            // // Check non-dominance against all existing features
-            // for(let i=0;i<extracted_features.length;i++){
+            // Check non-dominance against all existing features
+            for(let i = 0; i < extracted_features.length; i++){
 
-            //     let this_feature = extracted_features[i];
-            //     if(this.check_if_non_dominated(this_feature,this.all_features)){
-            //         var id = featureID++;
-            //         // non-dominated
-            //         this.mined_features_id.push(id);
-            //         this.recent_features_id.push(id); 
+                let this_feature = extracted_features[i];
 
-            //         this_feature.id=id;
-            //         features_to_add.push(this_feature);
-            //     }
-            // }     
+                if(this.check_if_non_dominated(this_feature, this.all_features)){
+                    let id = this.featureID++;
+                    // non-dominated
+                    this.mined_features_id.push(id);
+                    this.recent_features_id.push(id); 
 
-            // // Update the location of the current feature
-            // var x=this.current_feature.x;
-            // var y=this.current_feature.y;
-            // this.current_feature.x0=x;
-            // this.current_feature.y0=y;
+                    this_feature.id = id;
+                    features_to_add.push(this_feature);
+                }
+            }     
 
-            // this.update(features_to_add);
-            // PubSub.publish(CANCEL_ADD_FEATURE, null);
+            // Update the location of the current feature
+            // let x = this.current_feature.x;
+            // let y = this.current_feature.y;
+            // this.current_feature.x0 = x;
+            // this.current_feature.y0 = y;
+
+            this.update(features_to_add);
+
+            PubSub.publish(CANCEL_ADD_FEATURE, null);
                         
         }else{            
             // Run data mining from the scratch (no local search)
@@ -257,7 +261,7 @@ class DataMining{
     
     get_driving_features(selected,non_selected,support_threshold,confidence_threshold,lift_threshold){
 
-        var output;
+        let output;
         $.ajax({
             url: "/api/data-mining/get-driving-features/",
             type: "POST",
@@ -291,12 +295,13 @@ class DataMining{
     get_marginal_driving_features(selected,non_selected,featureExpression,
                                                    support_threshold,confidence_threshold,lift_threshold){
         
-        var output;
+        let output;
         $.ajax({
             url: "/api/data-mining/get-marginal-driving-features/",
             type: "POST",
             data: {
-                    problem: this.metadata.problem,
+                    problem: this.metadata.problem,  // eoss or gnc
+                    input_type: this.metadata.input_type, // Binary or Discrete
                     featureExpression: featureExpression,
                     selected: JSON.stringify(selected),
                     non_selected:JSON.stringify(non_selected),
@@ -323,12 +328,13 @@ class DataMining{
     get_marginal_driving_features_conjunctive(selected,non_selected,featureName,highlighted,
                                                    support_threshold,confidence_threshold,lift_threshold){
         
-        var output;
+        let output;
         $.ajax({
             url: "/api/data-mining/get-marginal-driving-features-conjunctive/",
             type: "POST",
             data: {
-                    problem: this.metadata.problem,
+                    problem: this.metadata.problem,  // eoss or gnc
+                    input_type: this.metadata.input_type, // Binary or Discrete
                     featureName: featureName,
                     highlighted: JSON.stringify(highlighted),
                     selected: JSON.stringify(selected),
@@ -790,12 +796,13 @@ class DataMining{
     
     add_feature_to_plot(expression){
         
+        let that = this;
                 
         function find_equivalent_feature(metrics,indices){
 
-            for(var i=0;i<self.all_features.length;i++){
-                var _metrics = self.all_features[i].metrics;
-                var match = true;
+            for(let i = 0; i < that.all_features.length; i++){
+                let _metrics = that.all_features[i].metrics;
+                let match = true;
                 for(var j=0;j<indices.length;j++){
                     var index = indices[j];
                     if(round_num(metrics[index])!=round_num(_metrics[index])){
@@ -803,7 +810,7 @@ class DataMining{
                     }
                 }
                 if(match){
-                    return self.all_features[i];
+                    return that.all_features[i];
                 }
             }
             return null;
@@ -812,13 +819,13 @@ class DataMining{
         
         if(!expression || expression==""){
 
-            self.current_feature=null;
+            this.current_feature=null;
             // Assign new indices for the added features
-            self.update();
+            this.update();
 
         }else{       
             
-            this.filter.apply_filter_expression(expression);
+            //this.filter.apply_filter_expression(expression);
 
             // Compute the metrics of a feature
             var total = ifeed.tradespace_plot.get_num_of_archs();
@@ -838,36 +845,36 @@ class DataMining{
 
             // Stash the previous location
             var x,y;
-            if(self.current_feature){
-                x=self.current_feature.x;
-                y=self.current_feature.y;
+            if(this.current_feature){
+                x = this.current_feature.x;
+                y = this.current_feature.y;
             }else{
                 x=-1,y=-1;
             }
 
             // Define new feature
-            self.current_feature = {id:-1,name:expression,expression:expression,metrics:metrics,x0:x,x:x,y0:y,y:y};
+            this.current_feature = {id:-1,name:expression,expression:expression,metrics:metrics,x0:x,x:x,y0:y,y:y};
 
             // Check if there exists a feature whose metrics match with the current feature's metrics
             var matched = find_equivalent_feature(metrics,[2,3]);       
 
             if(!matched){                
-                var new_feature =  JSON.parse(JSON.stringify(self.current_feature));
+                var new_feature =  JSON.parse(JSON.stringify(this.current_feature));
                 new_feature.id = featureID++;
                 // Add new feature to the list of features
-                self.user_added_features_id.push(new_feature.id);
-                self.all_features.push(new_feature);
+                this.user_added_features_id.push(new_feature.id);
+                this.all_features.push(new_feature);
             }
             
             // Stash the previous locations of all features
             for(var i=0;i<self.all_features.length;i++){
-                self.all_features[i].x0 = self.all_features[i].x;
-                self.all_features[i].y0 = self.all_features[i].y;
+                this.all_features[i].x0 = this.all_features[i].x;
+                this.all_features[i].y0 = this.all_features[i].y;
             }
 
             document.getElementById('tab3').click();
             
-            ifeed.tradespace_plot.highlight_support_panel();
+            //ifeed.tradespace_plot.highlight_support_panel();
 
             // Display the driving features with newly added feature
             this.update();
@@ -883,7 +890,7 @@ class DataMining{
             
             var this_feature = all_features[j];
             
-            if(this_feature==test_feature) continue;
+            if(this_feature === test_feature) continue;
             
             if(dominates(this_feature.metrics.slice(2), test_feature.metrics.slice(2))){
                 non_dominated = false;

@@ -46,7 +46,9 @@ class Problem{
             out.push(arch);
         });
 
-        out = this.preprocessing_problem_specific(out)
+        if(this.preprocessing_problem_specific){
+            out = this.preprocessing_problem_specific(out)
+        }        
         
         if(input_is_array) return out;
         else return out[0];
