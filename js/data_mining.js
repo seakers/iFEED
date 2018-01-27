@@ -48,9 +48,9 @@ class DataMining{
 
 
 
-        PubSub.subscribe(ADD_FEATURE, (msg, data) => {
-            this.add_feature_to_plot(data);
-        });  
+        // PubSub.subscribe(ADD_FEATURE, (msg, data) => {
+        //     this.add_feature_to_plot(data);
+        // });  
         
         // PubSub.subscribe(DRAW_VENN_DIAGRAM, (msg, data) => {
         //     self.draw_venn_diagram();

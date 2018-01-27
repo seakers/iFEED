@@ -12,10 +12,17 @@
 class GNCLabel extends Label{
 
     constructor(disabled){
+
         super(disabled);        
 
         this.input_list = [];
         this.output_list = [];
+
+        this.computer_actual_names = ["0","1","2","3"];
+        this.sensor_actual_names = ["0","1","2","3"];
+
+        this.computer_display_names = ["0","A","B","C"];
+        this.sensor_display_names = ["0","A","B","C"];
 
         PubSub.subscribe(DESIGN_PROBLEM_LOADED, (msg, data) => {
             this.input_list = data.metadata.input_list;
@@ -23,145 +30,80 @@ class GNCLabel extends Label{
             PubSub.publish(LABELING_SCHEME_LOADED, this);
         });
     }
-    
-    
-    /*
-     * @param {int} index: Number indicating either an oribt or an instrument
-     * @param {String} type: Type of the input name. Could be either "orbit" or "instrument"
-     * @returns The actual name of an instrument or an orbit
-     */
-    index2ActualName(index, type){
-        if(type=="orbit"){
-            return this.orbit_list[index];
-        }else if(type=="instrument"){
-            return this.instrument_list[index];
-        }else{
-            return "Naming Error"
-        }
-    }
-    
-    /*
-     * @param {int} index: Number indicating either an orbit or an instrument
-     * @param {String} type: Type of the variable. Could be either "orbit" or "instrument"
-     */
-    index2DisplayName(index, type){
-        
-        if(this.disabled){
-            return this.index2ActualName(index,type);
-        }
-        if(type=="orbit"){
-            return this.orbit_relabeled[index];
-        }else if(type=="instrument"){
-            return this.instrument_relabeld[index];
-        }else{
-            return "Naming Error";
-        }
-    }
-    
-    actualName2Index(name, type){
-        
-        name = name.trim();
-        if(name.indexOf(",") != -1){
-            let names = name.split(",");
-            let newName = "";
-            for(let i = 0; i < names.length; i++){
-                let comma = ",";
-                if(i == 0){
-                    comma = "";
-                }
-                if(type=="orbit"){
-                    newName = newName + comma + $.inArray(names[i],this.orbit_list);
-                }else if(type=="instrument"){
-                    newName = newName + comma + $.inArray(names[i],this.instrument_list);
-                }else{
-                    newName = newName + comma + "Naming Error";
-                }              
-            }
-            return newName;
-        }else{
-            if(type == "orbit"){
-                return $.inArray(name,this.orbit_list);
-            }else if(type=="instrument"){
-                return $.inArray(name,this.instrument_list);
-            }else{
-                return "Naming Error";
-            }        
-        }
-    }
-    
-    displayName2Index(input, type){
-        if(this.disabled){
-            return this.actualName2Index(input,type);
-        }
 
-        input = input.trim();
-        let split = input.split(',');
-        let output='';
-        for(let i = 0; i < split.length; i++){
-            var name = split[i];
-            if(this.orbit_relabeled.indexOf(name)==-1 && this.instrument_relabeld.indexOf(name)==-1){
-                return null;
-            }
-            if(i > 0) output = output + ",";
-
-            if(type == "orbit"){
-                output = output + $.inArray(name,this.orbit_relabeled);
-            }else if(type == "instrument"){
-                output = output + $.inArray(name,this.instrument_relabeld);
-            }else{
-                return "Naming Error";
-            }
-        }
-        return output;
-    }
-    
     
     actualName2DisplayName(name,type){
+
         if(this.disabled){
             return name;
         }
 
-        name = name.trim();
-        if(type == "orbit"){
-            
-            var nth = $.inArray(name,this.orbit_list);
-            if(nth==-1){// Couldn't find the name from the list
-                return name;
-            }
-            return this.orbit_relabeled[nth];
-            
-        } else if(type=="instrument"){
-            var nth = $.inArray(name,this.instrument_list);
-            if(nth==-1){ // Couldn't find gthe name from the list
-                return name;
-            }
-            return this.instrument_relabeld[nth];
-        } else{
+        if(type != "sensors" && type != "computers"){
             return name;
         }
+
+        name = name.trim();
+        
+        if(type === "sensors"){
+
+            let newName = null;
+            let nth = $.inArray(name, this.sensor_actual_names);
+            if(nth === -1){// Couldn't find the name from the list
+                return name;
+            }else{
+                newName = this.sensor_display_names[nth];
+            }
+            return newName;
+            
+        } else if(type === "computers"){
+
+            let newName = "";
+            let nth = $.inArray(name, this.computer_actual_names);
+            if(nth === -1){// Couldn't find the name from the list
+                return name;
+            }else{
+                newName = this.computer_display_names[nth];
+            }
+            return newName;
+        } 
+        return name;
     }
     
     displayName2ActualName(name,type){
+
         if(this.disabled){
             return name;
         }
-        
-        name = name.trim();
-        if(type=="orbit"){
-            var nth = $.inArray(name,this.orbit_relabeled);
-            if(nth==-1){// Couldn't find the name from the list
-                return name;
-            }
-            return this.orbit_list[nth];
-        } else if(type=="instrument"){
-            var nth = $.inArray(name,this.instrument_relabeld);
-            if(nth==-1){ // Couldn't find gthe name from the list
-                return name;
-            }
-            return this.instrument_list[nth];
-        } else{
+
+        if(type != "sensors" && type != "computers"){
             return name;
         }
+
+        name = name.trim();
+        
+        if(type === "sensors"){
+
+            let newName = null;
+            let nth = $.inArray(name, this.sensor_display_names);
+            if(nth === -1){// Couldn't find the name from the list
+                return name;
+            }else{
+                newName = this.sensor_actual_names[nth];
+            }
+            return newName;
+            
+        } else if(type === "computers"){
+
+            let newName = "";
+            let nth = $.inArray(name, this.computer_display_names);
+            if(nth === -1){// Couldn't find the name from the list
+                return name;
+            }else{
+                newName = this.computer_actual_names[nth];
+            }
+            return newName;
+        } 
+        return name;
     }
     
     pp_feature_type(expression){
@@ -185,14 +127,43 @@ class GNCLabel extends Label{
     
     pp_feature_single(expression){
         
-        var exp = expression;
+        let exp = expression;
         if(exp[0]==="{"){
             exp = exp.substring(1,exp.length-1);
         }
 
-        return expression;
+        let featureName = exp.split("[")[0];
+        let featureArg = exp.split("[")[1];
+        featureArg = featureArg.substring(0, featureArg.length - 1);        
+
+        if(featureName==="paretoFront" || featureName==='FeatureToBeAdded' || featureName==='AND' || featureName==='OR'){
+            return exp;
+        }else if(featureName === "numSensorOfType" || featureName === "numComputerOfType"){
+
+            let name = featureArg.split(";")[0];
+            let number = featureArg.split(";")[1];
+
+            let type = null;
+            if(featureName === "numSensorOfType"){
+                type = "sensors";
+            }else{
+                type = "computers";
+            }
+
+            name = this.actualName2DisplayName(name, type);
+
+            featureArg = name + ";" + number;
+        }
+
+        if(featureName[0]=='~'){
+            featureName = 'NOT '+ featureName.substring(1);
+        }
+
+        var ppexpression = featureName + "[" + featureArg + "]";
+        
+        return ppexpression;
     }
-    
+
     pp_feature(expression){
 
         let output = '';
@@ -214,7 +185,7 @@ class GNCLabel extends Label{
             }else if(expression[i]=='}'){
                 save = false;
                 savedString = savedString + '}';
-                feature_expression = savedString;
+                let feature_expression = savedString;
                 output = output + '{' + this.pp_feature_single(feature_expression) + '}';
             }else{
                 if(save){

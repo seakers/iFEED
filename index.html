@@ -147,13 +147,13 @@ and open the template in the editor.
 <script src="js/label.js" type="text/javascript"></script>
 
 
-<script src="js/EOSS/eoss.js" type="text/javascript"></script>
+<!-- <script src="js/EOSS/eoss.js" type="text/javascript"></script>
 <script src="js/EOSS/eossLabel.js" type="text/javascript"></script>
-<script src="js/EOSS/eossFilter.js" type="text/javascript"></script>
+<script src="js/EOSS/eossFilter.js" type="text/javascript"></script> -->
 
-<!-- <script src="js/GNC/gnc.js" type="text/javascript"></script>
+<script src="js/GNC/gnc.js" type="text/javascript"></script>
 <script src="js/GNC/gncLabel.js" type="text/javascript"></script>
-<script src="js/GNC/gncFilter.js" type="text/javascript"></script> -->
+<script src="js/GNC/gncFilter.js" type="text/javascript"></script>
 
 <script src="js/data_mining.js" type="text/javascript"></script>   
 <script src="js/feature_application.js" type="text/javascript"></script>       
@@ -161,37 +161,37 @@ and open the template in the editor.
     
 <script>
     
-    var ifeed = new IFEED();
-
-    var eoss = new EOSS();
-
-    var label = new EOSSLabel();
-    
-    var tradespace_plot = new TradespacePlot(0, 4);
-    
-    var filter = new EOSSFilter(label);
-    
-    var data_mining = new DataMining(filter, label);
-    
-    var feature_application = new FeatureApplication(data_mining, filter, label);    
-
-    PubSub.publish(LOAD_DATA, null);
-
     // var ifeed = new IFEED();
 
-    // var gnc = new GNC();
+    // var eoss = new EOSS();
 
-    // var label = new GNCLabel();
+    // var label = new EOSSLabel();
     
     // var tradespace_plot = new TradespacePlot(0, 4);
     
-    // var filter = new GNCFilter(label);
+    // var filter = new EOSSFilter(label);
     
     // var data_mining = new DataMining(filter, label);
     
     // var feature_application = new FeatureApplication(data_mining, filter, label);    
 
     // PubSub.publish(LOAD_DATA, null);
+
+    var ifeed = new IFEED();
+
+    var gnc = new GNC();
+
+    var label = new GNCLabel();
+    
+    var tradespace_plot = new TradespacePlot(0, 4);
+    
+    var filter = new GNCFilter(label);
+    
+    var data_mining = new DataMining(filter, label);
+    
+    var feature_application = new FeatureApplication(data_mining, filter, label);    
+
+    PubSub.publish(LOAD_DATA, null);
 
 </script>
 

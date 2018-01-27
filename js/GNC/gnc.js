@@ -168,7 +168,17 @@ class GNC extends Problem{
 
         rows = [];
         for(let i = 0 ; i < inputNames.length/2 ;i++){
-            rows.push({name1:inputNames[2*i],val1:data.inputs[2*i],name2:inputNames[2*i+1],val2:data.inputs[2*i+1]});
+
+            let row = {name1:inputNames[2*i],val1:data.inputs[2*i],name2:inputNames[2*i+1],val2:data.inputs[2*i+1]};
+            
+            if(row.name1 === "sensors" || row.name1 === "computers"){
+                row.val1 = this.label.actualName2DisplayName(row.val1, row.name1);
+            }
+            if(row.name2 === "sensors" || row.name2 === "computers"){
+                row.val2 = this.label.actualName2DisplayName(row.val2, row.name2);
+            }
+
+            rows.push(row);
         }
         
         // create table body

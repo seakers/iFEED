@@ -34,13 +34,15 @@ class GNCFilter extends Filter{
         let presetFeaturesInfo = [
                                 {value:"not_selected",text:"Preset Filters"},
                                 //{value:"paretoFront",text:"Pareto front"},
-                                {value:"numSensors",text:"# of Sensors",input:"singleNum",hints:""},
-                                {value:"numComputers",text:"# of Computers",input:"singleNum",hints:""},
-                                {value:"numLinks",text:"# of Links",input:"singleNum",hints:""},
-                                {value:"Inat_1",text:"Inat_1",input:"singleNum",hints:""},
-                                {value:"Inat_2",text:"Inat_2",input:"singleNum",hints:""},
-                                {value:"Inat_3",text:"Inat_3",input:"singleNum",hints:""},
-                                {value:"minNSNC",text:"Minimum # of Sensors and Computers",input:"singleNum",hints:""},
+                                {value:"numSensors",text:"# of sensors",input:"singleNum",hints:""},
+                                {value:"numComputers",text:"# of computers",input:"singleNum",hints:""},
+                                {value:"numLinks",text:"# of links",input:"singleNum",hints:""},
+                                //{value:"Inat_1",text:"Inat_1",input:"singleNum",hints:""},
+                                //{value:"Inat_2",text:"Inat_2",input:"singleNum",hints:""},
+                                //{value:"Inat_3",text:"Inat_3",input:"singleNum",hints:""},
+                                {value:"minNSNC",text:"Minimum # of sensors and computers",input:"singleNum",hints:""},
+                                {value:"numSensorOfType",text:"# of a specific sensor",input:"NameAndNum",hints:""},
+                                {value:"numComputerOfType",text:"# of a specific computer",input:"NameAndNum",hints:""},
                             ];  
 
         for (let i in presetFeaturesInfo){
@@ -54,9 +56,12 @@ class GNCFilter extends Filter{
         PubSub.subscribe(DATA_PROCESSED, (msg, data) => {
             this.set_application_functions();
         });
+
+        this.define_filter_functions();
     }
 
     set_application_functions(){
+
         this.input_list = this.label.input_list;
 
         let that = this;
@@ -71,6 +76,10 @@ class GNCFilter extends Filter{
                     return that.numLinks; 
                 case "minNSNC":
                     return that.minNSNC; 
+                case "numSensorOfType":
+                    return that.numSensorOfType;
+                case "numComputerOfType":
+                    return that.numComputerOfType;
                 case "Inat_1":
                     return that.Inat_1; 
                 case "Inat_2":
@@ -132,7 +141,16 @@ class GNCFilter extends Filter{
                     filter_input_1.append("input")
                                 .attr("type","text");
                     break;
-                                        
+                 case "NameAndNum":
+                    filter_input_1.text("Input the name: ");
+                    filter_input_1.append("input")
+                                .attr("type","text");
+
+                    filter_input_2.text("Input single integer number: ");
+                    filter_input_2.append("input")
+                                .attr("type","text");
+                    break;
+
                 default:
                     break;
             }
@@ -186,13 +204,29 @@ class GNCFilter extends Filter{
             let input = d3.selectAll('.filter.inputs.div').select('div').select('input').node().value
             filter_expression = "paretoFront[" + input + "]";
 
-        }else{
+        }else if(dropdown === "numSensors" || dropdown === "numComputers" || dropdown === "numLinks" ||
+            dropdown === "minNSNC"){
 
             let arg = input_textbox[0];
             if(isNaN(arg)){ // If arg cannot be converted to a number
                 invalid_input = true;
             }
             filter_expression = option + "[" + arg + "]";
+
+        }else if(dropdown === "numSensorOfType" || dropdown === "numComputerOfType"){
+
+            let type = null;
+
+            if(dropdown === "numSensorOfType"){
+                type = "sensors";
+            }else{
+                type = "computers";
+            }
+
+            let name = this.label.displayName2ActualName(input_textbox[0], type);
+            let num = input_textbox[1];
+
+            filter_expression = option + "[" + name + ";" + num + "]";
         }
         
         filter_expression = "{" + filter_expression + "}";
@@ -272,100 +306,141 @@ class GNCFilter extends Filter{
 //                                 {value:"NC",text:"# of Computers",input:"singleNum",hints:""},
 //                                 {value:"NumLinks",text:"# of Links",input:"singleNum",hints:""},
 //                                 {value:"minNSNC",text:"Minimum # of Sensors and Computers",input:"singleNum",hints:""},
+                                // {value:"numSensorOfType",text:"# of a specific sensor",input:"NameAndNum",hints:""},
+                                // {value:"numComputerOfType",text:"# of a specific computer",input:"NameAndNum",hints:""},
 
+    define_filter_functions(){
 
-    minNSNC(args, inputs){
-        validInputCheck(args);
-        let arg = +args[0];
-        let NSIndex = this.input_list.indexOf("NS");
-        let NCIndex = this.input_list.indexOf("NC");
-        let ns = inputs[NSIndex];
-        let nc = inputs[NCIndex];
-        if(Math.min(ns,nc) === arg){
-            return true;
-        }else{
-            return false;
-        }    
-    }
+        let that = this;
 
-    numSensors(args, inputs){
-        validInputCheck(args);
-        let arg = +args[0];
-        let NSIndex = this.input_list.indexOf("NS");
-        let ns = inputs[NSIndex];
-        if(ns === arg){
-            return true;
-        }else{
-            return false;
-        }    
-    }
+        this.numSensorOfType = (args, inputs) => {
+            validInputCheck(args);
+            let sensorName = args[0];
+            let num = +args[1];
+            // Save the sensor input information, and make it a string
+            let sensorInputIndex = this.input_list.indexOf("sensors") + "";
+            let sensorInput = inputs[sensorInputIndex] + "";
 
-    numComputers(args, inputs){
-        validInputCheck(args);
-        let arg = +args[0];
-        let NCIndex = this.input_list.indexOf("NC");
-        let nc = inputs[NCIndex];
-        if(nc === arg){
-            return true;
-        }else{
-            return false;
-        }    
-    }
-
-    numLinks(args, inputs){
-        validInputCheck(args);
-        let arg = +args[0];
-        let nLinks = 0;
-        let Ibin_1_index = this.input_list.indexOf("Ibin_1");
-        let Ibin_9_index = this.input_list.indexOf("Ibin_9");
-
-        for(let i = Ibin_1_index; i < Ibin_9_index + 1; i++){
-            nLinks += inputs[i];
+            let cnt = 0;
+            for(let i = 0; i < sensorInput.length; i++){
+                if(sensorInput[i] === sensorName){
+                    cnt += 1;
+                }
+            }
+            return cnt === num; 
         }
 
-        if(nLinks === arg){
-            return true;
-        }else{
-            return false;
-        }  
-    }
+        this.numComputerOfType = (args, inputs) => {
+            validInputCheck(args);
+            let computerName = args[0];
+            let num = +args[1];
+            // Save the computer input information, and make it a string
+            let computerInputIndex = this.input_list.indexOf("computers") + "";
+            let computerInput = inputs[computerInputIndex] + "";
 
-    Inat_1(args, inputs){
-        validInputCheck(args);
-        let arg = +args[0];
-        let index = this.input_list.indexOf("Inat_1");
-        let n = inputs[index];
-        if(n === arg){
-            return true;
-        }else{
-            return false;
-        }    
-    }
+            let cnt = 0;
+            for(let i = 0; i < computerInput.length; i++){
+                if(computerInput[i] === computerName){
+                    cnt += 1;
+                }
+            }
 
-    Inat_2(args, inputs){
-        validInputCheck(args);
-        let arg = +args[0];
-        let index = this.input_list.indexOf("Inat_2");
-        let n = inputs[index];
-        if(n === arg){
-            return true;
-        }else{
-            return false;
-        }    
-    }
+            return cnt === num; 
+        }
 
-    Inat_3(args, inputs){
-        validInputCheck(args);
-        let arg = +args[0];
-        let index = this.input_list.indexOf("Inat_3");
-        let n = inputs[index];
-        if(n === arg){
-            return true;
-        }else{
-            return false;
-        }    
-    }
+        this.minNSNC = (args, inputs) => {
+            validInputCheck(args);
+            let arg = +args[0];
+            let NSIndex = this.input_list.indexOf("NS");
+            let NCIndex = this.input_list.indexOf("NC");
+            let ns = inputs[NSIndex];
+            let nc = inputs[NCIndex];
+            if(Math.min(ns,nc) === arg){
+                return true;
+            }else{
+                return false;
+            }    
+        }
 
+        this.numSensors = (args, inputs) => {
+            validInputCheck(args);
+            let arg = +args[0];
+            let NSIndex = this.input_list.indexOf("NS");
+            let ns = inputs[NSIndex];
+            if(ns === arg){
+                return true;
+            }else{
+                return false;
+            }    
+        }
+
+        this.numComputers = (args, inputs) => {
+            validInputCheck(args);
+            let arg = +args[0];
+            let NCIndex = this.input_list.indexOf("NC");
+            let nc = inputs[NCIndex];
+            if(nc === arg){
+                return true;
+            }else{
+                return false;
+            }    
+        }
+
+        this.numLinks = (args, inputs) => {
+            validInputCheck(args);
+            let arg = +args[0];
+            let nLinks = 0;
+            let Ibin_1_index = this.input_list.indexOf("Ibin_1");
+            let Ibin_9_index = this.input_list.indexOf("Ibin_9");
+
+            for(let i = Ibin_1_index; i < Ibin_9_index + 1; i++){
+                nLinks += inputs[i];
+            }
+
+            if(nLinks === arg){
+                return true;
+            }else{
+                return false;
+            }  
+        }
+
+        this.Inat_1 = (args, inputs) => {
+            validInputCheck(args);
+            let arg = +args[0];
+            let index = this.input_list.indexOf("Inat_1");
+            let n = inputs[index];
+            if(n === arg){
+                return true;
+            }else{
+                return false;
+            }    
+        }
+
+        this.Inat_2 = (args, inputs) => {
+            validInputCheck(args);
+            let arg = +args[0];
+            let index = this.input_list.indexOf("Inat_2");
+            let n = inputs[index];
+            if(n === arg){
+                return true;
+            }else{
+                return false;
+            }    
+        }
+
+        this.Inat_3 = (args, inputs) => {
+            validInputCheck(args);
+            let arg = +args[0];
+            let index = this.input_list.indexOf("Inat_3");
+            let n = inputs[index];
+            if(n === arg){
+                return true;
+            }else{
+                return false;
+            }    
+        }
+
+    }
 }
 
 
