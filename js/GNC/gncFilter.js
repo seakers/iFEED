@@ -37,6 +37,9 @@ class GNCFilter extends Filter{
                                 {value:"numSensors",text:"# of Sensors",input:"singleNum",hints:""},
                                 {value:"numComputers",text:"# of Computers",input:"singleNum",hints:""},
                                 {value:"numLinks",text:"# of Links",input:"singleNum",hints:""},
+                                {value:"Inat_1",text:"Inat_1",input:"singleNum",hints:""},
+                                {value:"Inat_2",text:"Inat_2",input:"singleNum",hints:""},
+                                {value:"Inat_3",text:"Inat_3",input:"singleNum",hints:""},
                                 {value:"minNSNC",text:"Minimum # of Sensors and Computers",input:"singleNum",hints:""},
                             ];  
 
@@ -68,6 +71,13 @@ class GNCFilter extends Filter{
                     return that.numLinks; 
                 case "minNSNC":
                     return that.minNSNC; 
+                case "Inat_1":
+                    return that.Inat_1; 
+                case "Inat_2":
+                    return that.Inat_2; 
+                case "Inat_3":
+                    return that.Inat_3; 
+
                 default:
                     return null;
             }
@@ -171,22 +181,18 @@ class GNCFilter extends Filter{
         // Example of an filter expression: {presetName[orbits;instruments;numbers]} 
         let option = dropdown;
 
-        if(option === "numSensors" || option === "numComputers" || option === "numLinks" || option === "minNSNC"){
+        if(dropdown==="paretoFront"){
+
+            let input = d3.selectAll('.filter.inputs.div').select('div').select('input').node().value
+            filter_expression = "paretoFront[" + input + "]";
+
+        }else{
 
             let arg = input_textbox[0];
             if(isNaN(arg)){ // If arg cannot be converted to a number
                 invalid_input = true;
             }
             filter_expression = option + "[" + arg + "]";
-        }
-        
-        else if(dropdown==="paretoFront"){
-
-            let input = d3.selectAll('.filter.inputs.div').select('div').select('input').node().value
-            filter_expression = "paretoFront[" + input + "]";
-
-        }else{// not selected
-            return "";
         }
         
         filter_expression = "{" + filter_expression + "}";
@@ -323,6 +329,43 @@ class GNCFilter extends Filter{
             return false;
         }  
     }
+
+    Inat_1(args, inputs){
+        validInputCheck(args);
+        let arg = +args[0];
+        let index = this.input_list.indexOf("Inat_1");
+        let n = inputs[index];
+        if(n === arg){
+            return true;
+        }else{
+            return false;
+        }    
+    }
+
+    Inat_2(args, inputs){
+        validInputCheck(args);
+        let arg = +args[0];
+        let index = this.input_list.indexOf("Inat_2");
+        let n = inputs[index];
+        if(n === arg){
+            return true;
+        }else{
+            return false;
+        }    
+    }
+
+    Inat_3(args, inputs){
+        validInputCheck(args);
+        let arg = +args[0];
+        let index = this.input_list.indexOf("Inat_3");
+        let n = inputs[index];
+        if(n === arg){
+            return true;
+        }else{
+            return false;
+        }    
+    }
+
 }
 
 

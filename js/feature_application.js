@@ -20,7 +20,7 @@ class FeatureApplication{
 
         this.tree = null;
         this.data = null; 
-        this.i=0;
+        this.i = 0;
 
         this.last_modified_tree_node = null;
 
@@ -59,11 +59,13 @@ class FeatureApplication{
         });   
 
         PubSub.subscribe(UPDATE_FEATURE_APPLICATION, (msg, data) => {
-            this.update_feature_application(data.option,data.expression);
+            this.update_feature_application(data.option, data.expression);
         });       
    
         // Remove all features
-        d3.select('#clear_all_features').on('click', (d) => { this.clear_feature_application(); }); 
+        d3.select('#clear_all_features').on('click', (d) => { 
+            this.clear_feature_application(); 
+        }); 
 
         d3.select('#conjunctive_local_search').on('click', (d) => {
             this.data_mining.run();
@@ -76,19 +78,17 @@ class FeatureApplication{
 		PubSub.publish(FEATURE_APPLICATION_LOADED, this);
     }
     
-
-    
     draw_feature_application_tree(expression){
 
-        var margin = this.margin;
-        var width = this.width;
-        var height = this.height;
+        let margin = this.margin;
+        let width = this.width;
+        let height = this.height;
         
         this.tree = d3.tree().size([height, width]);
 
         d3.select('#feature_application_panel').select('#feature_application').select('svg').remove();
 
-        var svg = d3.select('#feature_application_panel').select('#feature_application')
+        let svg = d3.select('#feature_application_panel').select('#feature_application')
                     .append('svg')
                     .attr('width',width + margin.left + margin.right)
                     .attr('height',height + margin.bottom + margin.top)
@@ -96,11 +96,8 @@ class FeatureApplication{
                     .attr('transform','translate('+ margin.left + "," + margin.top + ")");
 
         this.i = 0;
-        
-        this.data = this.construct_tree(expression);         
-                
-        let that = this;
-        
+        this.data = this.construct_tree(expression);  
+                                
         this.visit_nodes(this.data, (d) => {
             d.temp = true;
             d.id = this.i++;
@@ -119,11 +116,11 @@ class FeatureApplication{
             PubSub.publish(APPLY_FEATURE_EXPRESSION, null);
             return;
         }    
-        
+
         this.check_tree_structure();
                 
+        // Apply the feature expression
         PubSub.publish(APPLY_FEATURE_EXPRESSION, this.parse_tree(this.data));
-
         
         let duration = d3.event && d3.event.altKey ? 5000 : 500;
         let margin = this.margin;
@@ -349,10 +346,11 @@ class FeatureApplication{
 
         this.dragStarted = true;    
         this.draggingNode = d;
+
         let id = d.id;
 
         // Remove the link to the parent node
-        d3.selectAll('.treeLink').filter(function(d){
+        d3.selectAll('.treeLink').filter((d) => {
             if(d.id === id){
                 return true;
             }else{
@@ -360,7 +358,7 @@ class FeatureApplication{
             }        
         }).remove();
 
-        d3.selectAll('.nodeRange').filter(function(d){
+        d3.selectAll('.nodeRange').filter((d) => {
             if(d.type === 'leaf'){
                 return false;
             }else{
@@ -381,14 +379,13 @@ class FeatureApplication{
 
     drag(d){
         if(this.dragStarted){    
+
 	        let mouse_pos = d3.mouse(d3.select("#feature_application_panel").select('svg').select('g').node());
 	        let mouseX = mouse_pos[0]; 
 	        let mouseY = mouse_pos[1];        
 
-            var node = this.select_treeNode_by_id(d.id);
-            node.attr("transform","translate("+ mouseX + "," + mouseY + ")");
-
-            this.updateTempConnector(node, mouseX, mouseY);            
+            this.select_treeNode_by_id(d.id).attr("transform","translate("+ mouseX + "," + mouseY + ")");
+            this.updateTempConnector(d.id, mouseX, mouseY);            
         }
 
     }
@@ -408,8 +405,11 @@ class FeatureApplication{
 
             if(this.selectedNode){
 
+                // console.log(this.draggingNode);
+                // console.log(this.selectedNode);
+
                 // Remove the element from the parent, and insert it into the new elements children
-                var index = this.draggingNode.parent.children.indexOf(this.draggingNode);
+                let index = this.draggingNode.parent.children.indexOf(this.draggingNode);
                 if (index > -1) {
                     this.draggingNode.parent.children.splice(index, 1);
                 }
@@ -425,7 +425,7 @@ class FeatureApplication{
 
             this.update();
             
-            //PubSub.publish(ADD_FEATURE, this.parse_tree(this.data));
+            PubSub.publish(ADD_FEATURE, this.parse_tree(this.data));
             //this.update_feature_expression(this.parse_tree(this.data));            
             //ifeed.data_mining.draw_venn_diagram();  
 
@@ -448,8 +448,8 @@ class FeatureApplication{
                 return;
             }else if(!node.children && node.type=='logic'){
 
-                if(node.depth==0){ // The root node is a logical connective but has no children
-                    self.root=null;
+                if(node.depth === 0){ // The root node is a logical connective but has no children
+                    this.data = null;
                     d3.selectAll('.treeNode').remove();
                 }else{
                     let index = node.parent.children.indexOf(node);
@@ -554,7 +554,7 @@ class FeatureApplication{
         return recursive(source, func, reverse);
     }
     
-    update_feature_application(option,expression){
+    update_feature_application(option, expression){
         
         var get_node_to_add_features = function(d){
             // Find the node to which to add new features
@@ -590,7 +590,7 @@ class FeatureApplication{
                     this.stashed_node_ids = this.get_node_ids(this.data,[]);
 
                     // Construct a subtree and append it as a child to the parent node
-                    let subtree = this.construct_tree(expression,parentNode.depth+1);
+                    let subtree = this.construct_tree(expression, parentNode.depth+1);
                     
                     if(!direct_update){
                         this.visit_nodes(subtree,function(d){
@@ -604,7 +604,7 @@ class FeatureApplication{
                     subtree.parent = parentNode;
                     
                     this.update();  
-                }else{    
+                }else{ 
                     // No parentNode
 
                     // Stash the current root 
@@ -628,7 +628,7 @@ class FeatureApplication{
                 this.stashed_node_ids = null;
                 this.stashed_root = null;    
                 
-                //PubSub.publish(ADD_FEATURE, self.parse_tree(self.root));
+                PubSub.publish(ADD_FEATURE, this.parse_tree(this.data));
                 //PubSub.publish(CANCEL_ADD_FEATURE, null);
             }
             
@@ -695,12 +695,12 @@ class FeatureApplication{
 
             this.stashed_node_ids = null;
             this.stashed_root = null;
-            this.visit_nodes(this.data,function(d){
-                d.temp=false;
+            this.visit_nodes(this.data, (d) => {
+                d.temp = false;
             })
             
-//            PubSub.publish(ADD_FEATURE, self.parse_tree(self.root));
-//            PubSub.publish(CANCEL_ADD_FEATURE, null);
+            PubSub.publish(ADD_FEATURE, this.parse_tree(this.data));
+            //PubSub.publish(CANCEL_ADD_FEATURE, null);
         }
         
 
@@ -782,26 +782,27 @@ class FeatureApplication{
 
     construct_tree(expression, depth){
 
-        if(depth==null){
+        if(!depth){
            depth = 0;
         }
 
-        if(expression==null){
+        if(expression === null){
             return {};
         }
 
-        var d=depth;
-        var e=expression;
-        var _e = null;
+        let d = depth;
+        let e = expression;
+        let _e = null;
 
         // Remove outer parenthesis
-        var parentheses_removed = remove_outer_parentheses(e,d);
+        let parentheses_removed = remove_outer_parentheses(e,d);
+
         e = parentheses_removed.expression;
         d = +parentheses_removed.level;
 
-        if(get_nested_parenthesis_depth(e)==0){ // Given expression does not have a nested structure
+        if(get_nested_parenthesis_depth(e) === 0){ // Given expression does not have a nested structure
 
-            if(e.indexOf("&&") == -1 && e.indexOf("||") == -1){
+            if(e.indexOf("&&") === -1 && e.indexOf("||") === -1){
                 // There is no logical connective: return single feature (leaf node)
                 return {depth:d,type:"leaf",name:e,children:null};
             }else{
@@ -814,20 +815,20 @@ class FeatureApplication{
             _e = collapse_paren_into_symbol(e);
         }    
 
-        var first = true;
-        var logic = null;
-        var thisNode = null;
+        let first = true;
+        let logic = null;
+        let thisNode = null;
 
         while(true){
 
-            var temp=null;
-            var _temp=null;
+            let temp=null;
+            let _temp=null;
 
             if(first){
 
                 // The first filter in a series to be applied
                 first = false;
-                var name = null;
+                let name = null;
 
                 if (_e.indexOf("&&") != -1){
                     logic = "&&";
@@ -845,7 +846,7 @@ class FeatureApplication{
 
             if(_e.indexOf(logic)==-1){
                 // Last element in the list
-                var child = this.construct_tree(e,d+1);
+                let child = this.construct_tree(e, d+1);
                 thisNode.children.push(child);
                 child.parent = thisNode;
                 break;
@@ -857,7 +858,7 @@ class FeatureApplication{
                 temp = e.substring(0,_temp.length);
 
                 // Add the child to the current node
-                var child = this.construct_tree(temp,d+1);
+                let child = this.construct_tree(temp,d+1);
                 thisNode.children.push(child);
                 child.parent = thisNode;
 
@@ -881,9 +882,9 @@ class FeatureApplication{
             }else{
                 if(node.children){
 
-                    var children = node.children;
-                    var activated = false;
-                    for(var i=0;i<children.length;i++){
+                    let children = node.children;
+                    let activated = false;
+                    for(let i = 0; i < children.length; i++){
                         if(!children[i].deactivated){
                             activated=true;
                         }
@@ -899,7 +900,7 @@ class FeatureApplication{
             return false;
         }
 
-        var expression = null;
+        let expression = null;
 
         if(!root){
             // If the current node is null, return null    
@@ -951,10 +952,10 @@ class FeatureApplication{
             // Current node is a logical node and is not deactivated
             expression = "";
 
-            for(var i=0;i<root.children.length;i++){
+            for(let i = 0; i < root.children.length; i++){
 
-                var child = root.children[i];
-                var logic = null;
+                let child = root.children[i];
+                let logic = null;
 
                 if(root.name=="AND"){
                     logic="&&";
@@ -962,9 +963,9 @@ class FeatureApplication{
                     logic="||";
                 }
 
-                var new_expression = this.parse_tree(child,placeholderNode);
+                let new_expression = this.parse_tree(child,placeholderNode);
 
-                if(expression!="" && new_expression!=""){
+                if(expression != "" && new_expression != ""){
                     expression = expression + logic;
                 }
                 expression = expression + new_expression;    
@@ -978,16 +979,23 @@ class FeatureApplication{
         return expression;
     }    
   
-    updateTempConnector(node, xCoord, yCoord){
+    updateTempConnector(nodeID, xCoord, yCoord){
 
     	let that = this;
         let data = [];
 
-        if (this.draggingNode !== null && this.selectedNode !== null) {
-        	node = node.node().__data__;
+        let node = null;
+
+            // this.select_treeNode_by_id(d.id).attr("transform","translate("+ mouseX + "," + mouseY + ")");
+            // node = select_dataNode_by_id(d.id);        
+
+        if (this.draggingNode != null && this.selectedNode != null) {
+
+        	node = this.select_treeNode_by_id(nodeID).node().__data__;
         	node.x = yCoord;
         	node.y = xCoord;
             data = [node];
+
         }
 
         let link = d3.select('#feature_application_panel')
@@ -999,7 +1007,7 @@ class FeatureApplication{
         	.append("path")
             .attr("class", "tempTreeLink")
             .attr("d", function(d) {
-        		return that.diagonal(d,d.parent);
+        		return that.diagonal(d,that.selectedNode);
             })
             .attr('pointer-events', 'none')
             .style('fill','none')
@@ -1014,12 +1022,12 @@ class FeatureApplication{
 	    let logic_color = "#FF9500";
 	    let bracket_color = "#FF0000";
 
-		if(expression==null){
-	       expression=="";
+		if(expression === null){
+	       expression = "";
 
       	}else if(expression != ""){
 
-       		expression = ifeed.label.pp_feature(expression);
+       		expression = this.label.pp_feature(expression);
 	        expression = expression.replace(/{/g,'');
 	        expression = expression.replace(/}/g,'');
 
@@ -1028,6 +1036,7 @@ class FeatureApplication{
 	        expression = expression.replace(/&&/g,' <span style="color:'+logic_color+';">AND</span> ');
 	        expression = expression.replace(/\|\|/g,' <span style="color:'+logic_color+';">OR</span> ');
 	    }
+
    		d3.select('#feature_expression').html("<p>"+expression+"</p>");
 	}
     
@@ -1037,7 +1046,7 @@ class FeatureApplication{
         this.update();
         this.update_feature_expression(null);
         
-        //PubSub.publish(ADD_FEATURE, null);
+        PubSub.publish(ADD_FEATURE, null);
         //ifeed.data_mining.draw_venn_diagram(); 
     }
     
@@ -1047,6 +1056,16 @@ class FeatureApplication{
                   ${(s.y + d.y) / 2} ${d.x},
                   ${d.y} ${d.x}`;
         return path;
+    }
+
+    select_dataNode_by_id(id){
+        return this.visit_nodes(this.data, (d) => {
+            if(d.id === id){
+                return d;
+            }else{
+                return null;
+            }
+        });
     }
     
     select_treeNode_by_id(id){

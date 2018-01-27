@@ -369,8 +369,8 @@ class ContextMenu {
                 break;
         }    
         
-        var root = this.feature_application.data;
-        var exp = this.feature_application.parse_tree(root);
+        let root = this.feature_application.data;
+        let exp = this.feature_application.parse_tree(root);
 
         this.feature_application.update(root);
         

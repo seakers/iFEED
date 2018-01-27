@@ -15,7 +15,7 @@ class GNC extends Problem{
             output_num: 5,
             output_obj: [-1, 1, 1, -1, 1], // 1 for lager-is-better, -1 for smaller-is-better
             //file_path: "gnc_scenario3_column_reduced.csv"
-            file_path: "gnc_scenario3_column_reduced.csv"
+            file_path: "gnc_scenario3_reduced.csv"
         };
 
         PubSub.subscribe(LABELING_SCHEME_LOADED, (msg, data) => {

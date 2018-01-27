@@ -20,14 +20,17 @@ const RUN_LOCAL_SEARCH = "run_local_search";
 const LABELING_SCHEME_LOADED = "labeling_scheme_loaded";
 // Feature application loaded (pub: feature_application.js, sub: data_mining.js)
 const FEATURE_APPLICATION_LOADED = "feature_application_loaded";
-
-
-
-
-const INITIALIZE_FEATURE_APPLICATION = "initialize_feature_application";
-const DRAW_VENN_DIAGRAM = "draw_venn_diagram";
-const ADD_FEATURE = "add_feature";
+// Update feature application (pub: filter.js, sub: feature_application.js)
 const UPDATE_FEATURE_APPLICATION = "update_feature_application";
+// Add feature to the feature space plot (pub: feature_application.js, sub: data_mining.js)
+const ADD_FEATURE = "add_feature";
+// Initialize feature application (pub: data_mining.js, sub: feature_application.js)
+const INITIALIZE_FEATURE_APPLICATION = "initialize_feature_application";
+
+
+
+
+const DRAW_VENN_DIAGRAM = "draw_venn_diagram";
 const CANCEL_ADD_FEATURE = "cancel_add_feature";
 const ADD_ARCHITECTURE = "add_architecture";
 const SET_CURRENT_ARCHITECTURE = "set_current_architecutre";

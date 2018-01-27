@@ -118,16 +118,14 @@ class Filter{
 
         let expression = this.generate_filter_expression_from_input_field();
 
-        this.apply_filter_expression(expression);
+        //this.apply_filter_expression(expression);
 
-        // if(filter_expression.indexOf('paretoFront') != -1){
-        //     this.apply_filter_expression(filter_expression);
+        if(expression.indexOf('paretoFront') != -1){
+            this.apply_filter_expression(expression);
 
-        // }else{
-        //     PubSub.publish(UPDATE_FEATURE_APPLICATION, {"option":"direct-update","expression":filter_expression});
-        //     //ifeed.feature_application.update_feature_application('direct-update',filter_expression);
-        //     //self.apply_filter_expression(filter_expression);
-        // }
+        }else{
+            PubSub.publish(UPDATE_FEATURE_APPLICATION, {"option": "direct-update", "expression": expression});
+        }
 
         // document.getElementById('tab2').click();
         // return true;

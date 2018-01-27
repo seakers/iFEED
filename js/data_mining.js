@@ -25,6 +25,7 @@ class DataMining{
         this.mined_features_id = [];
         this.user_added_features_id = [];   
         this.recent_features_id = [];    
+
         this.current_feature = null;
         this.current_feature_blink_interval=null;
         this.utopia_point = {id:0,name:'utopiaPoint',expression:null,metrics:null,x0:-1,y0:-1,x:-1,y:-1};
@@ -47,9 +48,9 @@ class DataMining{
 
 
 
-        // PubSub.subscribe(ADD_FEATURE, (msg, data) => {
-        //     self.add_feature_to_plot(data);
-        // });  
+        PubSub.subscribe(ADD_FEATURE, (msg, data) => {
+            this.add_feature_to_plot(data);
+        });  
         
         // PubSub.subscribe(DRAW_VENN_DIAGRAM, (msg, data) => {
         //     self.draw_venn_diagram();
@@ -109,11 +110,9 @@ class DataMining{
         this.current_feature = null;
         this.current_feature_blink_interval=null;
         
-        //PubSub.publish(INITIALIZE_FEATURE_APPLICATION, null);
-        
+        PubSub.publish(INITIALIZE_FEATURE_APPLICATION, null);
         this.featureID = 1;
     }
-    
     
     async run(option){
         
@@ -409,13 +408,12 @@ class DataMining{
         
         function get_utopia_point(){
             // Utopia point
-            return d3.selectAll('.dot.feature_plot').filter(function(d){
-                if(d.id===that.utopia_point.id) return true;
+            return d3.selectAll('.dot.feature_plot').filter((d) => {
+                if(d.id === that.utopia_point.id) return true;
                 return false;
             });
         }
 
-        
         function get_current_feature(){
             var id;
             if(that.current_feature){
@@ -427,7 +425,6 @@ class DataMining{
                 return false;
             });
         }
-
 
         // Set variables
         let margin = this.margin;
@@ -459,11 +456,13 @@ class DataMining{
             d3.selectAll('.dot.feature_plot').style('opacity',1);
         }
         
+        // Add new features
         if(newly_added_features){
             this.all_features = this.all_features.concat(newly_added_features);
         }
         
-        for (var i=0;i<this.all_features.length;i++){
+        // Get the maximum values
+        for (let i = 0; i < this.all_features.length; i++){
             
             supps.push(this.all_features[i].metrics[0]);
             lifts.push(this.all_features[i].metrics[1]);
@@ -482,14 +481,15 @@ class DataMining{
         var max_conf = Math.max(max_conf1, max_conf2);
 
         // Adjust the location of the utopia point
-        this.utopia_point.metrics=[Math.max.apply(null, lifts),Math.max.apply(null, supps),max_conf,max_conf];
+        this.utopia_point.metrics = [Math.max.apply(null, lifts), Math.max.apply(null, supps), max_conf, max_conf];
 
         // Insert the utopia point to the list of features
         this.all_features.splice(0, 0, this.utopia_point);
+
         // Add score for the utopia point (0.2 more than the best score found so far)
-        scores.splice(0,0,Math.max.apply(null,scores)+0.2); 
+        scores.splice(0,0,Math.max.apply(null,scores) + 0.2); 
         
-        if(this.current_feature){
+        if(this.current_feature){ // If the current feature is defined
             // Add the current feature
             this.all_features.push(this.current_feature);
         }
@@ -516,7 +516,6 @@ class DataMining{
             return xScale(xValue(d));
         }; 
         let xAxis = d3.axisBottom(xScale);
-
 
         // setup y
         // data -> value
@@ -553,7 +552,8 @@ class DataMining{
         // Setup zoom
         this.zoom = d3.zoom()
             .scaleExtent([0.2, 25])
-            .on("zoom", d => {
+            .on("zoom", (d) => {
+
                 this.transform = d3.event.transform;
                 gX.call(xAxis.scale(this.transform.rescaleX(xScale)));
                 gY.call(yAxis.scale(this.transform.rescaleY(yScale)));
@@ -565,9 +565,9 @@ class DataMining{
                         return "translate(" + xCoord + "," + yCoord + ")";
                     });    
             });
+
         d3.select('.feature_plot.figure').call(this.zoom);
        
-
         let svg = d3.select('.feature_plot.figure').select('g')
         // x-axis
         gX = svg.append("g")
@@ -617,15 +617,16 @@ class DataMining{
                 })
                 .style("stroke-width",1);
 
+        // Get all the features that are not newly added
         d3.selectAll('.dot.feature_plot').filter(function(d){
-            if(that.recent_features_id.indexOf(d.id)==-1){
+            if(that.recent_features_id.indexOf(d.id) === -1){
                 return true;
             }
             return false;
         })
         .attr("d", d3.symbol().type((d) => {return d3.symbolTriangle;}).size(120));
         
-        // Modify the shape of all features that were added recently
+        // Modify the shape of all features that were added recently, to crosses
         d3.selectAll('.dot.feature_plot').filter(function(d){
             if(that.recent_features_id.indexOf(d.id)!=-1){
                 return true;
@@ -636,7 +637,6 @@ class DataMining{
         
         // Utopia point: modify the shape to a star
         get_utopia_point().attr('d',d3.symbol().type(d3.symbolStar).size(120));        
-        
 
         // The current feature: modify the shape to a cross
         var _current_feature = get_current_feature().attr('d',d3.symbol().type(d3.symbolCross).size(120));
@@ -702,7 +702,7 @@ class DataMining{
 
     feature_mouseover(d){
 
-        let id= d.id; 
+        let id = d.id; 
         let expression = d.expression;
         let metrics = d.metrics;
         let conf = d.metrics[2];
@@ -798,14 +798,14 @@ class DataMining{
         
         let that = this;
                 
-        function find_equivalent_feature(metrics,indices){
+        function find_equivalent_feature(metrics, indices){
 
             for(let i = 0; i < that.all_features.length; i++){
                 let _metrics = that.all_features[i].metrics;
                 let match = true;
-                for(var j=0;j<indices.length;j++){
-                    var index = indices[j];
-                    if(round_num(metrics[index])!=round_num(_metrics[index])){
+                for(let j = 0; j < indices.length; j++){
+                    let index = indices[j];
+                    if(round_num(metrics[index]) != round_num(_metrics[index])){
                         match=false;
                     }
                 }
@@ -817,7 +817,7 @@ class DataMining{
         }
         
         
-        if(!expression || expression==""){
+        if(!expression || expression === ""){
 
             this.current_feature=null;
             // Assign new indices for the added features
@@ -828,46 +828,62 @@ class DataMining{
             //this.filter.apply_filter_expression(expression);
 
             // Compute the metrics of a feature
-            var total = ifeed.tradespace_plot.get_num_of_archs();
-            var intersection = d3.selectAll('.dot.tradespace_plot.selected.highlighted:not(.cursor)')[0].length;
-            var selected = d3.selectAll('.dot.tradespace_plot.selected:not(.cursor)')[0].length;
-            var highlighted = d3.selectAll('.dot.tradespace_plot.highlighted:not(.cursor)')[0].length;
+            let total = this.data.length;
+            let highlighted = 0;
+            let selected = 0;
+            let intersection = 0;
 
-            var p_snf = intersection/total;
-            var p_s = selected/total;
-            var p_f = highlighted/total;
+            this.data.forEach(point => {
 
-            var supp = p_snf;
-            var conf = supp / p_f;
-            var conf2 = supp / p_s;
-            var lift = p_snf/(p_f*p_s); 
-            var metrics = [supp, lift, conf, conf2];
+                if (point.highlighted && !point.hidden){
+                    highlighted += 1;
+                    if (point.selected){
+                        intersection += 1;
+                    }                    
+                }
+                
+                if (point.selected && !point.hidden){
+                    selected += 1;
+                }
+
+            });    
+
+            let p_snf = intersection / total;
+            let p_s = selected / total;
+            let p_f = highlighted / total;
+
+            let supp = p_snf;
+            let conf = supp / p_f;
+            let conf2 = supp / p_s;
+            let lift = p_snf / (p_f * p_s); 
+            let metrics = [supp, lift, conf, conf2];
 
             // Stash the previous location
-            var x,y;
+            let x,y;
             if(this.current_feature){
                 x = this.current_feature.x;
                 y = this.current_feature.y;
             }else{
-                x=-1,y=-1;
+                x = -1;
+                y = -1;
             }
 
             // Define new feature
             this.current_feature = {id:-1,name:expression,expression:expression,metrics:metrics,x0:x,x:x,y0:y,y:y};
 
             // Check if there exists a feature whose metrics match with the current feature's metrics
-            var matched = find_equivalent_feature(metrics,[2,3]);       
+            let matched = find_equivalent_feature(metrics,[2,3]);       
 
             if(!matched){                
-                var new_feature =  JSON.parse(JSON.stringify(this.current_feature));
-                new_feature.id = featureID++;
+                let new_feature =  JSON.parse(JSON.stringify(this.current_feature));
+                new_feature.id = this.featureID++;
                 // Add new feature to the list of features
                 this.user_added_features_id.push(new_feature.id);
                 this.all_features.push(new_feature);
             }
             
             // Stash the previous locations of all features
-            for(var i=0;i<self.all_features.length;i++){
+            for(var i=0;i<this.all_features.length;i++){
                 this.all_features[i].x0 = this.all_features[i].x;
                 this.all_features[i].y0 = this.all_features[i].y;
             }
@@ -884,11 +900,11 @@ class DataMining{
     
     check_if_non_dominated(test_feature, all_features){  
         
-        var non_dominated = true;
+        let non_dominated = true;
         
-        for (var j=0;j<all_features.length;j++){
+        for (let j = 0; j < all_features.length; j++){
             
-            var this_feature = all_features[j];
+            let this_feature = all_features[j];
             
             if(this_feature === test_feature) continue;
             
@@ -899,10 +915,7 @@ class DataMining{
         
         return non_dominated;
     }
-
-        
-    
-    
+            
     draw_venn_diagram(){
 
         var venn_diagram_container = d3.select('.feature_plot .venn_diagram').select('div');
@@ -1014,7 +1027,6 @@ class DataMining{
 
         }
 
-
         svg.append("text")
             .attr("id","venn_diag_int_text")
             .attr("x",left_margin-10)
@@ -1023,7 +1035,6 @@ class DataMining{
             .attr("font-size","18px")
             .attr("fill","black")
             .text("Intersection: " + Math.round(supp * total));
-
 
         svg.append("text")
             .attr("id","venn_diag_c2_text")

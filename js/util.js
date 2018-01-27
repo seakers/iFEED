@@ -4,8 +4,7 @@
 function remove_outer_parentheses(expression, outer_level){
 	
     var new_expression = expression;
-    var out = {expression:new_expression,level:outer_level};
-    
+    var out = {expression:new_expression, level:outer_level};
     
     if(expression===null){
        return '';
@@ -46,21 +45,20 @@ function remove_outer_parentheses(expression, outer_level){
 
 
 function get_nested_parenthesis_depth(expression){
-	var leng = expression.length;
-	var level = 0;
-	var maxLevel = 0;
-	for(var i=0;i<leng;i++){
-		if(expression[i]==="("){
+	let leng = expression.length;
+	let level = 0;
+	let maxLevel = 0;
+	for(let i = 0; i < leng; i++){
+		if(expression[i] === "("){
 			level++;
-			if(level>maxLevel) maxLevel=level;
+			if(level > maxLevel) maxLevel = level;
 		}
-		else if(expression[i]===")"){
+		else if(expression[i] === ")"){
 			level--;
 		}
 	}
 	return maxLevel;
 }
-
 
 
 function collapse_paren_into_symbol(expression){
