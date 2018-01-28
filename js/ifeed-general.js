@@ -84,6 +84,7 @@ class IFEED{
         }); 
 
         PubSub.subscribe(LOAD_DATA, (msg, data) => {
+            
             this.import_new_data(data);
         }); 
     }
@@ -122,8 +123,9 @@ class IFEED{
             data: this.metadata,
             async: false,
             success: function (data, textStatus, jqXHR){
+
                 that.data = data;
-                //that.calculate_pareto_ranking();
+                
                 PubSub.publish(DATA_IMPORTED,data);
             },
             error: function (jqXHR, textStatus, errorThrown){
@@ -133,54 +135,5 @@ class IFEED{
         
         console.log("Data imported!");
     }
-    
-    
 
-    calculate_pareto_ranking(limit){  
-        
-        var rank=0;
-        
-        if(!limit){
-            limit=15;
-        }
-        
-        var archs = this.data;
-        var remaining = [];
-        
-        while(archs.length > 0){
-            
-            remaining=[];
-
-            var n = archs.length;
-            
-            if (rank>limit){
-                break;
-            }
-
-            for (var i=0; i < n ; i++){
-                var non_dominated = true;
-                var this_arch = archs[i];
-                
-                for (var j=0;j<n;j++){
-                    
-                    if (i==j){
-                        continue;
-                    
-                    }else if(dominates(archs[j].outputs, this_arch.outputs, this.metadata.output_obj)){
-                        non_dominated = false;
-                    }
-                }
-                if (non_dominated == true){
-                    archs[i].pareto_ranking = rank;
-                }else{
-                    remaining.push(archs[i]);
-                }
-            }
-
-            rank++;
-            archs = remaining;
-        }
-    }
-    
-    
 }

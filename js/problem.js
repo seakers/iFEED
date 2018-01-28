@@ -3,9 +3,16 @@ class Problem{
 
     constructor(){
 
+        this.data = null;
+
         PubSub.subscribe(DATA_IMPORTED, (msg, data) => {
-            let preprocessed = this.preprocessing(data);
-            PubSub.publish(DATA_PROCESSED,preprocessed);
+
+            this.data = this.preprocessing(data);
+
+            this.calculate_pareto_ranking([0,4], 15);
+
+            PubSub.publish(DATA_PROCESSED,this.data);
+
         });     
 
         PubSub.subscribe(INSPECT_ARCH, (msg, data) => {
@@ -54,8 +61,87 @@ class Problem{
         else return out[0];
     }
 
-
     display_arch_info(data) {  
         // To be implemented
-    }     
+    }    
+
+    calculate_pareto_ranking(objective_indices, limit){  
+
+        console.log("Calculating pareto ranking...");
+
+        if(!objective_indices || objective_indices.length === 0){
+            objective_indices = [];
+            for(let i = 0; i < this.metadata.output_list.length; i++){
+                objective_indices.push(i);
+            }
+        }
+
+        let output_obj = JSON.parse(JSON.stringify(this.metadata.output_obj));
+
+        let reduced = false;
+        if(objective_indices.length < this.metadata.output_list.length){
+            reduced = true;
+            output_obj = output_obj.multisplice(objective_indices);
+        }
+
+        let archs = this.data;
+        let archOutputs = [];
+
+        for(let i = 0; i < this.data.length; i++){
+            let outputs = JSON.parse(JSON.stringify(archs[i].outputs));
+            if(reduced){
+                outputs = outputs.multisplice(objective_indices);
+            }
+            archOutputs.push(outputs);
+        }
+
+        let rank = 0;
+        
+        if(!limit){
+            limit = 15;
+        }
+        
+        let remaining_outputs = [];
+        let remaining = [];
+        
+        while(archs.length > 0){
+            
+            remaining_outputs = [];
+            remaining = [];
+
+            let n = archs.length;
+            
+            if (rank > limit){
+                break;
+            }
+
+            for (let i = 0; i < n; i++){ 
+                // Check dominance for each architecture
+                let non_dominated = true;
+                let this_arch_output = archOutputs[i];
+
+                for (let j = 0; j < n; j++){
+                    let arch_to_compare_output = archOutputs[j];
+                    if (i === j){
+                        continue;
+                    }else if(dominates(arch_to_compare_output, this_arch_output, output_obj)){
+                        non_dominated = false;
+                    }
+                }
+
+                if (non_dominated){
+                    archs[i].pareto_ranking = rank;
+                }else{
+                    remaining_outputs.push(archOutputs[i]);
+                    remaining.push(archs[i]);
+                    //archs[i].pareto_ranking = -1;
+                }
+            }
+
+            rank++;
+            archs = remaining;
+            archOutputs = remaining_outputs;
+        }
+    }       
+
 }

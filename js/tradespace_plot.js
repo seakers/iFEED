@@ -36,6 +36,7 @@ class TradespacePlot{
         this.lastHoveredArch = null;
 
         this.selection_updated = false;
+        this.selection_mode = "zoom-pan";
 
         PubSub.subscribe(DESIGN_PROBLEM_LOADED, (msg, data) => {
             this.metadata = data.metadata;
@@ -164,6 +165,8 @@ class TradespacePlot{
                         let x_axis_name = d3.select('#x-axis-select').node().value;
                         let y_axis_name = d3.select('#y-axis-select').node().value;
                         this.update(this.output_list.indexOf(x_axis_name), this.output_list.indexOf(y_axis_name));
+
+                        this.change_interaction_mode();
                     });   
             }
         }
@@ -333,7 +336,9 @@ class TradespacePlot{
                 if (clickedElement.select("input").node()){
                     that.toggle_selection_mode(clickedElement.select("input").attr("id")); 
                 }
-            });         
+            });   
+
+
     }
 
     setPointColor(point){
@@ -520,7 +525,6 @@ class TradespacePlot{
         }
     }
 
-
     toggle_selection_mode(mode){
                 
         // if(this==self){
@@ -601,6 +605,12 @@ class TradespacePlot{
     
 
     change_interaction_mode(option) { // three options: zoom-pan, drag-select, de-select
+
+        if(option){
+            this.selection_mode = option;
+        }else{
+            option = this.selection_mode;
+        }
 
         let margin = this.tradespace_plot_params.margin;
         let width  = this.tradespace_plot_params.width;
@@ -754,7 +764,7 @@ class TradespacePlot{
 
                 if (that.selection_updated){
                     // Get the selected archs
-                    let selected_archs = that.get_selected_architectures(that.data);
+                    let selected_archs = that.get_selected_architectures();
 
                     PubSub.publish(SELECTION_UPDATED, selected_archs);
                     // Reset the variable
@@ -836,8 +846,33 @@ class TradespacePlot{
     // }
 
 
+    toggle_selection_and_highlight(){
 
+        this.data.forEach( (point) => {
 
+            if(point.highlighted && point.selected){
+                // do nithing
+            }
+            else if(point.highlighted){ // highlighted but not selected
+                point.highlighted = false;
+                point.selected = true;
+            }
+            else if(point.selected){ // selected but not highlighted
+                point.highlighted = true;
+                point.selected = false;
+            }
+
+            this.setPointColor(point);
+        }); 
+        this.drawPoints(this.context, false);
+
+        this.num_selected_points = this.get_selected_architectures().length;
+        this.num_highlighted_points = this.get_highlighted_architectures().length;
+
+        d3.select("#num_of_selected_archs").text(""+this.num_selected_points);
+
+        PubSub.publish(SELECTION_UPDATED, this.get_selected_architectures());
+    }
 
     activate_support_panel(){
         d3.select(".tradespace_plot.figure")

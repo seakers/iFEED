@@ -132,13 +132,17 @@ class GNCLabel extends Label{
             exp = exp.substring(1,exp.length-1);
         }
 
-        let featureName = exp.split("[")[0];
-        let featureArg = exp.split("[")[1];
-        featureArg = featureArg.substring(0, featureArg.length - 1);        
+        let featureName = exp.split("[")[0];     
 
         if(featureName==="paretoFront" || featureName==='FeatureToBeAdded' || featureName==='AND' || featureName==='OR'){
             return exp;
-        }else if(featureName === "numSensorOfType" || featureName === "numComputerOfType"){
+
+        }
+
+        let featureArg = exp.split("[")[1];
+        featureArg = featureArg.substring(0, featureArg.length - 1);   
+
+        if(featureName === "numSensorOfType" || featureName === "numComputerOfType"){
 
             let name = featureArg.split(";")[0];
             let number = featureArg.split(";")[1];

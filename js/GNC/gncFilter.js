@@ -33,7 +33,7 @@ class GNCFilter extends Filter{
 
         let presetFeaturesInfo = [
                                 {value:"not_selected",text:"Preset Filters"},
-                                //{value:"paretoFront",text:"Pareto front"},
+                                {value:"paretoFront",text:"Pareto front"},
                                 {value:"numSensors",text:"# of sensors",input:"singleNum",hints:""},
                                 {value:"numComputers",text:"# of computers",input:"singleNum",hints:""},
                                 {value:"numLinks",text:"# of links",input:"singleNum",hints:""},
@@ -45,7 +45,7 @@ class GNCFilter extends Filter{
                                 {value:"numComputerOfType",text:"# of a specific computer",input:"NameAndNum",hints:""},
                             ];  
 
-        for (let i in presetFeaturesInfo){
+        for (let i = 0; i < presetFeaturesInfo.length; i++){
             let f = presetFeaturesInfo[i];
             let thisFeature = new FeatureType(f.text, f.value, f.input, f.hints);
             presetFeatures.push(thisFeature);
@@ -92,7 +92,10 @@ class GNCFilter extends Filter{
             }
         }
 
-        for (let i in this.presetFeatureTypes){
+        for (let i = 0; i < this.presetFeatureTypes.length; i++){
+            if(this.presetFeatureTypes[i].keyword === "paretoFront" || this.presetFeatureTypes[i].keyword === "not_selected"){
+                continue;
+            }            
             this.presetFeatureTypes[i].setApply(match_function(this.presetFeatureTypes[i].keyword));
             this.presetFeatureTypes[i].input_list = this.input_list;
         }
@@ -115,6 +118,10 @@ class GNCFilter extends Filter{
                 .text("Input Pareto Ranking (Integer number between 0-15): ")
                 .append("input")
                 .attr("type","text");
+
+            d3.select(".filter.hints.div")
+                .append("div")
+                .html('<p>Selects the Pareto front</p>');             
             
         }else{
             
@@ -202,7 +209,7 @@ class GNCFilter extends Filter{
         if(dropdown==="paretoFront"){
 
             let input = d3.selectAll('.filter.inputs.div').select('div').select('input').node().value
-            filter_expression = "paretoFront[" + input + "]";
+            filter_expression = "paretoFront["+input+"]";
 
         }else if(dropdown === "numSensors" || dropdown === "numComputers" || dropdown === "numLinks" ||
             dropdown === "minNSNC"){
@@ -244,7 +251,7 @@ class GNCFilter extends Filter{
 
         @return: A boolean indicating whether the input architecture passes the filter
     */
-    check_preset_feature_single_sample(input_expression,data){
+    check_preset_feature_single_sample(input_expression, data){
 
         let out = false;
         let matched = false;
@@ -259,21 +266,26 @@ class GNCFilter extends Filter{
             flip=true;
             expression = expression.substring(1,expression.length);
         }
-        
+
         let type = expression.split("[")[0];
         let inputs = data.inputs;
 
         if(type==="paretoFront"){
-            // if(data.pareto_ranking || data.pareto_ranking==0){
-            //     var rank = +data.pareto_ranking;
-            //     var arg = +expression.substring(0,expression.length-1).split("[")[1];
-            //     if(rank <= arg){
-            //         return true;
-            //     }else{
-            //         return false;
-            //     }
-            // }
-        }else{
+
+            if(data.pareto_ranking || data.pareto_ranking === 0){
+                let rank = data.pareto_ranking;
+                var arg = +expression.substring(0,expression.length-1).split("[")[1];
+                if(rank <= arg){
+                    return true;
+                }else{
+                    return false;
+                }
+            }else{
+                return false;
+            }
+
+        }else{ 
+                  
             let argString = expression.substring(0, expression.length-1).split("[")[1];
             let args = argString.split(";");
 
@@ -440,67 +452,6 @@ class GNCFilter extends Filter{
             }    
         }
 
-    }
-}
-
-
-
-
-
-
-
-function applyParetoFilter(arg,option){
-    if(option==="new"){
-        cancelDotSelections('remove_highlighted');
-        d3.selectAll(".dot.archPlot")[0].forEach(function (d) {
-            var rank = parseInt(d3.select(d).attr("paretoRank"));
-            if (rank <= +arg && rank >= 0){
-                
-                var dot = d3.select(d);
-                dot.classed('highlighted',true);
-                
-                if(dot.classed('selected')){
-                    // selected and highlighted
-                    dot.style("fill", overlapColor);
-                }else{
-                    // not selected
-                    dot.style("fill", highlightedColor);
-                }
-            }
-        });  
-    }else if(option==="add"){
-        d3.selectAll(".dot.archPlot:not(.highlighted)")[0].forEach(function (d) {
-            var rank = parseInt(d3.select(d).attr("paretoRank"));
-            if (rank <= +arg && rank >= 0){
-                
-                var dot = d3.select(d);
-                dot.classed('highlighted',true);
-                if(dot.classed('selected')){
-                    // selected and highlighted
-                    dot.style("fill", overlapColor);
-                }else{
-                    // not selected
-                    dot.style("fill", highlightedColor);
-                }
-            }
-        });  
-    }else if(option==="within"){
-        d3.selectAll(".dot.archPlot.highlighted")[0].forEach(function (d) {
-            var rank = parseInt(d3.select(d).attr("paretoRank"));
-            if (rank > +arg || rank < 0){
-                
-                var dot = d3.select(d);
-                dot.classed('highlighted',false);
-                
-                if(dot.classed('selected')){
-                    // was selected and highlighted
-                    dot.style("fill", selectedColor);
-                }else{
-                    // was not selected
-                    dot.style("fill", defaultColor);
-                }	
-            }
-        }); 
     }
 }
 

@@ -112,20 +112,20 @@ function round_num(num,decimal){
 
 function dominates(metrics1,metrics2,objective){
     
-    var at_least_as_good_as = true;
-    var better_than_in_one = false;
+    let at_least_as_good_as = true;
+    let better_than_in_one = false;
     
     if(!objective){
         objective = [];
-        for(var i=0;i<metrics1.length;i++){
+        for(let i = 0; i < metrics1.length; i++){
             objective.push(1);
         }
     }
     
-    for(var i=0;i<metrics1.length;i++){
+    for(let i = 0; i < metrics1.length; i++){
         
-        var val1 = objective[i] * metrics1[i];
-        var val2 = objective[i] * metrics2[i];
+        let val1 = objective[i] * metrics1[i];
+        let val2 = objective[i] * metrics2[i];
         
         if(val1 > val2){
             // First better than Second
@@ -136,7 +136,6 @@ function dominates(metrics1,metrics2,objective){
             at_least_as_good_as = false;
         }
     }
-    
     
     if(at_least_as_good_as && better_than_in_one){
         return true; // First dominates Second
@@ -167,3 +166,19 @@ function getFunctionFromString(string)
 
     return scope[scopeSplit[scopeSplit.length - 1]];
 }
+
+// Take multiple elements out from an array by their indices
+Array.prototype.multisplice = function(){
+    let args = Array.apply(null, arguments)[0];
+    args.sort(function(a, b){
+        return a - b;
+    });
+    let out = [];
+    for(let i = 0; i < args.length; i++){
+        let index = args[i] - i;
+        let removed = this.splice(index, 1);
+        out.push(removed[0]);
+    }
+    return out;        
+}
+

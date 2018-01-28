@@ -172,10 +172,20 @@ class GNC extends Problem{
             let row = {name1:inputNames[2*i],val1:data.inputs[2*i],name2:inputNames[2*i+1],val2:data.inputs[2*i+1]};
             
             if(row.name1 === "sensors" || row.name1 === "computers"){
-                row.val1 = this.label.actualName2DisplayName(row.val1, row.name1);
+                let original_val = row.val1 + "";
+                let modified_val = "";
+                for(let j = 0; j < original_val.length; j++){
+                    modified_val += this.label.actualName2DisplayName(original_val[j], row.name1);
+                }
+                row.val1 = modified_val;
             }
             if(row.name2 === "sensors" || row.name2 === "computers"){
-                row.val2 = this.label.actualName2DisplayName(row.val2, row.name2);
+                let original_val = row.val2 + "";
+                let modified_val = "";
+                for(let j = 0; j < original_val.length; j++){
+                    modified_val += this.label.actualName2DisplayName(original_val[j], row.name2);
+                }
+                row.val2 = modified_val;
             }
 
             rows.push(row);
