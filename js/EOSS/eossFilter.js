@@ -9,7 +9,7 @@ let validInputCheck = function(args){
         }
 
         // Check if all arguments are string
-        for (let i in args){
+        for (let i = 0; i < args.length; i++){
             if (typeof args[i] != "string"){
                 break;
             }
@@ -45,7 +45,7 @@ class EOSSFilter extends Filter{
                                //{value:"subsetOfInstruments",text:"Num of instruments in a subset",input:"subsetOfInstruments",hints:"The specified orbit should contain at least m number and at maximum M number of instruments from the specified instrument set. m is the first entry and M is the second entry in the second field"},
                             ];  
 
-        for (let i in presetFeaturesInfo){
+        for (let i = 0; i < presetFeaturesInfo.length; i++){
             let f = presetFeaturesInfo[i];
             let thisFeature = new FeatureType(f.text, f.value, f.input, f.hints);
             presetFeatures.push(thisFeature);
@@ -56,6 +56,8 @@ class EOSSFilter extends Filter{
         PubSub.subscribe(DATA_PROCESSED, (msg, data) => {
             this.set_application_functions();
         });
+
+        this.define_filter_functions();
     }
 
     set_application_functions(){
@@ -243,7 +245,7 @@ class EOSSFilter extends Filter{
         // Example of an filter expression: {presetName[orbits;instruments;numbers]} 
         let option = dropdown;
         
-        if(option=="present" || option=="absent" || option=="together" || option=="separate"){
+        if(option === "present" || option === "absent" || option === "together" || option === "separate"){
             
             let instrument = input_textbox[0];
             let inst_relabel = this.label.displayName2Index(instrument.toUpperCase(),"instrument");
@@ -252,7 +254,7 @@ class EOSSFilter extends Filter{
             }
             filter_expression = option + "[;" + inst_relabel + ";]";
             
-        }else if(option == "inOrbit" || option == "notInOrbit"){
+        }else if(option === "inOrbit" || option === "notInOrbit"){
             
             let orbit = input_textbox[0].trim();
             let instrument = input_textbox[1];
@@ -265,7 +267,7 @@ class EOSSFilter extends Filter{
             
             filter_expression = option + "["+ orb_relabel + ";" + inst_relabel + ";]";
             
-        }else if(option =="emptyOrbit"){
+        }else if(option === "emptyOrbit"){
             
             let orbit = input_textbox[0].trim();
             
@@ -334,7 +336,7 @@ class EOSSFilter extends Filter{
                 filter_expression=option + "[" + orb_relabel + ";;" + number + "]";
             }
             
-        } else if(dropdown==="paretoFront"){
+        } else if(dropdown === "paretoFront"){
 
             let input = d3.selectAll('.filter.inputs.div').select('div').select('input').node().value
             filter_expression = "paretoFront["+input+"]";
@@ -377,7 +379,7 @@ class EOSSFilter extends Filter{
         let type = expression.split("[")[0];
         let inputs = data.inputs;
 
-        if(type==="paretoFront"){
+        if(type.indexOf("paretoFront") != -1){
 
             if(data.pareto_ranking || data.pareto_ranking === 0){
                 let rank = data.pareto_ranking;
@@ -392,10 +394,11 @@ class EOSSFilter extends Filter{
             }
 
         }else{
+
             let argString = expression.substring(0, expression.length-1).split("[")[1];
             let args = argString.split(";");
 
-            for (let i in this.presetFeatureTypes){
+            for (let i = 0; i < this.presetFeatureTypes.length; i++){
                 let featureType = this.presetFeatureTypes[i];
                 if (featureType.keyword === type){
                     out = featureType.apply(args, inputs);
@@ -416,168 +419,171 @@ class EOSSFilter extends Filter{
         }
     }
 
+
+    define_filter_functions(){
     
-    // Preset Feature Application Functions
-    present(args, inputs){
-        validInputCheck(args);
-        let out = false;
-        let instr = +args[1]
-        for(let i = 0;i < this.norb; i++){
-            if(inputs[this.ninstr * i + instr] === true){
-                out = true;
-                break;
+        // Preset Feature Application Functions
+        this.present = (args, inputs) => {
+            validInputCheck(args);
+            let out = false;
+            let instr = +args[1]
+            for(let i = 0;i < this.norb; i++){
+                if(inputs[this.ninstr * i + instr] === true){
+                    out = true;
+                    break;
+                }
             }
+            return out;
         }
-        return out;
-    }
 
-    absent(args, inputs){
-        validInputCheck(args);
-        let out = true;
-        let instr = + args[1]
-        for(let i=0;i<this.norb;i++){
-            if(inputs[this.ninstr * i + instr] === true){
-                out = false;
-                break;
-            }
-        }
-        return out;
-    }
-
-    inOrbit(args, inputs){
-        validInputCheck(args);
-        let orbit = + args[0];
-        let instr = args[1];
-        let out = null;
-        if(instr.indexOf(',') === -1){
-            // Single instrument
-            out = false;
-            instr = + instr;
-            if(inputs[orbit * this.ninstr + instr] === true){
-                out = true;
-            }
-        }else{
-            // Multiple instruments
-            out = true;
-            let instruments = instr.split(",");
-            for(let j = 0; j < instruments.length; j++){
-                let temp = +instruments[j];
-                if(inputs[orbit * this.ninstr + temp] === false){
+        this.absent = (args, inputs) => {
+            validInputCheck(args);
+            let out = true;
+            let instr = + args[1]
+            for(let i = 0; i < this.norb; i++){
+                if(inputs[this.ninstr * i + instr] === true){
                     out = false;
                     break;
                 }
-            }           
+            }
+            return out;
         }
-        return out;
-    }
 
-    notInOrbit(args, inputs){
-        validInputCheck(args);
-        let orbit = + args[0];
-        let instr = args[1];
-        let out = null;
-        if(instr.indexOf(',') === -1){
-            // One instrument
-            out = true;
-            instr = + instr;
-            if(inputs[orbit * this.ninstr + instr] === true){
+        this.inOrbit = (args, inputs) => {
+            validInputCheck(args);
+            let orbit = + args[0];
+            let instr = args[1];
+            let out = null;
+            if(instr.indexOf(',') === -1){
+                // Single instrument
                 out = false;
-            }
-        }else{
-            // Multiple instruments
-            out = true;
-            let instruments = instr.split(",");
-            for(let j = 0; j < instruments.length; j++){
-                let temp = +instruments[j];
-                if(inputs[orbit * this.ninstr + temp] === true){
-                    out = false;
-                    break;
+                instr = + instr;
+                if(inputs[orbit * this.ninstr + instr] === true){
+                    out = true;
                 }
-            }           
-        }
-        return out;
-    }
-
-    together(args, inputs){
-        validInputCheck(args);
-        let instr = args[1];
-        let out = false;
-
-        let instruments = instr.split(",");
-        for(let i = 0; i < this.norb; i++){
-            let found = true;
-            for(var j = 0; j < instruments.length; j++){
-                var temp = +instruments[j];
-                if(inputs[i * this.ninstr + temp] === false){
-                    found = false;
-                }
-            }
-            if(found === true){
+            }else{
+                // Multiple instruments
                 out = true;
-                break;
-            }
-        }
-        return out;
-    }
-
-    separate(args, inputs){
-        validInputCheck(args);
-        let instr = args[1];
-        let out = true;
-
-        let instruments = instr.split(",");
-        for(let i = 0; i < this.norb; i++){
-            let found = false;
-            for(let j = 0; j < instruments.length; j++){
-                let temp = +instruments[j];
-                if(inputs[i * this.ninstr + temp] === true){
-                    if(found){
+                let instruments = instr.split(",");
+                for(let j = 0; j < instruments.length; j++){
+                    let temp = +instruments[j];
+                    if(inputs[orbit * this.ninstr + temp] === false){
                         out = false;
                         break;
-                    }else{
-                        found = true;
+                    }
+                }           
+            }
+            return out;
+        }
+
+        this.notInOrbit = (args, inputs) => {
+            validInputCheck(args);
+            let orbit = + args[0];
+            let instr = args[1];
+            let out = null;
+            if(instr.indexOf(',') === -1){
+                // One instrument
+                out = true;
+                instr = + instr;
+                if(inputs[orbit * this.ninstr + instr] === true){
+                    out = false;
+                }
+            }else{
+                // Multiple instruments
+                out = true;
+                let instruments = instr.split(",");
+                for(let j = 0; j < instruments.length; j++){
+                    let temp = +instruments[j];
+                    if(inputs[orbit * this.ninstr + temp] === true){
+                        out = false;
+                        break;
+                    }
+                }           
+            }
+            return out;
+        }
+
+        this.together = (args, inputs) => {
+            validInputCheck(args);
+            let instr = args[1];
+            let out = false;
+
+            let instruments = instr.split(",");
+            for(let i = 0; i < this.norb; i++){
+                let found = true;
+                for(var j = 0; j < instruments.length; j++){
+                    var temp = +instruments[j];
+                    if(inputs[i * this.ninstr + temp] === false){
+                        found = false;
+                    }
+                }
+                if(found === true){
+                    out = true;
+                    break;
+                }
+            }
+            return out;
+        }
+
+        this.separate = (args, inputs) => {
+            validInputCheck(args);
+            let instr = args[1];
+            let out = true;
+
+            let instruments = instr.split(",");
+            for(let i = 0; i < this.norb; i++){
+                let found = false;
+                for(let j = 0; j < instruments.length; j++){
+                    let temp = +instruments[j];
+                    if(inputs[i * this.ninstr + temp] === true){
+                        if(found){
+                            out = false;
+                            break;
+                        }else{
+                            found = true;
+                        }
+                    }
+                }
+                if(out === false) {
+                    break;
+                }
+            }
+            return out;
+        }
+
+        this.emptyOrbit = (args, inputs) => {
+            validInputCheck(args);
+            let orbit = +args[0];
+            let out = true;
+            for(let i = 0; i < this.ninstr; i++){
+                if(inputs[orbit * this.ninstr + i] === true){
+                    out = false;
+                    break;
+                }
+            }
+            return out;
+        }
+
+        this.numOrbits = (args, inputs) => {
+            validInputCheck(args);
+            let numb = +args[2];
+            let out = false;
+            let count = 0;
+
+            for(let i = 0; i < this.norb; i++){
+                for(let j = 0; j < this.ninstr; j++){
+                    if(inputs[i * this.ninstr + j] === true){
+                        count++;
+                        break;
                     }
                 }
             }
-            if(out === false) {
-                break;
+            if(numb === count){
+                out = true;
             }
-        }
-        return out;
+            return out;
+        }   
     }
-
-    emptyOrbit(args, inputs){
-        validInputCheck(args);
-        let orbit = +args[0];
-        let out = true;
-        for(let i = 0; i < this.ninstr; i++){
-            if(inputs[orbit * this.ninstr + i] === true){
-                out = false;
-                break;
-            }
-        }
-        return out;
-    }
-
-    numOrbits(args, inputs){
-        validInputCheck(args);
-        let numb = +args[2];
-        let out = false;
-        let count = 0;
-
-        for(let i = 0; i < this.norb; i++){
-            for(let j = 0; j < this.ninstr; j++){
-                if(inputs[i * this.ninstr + j] === true){
-                    count++;
-                    break;
-                }
-            }
-        }
-        if(numb === count){
-            out = true;
-        }
-        return out;
-    }   
 }
 
 

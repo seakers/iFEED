@@ -141,6 +141,7 @@ class Filter{
         if (feature_expression === "" || !feature_expression){
             return [];
         }else{
+
             // Note that indices and ids are different!
             let filtered_data = this.process_filter_expression(feature_expression, this.data, "&&");
 
@@ -250,61 +251,6 @@ class Filter{
             }
         }
         return filtered;
-    }
-
-    applyParetoFilter(arg,option){
-        if(option==="new"){
-            cancelDotSelections('remove_highlighted');
-            d3.selectAll(".dot.archPlot")[0].forEach(function (d) {
-                var rank = parseInt(d3.select(d).attr("paretoRank"));
-                if (rank <= +arg && rank >= 0){
-                    
-                    var dot = d3.select(d);
-                    dot.classed('highlighted',true);
-                    
-                    if(dot.classed('selected')){
-                        // selected and highlighted
-                        dot.style("fill", overlapColor);
-                    }else{
-                        // not selected
-                        dot.style("fill", highlightedColor);
-                    }
-                }
-            });  
-        }else if(option==="add"){
-            d3.selectAll(".dot.archPlot:not(.highlighted)")[0].forEach(function (d) {
-                var rank = parseInt(d3.select(d).attr("paretoRank"));
-                if (rank <= +arg && rank >= 0){
-                    
-                    var dot = d3.select(d);
-                    dot.classed('highlighted',true);
-                    if(dot.classed('selected')){
-                        // selected and highlighted
-                        dot.style("fill", overlapColor);
-                    }else{
-                        // not selected
-                        dot.style("fill", highlightedColor);
-                    }
-                }
-            });  
-        }else if(option==="within"){
-            d3.selectAll(".dot.archPlot.highlighted")[0].forEach(function (d) {
-                var rank = parseInt(d3.select(d).attr("paretoRank"));
-                if (rank > +arg || rank < 0){
-                    
-                    var dot = d3.select(d);
-                    dot.classed('highlighted',false);
-                    
-                    if(dot.classed('selected')){
-                        // was selected and highlighted
-                        dot.style("fill", selectedColor);
-                    }else{
-                        // was not selected
-                        dot.style("fill", defaultColor);
-                    }   
-                }
-            }); 
-        }
     }
 
     get_data_ids(data){

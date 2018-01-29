@@ -9,7 +9,7 @@ class Problem{
 
             this.data = this.preprocessing(data);
 
-            this.calculate_pareto_ranking([0,4], 15);
+            this.calculate_pareto_ranking([], 1);
 
             PubSub.publish(DATA_PROCESSED,this.data);
 
