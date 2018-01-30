@@ -46,6 +46,7 @@ class DataMining{
             .domain(d3.extent([]))
             .range([0,1]);
 
+        this.run_automated_local_search = false;
 
 
         PubSub.subscribe(ADD_FEATURE, (msg, data) => {
@@ -233,7 +234,30 @@ class DataMining{
 
             PubSub.publish(CANCEL_ADD_FEATURE, null);
                         
-        }else{            
+        }
+        else if(this.run_automated_local_search){
+
+            // Run data mining from the scratch (no local search)
+            
+            // Clear the feature application
+            PubSub.publish(INITIALIZE_FEATURE_APPLICATION, null);
+
+            // Remove all highlights in the scatter plot (retain target solutions)
+            PubSub.publish(HIGHLIGHT_ARCHITECTURES, []);
+
+            this.all_features = this.get_driving_features_automated(selected, non_selected, this.support_threshold, this.confidence_threshold, this.lift_threshold);
+
+            if(this.all_features.length === 0){ // If there is no driving feature returned
+                return;
+            }else{
+                for(let i = 0; i < this.all_features.length; i++){
+                    this.mined_features_id.push(this.all_features[i].id);
+                }
+            }
+
+            this.display_features();       
+        } 
+        else{            
             // Run data mining from the scratch (no local search)
             
             // Clear the feature application
@@ -288,6 +312,36 @@ class DataMining{
         return output;
     }
     
+    get_driving_features_automated(selected,non_selected,support_threshold,confidence_threshold,lift_threshold){
+
+        let output;
+        $.ajax({
+            url: "/api/data-mining/get-driving-features-automated/",
+            type: "POST",
+            data: {ID: "get_driving_features",
+                    problem: this.metadata.problem,  // eoss or gnc
+                    input_type: this.metadata.input_type, // Binary or Discrete
+                    selected: JSON.stringify(selected),
+                    non_selected:JSON.stringify(non_selected),
+                    supp:support_threshold,
+                    conf:confidence_threshold,
+                    lift:lift_threshold
+                  },
+            async: false,
+            success: function (data, textStatus, jqXHR)
+            {
+                if(data=="[]"){
+                    alert("No driving feature mined. Please try modifying the selection. (Try selecting more designs)");
+                }
+                output = data;
+            },
+            error: function (jqXHR, textStatus, errorThrown)
+            {alert("error");}
+        });
+
+        return output;
+    }
+
     /*
         Run local search: can be used for both conjunction and disjunction
     */  

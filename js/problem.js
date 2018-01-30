@@ -9,7 +9,7 @@ class Problem{
 
             this.data = this.preprocessing(data);
 
-            this.calculate_pareto_ranking([], 1);
+            this.calculate_pareto_ranking([], 15);
 
             PubSub.publish(DATA_PROCESSED,this.data);
 
@@ -26,7 +26,6 @@ class Problem{
         // PubSub.subscribe(SET_CURRENT_ARCHITECTURE, (msg, data) => {
         //     self.current_bitString = self.booleanArray2String(data.inputs)
         // });   
-
     }
 
     preprocessing_problem_specific(data){
@@ -36,8 +35,8 @@ class Problem{
     
     preprocessing(data){
         
-        var out = [];
-        var input_is_array = false;
+        let out = [];
+        let input_is_array = false;
         
         if(Array.isArray(data)){
             input_is_array=true;

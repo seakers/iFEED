@@ -226,6 +226,7 @@ class ContextMenu {
     ContextMenuAction(context,option){
 
         let node = context;
+
         let visit_nodes = this.feature_application.visit_nodes;
         let construct_tree = this.feature_application.construct_tree;
         let parse_tree = this.feature_application.parse_tree;
@@ -243,14 +244,14 @@ class ContextMenu {
                 case 'addChild':
 
                     if(node.add){
-                        node.add=false;
+                        node.add = false;
                         
                     }else{
-                        visit_nodes(this.feature_application.data,function(d){
+                        visit_nodes(this.feature_application.data, (d) => {
                             if(d.id === nodeID){
-                                d.add=true;
+                                d.add = true;
                             }else{
-                                d.add=false;
+                                d.add = false;
                             }
                         })
                     }
@@ -258,7 +259,7 @@ class ContextMenu {
 
                 case 'toggle-logic':
 
-                    if(node.name=='AND'){
+                    if(node.name === 'AND'){
                         node.name = 'OR';
                     }else{
                         node.name = 'AND';
@@ -276,47 +277,44 @@ class ContextMenu {
 
         }
 
-
         // Default options
         switch(option) {
 
             case 'addParent':
 
-                if(parent){ // This is a leaf node because of the condition set up previously (logic nodes do not have option to add parent)
+                if(parent){ 
+                    // This is a leaf node because of the condition set up previously (logic nodes do not have option to add parent)
+                    let index = parent.children.indexOf(node);
 
-                    var index = parent.children.indexOf(node);
-                    var logic = parent.name;
-                    var depth = node.depth;
+                    let logic = parent.name;
+                    let depth = node.depth;
 
-                    if(logic=="AND"){
+                    if(logic === "AND"){
                         logic = "OR";    
                     }else{
                         logic = "AND";
                     }
-                    parent.children.splice(index,1,{depth:depth,type:"logic", name:logic, children:[node], parent: parent});
+                    parent.children.splice(index, 1, {id:this.feature_application.i++, depth:depth, type:"logic", name:logic, children:[node], parent: parent});
 
-                }else{ // This is the root node
+                }else{ 
+                    // This is the root node
+                    let logic = node.name; 
 
-                    var logic = node.name; 
-                    if(logic=="AND"){
+                    if(logic === "AND"){
                         logic = "OR";    
                     }else{
                         logic = "AND";
                     }
-
-                    var x0 = this.feature_application.data.x0;
-                    var y0 = this.feature_application.data.y0;
-
-                    this.feature_application.data = {depth:0,type:"logic",name:logic,children:[node],x0:x0,y0:y0, parent: null};
+                    this.feature_application.data = {id:this.feature_application.i++, depth:0, type:"logic", name:logic, children:[node], parent: null};
                 }
+  
                 break;
-
 
             case 'duplicate':
                 if(parent){
-                    var index = parent.children.indexOf(node);
-                    var logic = parent.name;
-                    var depth = node.depth;
+                    let index = parent.children.indexOf(node);
+                    let logic = parent.name;
+                    let depth = node.depth;
 
                     if(logic=="AND"){
                         logic = "OR";    
@@ -324,9 +322,10 @@ class ContextMenu {
                         logic = "AND";
                     }
 
-                    var duplicate = construct_tree(parse_tree(node));     
+                    let duplicate = construct_tree(parse_tree(node));     
+                    duplicate.id = this.feature_application.i++;
 
-                    parent.children.splice(index,0,{depth:depth,type:"logic",name:logic,children:[duplicate], parent:parent});
+                    parent.children.splice(index, 0, {id:this.feature_application.i++, depth:depth, type:"logic",name:logic, children:[duplicate], parent:parent});
                 }
                 break;
 
@@ -335,18 +334,18 @@ class ContextMenu {
                 if(node.deactivated){
                     // Activate all parent nodes
                     visit_nodes(node,function(d){
-                        d.deactivated=false;
-                    },true);
+                        d.deactivated = false;
+                    }, true);
 
                     // Activate all children nodes
                     visit_nodes(node,function(d){
-                        d.deactivated=false;
+                        d.deactivated = false;
                     });
 
                 }else{                
                     // Deactivate all descendant nodes
                     visit_nodes(node,function(d){
-                        d.deactivated=true;
+                        d.deactivated = true;
                     });
                 }     
 
@@ -354,7 +353,7 @@ class ContextMenu {
 
             case 'delete':
 
-                if(node.depth==0){
+                if(node.depth === 0){
                     this.feature_application.data = null;
 
                 }else{
@@ -368,17 +367,20 @@ class ContextMenu {
             default:
                 break;
         }    
-        
+
         let root = this.feature_application.data;
         let exp = this.feature_application.parse_tree(root);
 
-        this.feature_application.update(root);
+        this.feature_application.update();
         
         PubSub.publish(ADD_FEATURE, this.feature_application.parse_tree(root));
         
         //PubSub.publish(DRAW_VENN_DIAGRAM, this.feature_application.parse_tree(root)); 
     }
     
+
+
+
 
 }
 
