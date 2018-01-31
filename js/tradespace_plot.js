@@ -53,11 +53,11 @@ class TradespacePlot{
                 point.drawingColor = this.color.default;
                 this.num_total_points += 1;
             });
-            this.update(this.xIndex, this.yIndex);
+            this.drawPlot(this.xIndex, this.yIndex);
         });
 
-        PubSub.subscribe(HIGHLIGHT_ARCHITECTURES, (msg, data) => {
-            this.highlight_architectures(data);
+        PubSub.subscribe(UPDATE_TRADESPACE_PLOT, (msg, data) => {
+            this.update();
         });
 
         // PubSub.subscribe("update_target_selection", (msg) => {
@@ -81,7 +81,7 @@ class TradespacePlot{
         //         added = [added];
         //     }
 
-        //     self.update(allData,0,1);
+        //     self.drawPlot(allData,0,1);
             
         //     clearInterval(self.cursor_blink_interval);
         //     d3.select('.tradespace_plot.dot.cursor').remove();
@@ -164,7 +164,7 @@ class TradespacePlot{
                     .on("change", (d) => {
                         let x_axis_name = d3.select('#x-axis-select').node().value;
                         let y_axis_name = d3.select('#y-axis-select').node().value;
-                        this.update(this.output_list.indexOf(x_axis_name), this.output_list.indexOf(y_axis_name));
+                        this.drawPlot(this.output_list.indexOf(x_axis_name), this.output_list.indexOf(y_axis_name));
 
                         this.change_interaction_mode();
                     });   
@@ -177,7 +177,7 @@ class TradespacePlot{
         Draws the scatter plot with architecture inputs
         @param source: a JSON object array containing the basic arch info
     */    
-    update(xIndex, yIndex){
+    drawPlot(xIndex, yIndex){
         this.reset_tradespace_plot();
         
         let margin = this.tradespace_plot_params.margin;
@@ -782,25 +782,17 @@ class TradespacePlot{
         }
     }
 
-    highlight_architectures(arch_id_list){
-        
-        if (!arch_id_list){
-            this.cancel_selection("remove_highlighted");
-        }
-        else if(arch_id_list.length == 0){
-            this.cancel_selection("remove_highlighted");
-        }
-        else{
-            this.data.forEach( (point) => {
-                if (arch_id_list.indexOf(point.id) != -1){
-                    point.highlighted = true;
-                    this.setPointColor(point);
-                }
-            }); 
-            this.drawPoints(this.context, false);
-        }
+    update(){
 
+        this.data.forEach( (point) => {
+            this.setPointColor(point);
+        }); 
+
+        this.drawPoints(this.context, false);
+        this.num_selected_points = this.get_selected_architectures().length;
         this.num_highlighted_points = this.get_highlighted_architectures().length;
+
+        d3.select("#num_of_selected_archs").text("" + this.num_selected_points);
     }    
 
     get_selected_architectures(){

@@ -6,10 +6,10 @@ const DESIGN_PROBLEM_LOADED = "design_problem_loaded";
 const INSPECT_ARCH = "inspect_arch";
 // New selection made (pub: tradespace_plot.js, sub: data_mining.js)
 const SELECTION_UPDATED = "selection_updated";
-// Apply feature expression (sub: filter.js)
+// Apply feature expression (pub: data_mining.js, feature_application.js, sub: filter.js)
 const APPLY_FEATURE_EXPRESSION = "apply_feature_expression";
 // Highlight architectures (pub: filter.js, sub: tradespace_plot.js)
-const HIGHLIGHT_ARCHITECTURES = "highlight_architectures";
+const UPDATE_TRADESPACE_PLOT = "update_tradespace_plot";
 // Data imported (pub: ifeed-general.js, sub: problem.js, eoss.js)
 const DATA_IMPORTED = "data_imported";
 // Data preprocessing finished (pub: problem.js, sub: tradespace_plot.js, eossFilter.js, data_mining.js, feature_application.js)

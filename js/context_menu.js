@@ -174,7 +174,6 @@ class ContextMenu {
             });
     }
     
-    
     // Automatically set width, height, and margin;
     scaleItems(context,items) {
         
@@ -219,9 +218,7 @@ class ContextMenu {
             // cleanup
             d3.select('#feature_application').selectAll('.tmp').remove();                        
         }
-
     }
-    
     
     ContextMenuAction(context,option){
 
@@ -234,9 +231,9 @@ class ContextMenu {
         let nodeID = node.id;
         let parent = node.parent;
 
-    // 'logic':[addChild, toggle-logic],     
-    // 'leaf':[],
-    // 'default':[addParent,duplicate,toggle-activation,delete]
+        // 'logic':[addChild, toggle-logic],     
+        // 'leaf':[],
+        // 'default':[addParent,duplicate,toggle-activation,delete]
 
         if(node.type=='logic'){
 
@@ -377,16 +374,4 @@ class ContextMenu {
         
         //PubSub.publish(DRAW_VENN_DIAGRAM, this.feature_application.parse_tree(root)); 
     }
-    
-
-
-
-
 }
-
-
-
-
-
-
-

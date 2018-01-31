@@ -243,7 +243,7 @@ class DataMining{
             PubSub.publish(INITIALIZE_FEATURE_APPLICATION, null);
 
             // Remove all highlights in the scatter plot (retain target solutions)
-            PubSub.publish(HIGHLIGHT_ARCHITECTURES, []);
+            PubSub.publish(APPLY_FEATURE_EXPRESSION, null);
 
             this.all_features = this.get_driving_features_automated(selected, non_selected, this.support_threshold, this.confidence_threshold, this.lift_threshold);
 
@@ -264,7 +264,7 @@ class DataMining{
             PubSub.publish(INITIALIZE_FEATURE_APPLICATION, null);
 
             // Remove all highlights in the scatter plot (retain target solutions)
-            PubSub.publish(HIGHLIGHT_ARCHITECTURES, []);
+            PubSub.publish(APPLY_FEATURE_EXPRESSION, null);
 
             this.all_features = this.get_driving_features(selected, non_selected, this.support_threshold, this.confidence_threshold, this.lift_threshold);
 
@@ -469,7 +469,7 @@ class DataMining{
         }
 
         function get_current_feature(){
-            var id;
+            let id;
             if(that.current_feature){
                 id = that.current_feature.id;
             }
@@ -695,7 +695,7 @@ class DataMining{
         // The current feature: modify the shape to a cross
         var _current_feature = get_current_feature().attr('d',d3.symbol().type(d3.symbolCross).size(120));
 
-        _current_feature.shown=true;
+        _current_feature.shown = true;
         // The current feature
         _current_feature.style('fill',"black");    
         
@@ -849,7 +849,7 @@ class DataMining{
     }
     
     add_feature_to_plot(expression){
-        
+
         let that = this;
                 
         function find_equivalent_feature(metrics, indices){
@@ -870,17 +870,14 @@ class DataMining{
             return null;
         }
         
-        
         if(!expression || expression === ""){
-
-            this.current_feature=null;
+            this.current_feature = null;
             // Assign new indices for the added features
             this.update();
 
         }else{       
             
             //this.filter.apply_filter_expression(expression);
-
             // Compute the metrics of a feature
             let total = this.data.length;
             let highlighted = 0;
@@ -923,7 +920,7 @@ class DataMining{
             }
 
             // Define new feature
-            this.current_feature = {id:-1,name:expression,expression:expression,metrics:metrics,x0:x,x:x,y0:y,y:y};
+            this.current_feature = {id:-1, name:expression, expression:expression, metrics:metrics, x0:x, x:x, y0:y, y:y};
 
             // Check if there exists a feature whose metrics match with the current feature's metrics
             let matched = find_equivalent_feature(metrics,[2,3]);       
@@ -937,15 +934,13 @@ class DataMining{
             }
             
             // Stash the previous locations of all features
-            for(var i=0;i<this.all_features.length;i++){
+            for(let i = 0; i < this.all_features.length; i++){
                 this.all_features[i].x0 = this.all_features[i].x;
                 this.all_features[i].y0 = this.all_features[i].y;
             }
 
             document.getElementById('tab3').click();
             
-            //ifeed.tradespace_plot.highlight_support_panel();
-
             // Display the driving features with newly added feature
             this.update();
         }

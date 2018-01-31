@@ -115,10 +115,7 @@ class Filter{
     }
 
     apply_filter(){
-
         let expression = this.generate_filter_expression_from_input_field();
-
-        //this.apply_filter_expression(expression);
 
         if(expression.indexOf('paretoFront') != -1){
             this.apply_filter_expression(expression);
@@ -126,31 +123,39 @@ class Filter{
         }else{
             PubSub.publish(UPDATE_FEATURE_APPLICATION, {"option": "direct-update", "expression": expression});
         }
-
-        // document.getElementById('tab2').click();
-        // return true;
+        document.getElementById('tab2').click();
+        return true;
     }
 
-    apply_filter_expression(input_expression){
-        let feature_expression = input_expression;
+    apply_filter_expression(feature_expression){
 
         // Cancel all previous selections
-        PubSub.publish(HIGHLIGHT_ARCHITECTURES, null);
+        this.data.forEach(point => {
+            point.highlighted = false;
+        });
+
+        let id_list = null;
 
         // If filter expression is empty, return
         if (feature_expression === "" || !feature_expression){
-            return [];
+            id_list = [];
+
         }else{
 
-            // Note that indices and ids are different!
             let filtered_data = this.process_filter_expression(feature_expression, this.data, "&&");
+            
+            id_list = this.get_data_ids(filtered_data);
 
-            let id_list = this.get_data_ids(filtered_data);
-
-            PubSub.publish(HIGHLIGHT_ARCHITECTURES, id_list);
-
-            return id_list;
+            this.data.forEach((point) => {
+                if(id_list.indexOf(point.id) != -1){
+                    point.highlighted = true;
+                }
+            });
         }
+
+        PubSub.publish(UPDATE_TRADESPACE_PLOT, null);
+
+        return id_list;
     }
 
     /*
