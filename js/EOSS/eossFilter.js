@@ -1,30 +1,4 @@
 
-let validInputCheck = function(args){
-
-    let valid = false;
-    while(true){
-        // Check if the input is an array
-        if (!isArray(args)){
-            break;
-        }
-
-        // Check if all arguments are string
-        for (let i = 0; i < args.length; i++){
-            if (typeof args[i] != "string"){
-                break;
-            }
-        }
-
-        // Passed all tests
-        valid = true;
-        break;
-    }
-    if(!valid){
-        console.log(args);
-        throw "Exception in processing filter: Invalid argument";
-    }
-}
-
 class EOSSFilter extends Filter{
     
     constructor(labelingScheme) {

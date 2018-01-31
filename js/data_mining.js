@@ -829,7 +829,12 @@ class DataMining{
                         .style('color','#F7FF55')
                         .style('word-wrap','break-word');   
 
-
+        if(this.current_feature){
+            if(d.expression === this.current_feature.expression){
+                return;
+            }
+        }
+        
         // Update the placeholder with the driving feature and stash the expression    
         this.feature_application.update_feature_application('temp', expression);
         //self.draw_venn_diagram(); 
