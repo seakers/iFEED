@@ -182,6 +182,7 @@ class DataMining{
                 let all_extracted_features = [];
 
                 for(let i = 0; i < root.children.length; i++){
+                    // Set each of the depth 1 nodes as placeholders to add disjunction and run local searches for each case
 
                     selected_node = root.children[i];  
                     
@@ -204,7 +205,7 @@ class DataMining{
                     if(this.check_if_non_dominated(this_feature, all_extracted_features)) extracted_features.push(this_feature);
                 }                    
             }
-                        
+    
             let features_to_add = [];
             this.recent_features_id = [];
 
@@ -1099,6 +1100,112 @@ class DataMining{
             .attr("fill","brown")
             .text("Features:" + Math.round(F_size) );
     }
-}
 
+
+
+    run_clustering(){
+        // Store the id's of all dots
+        let selected = [];
+        let non_selected = [];
+        for (let i = 0; i< this.selected_archs.length; i++){
+            selected.push(this.selected_archs[i].id);
+        }
+        for (let i = 0; i < this.data.length; i++){
+            let id = this.data[i].id;
+            if (selected.indexOf(id) === -1){
+                // non-selected
+                non_selected.push(id);
+            }
+        }
+
+        let output = null;
+        $.ajax({
+            url: "/api/data-mining/cluster-data/",
+            type: "POST",
+            data: {ID: "cluster-data",
+                    problem: this.metadata.problem,  // eoss or gnc
+                    input_type: this.metadata.input_type, // Binary or Discrete
+                    selected: JSON.stringify(selected),
+                    non_selected:JSON.stringify(non_selected),
+                  },
+            async: false,
+            success: function (data, textStatus, jqXHR)
+            {
+                console.log("Clustering finished");
+            },
+            error: function (jqXHR, textStatus, errorThrown)
+            {alert("error");}
+        });
+        return output;
+    }
+
+    highlight_clustering_result(){
+        let cluster_result = null;
+        let colors = [];
+
+        $.ajax({
+            url: "/api/data-mining/get-cluster/",
+            type: "POST",
+            data: {ID: "cluster-data"},
+            async: false,
+            success: function (data, textStatus, jqXHR)
+            {
+                cluster_result = data;
+            },
+            error: function (jqXHR, textStatus, errorThrown)
+            {alert("error");}
+        });
+
+        let id_list = cluster_result.id;
+        let labels = cluster_result.labels;
+
+        let clusters = {};
+        let max = -1; 
+        for(let i = 0; i < id_list.length; i++){
+            let id = +id_list[i];
+            
+            let label_string = labels[i];
+            let label_num = + label_string;
+
+            if(label_num > max){
+                max = label_num
+            }
+
+            if(!clusters[label_string]){
+                clusters[label_string] = [];
+            }
+
+            clusters[label_string].push(id);
+        }
+
+        let numClusters = max + 1;
+        let cluster_colors = [
+            "rgba(234, 23, 0, 1)", // red
+            "rgba(0, 234, 23, 1)", // green
+            "rgba(0, 129, 234, 1)", // blue
+            "rgba(234, 105, 0, 1)", // orange
+            "rgba(0, 234, 148, 1)", // cyan? emerald?
+        ];
+
+        this.data.forEach(point => {
+            let id = point.id;
+            for(let i = 0; i < numClusters; i++){
+                let clusterName = i + "";
+                if(clusters[clusterName].indexOf(id) != -1){
+                    // If the current point is included in the cluster
+                    point.drawingColor = cluster_colors[i];
+                    point.cluster = i;
+                }
+            }
+        });
+
+        this.clusters = clusters;
+
+        PubSub.publish(UPDATE_TRADESPACE_PLOT, true);
+    }
+
+
+
+
+}
 

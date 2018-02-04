@@ -2,11 +2,20 @@
 
 class TradespacePlot{
     
-    constructor(){
+    constructor(xIndex, yIndex){
         
-        this.xIndex = 0;
-        this.yIndex = 1;
-        
+        if(xIndex != null){
+            this.xIndex = xIndex;
+        }else{
+            this.xIndex = 0;
+        }
+
+        if(yIndex != null){
+            this.yIndex = yIndex;
+        }else{
+            this.yIndex = 1;
+        }
+
         this.cursor_blink_interval = null;
 
         this.tradespace_plot_params = {
@@ -57,7 +66,7 @@ class TradespacePlot{
         });
 
         PubSub.subscribe(UPDATE_TRADESPACE_PLOT, (msg, data) => {
-            this.update();
+            this.update(data);
         });
 
         // PubSub.subscribe("update_target_selection", (msg) => {
@@ -158,6 +167,9 @@ class TradespacePlot{
                     .text(function(d){
                         return d;
                     });
+
+                d3.select('#x-axis-select').node().value = this.output_list[this.xIndex];
+                d3.select('#y-axis-select').node().value = this.output_list[this.yIndex];
 
                 d3.select("#plot_options")
                     .selectAll('select')
@@ -782,11 +794,15 @@ class TradespacePlot{
         }
     }
 
-    update(){
+    update(skip_color_reset){
 
-        this.data.forEach( (point) => {
-            this.setPointColor(point);
-        }); 
+        if(skip_color_reset){
+            // Skip setting the color of the points
+        }else{
+            this.data.forEach( (point) => {
+                this.setPointColor(point);
+            }); 
+        }
 
         this.drawPoints(this.context, false);
         this.num_selected_points = this.get_selected_architectures().length;

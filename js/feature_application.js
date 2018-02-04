@@ -936,37 +936,37 @@ class FeatureApplication{
                     
                     if(placeholderNode){
                         // If placeholder exists
-                        if(placeholderNode==root.parent && root.parent.children.indexOf(root)==0){ 
+                        if(placeholderNode === root.parent && root.parent.children.indexOf(root) === 0){ 
                             // If the current node is the first child of the placeholderNode
                             
-                            if(root.parent.name=="AND"){
-                                expression="{PLACEHOLDER}&&"+root.name;
+                            if(root.parent.name === "AND"){
+                                expression = "{PLACEHOLDER}&&"+root.name;
                             }else{
-                                expression="{PLACEHOLDER}||"+root.name;
+                                expression = "{PLACEHOLDER}||"+root.name;
                             }                        
                                                     
-                        }else if(placeholderNode==root){ // If the current node is the placeholderNode itself
+                        }else if(placeholderNode === root){ // If the current node is the placeholderNode itself
                             
-                            if(root.parent.name=="AND"){
+                            if(root.parent.name === "AND"){
                                 // When a leaf node is set as a placeholderNode, change the logical connective
-                                expression="({PLACEHOLDER}||"+root.name + ")";
+                                expression = "({PLACEHOLDER}||"+root.name + ")";
                             }else{
-                                expression="({PLACEHOLDER}&&"+root.name + ")";
+                                expression = "({PLACEHOLDER}&&"+root.name + ")";
                             } 
                             
                         }else{
                             // If the current node has nothing to do with the placeholder
-                            expression=root.name;
+                            expression = root.name;
                         }
                     }else{
                         // If there is no placeholder, simply return its name
-                        expression=root.name;
+                        expression = root.name;
                     }
                 }
 
-            }else if(root.type=="logic" && (deactivated(root) || !root.children)){
+            }else if(root.type === "logic" && (deactivated(root) || !root.children)){
                 // Current node is a logic node but its children are either all emtpy or deactivated
-                expression="";
+                expression = "";
 
             }else{
                 // Current node is a logical node and is not deactivated
@@ -977,10 +977,10 @@ class FeatureApplication{
                     let child = root.children[i];
                     let logic = null;
 
-                    if(root.name=="AND"){
-                        logic="&&";
+                    if(root.name === "AND"){
+                        logic = "&&";
                     }else{
-                        logic="||";
+                        logic = "||";
                     }
 
                     let new_expression = _parse_tree(child,placeholderNode);

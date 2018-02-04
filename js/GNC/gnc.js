@@ -7,15 +7,15 @@ class GNC extends Problem{
         let that = this;
         this.metadata = {
             problem: "gnc",
-            input_num: 16,
+            input_num: 13,
             input_type: "discrete",
             input_list: ["NS","NC","sensors","computers","Ibin_1","Ibin_2","Ibin_3",
-                            "Ibin_4","Ibin_5","Ibin_6","Ibin_7","Ibin_8","Ibin_9","Inat_1","Inat_2","Inat_3"],
+                            "Ibin_4","Ibin_5","Ibin_6","Ibin_7","Ibin_8","Ibin_9"],
             output_list: ['m','R','MTTF','Nlinks','N9'],
             output_num: 5,
             output_obj: [-1, 1, 1, -1, 1], // 1 for lager-is-better, -1 for smaller-is-better
             //file_path: "gnc_scenario3_column_reduced.csv"
-            file_path: "gnc_scenario3_reduced.csv"
+            file_path: "gnc_scenario3_column_reduced.csv"
         };
 
         PubSub.subscribe(LABELING_SCHEME_LOADED, (msg, data) => {

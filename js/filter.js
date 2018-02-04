@@ -168,7 +168,7 @@ class Filter{
 
         }else{
 
-            let filtered_data = this.process_filter_expression(feature_expression, this.data, "&&");
+            let filtered_data = this.process_filter_expression(feature_expression, this.data);
             
             id_list = this.get_data_ids(filtered_data);
 
@@ -194,7 +194,7 @@ class Filter{
         // To be implemented 
     }
     
-    process_filter_expression(expression, data, logic){
+    process_filter_expression(expression, data){
         
         let e, _e;
 
@@ -203,9 +203,10 @@ class Filter{
         e = remove_outer_parentheses(e);
         _e = e;
 
-        var filtered = [];
-        var first = true;
-        var last = false;
+        let filtered = [];
+        let first = true;
+        let last = false;
+        let logic = null;
 
         if(get_nested_parenthesis_depth(e) === 0){
 
@@ -230,11 +231,11 @@ class Filter{
         }
 
         while(!last){
-            var e_temp, _e_temp;
+            let e_temp, _e_temp;
 
             if(first){
                 // The first filter in a series to be applied
-                filtered = data;
+                filtered = JSON.parse(JSON.stringify(data));
                 first = false;
             }else{
                 logic = _e.substring(0,2);
@@ -242,9 +243,9 @@ class Filter{
                 e = e.substring(2);
             }
 
-            var next; // The imediate next logical connective
-            var and = _e.indexOf("&&");
-            var or = _e.indexOf("||");
+            let next; // The imediate next logical connective
+            let and = _e.indexOf("&&");
+            let or = _e.indexOf("||");
             if(and==-1 && or==-1){
                 next = "";
             } else if(and==-1){ 
@@ -270,7 +271,7 @@ class Filter{
             }
 
             if(logic=='||'){
-                var filtered_temp = this.process_filter_expression(e_temp, data, logic);
+                let filtered_temp = this.process_filter_expression(e_temp, data);
                 for(let j = 0; j < filtered_temp.length; j++){
                     if(filtered.indexOf(filtered_temp[j]) === -1){
                         filtered.push(filtered_temp[j]);
@@ -278,7 +279,7 @@ class Filter{
                 }
 
             }else{
-                filtered = this.process_filter_expression(e_temp, filtered, logic); 
+                filtered = this.process_filter_expression(e_temp, filtered); 
             }
         }
         return filtered;
@@ -292,4 +293,3 @@ class Filter{
         return ids;
     }
 }
-

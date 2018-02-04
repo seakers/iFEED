@@ -160,25 +160,28 @@ and open the template in the editor.
     
 <script>
 
-    let problem = "eoss";
+    let problem_name = "eoss";
 
     var label = null;
     var filter = null;
-    
+    var problem = null;
+    var tradespace_plot = null;
+
     var ifeed = new IFEED();
 
-    if(problem === "gnc"){
-        var gnc = new GNC();
+    if(problem_name === "gnc"){
+        problem = new GNC();
         label = new GNCLabel();
         filter = new GNCFilter(label);
+        tradespace_plot = new TradespacePlot(4,0);
 
-    }else if(problem === "eoss"){
-        var eoss = new EOSS();
+    }else if(problem_name === "eoss"){
+        problem = new EOSS();
         label = new EOSSLabel();
         filter = new EOSSFilter(label);
+        tradespace_plot = new TradespacePlot();
     }
     
-    var tradespace_plot = new TradespacePlot();
     
     var data_mining = new DataMining(filter, label);
     
