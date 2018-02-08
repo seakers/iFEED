@@ -101,6 +101,8 @@ and open the template in the editor.
 -->
                         <button type="button"  id="hide_selection">Hide selections</button>
                         <button type="button"  id="show_all_archs">Show all architectures</button> 
+                        <button type="button"  id="select_highlighted">Select highlighted</button>
+                        <button type="button"  id="select_complement">Select complement</button>
                         <button type="button"  id="cancel_selection">Cancel all selections</button>
                     </div>                    
                 </div>
@@ -154,13 +156,17 @@ and open the template in the editor.
 <script src="js/GNC/gncLabel.js" type="text/javascript"></script>
 <script src="js/GNC/gncFilter.js" type="text/javascript"></script>
 
+<!-- <script src="js/Constellation/constellation.js" type="text/javascript"></script>
+<script src="js/Constellation/constellationLabel.js" type="text/javascript"></script>
+<script src="js/Constellation/constellationFilter.js" type="text/javascript"></script> -->
+
 <script src="js/data_mining.js" type="text/javascript"></script>   
 <script src="js/feature_application.js" type="text/javascript"></script>       
 <script src="js/context_menu.js" type="text/javascript"></script>
     
 <script>
 
-    let problem_name = "eoss";
+    let problem_name = "gnc";
 
     var label = null;
     var filter = null;
@@ -180,6 +186,12 @@ and open the template in the editor.
         label = new EOSSLabel();
         filter = new EOSSFilter(label);
         tradespace_plot = new TradespacePlot();
+
+    }else if(problem_name === "constellation"){
+        // problem = new Constellation();
+        // label = new ConstellationLabel();
+        // filter = new ConstellationFilter(label);
+        // tradespace_plot = new TradespacePlot();
     }
     
     

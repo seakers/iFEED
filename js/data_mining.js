@@ -17,6 +17,11 @@ class DataMining{
         this.margin = {top: 20, right: 20, bottom: 30, left:65};
         this.width = 770 - 35 - this.margin.left - this.margin.right;
         this.height = 400 - 20 - this.margin.top - this.margin.bottom;
+
+        this.xAxis = null;
+        this.yAxis = null;
+        this.gX = null;
+        this.gY = null;
         
         this.featureID = 1;
         this.transform = d3.zoomIdentity;
@@ -126,10 +131,12 @@ class DataMining{
         }
 
         for (let i = 0; i < this.data.length; i++){
-            let id = this.data[i].id;
-            if (selected.indexOf(id) === -1){
-                // non-selected
-                non_selected.push(id);
+            if(!this.data[i].hidden){
+                let id = this.data[i].id;
+                if (selected.indexOf(id) === -1){
+                    // non-selected
+                    non_selected.push(id);
+                }
             }
         }
 
@@ -161,50 +168,22 @@ class DataMining{
                 extracted_features = this.get_marginal_driving_features(selected, non_selected, base_feature, 
                                                              this.support_threshold, this.confidence_threshold, this.lift_threshold);           
 
-            }else if(!option){
-                // Run local search using conjunction
-                // Save the architectures with the current feature
-                let highlighted = [];
-                this.data.forEach(point => {
-                    if (point.highlighted && !point.hidden){
-                        highlighted.push(point.id);
-                    }
-                });    
-
-                extracted_features = this.get_marginal_driving_features_conjunctive(selected, non_selected, base_feature, highlighted, 
-                                                                 this.support_threshold,this.confidence_threshold,this.lift_threshold);
             }else{
                 // Run local search either using disjunction or conjunction
-                let root = this.feature_application.data;
 
-                extracted_features = [];
-
-                let all_extracted_features = [];
-
-                for(let i = 0; i < root.children.length; i++){
-                    // Set each of the depth 1 nodes as placeholders to add disjunction and run local searches for each case
-
-                    selected_node = root.children[i];  
-                    
-                    if(selected_node.type=="logic"){
-                        continue;
-                    }
-                    
-                    let test_feature = this.feature_application.parse_tree(root, selected_node); 
-
-                    let temp_features = this.get_marginal_driving_features(selected, non_selected, test_feature, 
-                                                             this.support_threshold,this.confidence_threshold,this.lift_threshold);
-
-                    all_extracted_features = all_extracted_features.concat(temp_features);
-
+                let logical_connective = null;
+                if(option){
+                    logical_connective = "OR";
+                }else{
+                    logical_connective = "AND";
                 }
 
-                // Check non-dominance against the extracted features
-                for(let j = 0; j < all_extracted_features.length; j++){
-                    let this_feature = all_extracted_features[j];
-                    if(this.check_if_non_dominated(this_feature, all_extracted_features)) extracted_features.push(this_feature);
-                }                    
+                extracted_features = this.get_marginal_driving_features(selected, non_selected, base_feature, logical_connective,
+                                                         this.support_threshold,this.confidence_threshold,this.lift_threshold);
             }
+
+            console.log(extracted_features);
+
     
             let features_to_add = [];
             this.recent_features_id = [];
@@ -346,7 +325,7 @@ class DataMining{
     /*
         Run local search: can be used for both conjunction and disjunction
     */  
-    get_marginal_driving_features(selected,non_selected,featureExpression,
+    get_marginal_driving_features(selected,non_selected,featureExpression,logical_connective,
                                                    support_threshold,confidence_threshold,lift_threshold){
         
         let output;
@@ -359,6 +338,7 @@ class DataMining{
                     featureExpression: featureExpression,
                     selected: JSON.stringify(selected),
                     non_selected:JSON.stringify(non_selected),
+                    logical_connective:logical_connective,
                     supp:support_threshold,
                     conf:confidence_threshold,
                     lift:lift_threshold
@@ -486,8 +466,6 @@ class DataMining{
         let width = this.width;
         let height = this.height;
 
-        let gX, gY;
-
         let duration = 500;
 
         let supps = [];
@@ -497,7 +475,7 @@ class DataMining{
         let scores=[];   
         let maxScore = -1;
         
-        // Remove unnecessary points (cursor)
+        //Remove unnecessary points (cursor)
         d3.select(".objects.feature_plot")
                 .selectAll('.dot.feature_plot')
                 .data(this.all_features)
@@ -510,7 +488,10 @@ class DataMining{
             clearInterval(this.current_feature_blink_interval);
             d3.selectAll('.dot.feature_plot').style('opacity',1);
         }
-        
+
+        d3.select('.feature_plot.figure').select('g').selectAll('.axis').remove();
+        d3.select('.feature_plot.figure').select('g').selectAll('.label').remove();
+
         // Add new features
         if(newly_added_features){
             this.all_features = this.all_features.concat(newly_added_features);
@@ -570,7 +551,7 @@ class DataMining{
         let xMap = function (d) {
             return xScale(xValue(d));
         }; 
-        let xAxis = d3.axisBottom(xScale);
+        this.xAxis = d3.axisBottom(xScale);
 
         // setup y
         // data -> value
@@ -586,7 +567,7 @@ class DataMining{
         let yMap = function (d) {
             return yScale(yValue(d));
         }; 
-        let yAxis = d3.axisLeft(yScale);
+        this.yAxis = d3.axisLeft(yScale);
 
         // Set the new locations of all the features
         for(let i = 0; i < this.all_features.length; i++){
@@ -610,8 +591,8 @@ class DataMining{
             .on("zoom", (d) => {
 
                 this.transform = d3.event.transform;
-                gX.call(xAxis.scale(this.transform.rescaleX(xScale)));
-                gY.call(yAxis.scale(this.transform.rescaleY(yScale)));
+                this.gX.call(this.xAxis.scale(this.transform.rescaleX(xScale)));
+                this.gY.call(this.yAxis.scale(this.transform.rescaleY(yScale)));
 
                 d3.selectAll('.dot.feature_plot')
                     .attr("transform", function (d) {
@@ -624,24 +605,25 @@ class DataMining{
         d3.select('.feature_plot.figure').call(this.zoom);
        
         let svg = d3.select('.feature_plot.figure').select('g')
+        
         // x-axis
-        gX = svg.append("g")
+        this.gX = svg.append("g")
             .attr("class", "axis axis-x")
             .attr("transform", "translate(0, " + height + ")")
-            .call(xAxis);
-            
+            .call(this.xAxis);
+
         svg.append("text")
             .attr("transform", "translate(" + width + ", " + height + ")")
             .attr("class", "label")
             .attr("y", -6)
             .style("text-anchor", "end")
-            .text('Confidence(F->S)')
+            .text('Specificity')
             .style('font-size','15px');
 
         // y-axis
-        gY = svg.append("g")
+        this.gY = svg.append("g")
             .attr("class", "axis axis-y")
-            .call(yAxis);
+            .call(this.yAxis);
         
         svg.append("text")
             .attr("class", "label")
@@ -649,8 +631,9 @@ class DataMining{
             .attr("y", 6)
             .attr("dy", ".71em")
             .style("text-anchor", "end")
-            .text('Confidence(S->F)')
+            .text('Coverage')
             .style('font-size','15px');
+        
 
         var objects = d3.select(".objects.feature_plot")
 
@@ -842,7 +825,7 @@ class DataMining{
     }
 
     feature_mouseout(d){
-        var id = d.id;
+        let id = d.id;
 
         // Remove the tooltip
         d3.selectAll("#tooltip_g").remove();
@@ -910,9 +893,28 @@ class DataMining{
             let p_f = highlighted / total;
 
             let supp = p_snf;
-            let conf = supp / p_f;
-            let conf2 = supp / p_s;
-            let lift = p_snf / (p_f * p_s); 
+            let conf = null;
+            let conf2 = null;
+            let lift = null;
+
+            if(highlighted > 0){
+                conf = supp / p_f;
+            }else{
+                conf = 0;
+            }
+
+            if(selected > 0){
+                conf2 = supp / p_s;
+            }else{
+                conf2 = 0;
+            }
+
+            if(p_f > 0 && p_s > 0){
+                lift = p_snf / (p_f * p_s); 
+            }else{
+                lift = 0;
+            }
+             
             let metrics = [supp, lift, conf, conf2];
 
             // Stash the previous location
@@ -1118,7 +1120,7 @@ class DataMining{
             }
         }
 
-        let output = null;
+        let cluster_result = null;
         $.ajax({
             url: "/api/data-mining/cluster-data/",
             type: "POST",
@@ -1132,12 +1134,60 @@ class DataMining{
             success: function (data, textStatus, jqXHR)
             {
                 console.log("Clustering finished");
+                cluster_result = data;
             },
             error: function (jqXHR, textStatus, errorThrown)
             {alert("error");}
         });
-        return output;
+
+        let id_list = cluster_result.id;
+        let labels = cluster_result.labels;
+
+        let clusters = {};
+        let max = -1; 
+        for(let i = 0; i < id_list.length; i++){
+            let id = +id_list[i];
+            
+            let label_string = labels[i];
+            let label_num = + label_string;
+
+            if(label_num > max){
+                max = label_num
+            }
+
+            if(!clusters[label_string]){
+                clusters[label_string] = [];
+            }
+
+            clusters[label_string].push(id);
+        }
+
+        let numClusters = max + 1;
+        let cluster_colors = [
+            "rgba(234, 23, 0, 1)", // red
+            "rgba(0, 234, 23, 1)", // green
+            "rgba(0, 129, 234, 1)", // blue
+            "rgba(234, 105, 0, 1)", // orange
+            "rgba(0, 234, 148, 1)", // cyan? emerald?
+        ];
+
+        this.data.forEach(point => {
+            let id = point.id;
+            for(let i = 0; i < numClusters; i++){
+                let clusterName = i + "";
+                if(clusters[clusterName].indexOf(id) != -1){
+                    // If the current point is included in the cluster
+                    point.drawingColor = cluster_colors[i];
+                    point.cluster = i;
+                }
+            }
+        });
+
+        this.clusters = clusters;
+
+        PubSub.publish(UPDATE_TRADESPACE_PLOT, true);
     }
+
 
     highlight_clustering_result(){
         let cluster_result = null;
@@ -1203,9 +1253,6 @@ class DataMining{
 
         PubSub.publish(UPDATE_TRADESPACE_PLOT, true);
     }
-
-
-
 
 }
 

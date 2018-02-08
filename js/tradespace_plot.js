@@ -333,13 +333,25 @@ class TradespacePlot{
         d3.select("#num_of_selected_archs").text(""+this.num_selected_points);
 
 
-        // d3.select(".tradespace_plot.figure").on("click",this.unhighlight_support_panel);
-        // d3.select("#support_panel").on("click",this.highlight_support_panel);        
-//        d3.select("[id=hide_selection]").on("click",hideSelection);
-//        d3.select("[id=show_all_archs]").on("click",show_all_archs);
 //        d3.selectAll(".tradespace_plot.dot")[0].forEach(function(d,i){
 //            d3.select(d).attr("paretoRank",-1);
-//        });        
+//        });   
+
+        d3.select("#hide_selection").on("click", ()=> {
+            this.hide_selection();
+        });     
+
+        d3.select("#show_all_archs").on("click", ()=> {
+            this.show_hidden_archs();
+        }); 
+
+        d3.select("#select_highlighted").on("click", ()=> {
+            this.select_highlighted();
+        }); 
+
+        d3.select("#select_complement").on("click", ()=> {
+            this.select_complement();
+        }); 
 
         d3.select('#interaction_modes')
             .selectAll('div')
@@ -354,7 +366,10 @@ class TradespacePlot{
     }
 
     setPointColor(point){
-        if (point.selected && point.highlighted) {
+        if(point.hidden){
+            point.drawingColor = this.color.default;
+        }
+        else if (point.selected && point.highlighted) {
             point.drawingColor = this.color.overlap;
         }
         else if (point.selected) {
@@ -376,7 +391,11 @@ class TradespacePlot{
             let tx = this.transform.applyX(this.xMap(point));
             let ty = this.transform.applyY(this.yMap(point));
             context.beginPath();
-            context.fillStyle = hidden ? point.interactColor : point.drawingColor;
+            if(point.hidden){
+                context.fillStyle = "rgba(110,110,110,0.0085)";
+            }else{
+                context.fillStyle = hidden ? point.interactColor : point.drawingColor;
+            }
             context.arc(tx, ty, 3.3, 0, 2 * Math.PI);
             context.fill();
         });
@@ -831,35 +850,98 @@ class TradespacePlot{
         return out;    
     }
 
+    select_highlighted(){
+
+        this.data.forEach( (point) => {
+
+            if(point.highlighted){
+                point.selected = true;
+                point.highlighted = false;
+            }else{
+                point.selected = false;
+            }
+            this.setPointColor(point);
+        }); 
+        this.drawPoints(this.context, false);
+
+        this.num_selected_points = this.get_selected_architectures().length;
+        this.num_highlighted_points = this.get_highlighted_architectures().length;
+
+        d3.select("#num_of_selected_archs").text(""+this.num_selected_points);
+
+        PubSub.publish(SELECTION_UPDATED, this.get_selected_architectures());
+    }
 
 
-    
-    // self.hide_selection = function(){
-    //     var selected = d3.selectAll(".dot.tradespace_plot.selected");
-    //     selected.classed('hidden',true)
-    //             .classed('selected',false)
-    //             .classed('highlighted',false)
-    //             .style('fill',self.color.default)
-    //             .style("opacity", 0.085);
-    //     d3.select("#num_of_selected_archs").text(""+self.get_num_of_selected_archs());
-    //     d3.select("#num_of_archs").text(""+self.get_num_of_archs());
-    // }
+    select_complement(){
 
-    // self.show_all_archs = function(){
-    //     var hidden = d3.selectAll(".dot.tradespace_plot.hidden");
-    //     hidden.classed('hidden',false)
-    //             .style("opacity",1);
-    //     d3.select("#num_of_selected_archs").text(""+self.get_num_of_selected_archs());
-    //     d3.select("#num_of_archs").text(""+self.get_num_of_archs());
-    // }
+        this.data.forEach( (point) => {
 
+            if(point.selected){
+                point.selected = false;
+            }else if(point.highlighted){
+                point.selected = false;
+            }else{
+                point.selected = true;
+            }
+            this.setPointColor(point);
+        }); 
+        this.drawPoints(this.context, false);
+
+        this.num_selected_points = this.get_selected_architectures().length;
+        this.num_highlighted_points = this.get_highlighted_architectures().length;
+
+        d3.select("#num_of_selected_archs").text(""+this.num_selected_points);
+
+        PubSub.publish(SELECTION_UPDATED, this.get_selected_architectures());
+    }
+
+    show_hidden_archs(){
+
+        this.data.forEach( (point) => {
+
+            if(point.hidden){
+                point.hidden = false;
+            }
+            this.setPointColor(point);
+        }); 
+        this.drawPoints(this.context, false);
+
+        this.num_selected_points = this.get_selected_architectures().length;
+        this.num_highlighted_points = this.get_highlighted_architectures().length;
+
+        d3.select("#num_of_selected_archs").text(""+this.num_selected_points);
+
+        PubSub.publish(SELECTION_UPDATED, this.get_selected_architectures());
+    }
+
+    hide_selection(){
+
+        this.data.forEach( (point) => {
+
+            if(point.highlighted || point.selected){
+                point.highlighted = false;
+                point.selected = false;
+                point.hidden = true;
+            }
+            this.setPointColor(point);
+        }); 
+        this.drawPoints(this.context, false);
+
+        this.num_selected_points = this.get_selected_architectures().length;
+        this.num_highlighted_points = this.get_highlighted_architectures().length;
+
+        d3.select("#num_of_selected_archs").text(""+this.num_selected_points);
+
+        PubSub.publish(SELECTION_UPDATED, this.get_selected_architectures());
+    }
 
     toggle_selection_and_highlight(){
 
         this.data.forEach( (point) => {
 
             if(point.highlighted && point.selected){
-                // do nithing
+                // do nothing
             }
             else if(point.highlighted){ // highlighted but not selected
                 point.highlighted = false;

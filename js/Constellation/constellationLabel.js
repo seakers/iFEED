@@ -1,5 +1,6 @@
 
-class GNCLabel extends Label{
+
+class ConstellationLabel extends Label{
 
     constructor(disabled){
 
@@ -8,11 +9,11 @@ class GNCLabel extends Label{
         this.input_list = [];
         this.output_list = [];
 
-        this.computer_actual_names = ["0","1","2","3"];
-        this.sensor_actual_names = ["0","1","2","3"];
+        // this.computer_actual_names = ["0","1","2","3"];
+        // this.sensor_actual_names = ["0","1","2","3"];
 
-        this.computer_display_names = ["0","A","B","C"];
-        this.sensor_display_names = ["0","A","B","C"];
+        // this.computer_display_names = ["0","A","B","C"];
+        // this.sensor_display_names = ["0","A","B","C"];
 
         PubSub.subscribe(DESIGN_PROBLEM_LOADED, (msg, data) => {
             this.input_list = data.metadata.input_list;
@@ -20,86 +21,78 @@ class GNCLabel extends Label{
             PubSub.publish(LABELING_SCHEME_LOADED, this);
         });
     }
-
     
     actualName2DisplayName(name,type){
 
+        let value = +name;
+
         if(this.disabled){
-            return name;
+            return value;
+        }else if(value === 0){
+            // do nothing
+        }else if(!name){
+            return null;
         }
 
-        if(type != "sensors" && type != "computers"){
-            return name;
+        if(type.indexOf("sma") != -1){
+            type = "length";
+        }else if(type.indexOf("inc") != -1 || type.indexOf("raan") != -1 || type.indexOf("ta") != -1 ){
+            type = "angle";
         }
 
-        name = name.trim();
+        if(type != "length" && type != "angle"){
+            return value;
+        }
         
-        if(type === "sensors"){
+        if(type === "length"){
 
-            let newName = null;
-            let nth = $.inArray(name, this.sensor_actual_names);
-            if(nth === -1){// Couldn't find the name from the list
-                return name;
-            }else{
-                newName = this.sensor_display_names[nth];
-            }
-            return newName;
+            value = value / 1000 - 6370;  // meters to kilometers
+            return value;
             
-        } else if(type === "computers"){
+        } else if(type === "angle"){
 
-            let newName = "";
-            let nth = $.inArray(name, this.computer_actual_names);
-            if(nth === -1){// Couldn't find the name from the list
-                return name;
-            }else{
-                newName = this.computer_display_names[nth];
-            }
-            return newName;
+            value = value / Math.PI * 180;
+            return value.toFixed(4);
         } 
-        return name;
     }
     
     displayName2ActualName(name,type){
 
+        let value =  +name;
+
         if(this.disabled){
-            return name;
+            return value;
+        }else if(value === 0){
+            // do nothing
+        }else if(!name){
+            return null;
         }
 
-        if(type != "sensors" && type != "computers"){
-            return name;
+        if(type != "length" && type != "angle"){
+            return value;
         }
 
-        name = name.trim();
-        
-        if(type === "sensors"){
+        if(type.indexOf("sma") != -1){
+            type = "length";
+        }else if(type.indexOf("inc") != -1 || type.indexOf("raan") != -1 || type.indexOf("ta") != -1 ){
+            type = "angle";
+        }
 
-            let newName = null;
-            let nth = $.inArray(name, this.sensor_display_names);
-            if(nth === -1){// Couldn't find the name from the list
-                return name;
-            }else{
-                newName = this.sensor_actual_names[nth];
-            }
-            return newName;
+        if(type === "length"){
+
+            value = (6370 + value) * 1000;  // kilometers to meters
+            return value;
             
-        } else if(type === "computers"){
+        } else if(type === "angle"){
 
-            let newName = "";
-            let nth = $.inArray(name, this.computer_display_names);
-            if(nth === -1){// Couldn't find the name from the list
-                return name;
-            }else{
-                newName = this.computer_actual_names[nth];
-            }
-            return newName;
+            value = value / 180 * Math.PI;
+            return value;
         } 
-
-        return name;
     }
     
     pp_feature_type(expression){
         
-        if(expression.indexOf('[')==-1){
+        if(expression.indexOf('[') === -1){
             return expression;
         }
         var type='';
@@ -133,14 +126,13 @@ class GNCLabel extends Label{
         let featureArg = exp.split("[")[1];
         featureArg = featureArg.substring(0, featureArg.length - 1);   
 
-        if(featureName === "numSensorOfType" || featureName === "numComputerOfType" ||
-            featureName === "sensorWithSpecificNumLinks" || featureName === "computerWithSpecificNumLinks"){
+        if(featureName.indexOf("sma") != -1){
 
             let name = featureArg.split(";")[0];
             let number = featureArg.split(";")[1];
 
             let type = null;
-            if(featureName === "numSensorOfType" || featureName === "sensorWithSpecificNumLinks"){
+            if(featureName === "numSensorOfType"){
                 type = "sensors";
             }else{
                 type = "computers";
@@ -163,13 +155,6 @@ class GNCLabel extends Label{
     pp_feature(expression){
 
         let output = '';
-
-    //    if(expression.indexOf('{FeatureToBeAdded}')>-1){
-    //        expression=expression.replace('&&{FeatureToBeAdded}','');
-    //        expression=expression.replace('||{FeatureToBeAdded}','');
-    //        expression=expression.replace('{FeatureToBeAdded}&&','');
-    //        expression=expression.replace('{FeatureToBeAdded}||','');
-    //    }
 
         let save = false;
         let savedString = '';
