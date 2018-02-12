@@ -8,8 +8,10 @@ class ConstellationFilter extends Filter{
         let presetFeaturesInfo = [
                                 {value:"not_selected",text:"Preset Filters"},
                                 {value:"paretoFront",text:"Pareto front"},
-                                {value:"numSensors",text:"# of sensors",input:"singleNum",hints:""},
-                                
+                                {value:"numPlanes",text:"# of planes",input:"singleNum",hints:""},
+                                {value:"semiMajorAxis",text:"Semi-major Axis",input:"lowerUpperBoundAndNum",hints:""},
+                                {value:"inclination",text:"Inclination",input:"lowerUpperBoundAndNum",hints:""},
+                                {value:"meanDiffRAAN",text:"Mean differences in RAAN",input:"lowerUpperBound",hints:""}
                             ];  
 
         for (let i = 0; i < presetFeaturesInfo.length; i++){
@@ -35,24 +37,14 @@ class ConstellationFilter extends Filter{
 
         let match_function = function(name){
             switch(name) {
-                case "numSensors":
-                    return that.numSensors;
-                case "numComputers":
-                    return that.numComputers;   
-                case "numLinks":
-                    return that.numLinks; 
-                case "minNSNC":
-                    return that.minNSNC; 
-                case "numSensorOfType":
-                    return that.numSensorOfType;
-                case "numComputerOfType":
-                    return that.numComputerOfType;
-                case "Inat_1":
-                    return that.Inat_1; 
-                case "Inat_2":
-                    return that.Inat_2; 
-                case "Inat_3":
-                    return that.Inat_3; 
+                case "numPlanes":
+                    return that.numPlanes;
+                case "inclination":
+                    return that.inclination;
+                case "semiMajorAxis":
+                    return that.semiMajorAxis;
+                case "meanDiffRAAN":
+                    return that.meanDiffRAAN;
 
                 default:
                     return null;
@@ -115,6 +107,7 @@ class ConstellationFilter extends Filter{
                     filter_input_1.append("input")
                                 .attr("type","text");
                     break;
+
                  case "NameAndNum":
                     filter_input_1.text("Input the name: ");
                     filter_input_1.append("input")
@@ -123,6 +116,34 @@ class ConstellationFilter extends Filter{
                     filter_input_2.text("Input single integer number: ");
                     filter_input_2.append("input")
                                 .attr("type","text");
+                    break;
+
+                case "lowerUpperBound":
+                    filter_input_1.text("Input the lower bound: ");
+                    filter_input_1.append("input")
+                                .attr("type","text");
+
+                    filter_input_2.text("Input the upper bound: ");
+                    filter_input_2.append("input")
+                                .attr("type","text");
+                    break;
+
+                case "lowerUpperBoundAndNum":
+                    filter_input_1.text("Input the lower bound: ");
+                    filter_input_1.append("input")
+                                .attr("type","text");
+
+                    filter_input_2.text("Input the upper bound: ");
+                    filter_input_2.append("input")
+                                .attr("type","text");
+
+                    filter_input_3.text("Input single integer number: ");
+                    filter_input_3.append("input")
+                                .attr("type","text");
+
+                    d3.select(".filter.hints.div")
+                        .append("div")
+                        .html('<p>To set the range of values, write in format: \"n1~n2\"</p>');  
                     break;
 
                 default:
@@ -178,8 +199,7 @@ class ConstellationFilter extends Filter{
             let input = d3.selectAll('.filter.inputs.div').select('div').select('input').node().value
             filter_expression = "paretoFront["+input+"]";
 
-        }else if(dropdown === "numSensors" || dropdown === "numComputers" || dropdown === "numLinks" ||
-            dropdown === "minNSNC"){
+        }else if(dropdown === "numPlanes"){
 
             let arg = input_textbox[0];
             if(isNaN(arg)){ // If arg cannot be converted to a number
@@ -187,20 +207,23 @@ class ConstellationFilter extends Filter{
             }
             filter_expression = option + "[" + arg + "]";
 
-        }else if(dropdown === "numSensorOfType" || dropdown === "numComputerOfType"){
+        }else if(dropdown === "inclination" || dropdown === "semiMajorAxis" || dropdown === "meanDiffRAAN"){
 
             let type = null;
 
-            if(dropdown === "numSensorOfType"){
-                type = "sensors";
+            if(dropdown === "inclination" || dropdown === "meanDiffRAAN"){
+                type = "angle";
+            }else if(dropdown === "semiMajorAxis"){
+                type = "length";
             }else{
-                type = "computers";
+                type = null;
             }
 
-            let name = this.label.displayName2ActualName(input_textbox[0], type);
-            let num = input_textbox[1];
+            let lb = this.label.displayName2ActualName(input_textbox[0], type);
+            let ub = this.label.displayName2ActualName(input_textbox[1], type);
+            let num = input_textbox[2];
 
-            filter_expression = option + "[" + name + ";" + num + "]";
+            filter_expression = option + "[" + lb + ";" + ub + ";" + num + "]";
         }
         
         filter_expression = "{" + filter_expression + "}";
@@ -280,90 +303,220 @@ class ConstellationFilter extends Filter{
     
     // Preset Feature Application Functions
 
-
-// {value:"NS",text:"# of Sensors",input:"singleNum",hints:""},
-//                                 {value:"NC",text:"# of Computers",input:"singleNum",hints:""},
-//                                 {value:"NumLinks",text:"# of Links",input:"singleNum",hints:""},
-//                                 {value:"minNSNC",text:"Minimum # of Sensors and Computers",input:"singleNum",hints:""},
-                                // {value:"numSensorOfType",text:"# of a specific sensor",input:"NameAndNum",hints:""},
-                                // {value:"numComputerOfType",text:"# of a specific computer",input:"NameAndNum",hints:""},
-
     define_filter_functions(){
 
         let that = this;
 
-        this.numSensorOfType = (args, inputs) => {
-            validInputCheck(args);
-            let sensorName = args[0];
-            let num = +args[1];
-            // Save the sensor input information, and make it a string
-            let sensorInputIndex = this.input_list.indexOf("sensors") + "";
-            let sensorInput = inputs[sensorInputIndex] + "";
 
-            let cnt = 0;
-            for(let i = 0; i < sensorInput.length; i++){
-                if(sensorInput[i] === sensorName){
-                    cnt += 1;
+        this.numPlanes = (args, inputs) => {
+            validInputCheck(args);
+
+            let n = + args[0];
+
+            let incIndexStart = null;
+            let incIndexEnd = null;
+            let raanIndexStart = null;
+            let raanIndexEnd = null;
+            
+            for(let i=0;i<this.input_list.length;i++){
+
+                if(this.input_list[i].indexOf("inc") != -1){
+                    if(incIndexStart === null){
+                        incIndexStart = i;
+                    }else{
+                        incIndexEnd = i;
+                    }
+                    continue;
+                }
+
+                if(this.input_list[i].indexOf("raan") != -1){
+                    if(raanIndexStart === null){
+                        raanIndexStart = i;
+                    }else{
+                        raanIndexEnd = i;
+                    }
+                    continue;
+                }
+
+            }
+
+            let inclinations = inputs.slice(incIndexStart, incIndexEnd+1);
+            let raans = inputs.slice(raanIndexStart, raanIndexEnd+1);
+
+            // Two spacecraft are in the same plane if they have the same inclination and raan (circular orbit)
+            let planes = [];
+
+            for(let i = 0; i < inclinations.length; i++){
+
+                let foundMatchingPlane = false;
+                let inc = inclinations[i];
+                let raan = raans[i];
+
+                for(let j=0;j<planes.length;j++){
+
+                    if( Math.abs(inc - planes[j].inc) <= 0.017  &&  // 0.1 rad difference
+                        Math.abs(raan - planes[j].raan) <= 0.017){ // 0.1 rad difference
+
+                        foundMatchingPlane = true;
+                        break;
+                    }
+                }
+
+                if(!foundMatchingPlane){
+                    planes.push({"inc": inc, "raan" : raan});
                 }
             }
-            return cnt === num; 
+
+            if(n === planes.length){
+                return true;
+            }else{
+                return false;
+            }    
         }
 
-        this.numComputerOfType = (args, inputs) => {
+        this.inclination = (args, inputs) => {
             validInputCheck(args);
-            let computerName = args[0];
-            let num = +args[1];
-            // Save the computer input information, and make it a string
-            let computerInputIndex = this.input_list.indexOf("computers") + "";
-            let computerInput = inputs[computerInputIndex] + "";
 
-            let cnt = 0;
-            for(let i = 0; i < computerInput.length; i++){
-                if(computerInput[i] === computerName){
-                    cnt += 1;
+            let lb = + args[0];
+            let ub = + args[1];
+            let num = args[2];
+            let numRange = [];
+
+            if(num.indexOf("~") != -1){
+                let low = + num.split("~")[0];
+                let high = + num.split("~")[1];
+                numRange = [low, high];
+            }else{
+                num = +num;
+                numRange = [num, num];
+            }
+
+            let incIndexStart = null;
+            let incIndexEnd = null;
+            
+            for(let i=0;i<this.input_list.length;i++){
+
+                if(this.input_list[i].indexOf("inc") != -1){
+                    if(incIndexStart === null){
+                        incIndexStart = i;
+                    }else{
+                        incIndexEnd = i;
+                    }
+                    continue;
                 }
             }
 
-            return cnt === num; 
-        }
+            let inclinations = inputs.slice(incIndexStart, incIndexEnd+1);
 
-        this.minNSNC = (args, inputs) => {
-            validInputCheck(args);
-            let arg = +args[0];
-            let NSIndex = this.input_list.indexOf("NS");
-            let NCIndex = this.input_list.indexOf("NC");
-            let ns = inputs[NSIndex];
-            let nc = inputs[NCIndex];
-            if(Math.min(ns,nc) === arg){
+            let cnt = 0;
+            for(let i=0;i<inclinations.length;i++){
+                let inc = inclinations[i];
+                if( inc >= lb && inc <= ub ){
+                    cnt++;
+                }
+            }
+
+            if(cnt >= numRange[0] && cnt <= numRange[1]){
                 return true;
             }else{
                 return false;
             }    
         }
 
-        this.numSensors = (args, inputs) => {
+        this.semiMajorAxis = (args, inputs) => {
             validInputCheck(args);
-            let arg = +args[0];
-            let NSIndex = this.input_list.indexOf("NS");
-            let ns = inputs[NSIndex];
-            if(ns === arg){
+
+            let lb = + args[0];
+            let ub = + args[1];
+            let num = args[2];
+            let numRange = [];
+
+            if(num.indexOf("~") != -1){
+                let low = + num.split("~")[0];
+                let high = + num.split("~")[1];
+                numRange = [low, high];
+            }else{
+                num = +num;
+                numRange = [num, num];
+            }
+
+            let smaIndexStart = null;
+            let smaIndexEnd = null;
+            
+            for(let i=0;i<this.input_list.length;i++){
+
+                if(this.input_list[i].indexOf("sma") != -1){
+                    if(smaIndexStart === null){
+                        smaIndexStart = i;
+                    }else{
+                        smaIndexEnd = i;
+                    }
+                    continue;
+                }
+            }
+
+            let sma = inputs.slice(smaIndexStart, smaIndexEnd+1);
+
+            let cnt = 0;
+            for(let i=0;i<sma.length;i++){
+                let x = sma[i];
+                if( x >= lb && x <= ub ){
+                    cnt++;
+                }
+            }
+
+            if(cnt >= numRange[0] && cnt <= numRange[1]){
                 return true;
             }else{
                 return false;
             }    
         }
 
-        this.numComputers = (args, inputs) => {
+        this.meanDiffRAAN = (args, inputs) => {
             validInputCheck(args);
-            let arg = +args[0];
-            let NCIndex = this.input_list.indexOf("NC");
-            let nc = inputs[NCIndex];
-            if(nc === arg){
+
+            let lb = + args[0];
+            let ub = + args[1];
+
+            let raanIndexStart = null;
+            let raanIndexEnd = null;
+            
+            for(let i = 0; i < this.input_list.length; i++){
+                if(this.input_list[i].indexOf("raan") != -1){
+                    if(raanIndexStart === null){
+                        raanIndexStart = i;
+                    }else{
+                        raanIndexEnd = i;
+                    }
+                    continue;
+                }
+            }
+
+            let raans = inputs.slice(raanIndexStart, raanIndexEnd+1);
+
+            raans.sort((a, b) => {return a - b}); // Sort in non-decreasing order
+
+            let diffSum = 0;
+            let cnt = 0;
+            for(let i = 0; i < raans.length - 1; i++){
+                let diff = Math.abs(raans[i] - raans[i+1]);
+                if(diff < 0.01){ // If the difference is less than about 0.6 degrees,
+                    //  assume they are the same
+                }else{
+                    diffSum = diffSum + diff;
+                    cnt++;
+                }
+            }
+
+            let avg = diffSum / cnt;
+
+            if(avg >= lb && avg <= ub){
                 return true;
             }else{
                 return false;
             }    
         }
+
 
         this.numLinks = (args, inputs) => {
             validInputCheck(args);
@@ -383,41 +536,7 @@ class ConstellationFilter extends Filter{
             }  
         }
 
-        this.Inat_1 = (args, inputs) => {
-            validInputCheck(args);
-            let arg = +args[0];
-            let index = this.input_list.indexOf("Inat_1");
-            let n = inputs[index];
-            if(n === arg){
-                return true;
-            }else{
-                return false;
-            }    
-        }
 
-        this.Inat_2 = (args, inputs) => {
-            validInputCheck(args);
-            let arg = +args[0];
-            let index = this.input_list.indexOf("Inat_2");
-            let n = inputs[index];
-            if(n === arg){
-                return true;
-            }else{
-                return false;
-            }    
-        }
-
-        this.Inat_3 = (args, inputs) => {
-            validInputCheck(args);
-            let arg = +args[0];
-            let index = this.input_list.indexOf("Inat_3");
-            let n = inputs[index];
-            if(n === arg){
-                return true;
-            }else{
-                return false;
-            }    
-        }
 
     }
 }

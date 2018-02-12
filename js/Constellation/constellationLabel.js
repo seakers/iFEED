@@ -52,7 +52,7 @@ class ConstellationLabel extends Label{
         } else if(type === "angle"){
 
             value = value / Math.PI * 180;
-            return value.toFixed(4);
+            return value.toFixed(2);
         } 
     }
     
@@ -72,19 +72,13 @@ class ConstellationLabel extends Label{
             return value;
         }
 
-        if(type.indexOf("sma") != -1){
-            type = "length";
-        }else if(type.indexOf("inc") != -1 || type.indexOf("raan") != -1 || type.indexOf("ta") != -1 ){
-            type = "angle";
-        }
-
         if(type === "length"){
-
-            value = (6370 + value) * 1000;  // kilometers to meters
+            // kilometers to meters
+            value = (6370 + value) * 1000;  
             return value;
             
         } else if(type === "angle"){
-
+            // Degree to radian
             value = value / 180 * Math.PI;
             return value;
         } 
@@ -126,21 +120,26 @@ class ConstellationLabel extends Label{
         let featureArg = exp.split("[")[1];
         featureArg = featureArg.substring(0, featureArg.length - 1);   
 
-        if(featureName.indexOf("sma") != -1){
+        if(featureName.indexOf("inclination") != -1 || featureName.indexOf("semiMajorAxis") != -1 
+            || featureName.indexOf("meanDiffRAAN") != -1){
 
-            let name = featureArg.split(";")[0];
-            let number = featureArg.split(";")[1];
+            let lb = featureArg.split(";")[0];
+            let ub = featureArg.split(";")[1];
+            let num = featureArg.split(";")[2];
 
             let type = null;
-            if(featureName === "numSensorOfType"){
-                type = "sensors";
+            if(featureName === "inclination" || featureName === "meanDiffRAAN"){
+                type = "angle";
+            }else if(featureName === "semiMajorAxis"){
+                type = "length";
             }else{
-                type = "computers";
+                type = null;
             }
 
-            name = this.actualName2DisplayName(name, type);
+            lb = this.actualName2DisplayName(lb, type);
+            ub = this.actualName2DisplayName(ub, type);
 
-            featureArg = name + ";" + number;
+            featureArg = lb + ";" + ub + ";" + num;
         }
 
         if(featureName[0]=='~'){
