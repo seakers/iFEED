@@ -25,8 +25,8 @@ class FeatureApplication{
 
         // top  right bottem left
         this.margin = {left:70,right:20,top:10,bottom:20},
-        this.width = 1000 - this.margin.left - this.margin.right,
-        this.height = 800 - this.margin.top - this.margin.bottom;
+        this.width = 1200 - this.margin.left - this.margin.right,
+        this.height = 1200 - this.margin.top - this.margin.bottom;
 
 
         this.draggingNode = null;
@@ -52,7 +52,7 @@ class FeatureApplication{
 //        self.update(); 
 //    }); 
 //    
-//    
+
         PubSub.subscribe(INITIALIZE_FEATURE_APPLICATION, (msg, data) => {
             this.clear_feature_application()
         });   
@@ -95,66 +95,77 @@ class FeatureApplication{
                     .attr('transform','translate('+ margin.left + "," + margin.top + ")");
 
         this.i = 0;
-        this.data = this.construct_tree(expression);  
+        this.data = this.construct_tree(this, expression);  
                                 
         this.visit_nodes(this.data, (d) => {
             d.temp = true;
-            d.id = this.i++;
         });
 
         this.update();  
     }
     
-    
-    update(){
+
+    update(featureMargin){
+
+        // Check the tree structure and make sure that it is correct
+        this.check_tree_structure();
                 
         if(this.data === null){
             d3.selectAll('.treeNode').remove();
             d3.selectAll('.treeLink').remove();
+            this.i = 0;
             PubSub.publish(APPLY_FEATURE_EXPRESSION, null);
             return;
         }    
 
-        // Check the tree structure and make sure that it is correct
-        this.check_tree_structure();
+        if(!featureMargin){
+            featureMargin = 180;
+        }
+
+        let that = this;   
                 
         // Apply the feature expression
         PubSub.publish(APPLY_FEATURE_EXPRESSION, this.parse_tree(this.data));
         
         let duration = d3.event && d3.event.altKey ? 5000 : 600;
         let margin = this.margin;
-        let root = d3.hierarchy(this.data, function(d) { return d.children; }); 
-        root.x0 = this.height / 2;
-        root.y0 = 0;    
 
-        this.visit_nodes(root, (node) => {
+        let root = d3.hierarchy(this.data, function(d) { return d.children; }); 
+
+        // Root node
+        root.x0 = that.height / 2;
+        root.y0 = 0; 
+
+        // Set the starting location of each node if it is not set up before
+        this.visit_nodes(root, (node)=> {
             if(node.parent){
                 if(!node.x0){
                     node.x0 = node.parent.x0;
                     node.y0 = node.parent.y0;
+                    return;
                 }
             }
-        }); 
+        });
 
-        this.root = root;
-        
+        // Create d3 tree structure
         let treeStructure = this.tree(root);
 
-        // Compute the new tree layout.
+        // Get individual elements of the tree
         let nodes = treeStructure.descendants();
         let links = treeStructure.descendants().slice(1);
-        
+
         // Normalize for fixed-depth.
-        nodes.forEach(function(d) { d.y = d.depth * 180; });
-        
+        nodes.forEach(function(d) { 
+            d.y = d.depth * featureMargin;
+        });
+
         let svg = d3.select('#feature_application_panel')
                         .select('svg').select('g');
-                        
-        let that = this;                
 
         // Update the nodes…
         let node = svg.selectAll("g.treeNode")
                         .data(nodes, function(d) {return d.id || (d.id = d.data.id); });
+
         
         // Enter any new nodes at the parent's previous position.
         let nodeEnter = node.enter()
@@ -189,21 +200,43 @@ class FeatureApplication{
             .attr('class','nodeRange')
             .attr('r',40)
             .attr('opacity',0)
-            .style('fill','red')
-            .attr('pointer-events','mouseover')
-            .on('mouseover',function(d){
-                that.selectedNode = d;  
-            })
-            .on('mouseout',function(d){
-                that.selectedNode = null;
-            });
+            .style('fill','red');
         
         // Transition nodes to their new position.
-        var nodeUpdate = nodeEnter.merge(node);
+        let nodeUpdate = nodeEnter.merge(node);
         
         nodeUpdate.transition()
             .duration(duration)
-            .attr("transform", (d) => { return "translate(" + d.y+ "," + d.x + ")"; })
+            .attr("transform", (d) => { 
+
+                if(d.parent){         
+                    if(d.verticalOffset){
+                        // pass
+
+                    }else{
+                        // Adjust the vertical location of each node so that it doesn't overlap with other nodes
+                        let offset = 28;
+                        let sibling = d.parent.children;
+                        let depth = d.depth;
+
+                        if(sibling.length % 2 === 1 && depth % 2 === 0){
+                            // When the number of children is odd, add offset to the vertical position
+                            let index = sibling.indexOf(d);
+                            let mid = (sibling.length - 1) / 2;
+                            if(index === mid){
+                                // Do nothing, as this one is in the middle
+                            }else if(index < mid){
+                                d.x = d.x - offset;
+                            }else{
+                                d.x = d.x + offset;
+                            }
+
+                            d.verticalOffset = true;
+                        }
+                    }
+                }
+                return "translate(" + d.y+ "," + d.x + ")";  
+            })
             .style('opacity', 1.0);
         
         nodeUpdate.select("circle")
@@ -211,19 +244,21 @@ class FeatureApplication{
             .style("fill", function(d) { 
                 if(d.data.deactivated){
                     return that.color.deactivated;
+
                 }else if(d.data.temp){
                     return that.color.temp;
+
                 }else{
-                     if(d.data.type === "logic"){
-                         if(d.data.add){
-                             return that.color.add;
-                         }
-                         else{
-                             return that.color.logic;
-                         }
-                     }else{
+                    if(d.data.type === "logic"){
+                        if(d.data.add){
+                            return that.color.add;
+                        
+                        }else{
+                            return that.color.logic;
+                        }
+                    }else{
                         return that.color.default;
-                     }
+                    }
                 }
              });
 
@@ -247,10 +282,19 @@ class FeatureApplication{
                 }
             })
             .style("font-size",23)
-            .style("fill-opacity", 1);        
+            .style("fill-opacity", 1);  
+
+        d3.selectAll('.nodeRange')
+            .attr('pointer-events','mouseover')
+            .on('mouseover',function(d){
+                that.selectedNode = that.select_treeNode_by_id(d.id).node().__data__;
+            })
+            .on('mouseout',function(d){
+                that.selectedNode = null;
+            });
 
         // Transition exiting nodes to the parent's new position.
-        var nodeExit = node.exit().transition()
+        let nodeExit = node.exit().transition()
             .duration(duration)
             .attr("transform", function(d) { 
                 if(d.depth === 0) {
@@ -342,17 +386,17 @@ class FeatureApplication{
             });
     }
         
-    
-    
     dragStart(d){
 
         // Dragging disabled in the root node
         if(d.depth === 0) { 
         	return;
         }
+
         if(d3.event.sourceEvent.which != 1) { 
         	return; 
         }
+
         d3.event.sourceEvent.stopPropagation();
 
         this.dragStarted = true;    
@@ -378,6 +422,7 @@ class FeatureApplication{
             if(d.type === 'leaf'){
                 return false;
             }else{
+                // You can only add new nodes to logic nodes
                 return true;
             }
         }).style('opacity',0.2);
@@ -447,7 +492,7 @@ class FeatureApplication{
             //ifeed.data_mining.draw_venn_diagram();  
 
             this.dragStarted = false;
-            this.draggingNode=null;
+            this.draggingNode = null;
         }
     }
 
@@ -478,18 +523,23 @@ class FeatureApplication{
 
         let delete_logic_node_without_children = (node) => {
             
-            if(!node.children && node.type=='logic'){
+            if(node.type === 'logic'){
+                // If a logic node does not have any child node
+                if (node.children.length === 0){
 
-                if(!node.parent){ // The root node is a logical connective but has no children
-                    this.data = null;
-                    d3.selectAll('.treeNode').remove();
+                    if(!node.parent){ 
+                        // The root node is a logical connective but has no children
+                        this.data = null;
+                        d3.selectAll('.treeNode').remove();
 
-                }else{
-                    let index = node.parent.children.indexOf(node);
-                    // Remove the current node
-                    if (index > -1) {
-                        node.parent.children.splice(index, 1);
+                    }else{
+                        let index = node.parent.children.indexOf(node);
+                        // Remove the current node
+                        if (index > -1) {
+                            node.parent.children.splice(index, 1);
+                        }
                     }
+
                 }
             }        
         }
@@ -559,8 +609,12 @@ class FeatureApplication{
  
     visit_nodes(source,func,reverse){
 
+        if(source === null){
+            return;
+        }
+
         function recursive(source, func, reverse){
-            var re;
+            let re;
             if(typeof func != 'undefined'){
                 re = func(source);
                 // If func is a function that returns something, stop traversing tree and return. Otherwise, apply func and keep traversing the tree
@@ -597,7 +651,7 @@ class FeatureApplication{
             }
         }
 
-        var direct_update = false;
+        let direct_update = false;
         
         if(option=='direct-update'){ // Make the direct update to the feature application status
             option='temp';
@@ -622,12 +676,11 @@ class FeatureApplication{
                     this.stashed_node_ids = this.get_node_ids(this.data,[]);
 
                     // Construct a subtree and append it as a child to the parent node
-                    let subtree = this.construct_tree(expression, parentNode.depth+1);
+                    let subtree = this.construct_tree(this, expression, parentNode.depth+1);
                     
                     if(!direct_update){
                         this.visit_nodes(subtree,function(d){
-                            d.temp=true;
-                            d.id = that.i++;
+                            d.temp = true;
                         })                        
                     }
 
@@ -640,7 +693,7 @@ class FeatureApplication{
                     // No parentNode
 
                     // Stash the current root 
-                    this.stashed_root = this.construct_tree(this.parse_tree(this.data));  
+                    this.stashed_root = this.construct_tree(this, this.parse_tree(this.data));  
 
                     // Re-draw the whole tree
                     this.draw_feature_application_tree(expression);
@@ -655,10 +708,16 @@ class FeatureApplication{
             
             
             if(direct_update){ // Make a direct update to the feature application status; not temporary
-                // Remove the stashed information
-                
+
+                // Remove the stashed information                
                 this.stashed_node_ids = null;
                 this.stashed_root = null;    
+
+                this.visit_nodes(this.data, (d) => {
+                    d.temp = false;
+                })
+
+                this.update();
                 
                 PubSub.publish(ADD_FEATURE, this.parse_tree(this.data));
                 //PubSub.publish(CANCEL_ADD_FEATURE, null);
@@ -798,7 +857,16 @@ class FeatureApplication{
         .style('opacity', 0);
     }
 
-    construct_tree(expression, depth){
+    construct_node(self, depth, type, name, children, parent){
+
+        if(self === null){
+            self = this;
+        }
+
+        return {id:self.i++, depth:depth, type:type, name:name, children:children, parent:parent};
+    }
+
+    construct_tree(self, expression, depth){
 
         if(!depth){
            depth = 0;
@@ -806,6 +874,10 @@ class FeatureApplication{
 
         if(expression === null){
             return {};
+        }
+
+        if(!self){
+            self = this;
         }
 
         let d = depth;
@@ -822,7 +894,7 @@ class FeatureApplication{
 
             if(e.indexOf("&&") === -1 && e.indexOf("||") === -1){
                 // There is no logical connective: return single feature (leaf node)
-                return {depth:d,type:"leaf",name:e,children:null};
+                return self.construct_node(self, d, "leaf", e, null, null);
             }else{
                 // There are logical connectives
                 _e = e;
@@ -855,7 +927,7 @@ class FeatureApplication{
                     logic = "||";
                     name="OR";
                 }            
-                thisNode = {depth:d,type:"logic",name:name,children:[], parent:null};
+                thisNode = self.construct_node(self, d, "logic", name, [], null);
 
             }else{
                 _e = _e.substring(2);
@@ -864,7 +936,7 @@ class FeatureApplication{
 
             if(_e.indexOf(logic)==-1){
                 // Last element in the list
-                let child = this.construct_tree(e, d+1);
+                let child = this.construct_tree(self, e, d+1);
                 thisNode.children.push(child);
                 child.parent = thisNode;
                 break;
@@ -876,7 +948,7 @@ class FeatureApplication{
                 temp = e.substring(0,_temp.length);
 
                 // Add the child to the current node
-                let child = this.construct_tree(temp,d+1);
+                let child = this.construct_tree(self, temp, d+1);
                 thisNode.children.push(child);
                 child.parent = thisNode;
 
@@ -1006,11 +1078,7 @@ class FeatureApplication{
 
     	let that = this;
         let data = [];
-
         let node = null;
-
-            // this.select_treeNode_by_id(d.id).attr("transform","translate("+ mouseX + "," + mouseY + ")");
-            // node = select_dataNode_by_id(d.id);        
 
         if (this.draggingNode != null && this.selectedNode != null) {
         	node = this.select_treeNode_by_id(nodeID).node().__data__;
@@ -1037,6 +1105,18 @@ class FeatureApplication{
             .style('stroke','red')
             .style('stroke-width','3px');
 
+        // Transition nodes to their new position.
+        let tempLinkUpdate = linkEnter.merge(link);
+
+        // Transition links to their new position.
+        tempLinkUpdate.transition()
+            .duration(0)
+            .attr('d', (d) => {
+                let o = null;
+                o = {x: that.selectedNode.x0, y: that.selectedNode.y0};
+                return that.diagonal(d, o);
+            });
+
         link.exit().remove();
     }
 
@@ -1062,8 +1142,6 @@ class FeatureApplication{
 
    		d3.select('#feature_expression').html("<p>"+expression+"</p>");
 	}
-    
-
     
     clear_feature_application(){
         this.data = null;
@@ -1103,4 +1181,124 @@ class FeatureApplication{
     	}
     	return node;
     }
+
+    convert_to_CNF(){
+
+        let feature = this.parse_tree(this.data);
+        let CNF_expression = "";
+        let that = this;
+
+        $.ajax({
+            url: "/api/data-mining/convert-to-CNF/",
+            type: "POST",
+            data: {
+                    expression: feature,
+                  },
+            async: false,
+            success: function (data, textStatus, jqXHR)
+            {
+                console.log(data);
+                CNF_expression = data;
+                that.update_feature_application("direct-update", CNF_expression);
+            },
+            error: function (jqXHR, textStatus, errorThrown)
+            {alert("error");}
+        });
+    }
+
+    convert_to_DNF(){
+
+        let feature = this.parse_tree(this.data);
+        let DNF_expression = "";
+        let that = this;
+
+        $.ajax({
+            url: "/api/data-mining/convert-to-DNF/",
+            type: "POST",
+            data: {
+                    expression: feature,
+                  },
+            async: false,
+            success: function (data, textStatus, jqXHR)
+            {
+                console.log(data);
+                DNF_expression = data;
+                that.update_feature_application("direct-update", DNF_expression);
+            },
+            error: function (jqXHR, textStatus, errorThrown)
+            {alert("error");}
+        });
+    }
+
+    compute_algebraic_complexity(feature){
+
+        if(!feature){
+            feature = this.parse_tree(this.data);
+        }
+        let complexity = "";
+
+        $.ajax({
+            url: "/api/data-mining/compute-complexity/",
+            type: "POST",
+            data: {
+                    expression: feature,
+                  },
+            async: false,
+            success: function (data, textStatus, jqXHR)
+            {
+                console.log(data);
+                complexity = data;
+            },
+            error: function (jqXHR, textStatus, errorThrown)
+            {alert("error");}
+        });    
+    }
+
+    compute_algebraic_typicality(input, feature){
+
+        if(!feature){
+            feature = this.parse_tree(this.data);
+        }
+        let complexity = "";
+        
+        $.ajax({
+            url: "/api/data-mining/compute-typicality/",
+            type: "POST",
+            data: {
+                    input: JSON.stringify(input),
+                    expression: feature,
+                  },
+            async: false,
+            success: function (data, textStatus, jqXHR)
+            {
+                console.log(data);
+                let typicality = data;
+            },
+            error: function (jqXHR, textStatus, errorThrown)
+            {alert("error");}
+        });    
+    }
+
+    shuffle_branch_order(root){
+
+        let update = false;
+        if(!root){
+            root = this.data;
+            update = true;
+        }        
+        let children = root.children;
+
+        if(children){
+            shuffle(children);
+
+            for(let i = 0; i < children.length; i++){
+                this.shuffle_branch_order(children[i]);
+            }
+        }
+
+        if(update){
+            this.update();
+        }
+    }
+
 }

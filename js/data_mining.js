@@ -163,28 +163,18 @@ class DataMining{
 
             let extracted_features = null;
 
-            if(selected_node){
-                // There exists a specific node to run the local search on
-                extracted_features = this.get_marginal_driving_features(selected, non_selected, base_feature, 
-                                                             this.support_threshold, this.confidence_threshold, this.lift_threshold);           
-
+            // Run local search either using disjunction or conjunction
+            let logical_connective = null;
+            if(option){
+                logical_connective = "OR";
             }else{
-                // Run local search either using disjunction or conjunction
-
-                let logical_connective = null;
-                if(option){
-                    logical_connective = "OR";
-                }else{
-                    logical_connective = "AND";
-                }
-
-                extracted_features = this.get_marginal_driving_features(selected, non_selected, base_feature, logical_connective,
-                                                         this.support_threshold,this.confidence_threshold,this.lift_threshold);
+                logical_connective = "AND";
             }
 
-            console.log(extracted_features);
+            extracted_features = this.get_marginal_driving_features(selected, non_selected, base_feature, logical_connective,
+                                                     this.support_threshold,this.confidence_threshold,this.lift_threshold);
+        
 
-    
             let features_to_add = [];
             this.recent_features_id = [];
 
@@ -354,41 +344,7 @@ class DataMining{
 
         return output;
     }    
-    
-    
-    /*
-        Run local search: only conjunction
-    */
-    get_marginal_driving_features_conjunctive(selected,non_selected,featureName,highlighted,
-                                                   support_threshold,confidence_threshold,lift_threshold){
-        
-        let output;
-        $.ajax({
-            url: "/api/data-mining/get-marginal-driving-features-conjunctive/",
-            type: "POST",
-            data: {
-                    problem: this.metadata.problem,  // eoss or gnc
-                    input_type: this.metadata.input_type, // Binary or Discrete
-                    featureName: featureName,
-                    highlighted: JSON.stringify(highlighted),
-                    selected: JSON.stringify(selected),
-                    non_selected:JSON.stringify(non_selected),
-                    supp:support_threshold,
-                    conf:confidence_threshold,
-                    lift:lift_threshold
-                  },
-            async: false,
-            success: function (data, textStatus, jqXHR)
-            {
-                output = data;
-            },
-            error: function (jqXHR, textStatus, errorThrown)
-            {alert("error");}
-        });
 
-        return output;
-    }
-    
     
     display_features(){
 
@@ -1105,13 +1061,22 @@ class DataMining{
 
 
 
-    run_clustering(){
+
+
+
+    run_clustering(param){
+
+        if(!param){
+            param = 3;
+        }
+
         // Store the id's of all dots
         let selected = [];
         let non_selected = [];
         for (let i = 0; i< this.selected_archs.length; i++){
             selected.push(this.selected_archs[i].id);
         }
+
         for (let i = 0; i < this.data.length; i++){
             let id = this.data[i].id;
             if (selected.indexOf(id) === -1){
@@ -1125,6 +1090,7 @@ class DataMining{
             url: "/api/data-mining/cluster-data/",
             type: "POST",
             data: {ID: "cluster-data",
+                    param: param,
                     problem: this.metadata.problem,  // eoss or gnc
                     input_type: this.metadata.input_type, // Binary or Discrete
                     selected: JSON.stringify(selected),
@@ -1144,16 +1110,11 @@ class DataMining{
         let labels = cluster_result.labels;
 
         let clusters = {};
-        let max = -1; 
         for(let i = 0; i < id_list.length; i++){
             let id = +id_list[i];
             
             let label_string = labels[i];
             let label_num = + label_string;
-
-            if(label_num > max){
-                max = label_num
-            }
 
             if(!clusters[label_string]){
                 clusters[label_string] = [];
@@ -1162,7 +1123,6 @@ class DataMining{
             clusters[label_string].push(id);
         }
 
-        let numClusters = max + 1;
         let cluster_colors = [
             "rgba(234, 23, 0, 1)", // red
             "rgba(0, 234, 23, 1)", // green
@@ -1171,10 +1131,15 @@ class DataMining{
             "rgba(0, 234, 148, 1)", // cyan? emerald?
         ];
 
+        this.run_data_mining_for_each_cluster(clusters);
+
+        let clusterNames = Object.keys(clusters);
+
         this.data.forEach(point => {
             let id = point.id;
-            for(let i = 0; i < numClusters; i++){
-                let clusterName = i + "";
+            for(let i = 0; i < clusterNames.length; i++){
+
+                let clusterName = clusterNames[i];
                 if(clusters[clusterName].indexOf(id) != -1){
                     // If the current point is included in the cluster
                     point.drawingColor = cluster_colors[i];
@@ -1189,17 +1154,98 @@ class DataMining{
     }
 
 
-    highlight_clustering_result(){
-        let cluster_result = null;
-        let colors = [];
+    run_data_mining_for_each_cluster(clusters){
 
+        let extracted_features = [];
+
+        let keys = Object.keys(clusters);
+
+        // Clear the feature application
+        PubSub.publish(INITIALIZE_FEATURE_APPLICATION, null);
+
+        // Remove all highlights in the scatter plot (retain target solutions)
+        PubSub.publish(APPLY_FEATURE_EXPRESSION, null);
+
+        for(let i = 0; i < keys.length; i++){
+
+            let thisCluster = clusters[keys[i]];
+
+            let otherClusters = [];
+            for(let j = 0; j < keys.length; j++){
+                if(i === j){
+                    continue;
+                }else{
+                    otherClusters.concat(clusters[keys[j]]);
+                }
+            }
+
+            // Store the id's of all dots
+            let selected = [];
+            let non_selected = [];
+
+            this.data.forEach( point => {
+                let id = point.id;
+
+                if(point.hidden){
+                    return;
+                
+                }else if(thisCluster.indexOf(id) != -1){
+                    selected.push(id);
+                
+                }else{
+                    if(otherClusters.indexOf(id) === -1){
+                        non_selected.push(id);
+                    }
+                }
+            });
+
+            let features = this.get_driving_features_automated(selected, non_selected, this.support_threshold, this.confidence_threshold, this.lift_threshold);
+
+            extracted_features = extracted_features.concat(features);   
+        }
+
+        this.all_features = extracted_features;
+        this.display_features();  
+    }
+
+
+
+    highlight_clustering_result(param){
+
+        if(!param){
+            param = 3;
+        }
+
+        // Store the id's of all dots
+        let selected = [];
+        let non_selected = [];
+        for (let i = 0; i< this.selected_archs.length; i++){
+            selected.push(this.selected_archs[i].id);
+        }
+
+        for (let i = 0; i < this.data.length; i++){
+            let id = this.data[i].id;
+            if (selected.indexOf(id) === -1){
+                // non-selected
+                non_selected.push(id);
+            }
+        }
+
+        let cluster_result = null;
         $.ajax({
-            url: "/api/data-mining/get-cluster/",
+            url: "/api/data-mining/cluster-data/",
             type: "POST",
-            data: {ID: "cluster-data"},
+            data: {ID: "cluster-data",
+                    param: param,
+                    problem: this.metadata.problem,  // eoss or gnc
+                    input_type: this.metadata.input_type, // Binary or Discrete
+                    selected: JSON.stringify(selected),
+                    non_selected:JSON.stringify(non_selected),
+                  },
             async: false,
             success: function (data, textStatus, jqXHR)
             {
+                console.log("Clustering finished");
                 cluster_result = data;
             },
             error: function (jqXHR, textStatus, errorThrown)
@@ -1210,16 +1256,11 @@ class DataMining{
         let labels = cluster_result.labels;
 
         let clusters = {};
-        let max = -1; 
         for(let i = 0; i < id_list.length; i++){
             let id = +id_list[i];
             
             let label_string = labels[i];
             let label_num = + label_string;
-
-            if(label_num > max){
-                max = label_num
-            }
 
             if(!clusters[label_string]){
                 clusters[label_string] = [];
@@ -1228,19 +1269,23 @@ class DataMining{
             clusters[label_string].push(id);
         }
 
-        let numClusters = max + 1;
         let cluster_colors = [
             "rgba(234, 23, 0, 1)", // red
             "rgba(0, 234, 23, 1)", // green
             "rgba(0, 129, 234, 1)", // blue
             "rgba(234, 105, 0, 1)", // orange
             "rgba(0, 234, 148, 1)", // cyan? emerald?
+            "rgba(250, 92, 255, 1)",
+            "rgba(218, 255, 92, 1)",
         ];
+
+        let clusterNames = Object.keys(clusters);
 
         this.data.forEach(point => {
             let id = point.id;
-            for(let i = 0; i < numClusters; i++){
-                let clusterName = i + "";
+            for(let i = 0; i < clusterNames.length; i++){
+
+                let clusterName = clusterNames[i];
                 if(clusters[clusterName].indexOf(id) != -1){
                     // If the current point is included in the cluster
                     point.drawingColor = cluster_colors[i];
@@ -1249,9 +1294,46 @@ class DataMining{
             }
         });
 
-        this.clusters = clusters;
-
         PubSub.publish(UPDATE_TRADESPACE_PLOT, true);
+    }
+
+
+    compute_algebraic_complexity_of_features(startInd, endInd){
+
+        let features = this.all_features;
+        if(features.length == 0){
+            return null;
+        }
+
+        if(startInd == null || endInd == null){
+            startInd = 0;
+            endInd = features.length;
+        }
+
+        let expressions = [];
+        for(let i = startInd; i < endInd; i++){
+            expressions.push(features[i].expression);
+        }
+
+        let complexity = [];
+        $.ajax({
+            url: "/api/data-mining/compute-complexity-of-features/",
+            type: "POST",
+            data: {
+                    expressions: JSON.stringify(expressions),
+                  },
+            async: false,
+            success: function (data, textStatus, jqXHR)
+            {
+                complexity = data;
+
+                for(let i = startInd; i < endInd; i++){
+                    features[i].complexity = complexity[i];
+                }
+            },
+            error: function (jqXHR, textStatus, errorThrown)
+            {alert("error");}
+        });    
     }
 
 }

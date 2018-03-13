@@ -16,7 +16,7 @@ class EOSSFilter extends Filter{
                                {value:"emptyOrbit",text:"Empty orbit",input:"orbitInput",hints:"Designs that have no instrument inside the specified orbit are chosen"},
                                {value:"numOrbits",text:"Number of orbit used",input:"numOrbit",hints:"Designs that have the specified number of non-empty orbits are chosen"},
                                //{value:"numOfInstruments",text:"Number of instruments",input:"numOfInstruments",hints:"This highlights all the designs with the specified number of instruments. If you specify an orbit name, it will count all instruments in that orbit. If you can also specify an instrument name, and only those instruments will be counted across all orbits. If you leave both instruments and orbits blank, all instruments across all orbits will be counted."},
-                               //{value:"subsetOfInstruments",text:"Num of instruments in a subset",input:"subsetOfInstruments",hints:"The specified orbit should contain at least m number and at maximum M number of instruments from the specified instrument set. m is the first entry and M is the second entry in the second field"},
+                               {value:"subsetOfInstruments",text:"Num of instruments in a subset",input:"subsetOfInstruments",hints:"The specified orbit should contain at least m number and at maximum M number of instruments from the specified instrument set. m is the first entry and M is the second entry in the second field"},
                             ];  
 
         for (let i = 0; i < presetFeaturesInfo.length; i++){
@@ -58,6 +58,8 @@ class EOSSFilter extends Filter{
                     return that.emptyOrbit;
                 case "numOrbits":
                     return that.numOrbits;
+                case "subsetOfInstruments":
+                    return that.subsetOfInstruments;
                 default:
                     return null;
             }
@@ -556,7 +558,46 @@ class EOSSFilter extends Filter{
                 out = true;
             }
             return out;
-        }   
+        }  
+
+        this.subsetOfInstruments = (args, inputs) => {
+            validInputCheck(args);
+
+            let orb = +args[0];
+            let instrumentsString = args[1];
+            let numString = args[2];
+
+            instrumentsString = instrumentsString.split(",");
+            let instruments = [];
+            for(let i = 0; i < instrumentsString.length; i++){
+                instruments.push(+instrumentsString[i]);
+            }
+
+            let min = 0;
+            let max = 0;
+
+            if(numString.indexOf(",") === -1){
+                // Only min is provided
+                min = +numString;
+                max = 9999;
+            }else{
+                let numStringSplit = numString.split(",");
+                min = +numStringSplit[0];
+                max = +numStringSplit[1];
+            }
+
+            let out = true;
+            let cnt = 0;
+
+            for(let i = 0; i < instruments.length; i++){
+                if(inputs[orb * this.ninstr + instruments[i]] === true){
+                    cnt++;
+                }
+            }   
+
+            return (cnt >= min && cnt <= max);
+        }
+
     }
 }
 

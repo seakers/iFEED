@@ -169,11 +169,12 @@ class EOSS extends Problem{
                                 .attr("id", "arch_info_display_table");
 
         var columns = [];
-        columns.push({columnName: "orbit"});
+        //columns.push({columnName: "orbit"});
+        columns.push({columnName: "Slots"});
         
         for ( i = 0; i < maxNInst; i++) {
             var tmp = i + 1;
-            columns.push({columnName: "Inst " + tmp});
+            columns.push({columnName: "Item " + tmp});
         }
 
         // create table header
@@ -442,6 +443,26 @@ class EOSS extends Problem{
             }
         });    
     }    
+
+    generate_design_input(input){
+
+        // "A/B/CD/E"
+        let split = input.split("/");
+        input = new Array(60).fill(0);
+
+        let norb = 5;
+        let ninstr = 12;
+
+        for(let o = 0; o < split.length; o++){
+            let thisOrbit = split[o];
+            for(let i = 0; i < thisOrbit.length; i++){
+                let instrIndex = +this.label.displayName2Index(thisOrbit[i], "instrument");
+                input[o * ninstr + instrIndex] = 1;
+            }
+        }
+
+        return input;
+    }
     
     get_critique(architecture) {
                 

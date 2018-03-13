@@ -18,6 +18,12 @@ class EOSSLabel extends Label{
         this.instrument_list = [];
         this.orbit_relabeled = ["1000","2000","3000","4000","5000"];
         this.instrument_relabeld = ["A","B","C","D","E","F","G","H","I","J","K","L"];
+        // this.orbit_relabeled = ["slot1","slot2","slot3","slot4","slot5"];
+        // this.instrument_relabeld = ["A","B","C","D","E","F","G","H","I","J","K","L"];
+
+        this.feature_names = ["present","absent","inOrbit","notInOrbit","together","togetherInOrbit","separate","emptyOrbit","numOrbits","subsetOfInstruments"];
+        this.feature_relabeled = null;
+        // this.feature_relabeled = ["present","absent","assignedTo","notAssignedTo","together","bothAssignedTo","notAssignedTogether","emptySlot","numSlots","AtLeastTwoItemsAssignedTo"];
 
         PubSub.subscribe(DESIGN_PROBLEM_LOADED, (msg, data) => {
             this.orbit_list = data.orbit_list;
@@ -26,6 +32,17 @@ class EOSSLabel extends Label{
         });
     }
     
+    featureActualName2DisplayName(featureName){
+
+        if(!this.feature_relabeled){
+            return featureName;
+        
+        }else if(this.feature_names.indexOf(featureName) != -1){
+            let index = this.feature_names.indexOf(featureName);
+            return this.feature_relabeled[index];
+        }
+        return "FeatureNameNotFound";
+    }
     
     /*
      * @param {int} index: Number indicating either an oribt or an instrument
@@ -116,7 +133,6 @@ class EOSSLabel extends Label{
         }
         return output;
     }
-    
     
     actualName2DisplayName(name,type){
         if(this.disabled){
@@ -222,7 +238,8 @@ class EOSSLabel extends Label{
             if(i>0){ppinstruments = ppinstruments + ",";}
             ppinstruments = ppinstruments + this.index2DisplayName(instruments[i], "instrument");
         }
-        var ppexpression = featureName + "[" + pporbits + ";" + ppinstruments + ";" + numbers + "]";
+
+        let ppexpression = this.featureActualName2DisplayName(featureName) + "[" + pporbits + ";" + ppinstruments + ";" + numbers + "]";
         
         return ppexpression;
     }

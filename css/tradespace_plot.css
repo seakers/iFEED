@@ -13,7 +13,7 @@
 }
 
 .content{
-    width:2100px; 
+    width:2400px; 
     height:1300px; 
     margin:auto;
 }
@@ -132,14 +132,14 @@
 }
 
 .column.c2{
-    width:860px;
-    height:1050px;
+    width:1160px;
+    height:1550px;
     float:left;
 }
 
 .column.c2 > div{
-    width:860px;
-    height:1050px;
+    width:1160px;
+    height:1550px;
     border-style:solid;
     border-width:1px;
     float:left;

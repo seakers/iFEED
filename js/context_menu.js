@@ -224,9 +224,12 @@ class ContextMenu {
 
         let node = context;
 
-        let visit_nodes = this.feature_application.visit_nodes;
-        let construct_tree = this.feature_application.construct_tree;
-        let parse_tree = this.feature_application.parse_tree;
+        let self = this.feature_application;
+        let visit_nodes = self.visit_nodes;
+        let construct_tree = self.construct_tree;
+        let construct_node = self.construct_node;
+
+        let parse_tree = self.parse_tree;
 
         let nodeID = node.id;
         let parent = node.parent;
@@ -244,7 +247,7 @@ class ContextMenu {
                         node.add = false;
                         
                     }else{
-                        visit_nodes(this.feature_application.data, (d) => {
+                        visit_nodes(self.data, (d) => {
                             if(d.id === nodeID){
                                 d.add = true;
                             }else{
@@ -291,7 +294,8 @@ class ContextMenu {
                     }else{
                         logic = "AND";
                     }
-                    parent.children.splice(index, 1, {id:this.feature_application.i++, depth:depth, type:"logic", name:logic, children:[node], parent: parent});
+                    let tempNode = construct_node(self, depth, "logic", logic, [node], parent);
+                    parent.children.splice(index, 1, tempNode);
 
                 }else{ 
                     // This is the root node
@@ -302,13 +306,14 @@ class ContextMenu {
                     }else{
                         logic = "AND";
                     }
-                    this.feature_application.data = {id:this.feature_application.i++, depth:0, type:"logic", name:logic, children:[node], parent: null};
+                    self.data = construct_node(self, 0, "logic", logic, [node], null);
                 }
   
                 break;
 
             case 'duplicate':
                 if(parent){
+
                     let index = parent.children.indexOf(node);
                     let logic = parent.name;
                     let depth = node.depth;
@@ -319,10 +324,9 @@ class ContextMenu {
                         logic = "AND";
                     }
 
-                    let duplicate = construct_tree(parse_tree(node));     
-                    duplicate.id = this.feature_application.i++;
-
-                    parent.children.splice(index, 0, {id:this.feature_application.i++, depth:depth, type:"logic",name:logic, children:[duplicate], parent:parent});
+                    let duplicate = construct_tree(self, parse_tree(node), depth);     
+                    let tempNode = construct_node(self, depth, "logic", logic, [duplicate], parent);
+                    parent.children.splice(index, 0, tempNode);
                 }
                 break;
 
@@ -351,7 +355,7 @@ class ContextMenu {
             case 'delete':
 
                 if(node.depth === 0){
-                    this.feature_application.data = null;
+                    self.data = null;
 
                 }else{
                     let index = parent.children.indexOf(node);
@@ -365,12 +369,12 @@ class ContextMenu {
                 break;
         }    
 
-        let root = this.feature_application.data;
-        let exp = this.feature_application.parse_tree(root);
+        let root = self.data;
+        let exp = self.parse_tree(root);
 
-        this.feature_application.update();
+        self.update();
         
-        PubSub.publish(ADD_FEATURE, this.feature_application.parse_tree(root));
+        PubSub.publish(ADD_FEATURE, self.parse_tree(root));
         
         //PubSub.publish(DRAW_VENN_DIAGRAM, this.feature_application.parse_tree(root)); 
     }

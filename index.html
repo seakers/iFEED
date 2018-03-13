@@ -166,7 +166,7 @@ and open the template in the editor.
     
 <script>
 
-    let problem_name = "constellation";
+    let problem_name = "eoss";
 
     var label = null;
     var filter = null;
@@ -200,6 +200,19 @@ and open the template in the editor.
     var feature_application = new FeatureApplication(data_mining, filter, label);    
 
     PubSub.publish(LOAD_DATA, null);
+
+
+    function select_fuzzy_pareto_front(rank){
+
+        problem.calculate_pareto_ranking([],20);
+    
+        let exp = "{paretoFront["+ rank +"]}";
+
+        filter.apply_filter_expression(exp);
+
+        tradespace_plot.toggle_selection_and_highlight();
+    }
+
 
 </script>
 
