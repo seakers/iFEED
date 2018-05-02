@@ -118,7 +118,7 @@ class IFEED{
 
         let that = this;
         $.ajax({
-            url: "/api/ifeed/import-data/",
+            url: "/api/ifeed/import-data",
             type: "POST",
             data: this.metadata,
             async: false,

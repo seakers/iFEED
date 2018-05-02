@@ -3,6 +3,8 @@ class DataMining{
     
     constructor(filteringScheme, labelingScheme){
 
+        this.run_ga = false;
+
         this.filter = filteringScheme;
         this.label = labelingScheme;
         this.feature_application = null;
@@ -36,7 +38,7 @@ class DataMining{
         this.utopia_point = {id:0,name:'utopiaPoint',expression:null,metrics:null,x0:-1,y0:-1,x:-1,y:-1};
         
 
-        this.coloursRainbow = ["#2c7bb6", "#00a6ca","#00ccbc","#90eb9d","#ffff8c","#f9d057","#f29e2e","#e76818","#d7191c"];
+        this.coloursRainbow = ["#2c7bb6", "#00a6ca", "#00ccbc", "#90eb9d", "#ffff8c", "#f9d057", "#f29e2e", "#e76818", "#d7191c"];
         this.colourRangeRainbow = d3.range(0, 1, 1.0 / (this.coloursRainbow.length - 1));
         this.colourRangeRainbow.push(1);
 
@@ -174,7 +176,6 @@ class DataMining{
             extracted_features = this.get_marginal_driving_features(selected, non_selected, base_feature, logical_connective,
                                                      this.support_threshold,this.confidence_threshold,this.lift_threshold);
         
-
             let features_to_add = [];
             this.recent_features_id = [];
 
@@ -236,7 +237,13 @@ class DataMining{
             // Remove all highlights in the scatter plot (retain target solutions)
             PubSub.publish(APPLY_FEATURE_EXPRESSION, null);
 
-            this.all_features = this.get_driving_features(selected, non_selected, this.support_threshold, this.confidence_threshold, this.lift_threshold);
+            if(!this.run_ga){
+                this.all_features = this.get_driving_features(selected, non_selected, this.support_threshold, this.confidence_threshold, this.lift_threshold);
+           
+            }else{
+                this.all_features = this.get_driving_features_epsilon_moea(selected, non_selected);
+
+            }
 
             if(this.all_features.length === 0){ // If there is no driving feature returned
                 return;
@@ -251,12 +258,40 @@ class DataMining{
 
     }
 
-    
+    get_driving_features_epsilon_moea(selected, non_selected){
+
+        console.log("Epsilon-MOEA called");
+
+        let output;
+        $.ajax({
+            url: "/api/data-mining/get-driving-features-epsilon-moea",
+            type: "POST",
+            data: {ID: "get_driving_features",
+                    problem: this.metadata.problem,  // eoss or gnc
+                    input_type: this.metadata.input_type, // Binary or Discrete
+                    selected: JSON.stringify(selected),
+                    non_selected:JSON.stringify(non_selected),
+                  },
+            async: false,
+            success: function (data, textStatus, jqXHR)
+            {
+                if(data=="[]"){
+                    alert("No driving feature mined. Please try modifying the selection. (Try selecting more designs)");
+                }
+                output = data;
+            },
+            error: function (jqXHR, textStatus, errorThrown)
+            {alert("error");}
+        });
+
+        return output;
+    }
+
     get_driving_features(selected,non_selected,support_threshold,confidence_threshold,lift_threshold){
 
         let output;
         $.ajax({
-            url: "/api/data-mining/get-driving-features/",
+            url: "/api/data-mining/get-driving-features",
             type: "POST",
             data: {ID: "get_driving_features",
                     problem: this.metadata.problem,  // eoss or gnc
@@ -286,7 +321,7 @@ class DataMining{
 
         let output;
         $.ajax({
-            url: "/api/data-mining/get-driving-features-automated/",
+            url: "/api/data-mining/get-driving-features-automated",
             type: "POST",
             data: {ID: "get_driving_features",
                     problem: this.metadata.problem,  // eoss or gnc
@@ -320,7 +355,7 @@ class DataMining{
         
         let output;
         $.ajax({
-            url: "/api/data-mining/get-marginal-driving-features/",
+            url: "/api/data-mining/get-marginal-driving-features",
             type: "POST",
             data: {
                     problem: this.metadata.problem,  // eoss or gnc
@@ -345,7 +380,6 @@ class DataMining{
         return output;
     }    
 
-    
     display_features(){
 
         document.getElementById('tab3').click();
@@ -822,7 +856,6 @@ class DataMining{
 
         }else{       
             
-            //this.filter.apply_filter_expression(expression);
             // Compute the metrics of a feature
             let total = this.data.length;
             let highlighted = 0;
@@ -1014,7 +1047,7 @@ class DataMining{
             }else{
                 var dist;
                 $.ajax({
-                    url: "/api/ifeed/venn-diagram-distance/",
+                    url: "/api/ifeed/venn-diagram-distance",
                     type: "POST",
                     data: {a1: a1,
                            a2: a2,
@@ -1087,7 +1120,7 @@ class DataMining{
 
         let cluster_result = null;
         $.ajax({
-            url: "/api/data-mining/cluster-data/",
+            url: "/api/data-mining/cluster-data",
             type: "POST",
             data: {ID: "cluster-data",
                     param: param,
@@ -1153,7 +1186,6 @@ class DataMining{
         PubSub.publish(UPDATE_TRADESPACE_PLOT, true);
     }
 
-
     run_data_mining_for_each_cluster(clusters){
 
         let extracted_features = [];
@@ -1208,8 +1240,6 @@ class DataMining{
         this.display_features();  
     }
 
-
-
     highlight_clustering_result(param){
 
         if(!param){
@@ -1233,7 +1263,7 @@ class DataMining{
 
         let cluster_result = null;
         $.ajax({
-            url: "/api/data-mining/cluster-data/",
+            url: "/api/data-mining/cluster-data",
             type: "POST",
             data: {ID: "cluster-data",
                     param: param,
@@ -1317,7 +1347,7 @@ class DataMining{
 
         let complexity = [];
         $.ajax({
-            url: "/api/data-mining/compute-complexity-of-features/",
+            url: "/api/data-mining/compute-complexity-of-features",
             type: "POST",
             data: {
                     expressions: JSON.stringify(expressions),
@@ -1335,6 +1365,5 @@ class DataMining{
             {alert("error");}
         });    
     }
-
 }
 

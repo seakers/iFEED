@@ -14,7 +14,7 @@ class EOSS extends Problem{
         let that = this;
 
         $.ajax({
-            url: "/api/vassar/get-orbit-list/",
+            url: "/api/vassar/get-orbit-list",
             type: "GET",
             async: false,
             success: function (data, textStatus, jqXHR)
@@ -28,7 +28,7 @@ class EOSS extends Problem{
         });
 
         $.ajax({
-            url: "/api/vassar/get-instrument-list/",
+            url: "/api/vassar/get-instrument-list",
             type: "GET",
             async: false,
             success: function (data, textStatus, jqXHR)
@@ -467,7 +467,7 @@ class EOSS extends Problem{
     get_critique(architecture) {
                 
         $.ajax({
-            url: "/api/critic/criticize-architecture/",
+            url: "/api/critic/criticize-architecture",
             type: "POST",
             data: {
                     inputs: JSON.stringify(architecture.inputs),
@@ -489,7 +489,7 @@ class EOSS extends Problem{
         let that = this;
 
         $.ajax({
-            url: "/api/vassar/evaluate-architecture/",
+            url: "/api/vassar/evaluate-architecture",
             type: "POST",
             data: {
                     inputs: JSON.stringify(inputs),
@@ -516,7 +516,7 @@ class EOSS extends Problem{
         var inputs = architecture.inputs;
         
         $.ajax({
-            url: "/api/vassar/run-local-search/",
+            url: "/api/vassar/run-local-search",
             type: "POST",
             data: {
                     inputs: JSON.stringify(inputs),
