@@ -27,7 +27,7 @@ const ADD_FEATURE = "add_feature";
 // Initialize feature application (pub: data_mining.js, sub: feature_application.js)
 const INITIALIZE_FEATURE_APPLICATION = "initialize_feature_application";
 
-
+const INPUT_GENERALIZATION_LOADED = "input_generalization_loaded";
 
 
 const DRAW_VENN_DIAGRAM = "draw_venn_diagram";
@@ -84,7 +84,6 @@ class IFEED{
         }); 
 
         PubSub.subscribe(LOAD_DATA, (msg, data) => {
-            
             this.import_new_data(data);
         }); 
     }
@@ -123,9 +122,7 @@ class IFEED{
             data: this.metadata,
             async: false,
             success: function (data, textStatus, jqXHR){
-
-                that.data = data;
-                
+                that.data = data;                
                 PubSub.publish(DATA_IMPORTED,data);
             },
             error: function (jqXHR, textStatus, errorThrown){

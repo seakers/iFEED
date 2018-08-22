@@ -1,8 +1,33 @@
 
-class EOSS extends Problem{
+class EOSSPartitioningAndAssigning extends Problem{
 
     constructor(){
         super();
+
+        this.metadata = {
+            problem: "Decadal2017Aerosols",
+            input_num: 10,
+            input_list: ["BIOMASS","SMAP_RAD","SMAP_MWR","CMIS","VIIRS"],
+            input_type: "discrete",
+            output_list: ['Science','Cost'],
+            output_num: 2,
+            output_obj: [1, -1], // 1 for lager-is-better, -1 for smaller-is-better
+            file_path: "Decadal2017Aerosol.csv"
+        };
+
+        let that = this;
+        $.ajax({
+            url: "/api/daphne/set-problem",
+            type: "POST",
+            data: {
+                problem: that.metadata.problem,
+            },
+            async: false,
+            error: function (jqXHR, textStatus, errorThrown)
+            {
+                alert("Error in setting the problem name in the daphne_brain session.");
+            }
+        });
 
         // Initialize the member attributes 
         this.orbit_list = [];
@@ -11,12 +36,13 @@ class EOSS extends Problem{
         this.instrument_num = null;
         this.current_bitString = null;
 
-        let that = this;
-
         $.ajax({
             url: "/api/vassar/get-orbit-list",
-            type: "GET",
+            type: "POST",
             async: false,
+            data: {
+                problem: that.metadata.problem,
+            },
             success: function (data, textStatus, jqXHR)
             {
                 that.orbit_list = data;
@@ -29,8 +55,11 @@ class EOSS extends Problem{
 
         $.ajax({
             url: "/api/vassar/get-instrument-list",
-            type: "GET",
+            type: "POST",
             async: false,
+            data: {
+                problem: that.metadata.problem,
+            },
             success: function (data, textStatus, jqXHR)
             {
                 that.instrument_list = data;
@@ -44,16 +73,6 @@ class EOSS extends Problem{
         this.orbit_num = this.orbit_list.length;
         this.instrument_num = this.instrument_list.length; 
 
-        this.metadata = {
-            problem: "eoss",
-            input_num: 1,
-            input_list: ["bitString"],
-            input_type: "binary",
-            output_list: ['Science','Cost'],
-            output_num: 2,
-            output_obj: [1, -1], // 1 for lager-is-better, -1 for smaller-is-better
-            file_path: "EOSS_data_recalculated.csv"
-        };
 
         PubSub.subscribe(LABELING_SCHEME_LOADED, (msg, data) => {
             this.label = data;

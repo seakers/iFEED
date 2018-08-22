@@ -9,7 +9,7 @@
 //{"LEO-600-polar-NA","SSO-600-SSO-AM","SSO-600-SSO-DD","SSO-800-SSO-DD","SSO-800-SSO-PM"};
 
 
-class EOSSLabel extends Label{
+class EOSSPartitioningAndAssigningLabel extends Label{
 
     constructor(disabled){
         super(disabled);        

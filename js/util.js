@@ -42,8 +42,6 @@ function remove_outer_parentheses(expression, outer_level){
     }
 }
 
-
-
 function get_nested_parenthesis_depth(expression){
 	let leng = expression.length;
 	let level = 0;
@@ -59,7 +57,6 @@ function get_nested_parenthesis_depth(expression){
 	}
 	return maxLevel;
 }
-
 
 function collapse_paren_into_symbol(expression){
 	var leng = expression.length;
@@ -84,8 +81,6 @@ function collapse_paren_into_symbol(expression){
 	}
 	return modified_expression;
 }
-
-
 
 function linspace(start, end, n) {
     var out = [];
@@ -162,12 +157,10 @@ function dominates(metrics1,metrics2,objective){
     }
 }
 
-
 // Returns if a value is an array
 function isArray (value) {
 	return value && typeof value === 'object' && value.constructor === Array;
 };
-
 
 // Get function from string, with or without scopes (by Nicolas Gauthier: https://stackoverflow.com/questions/912596/how-to-turn-a-string-into-a-javascript-function-call)
 function getFunctionFromString(string)
@@ -198,5 +191,29 @@ Array.prototype.multisplice = function(){
         out.push(removed[0]);
     }
     return out;        
+}
+
+function generateEOSSInput(length){
+    let out = [];
+    for(let i = 0; i < length; i++){
+        out.push(false);
+    }
+    return out;
+}
+
+function EOSSSetInputInstrument(input, orbit, instrument){
+    // Instruments and orbits
+    let instrumentList = [
+            "ACE_ORCA","ACE_POL","ACE_LID",
+            "CLAR_ERB","ACE_CPR","DESD_SAR",
+            "DESD_LID","GACM_VIS","GACM_SWIR",
+            "HYSP_TIR","POSTEPS_IRS","CNES_KaRIN"];
+    let orbitList = ["LEO-600-polar-NA","SSO-600-SSO-AM","SSO-600-SSO-DD","SSO-800-SSO-DD","SSO-800-SSO-PM"];
+
+    let instrIndex = instrumentList.indexOf(instrument);
+    let orbitIndex = orbitList.indexOf(orbit);
+
+    input[orbitIndex * instrumentList.length + instrIndex] = true;
+    return input;
 }
 

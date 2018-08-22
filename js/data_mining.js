@@ -3,7 +3,8 @@ class DataMining{
     
     constructor(filteringScheme, labelingScheme){
 
-        this.run_ga = false;
+        this.run_ga = true;
+        this.enable_generalization = false;
 
         this.filter = filteringScheme;
         this.label = labelingScheme;
@@ -37,7 +38,6 @@ class DataMining{
         this.current_feature_blink_interval=null;
         this.utopia_point = {id:0,name:'utopiaPoint',expression:null,metrics:null,x0:-1,y0:-1,x:-1,y:-1};
         
-
         this.coloursRainbow = ["#2c7bb6", "#00a6ca", "#00ccbc", "#90eb9d", "#ffff8c", "#f9d057", "#f29e2e", "#e76818", "#d7191c"];
         this.colourRangeRainbow = d3.range(0, 1, 1.0 / (this.coloursRainbow.length - 1));
         this.colourRangeRainbow.push(1);
@@ -124,7 +124,7 @@ class DataMining{
     
     async run(option){
         
-        // Store the id's of all dots
+        // Store the id's of all samples
         let selected = [];
         let non_selected = [];
 
@@ -147,7 +147,7 @@ class DataMining{
             return;
         }     
                 
-        // If the feature application tree exists:
+        // If the feature application tree exists, run local search
         if(this.feature_application.data){
 
             // Run data mining in the marginal feature space
@@ -241,8 +241,11 @@ class DataMining{
                 this.all_features = this.get_driving_features(selected, non_selected, this.support_threshold, this.confidence_threshold, this.lift_threshold);
            
             }else{
-                this.all_features = this.get_driving_features_epsilon_moea(selected, non_selected);
-
+                if(this.enable_generalization){
+                    this.all_features = this.get_driving_features_with_generalization(selected, non_selected);
+                }else{
+                    this.all_features = this.get_driving_features_epsilon_moea(selected, non_selected);
+                }
             }
 
             if(this.all_features.length === 0){ // If there is no driving feature returned
@@ -256,6 +259,37 @@ class DataMining{
             this.display_features();              
         }
 
+    }
+
+    get_driving_features_with_generalization(selected, non_selected){
+
+        console.log("Epsilon-MOEA with variable generalization called");
+
+        let that = this;
+        let output;
+        $.ajax({
+            url: "/api/data-mining/get-driving-features-with-generalization",
+            type: "POST",
+            data: {ID: "get_driving_features",
+                    problem: this.metadata.problem,  // eoss or gnc
+                    input_type: this.metadata.input_type, // Binary or Discrete
+                    selected: JSON.stringify(selected),
+                    non_selected:JSON.stringify(non_selected),
+                  },
+            async: false,
+            success: function (data, textStatus, jqXHR)
+            {
+                if(data=="[]"){
+                    alert("No driving feature mined. Please try modifying the selection. (Try selecting more designs)");
+                }
+                output = data;
+                that.get_problem_parameters();
+            },
+            error: function (jqXHR, textStatus, errorThrown)
+            {alert("error");}
+        });
+
+        return output;
     }
 
     get_driving_features_epsilon_moea(selected, non_selected){
@@ -1364,6 +1398,111 @@ class DataMining{
             error: function (jqXHR, textStatus, errorThrown)
             {alert("error");}
         });    
+    }
+
+    set_problem_parameters(){
+        $.ajax({
+            url: "/api/data-mining/set-problem-parameters",
+            type: "POST",
+            data: {
+                    problem: this.metadata.problem,  // ClimateCentric, GNC, etc
+                  },
+            async: false,
+            success: function (data, textStatus, jqXHR)
+            {
+                console.log(data);
+            },
+            error: function (jqXHR, textStatus, errorThrown)
+            {
+                alert("error");
+            }
+        });    
+    }
+
+    get_problem_parameters(){
+        let that = this;
+        $.ajax({
+            url: "/api/data-mining/get-problem-parameters",
+            type: "POST",
+            data: {
+                    problem: this.metadata.problem,  // ClimateCentric, GNC, etc
+                  },
+            async: false,
+            success: function (data, textStatus, jqXHR)
+            {
+                if(that.metadata.problem === "ClimateCentric"){
+                    let input_generalization = {}
+                    input_generalization.orbit_generalization = data.orbitList;
+                    input_generalization.instrument_generalization = data.instrumentList;
+
+                    let generalization_map = that.get_taxonomic_scheme()
+                    input_generalization.instance_map = generalization_map["instance_map"];
+                    input_generalization.superclass_map = generalization_map["superclass_map"];
+
+                    PubSub.publish(INPUT_GENERALIZATION_LOADED, input_generalization);
+                }
+            },
+            error: function (jqXHR, textStatus, errorThrown)
+            {
+                alert("error");
+            }
+        });    
+    }
+
+    get_taxonomic_scheme(){
+        let that = this;
+        let instance_map = null;
+        let superclass_map = null;
+
+        $.ajax({
+            url: "/api/data-mining/get-taxonomic-scheme",
+            type: "POST",
+            data: {
+                    problem: this.metadata.problem,  // ClimateCentric, GNC, etc
+                  },
+            async: false,
+            success: function (data, textStatus, jqXHR)
+            {
+                if(that.metadata.problem === "ClimateCentric"){
+                    instance_map = data.instanceMap;
+                    superclass_map = data.superclassMap;
+
+                    // If instance map is empty
+                    if(Object.keys(instance_map).length == 0){
+
+                        // For each superclass
+                        for (let key in superclass_map) {
+                            if (superclass_map.hasOwnProperty(key)) {
+
+                                // Separate class name and instance name
+                                let class_name = key.substring(0, key.indexOf('_'));
+                                let instance_name = key.substring(key.indexOf('_') + 1);
+
+                                let list_of_superclasses = superclass_map[key];
+                                for(let i = 0; i < list_of_superclasses.length; i++){
+
+                                    let superclass_name = list_of_superclasses[i];
+                                    if(!instance_map.hasOwnProperty(superclass_name)){
+                                        instance_map[superclass_name] = [];
+                                    }
+
+                                    // Add each instance to super classes
+                                    instance_map[superclass_name].push(instance_name);
+                                }
+                            }
+                        }
+                    }
+                    console.log(instance_map);
+                    console.log(superclass_map);
+                }
+            },
+            error: function (jqXHR, textStatus, errorThrown)
+            {
+                alert("error");
+            }
+        });
+
+        return {"instance_map":instance_map, "superclass_map":superclass_map};    
     }
 }
 

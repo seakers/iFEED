@@ -3,16 +3,10 @@ let validInputCheck = function(args){
 
     let valid = false;
     while(true){
+
         // Check if the input is an array
         if (!isArray(args)){
             break;
-        }
-
-        // Check if all arguments are string
-        for (let i in args){
-            if (typeof args[i] != "string"){
-                break;
-            }
         }
 
         // Passed all tests

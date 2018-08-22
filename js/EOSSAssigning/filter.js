@@ -1,5 +1,5 @@
 
-class EOSSFilter extends Filter{
+class EOSSAssigningFilter extends Filter{
     
     constructor(labelingScheme) {
 
@@ -29,6 +29,49 @@ class EOSSFilter extends Filter{
 
         PubSub.subscribe(DATA_PROCESSED, (msg, data) => {
             this.set_application_functions();
+        });
+
+        PubSub.subscribe(INPUT_GENERALIZATION_LOADED, (msg, data) => {
+            this.orbit_generalization = data.orbit_generalization;
+            this.instrument_generalization = data.instrument_generalization;
+            this.instance_map = data.instance_map;
+            this.superclass_map = data.superclass_map;
+            this.instance_index_map = {};
+            this.instance_index_map["orbit"] = {};
+            this.instance_index_map["instrument"] = {};
+
+            for(let class_name in this.instance_map) {
+
+                let instance_names = this.instance_map[class_name];
+                let instance_indices = [];
+
+                let class_type = null;
+                let reference_list = null;
+
+                for(let i = 0; i < instance_names.length; i++){
+                    let instance_name = instance_names[i];
+                    
+                    if(i === 0){
+                        if(this.orbit_generalization.indexOf(instance_name) != -1){
+                            class_type = "orbit";
+                            reference_list = this.orbit_generalization;
+
+                        }else if(this.instrument_generalization.indexOf(instance_name) != -1){
+                            class_type = "instrument";
+                            reference_list = this.instrument_generalization;
+
+                        }else{
+                            error("Unrecognized instance name: " + instance_name);
+
+                        }
+                    }
+
+                    instance_indices.push(reference_list.indexOf(instance_name));
+                }
+
+                let class_index = reference_list.indexOf(class_name);
+                this.instance_index_map[class_type][class_index] = instance_indices;
+            }
         });
 
         this.define_filter_functions();
@@ -224,7 +267,7 @@ class EOSSFilter extends Filter{
         if(option === "present" || option === "absent" || option === "together" || option === "separate"){
             
             let instrument = input_textbox[0];
-            let inst_relabel = this.label.displayName2Index(instrument.toUpperCase(),"instrument");
+            let inst_relabel = this.label.displayName2Index(instrument,"instrument");
             if(inst_relabel==null){
                 invalid_input=true;
             }
@@ -236,7 +279,7 @@ class EOSSFilter extends Filter{
             let instrument = input_textbox[1];
             
             let orb_relabel = this.label.displayName2Index(orbit,"orbit");
-            let inst_relabel = this.label.displayName2Index(instrument.toUpperCase(),"instrument");
+            let inst_relabel = this.label.displayName2Index(instrument,"instrument");
             if(inst_relabel==null || orb_relabel==null){
                 invalid_input=true;
             }            
@@ -265,7 +308,7 @@ class EOSSFilter extends Filter{
             let instrument = input_textbox[2];
             
             let orb_relabel = this.label.displayName2Index(orbit,"orbit");
-            let inst_relabel = this.label.displayName2Index(instrument.toUpperCase(),"instrument");
+            let inst_relabel = this.label.displayName2Index(instrument,"instrument");
             if(inst_relabel==null || orb_relabel==null){
                 invalid_input=true;
             }                    
@@ -295,7 +338,7 @@ class EOSSFilter extends Filter{
             }else if(orbitEmpty){
                 // Count the number of specified instrument
                 
-                let inst_relabel = this.label.displayName2Index(instrument.toUpperCase(),"instrument");
+                let inst_relabel = this.label.displayName2Index(instrument,"instrument");
                 if(inst_relabel==null){
                     invalid_input=true;
                 }                
@@ -340,7 +383,6 @@ class EOSSFilter extends Filter{
 
         let out = false;
         let matched = false;
-
         let expression = remove_outer_parentheses(input_expression);
         
         // Preset filter: {presetName[orbits;instruments;numbers]}   
@@ -359,7 +401,7 @@ class EOSSFilter extends Filter{
 
             if(data.pareto_ranking || data.pareto_ranking === 0){
                 let rank = data.pareto_ranking;
-                var arg = +expression.substring(0,expression.length-1).split("[")[1];
+                let arg = + expression.substring(0,expression.length-1).split("[")[1];
                 if(rank <= arg){
                     return true;
                 }else{
@@ -370,9 +412,16 @@ class EOSSFilter extends Filter{
             }
 
         }else{
-
             let argString = expression.substring(0, expression.length-1).split("[")[1];
             let args = argString.split(";");
+
+            for(let i = 0; i < args.length; i++){
+                let temp = args[i].split(",");
+                for(let j = 0; j < temp.length; j++){
+                    temp[j] = +temp[j];
+                }
+                args[i] = temp;
+            }
 
             for (let i = 0; i < this.presetFeatureTypes.length; i++){
                 let featureType = this.presetFeatureTypes[i];
@@ -388,7 +437,7 @@ class EOSSFilter extends Filter{
             throw "Exception: Matching preset feature not found!";
         }
 
-        if(flip==true){
+        if(flip){
             return !out;
         }else{
             return out;
@@ -397,105 +446,234 @@ class EOSSFilter extends Filter{
 
 
     define_filter_functions(){
+        let that = this;
     
         // Preset Feature Application Functions
         this.present = (args, inputs) => {
             validInputCheck(args);
+
             let out = false;
-            let instr = +args[1]
-            for(let i = 0;i < this.norb; i++){
-                if(inputs[this.ninstr * i + instr] === true){
-                    out = true;
-                    break;
+            let instrument = args[1][0];
+
+            if(instrument >= this.ninstr){
+                let instance_list = this.instance_index_map["instrument"][instrument];
+                for(let i = 0; i < instance_list.length; i++){
+
+                    let index = instance_list[i];
+                    let instantiated_args = Array.from(args);
+                    instantiated_args[1] = [index];
+                    if(this.present(instantiated_args, inputs)){
+                        // If at least one of the test is successful, return true
+                        out = true;
+                        break;
+                    }
                 }
+            }
+            else {
+                for(let i = 0; i < this.norb; i++){
+                    if(inputs[this.ninstr * i + instrument] === true){
+                        out = true;
+                        break;
+                    }
+                } 
             }
             return out;
         }
 
         this.absent = (args, inputs) => {
             validInputCheck(args);
+
             let out = true;
-            let instr = + args[1]
-            for(let i = 0; i < this.norb; i++){
-                if(inputs[this.ninstr * i + instr] === true){
-                    out = false;
-                    break;
+            let instrument = args[1][0];
+
+            if(instrument >= this.ninstr){
+                let instance_list = this.instance_index_map["instrument"][instrument];
+                for(let i = 0; i < instance_list.length ;i++){
+
+                    let index = instance_list[i];
+                    let instantiated_args = Array.from(args);
+                    instantiated_args[1] = [index];
+                    if(!this.absent(instantiated_args, inputs)){
+                        // If at least one of the tests fail, return false
+                        out = false;
+                        break;
+                    }
                 }
             }
+            else {
+                for(let i = 0; i < this.norb; i++){
+                    if(inputs[this.ninstr * i + instrument] === true){
+                        out = false;
+                        break;
+                    }
+                }
+            }
+            
             return out;
         }
 
         this.inOrbit = (args, inputs) => {
             validInputCheck(args);
-            let orbit = + args[0];
-            let instr = args[1];
-            let out = null;
-            if(instr.indexOf(',') === -1){
-                // Single instrument
-                out = false;
-                instr = + instr;
-                if(inputs[orbit * this.ninstr + instr] === true){
-                    out = true;
-                }
-            }else{
-                // Multiple instruments
-                out = true;
-                let instruments = instr.split(",");
-                for(let j = 0; j < instruments.length; j++){
-                    let temp = +instruments[j];
-                    if(inputs[orbit * this.ninstr + temp] === false){
-                        out = false;
+
+            let orbit = args[0][0];
+            let instruments = args[1];
+            let out = false;
+
+            if(orbit >= this.norb){
+                let instance_list = this.instance_index_map["orbit"][orbit];
+                for(let i = 0; i < instance_list.length; i++){
+                    let index = instance_list[i];
+                    let instantiated_args = Array.from(args);
+                    instantiated_args[0] = [index];
+                    if(this.inOrbit(instantiated_args, inputs)){
+                        out = true;
                         break;
                     }
-                }           
+                }
+            }
+            else{
+                let generalization_found = false;
+
+                for(let i = 0; i < instruments.length; i++){
+                    let instrument = instruments[i];
+
+                    if(instrument >= this.ninstr){
+                        generalization_found = true;
+                        let instance_list = this.instance_index_map["instrument"][instrument];
+                        for(let j = 0; j < instance_list.length; j++){
+                            
+                            let index = instance_list[j];
+                            let instantiated_args = Array.from(args);
+                            let instantiated_instruments = Array.from(instruments);
+                            instantiated_instruments[i] = index;
+                            instantiated_args[1] = instantiated_instruments;
+                            if(this.inOrbit(instantiated_args, inputs)){
+                                out = true;
+                                break;
+                            }
+                        }
+                    }
+
+                    if(out){
+                        break;
+                    }
+                }
+
+                if(!generalization_found){
+                    out = true;
+                    for(let j = 0; j < instruments.length; j++){
+                        let instrument = instruments[j];
+                        if(inputs[orbit * this.ninstr + instrument] === false){
+                            out = false;
+                            break;
+                        }
+                    }  
+
+                }  
             }
             return out;
         }
 
         this.notInOrbit = (args, inputs) => {
             validInputCheck(args);
-            let orbit = + args[0];
-            let instr = args[1];
-            let out = null;
-            if(instr.indexOf(',') === -1){
-                // One instrument
-                out = true;
-                instr = + instr;
-                if(inputs[orbit * this.ninstr + instr] === true){
-                    out = false;
-                }
-            }else{
-                // Multiple instruments
-                out = true;
-                let instruments = instr.split(",");
-                for(let j = 0; j < instruments.length; j++){
-                    let temp = +instruments[j];
-                    if(inputs[orbit * this.ninstr + temp] === true){
+            let orbit = args[0][0];
+            let instruments = args[1];
+            let out = true;
+
+            if(orbit >= this.norb){
+                let instance_list = this.instance_index_map["orbit"][orbit];
+                for(let i = 0; i < instance_list.length; i++){
+                    let index = instance_list[i];
+                    let instantiated_args = Array.from(args);
+                    instantiated_args[0] = [index];
+                    if(!this.notInOrbit(instantiated_args, inputs)){
                         out = false;
                         break;
                     }
-                }           
+                }
+            }
+            else{
+                let generalization_found = false;
+
+                for(let i = 0; i < instruments.length; i++){
+                    let instrument = instruments[i];
+
+                    if(instrument >= this.ninstr){
+                        generalization_found = true;
+                        let instance_list = this.instance_index_map["instrument"][instrument];
+                        for(let j = 0; j < instance_list.length; j++){
+                            let index = instance_list[j];
+                            let instantiated_args = Array.from(args);
+                            let instantiated_instruments = Array.from(instruments);
+                            instantiated_instruments[i] = index;
+                            instantiated_args[1] = instantiated_instruments;
+                            if(!this.notInOrbit(instantiated_args, inputs)){
+                                out = false;
+                                break;
+                            }
+                        }
+                    }
+
+                    if(out === false){
+                        break;
+                    }
+                }
+                if(!generalization_found){
+                    out = true;
+                    for(let j = 0; j < instruments.length; j++){
+                        let instrument = instruments[j];
+                        if(inputs[orbit * this.ninstr + instrument] === true){
+                            out = false;
+                            break;
+                        }
+                    } 
+                }  
             }
             return out;
         }
 
         this.together = (args, inputs) => {
             validInputCheck(args);
-            let instr = args[1];
+            let instruments = args[1];
             let out = false;
 
-            let instruments = instr.split(",");
-            for(let i = 0; i < this.norb; i++){
-                let found = true;
-                for(var j = 0; j < instruments.length; j++){
-                    var temp = +instruments[j];
-                    if(inputs[i * this.ninstr + temp] === false){
-                        found = false;
+            let generalization_found = false;
+            for(let i = 0; i < instruments.length; i++){
+                let instrument = instruments[i];
+                if(instrument >= this.ninstr){
+                    generalization_found = true;
+                    let instance_list = this.instance_index_map["instrument"][instrument];
+                    for(let j = 0; j < instance_list.length; j++){
+                        let index = instance_list[j];
+                        let instantiated_args = Array.from(args);
+                        let instantiated_instruments = Array.from(instruments);
+                        instantiated_instruments[i] = index;
+                        instantiated_args[1] = instantiated_instruments;
+                        if(this.together(instantiated_args, inputs)){
+                            out = true;
+                            break;
+                        }
                     }
                 }
-                if(found === true){
-                    out = true;
+
+                if(out){
                     break;
+                }
+            }
+
+            if(!generalization_found){
+                for(let i = 0; i < this.norb; i++){
+                    let found = true;
+                    for(let j = 0; j < instruments.length; j++){
+                        let instrument = instruments[j];
+                        if(inputs[i * this.ninstr + instrument] === false){
+                            found = false;
+                        }
+                    }
+                    if(found === true){
+                        out = true;
+                        break;
+                    }
                 }
             }
             return out;
@@ -503,25 +681,50 @@ class EOSSFilter extends Filter{
 
         this.separate = (args, inputs) => {
             validInputCheck(args);
-            let instr = args[1];
+            let instruments = args[1];
             let out = true;
 
-            let instruments = instr.split(",");
-            for(let i = 0; i < this.norb; i++){
-                let found = false;
-                for(let j = 0; j < instruments.length; j++){
-                    let temp = +instruments[j];
-                    if(inputs[i * this.ninstr + temp] === true){
-                        if(found){
+            let generalization_found = false;
+            for(let i = 0; i < instruments.length; i++){
+                let instrument = instruments[i];
+                if(instrument >= this.ninstr){
+                    generalization_found = true;
+                    let instance_list = this.instance_index_map["instrument"][instrument];
+                    for(let j = 0; j < instance_list.length; j++){
+                        let index = instance_list[j];
+                        let instantiated_args = Array.from(args);
+                        let instantiated_instruments = Array.from(instruments);
+                        instantiated_instruments[i] = index;
+                        instantiated_args[1] = instantiated_instruments;
+                        if(!this.separate(instantiated_args, inputs)){
                             out = false;
                             break;
-                        }else{
-                            found = true;
                         }
                     }
                 }
-                if(out === false) {
+
+                if(!out){
                     break;
+                }
+            }
+
+            if(!generalization_found){
+                for(let i = 0; i < this.norb; i++){
+                    let found = false;
+                    for(let j = 0; j < instruments.length; j++){
+                        let instrument = instruments[j];
+                        if(inputs[i * this.ninstr + instrument] === true){
+                            if(found){
+                                out = false;
+                                break;
+                            }else{
+                                found = true;
+                            }
+                        }
+                    }
+                    if(out === false) {
+                        break;
+                    }
                 }
             }
             return out;
