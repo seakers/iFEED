@@ -1,3 +1,5 @@
+var cnt = 0;
+var threshold = 10;
 
 class EOSSAssigningFilter extends Filter{
     
@@ -454,14 +456,13 @@ class EOSSAssigningFilter extends Filter{
 
             let out = false;
             let instrument = args[1][0];
+            let instantiated_args = Array.from(args);
 
             if(instrument >= this.ninstr){
                 let instance_list = this.instance_index_map["instrument"][instrument];
                 for(let i = 0; i < instance_list.length; i++){
-
-                    let index = instance_list[i];
-                    let instantiated_args = Array.from(args);
-                    instantiated_args[1] = [index];
+                    
+                    instantiated_args[1] = [instance_list[i]];
                     if(this.present(instantiated_args, inputs)){
                         // If at least one of the test is successful, return true
                         out = true;
@@ -485,14 +486,13 @@ class EOSSAssigningFilter extends Filter{
 
             let out = true;
             let instrument = args[1][0];
+            let instantiated_args = Array.from(args);
 
             if(instrument >= this.ninstr){
                 let instance_list = this.instance_index_map["instrument"][instrument];
                 for(let i = 0; i < instance_list.length ;i++){
-
-                    let index = instance_list[i];
-                    let instantiated_args = Array.from(args);
-                    instantiated_args[1] = [index];
+                    
+                    instantiated_args[1] = [instance_list[i]];
                     if(!this.absent(instantiated_args, inputs)){
                         // If at least one of the tests fail, return false
                         out = false;
@@ -519,12 +519,11 @@ class EOSSAssigningFilter extends Filter{
             let instruments = args[1];
             let out = false;
 
+            let instantiated_args = Array.from(args);
             if(orbit >= this.norb){
                 let instance_list = this.instance_index_map["orbit"][orbit];
                 for(let i = 0; i < instance_list.length; i++){
-                    let index = instance_list[i];
-                    let instantiated_args = Array.from(args);
-                    instantiated_args[0] = [index];
+                    instantiated_args[0][0] = instance_list[i];
                     if(this.inOrbit(instantiated_args, inputs)){
                         out = true;
                         break;
@@ -532,34 +531,62 @@ class EOSSAssigningFilter extends Filter{
                 }
             }
             else{
-                let generalization_found = false;
 
+                let ground_items = [];
+                let class_instances = [];
                 for(let i = 0; i < instruments.length; i++){
                     let instrument = instruments[i];
-
                     if(instrument >= this.ninstr){
-                        generalization_found = true;
                         let instance_list = this.instance_index_map["instrument"][instrument];
-                        for(let j = 0; j < instance_list.length; j++){
-                            
-                            let index = instance_list[j];
-                            let instantiated_args = Array.from(args);
-                            let instantiated_instruments = Array.from(instruments);
-                            instantiated_instruments[i] = index;
-                            instantiated_args[1] = instantiated_instruments;
-                            if(this.inOrbit(instantiated_args, inputs)){
-                                out = true;
-                                break;
-                            }
-                        }
-                    }
-
-                    if(out){
-                        break;
+                        class_instances.push(instance_list);
+                    }else{
+                        ground_items.push(instrument);
                     }
                 }
 
-                if(!generalization_found){
+                if(class_instances.length != 0){
+                    let iterator;
+                    if(class_instances.length === 1){
+                        iterator = class_instances[0];
+                    }else{
+                        let cartesian_product_list = cartesianProductSet(...class_instances);
+                        let cartesian_product_set = new SetOfSets(cartesian_product_list);
+                        iterator = cartesian_product_set.getSets();
+                    }
+
+                    for(let iter of iterator){
+                        let common_element_found = false;
+
+                        if(class_instances.length != 1){ // There exist multiple generalized classes
+                            if(iter.size < class_instances.length){ // There exist repeated items in the set
+                                continue;
+                            }
+                            for(let i = 0; i < iter.length; i++){
+                                if(ground_items.indexOf(iter[i]) != -1){
+                                    common_element_found = true;
+                                    break;
+                                }
+                            }
+                            instantiated_args[1] = [].concat(...ground_items, ...iter);
+
+                        }else{  // There's only one generalized class
+                            if(ground_items.indexOf(iter) != -1){
+                                common_element_found = true;
+                            }
+                            instantiated_args[1] = [].concat(...ground_items, iter);
+                        }
+
+                        if(common_element_found){
+                            continue;
+                        }
+
+                        if(this.inOrbit(instantiated_args, inputs)){
+                            out = true;
+                            break;
+                        }
+                    }
+
+                }else{
                     out = true;
                     for(let j = 0; j < instruments.length; j++){
                         let instrument = instruments[j];
@@ -576,16 +603,16 @@ class EOSSAssigningFilter extends Filter{
 
         this.notInOrbit = (args, inputs) => {
             validInputCheck(args);
+
             let orbit = args[0][0];
             let instruments = args[1];
             let out = true;
+            let instantiated_args = Array.from(args);
 
             if(orbit >= this.norb){
                 let instance_list = this.instance_index_map["orbit"][orbit];
                 for(let i = 0; i < instance_list.length; i++){
-                    let index = instance_list[i];
-                    let instantiated_args = Array.from(args);
-                    instantiated_args[0] = [index];
+                    instantiated_args[0][0] = instance_list[i];
                     if(!this.notInOrbit(instantiated_args, inputs)){
                         out = false;
                         break;
@@ -593,32 +620,61 @@ class EOSSAssigningFilter extends Filter{
                 }
             }
             else{
-                let generalization_found = false;
-
+                let ground_items = [];
+                let class_instances = [];
                 for(let i = 0; i < instruments.length; i++){
                     let instrument = instruments[i];
-
                     if(instrument >= this.ninstr){
-                        generalization_found = true;
                         let instance_list = this.instance_index_map["instrument"][instrument];
-                        for(let j = 0; j < instance_list.length; j++){
-                            let index = instance_list[j];
-                            let instantiated_args = Array.from(args);
-                            let instantiated_instruments = Array.from(instruments);
-                            instantiated_instruments[i] = index;
-                            instantiated_args[1] = instantiated_instruments;
-                            if(!this.notInOrbit(instantiated_args, inputs)){
-                                out = false;
-                                break;
+                        class_instances.push(instance_list);
+                    }else{
+                        ground_items.push(instrument);
+                    }
+                }
+
+                if(class_instances.length != 0){
+                    let iterator;
+                    if(class_instances.length === 1){
+                        iterator = class_instances[0];
+                    }else{
+                        let cartesian_product_list = cartesianProductSet(...class_instances);
+                        let cartesian_product_set = new SetOfSets(cartesian_product_list);
+                        iterator = cartesian_product_set.getSets();
+                    }
+
+                    for(let iter of iterator){
+                        let common_element_found = false;
+
+                        if(class_instances.length != 1){ // There exist multiple generalized classes
+                            if(iter.size < class_instances.length){ // There exist repeated items in the set
+                                continue;
                             }
+                            for(let i = 0; i < iter.length; i++){
+                                if(ground_items.indexOf(iter[i]) != -1){
+                                    common_element_found = true;
+                                    break;
+                                }
+                            }
+                            instantiated_args[1] = [].concat(...ground_items, ...iter);
+
+                        }else{  // There's only one generalized class
+                            if(ground_items.indexOf(iter) != -1){
+                                common_element_found = true;
+                            }
+                            instantiated_args[1] = [].concat(...ground_items, iter);
+                        }
+
+                        if(common_element_found){
+                            continue;
+                        }
+
+                        if(!this.notInOrbit(instantiated_args, inputs)){
+                            out = false;
+                            break;
                         }
                     }
 
-                    if(out === false){
-                        break;
-                    }
-                }
-                if(!generalization_found){
+                } else{                    
                     out = true;
                     for(let j = 0; j < instruments.length; j++){
                         let instrument = instruments[j];
@@ -634,43 +690,77 @@ class EOSSAssigningFilter extends Filter{
 
         this.together = (args, inputs) => {
             validInputCheck(args);
+
             let instruments = args[1];
             let out = false;
 
-            let generalization_found = false;
+            let instantiated_args = Array.from(args);
+            let ground_items = [];
+            let class_instances = [];
             for(let i = 0; i < instruments.length; i++){
                 let instrument = instruments[i];
                 if(instrument >= this.ninstr){
-                    generalization_found = true;
                     let instance_list = this.instance_index_map["instrument"][instrument];
-                    for(let j = 0; j < instance_list.length; j++){
-                        let index = instance_list[j];
-                        let instantiated_args = Array.from(args);
-                        let instantiated_instruments = Array.from(instruments);
-                        instantiated_instruments[i] = index;
-                        instantiated_args[1] = instantiated_instruments;
-                        if(this.together(instantiated_args, inputs)){
-                            out = true;
-                            break;
-                        }
-                    }
-                }
-
-                if(out){
-                    break;
+                    class_instances.push(instance_list);
+                }else{
+                    ground_items.push(instrument);
                 }
             }
 
-            if(!generalization_found){
+            if(class_instances.length != 0){
+                let iterator;
+                if(class_instances.length === 1){
+                    iterator = class_instances[0];
+                }else{
+                    let cartesian_product_list = cartesianProductSet(...class_instances);
+                    let cartesian_product_set = new SetOfSets(cartesian_product_list);
+                    iterator = cartesian_product_set.getSets();
+                }
+
+                for(let iter of iterator){
+                    let common_element_found = false;
+
+                    if(class_instances.length != 1){ // There exist multiple generalized classes
+                        if(iter.size < class_instances.length){ // There exist repeated items in the set
+                            continue;
+                        }
+                        for(let i = 0; i < iter.length; i++){
+                            if(ground_items.indexOf(iter[i]) != -1){
+                                common_element_found = true;
+                                break;
+                            }
+                        }
+                        instantiated_args[1] = [].concat(...ground_items, ...iter);
+
+                    }else{  // There's only one generalized class
+                        if(ground_items.indexOf(iter) != -1){
+                            common_element_found = true;
+                        }
+                        instantiated_args[1] = [].concat(...ground_items, iter);
+                    }
+
+                    if(common_element_found){
+                        continue;
+                    }
+
+                    if(this.together(instantiated_args, inputs)){
+                        out = true;
+                        break;
+                    }
+                }
+
+            }else{
                 for(let i = 0; i < this.norb; i++){
                     let found = true;
                     for(let j = 0; j < instruments.length; j++){
                         let instrument = instruments[j];
                         if(inputs[i * this.ninstr + instrument] === false){
                             found = false;
+                            break;
                         }
                     }
-                    if(found === true){
+
+                    if(found){
                         out = true;
                         break;
                     }
@@ -681,34 +771,66 @@ class EOSSAssigningFilter extends Filter{
 
         this.separate = (args, inputs) => {
             validInputCheck(args);
+
             let instruments = args[1];
             let out = true;
 
-            let generalization_found = false;
+            let instantiated_args = Array.from(args);
+            let ground_items = [];
+            let class_instances = [];
             for(let i = 0; i < instruments.length; i++){
                 let instrument = instruments[i];
                 if(instrument >= this.ninstr){
-                    generalization_found = true;
                     let instance_list = this.instance_index_map["instrument"][instrument];
-                    for(let j = 0; j < instance_list.length; j++){
-                        let index = instance_list[j];
-                        let instantiated_args = Array.from(args);
-                        let instantiated_instruments = Array.from(instruments);
-                        instantiated_instruments[i] = index;
-                        instantiated_args[1] = instantiated_instruments;
-                        if(!this.separate(instantiated_args, inputs)){
-                            out = false;
-                            break;
-                        }
-                    }
-                }
-
-                if(!out){
-                    break;
+                    class_instances.push(instance_list);
+                }else{
+                    ground_items.push(instrument);
                 }
             }
 
-            if(!generalization_found){
+            if(class_instances.length != 0){
+                let iterator;
+                if(class_instances.length === 1){
+                    iterator = class_instances[0];
+                }else{
+                    let cartesian_product_list = cartesianProductSet(...class_instances);
+                    let cartesian_product_set = new SetOfSets(cartesian_product_list);
+                    iterator = cartesian_product_set.getSets();
+                }
+
+                for(let iter of iterator){
+                    let common_element_found = false;
+
+                    if(class_instances.length != 1){ // There exist multiple generalized classes
+                        if(iter.size < class_instances.length){ // There exist repeated items in the set
+                            continue;
+                        }
+                        for(let i = 0; i < iter.length; i++){
+                            if(ground_items.indexOf(iter[i]) != -1){
+                                common_element_found = true;
+                                break;
+                            }
+                        }
+                        instantiated_args[1] = [].concat(...ground_items, ...iter);
+
+                    }else{  // There's only one generalized class
+                        if(ground_items.indexOf(iter) != -1){
+                            common_element_found = true;
+                        }
+                        instantiated_args[1] = [].concat(...ground_items, iter);
+                    }
+
+                    if(common_element_found){
+                        continue;
+                    }
+
+                    if(!this.separate(instantiated_args, inputs)){
+                        out = false;
+                        break;
+                    }
+                }
+
+            }else{
                 for(let i = 0; i < this.norb; i++){
                     let found = false;
                     for(let j = 0; j < instruments.length; j++){
@@ -732,12 +854,27 @@ class EOSSAssigningFilter extends Filter{
 
         this.emptyOrbit = (args, inputs) => {
             validInputCheck(args);
-            let orbit = +args[0];
             let out = true;
-            for(let i = 0; i < this.ninstr; i++){
-                if(inputs[orbit * this.ninstr + i] === true){
-                    out = false;
-                    break;
+            let orbit = args[0][0];
+            let instantiated_args = Array.from(args);
+
+            if(orbit >= this.norb){
+                let instance_list = this.instance_index_map["orbit"][orbit];
+                for(let i = 0; i < instance_list.length; i++){
+                    
+                    instantiated_args[0][0] = instance_list[i];
+                    if(!this.emptyOrbit(instantiated_args, inputs)){
+                        out = false;
+                        break;
+                    }
+                }
+
+            }else{
+                for(let i = 0; i < this.ninstr; i++){
+                    if(inputs[orbit * this.ninstr + i] === true){
+                        out = false;
+                        break;
+                    }
                 }
             }
             return out;

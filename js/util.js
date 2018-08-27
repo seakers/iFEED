@@ -193,6 +193,118 @@ Array.prototype.multisplice = function(){
     return out;        
 }
 
+function cartesianProduct(a, b, ...c) {
+    /**
+    * Computes the cartesian product of two or more lists.
+    * Source: https://stackoverflow.com/questions/12303989/cartesian-product-of-multiple-arrays-in-javascript
+    */
+    let f = (a, b) => [].concat(...a.map(a => b.map(b => [].concat(a, b))));
+    let cartesian = (a, b, ...c) => b ? cartesian(f(a, b), ...c) : a;
+    return cartesian(a, b, ...c);
+}
+
+function cartesianProductSet(a, b, ...c) {
+    /**
+    * Computes the cartesian product of two or more lists.
+    * Source: https://stackoverflow.com/questions/12303989/cartesian-product-of-multiple-arrays-in-javascript
+    */
+
+    let list_of_lists = cartesianProduct(a, b, ...c);
+    let list_of_sets = [];
+    for(let i = 0; i < list_of_lists.length; i++){
+        list_of_sets.push(new Set(list_of_lists[i]));
+    }
+
+    return list_of_sets;
+}
+
+function setEquals(set1, set2){
+    if (set1.size !== set2.size){
+        return false;
+    } 
+    for (let a of set1){
+        if (!set2.has(a)) {
+            return false;
+        }
+    } 
+    return true;
+}
+
+class SetOfSets{
+
+    constructor(list_of_sets){
+        this.set_of_sets = new Set();
+        for(let i = 0; i < list_of_sets.length; i++){
+            let duplicate_found = false;
+            for(let j = i + 1; j < list_of_sets.length; j++){
+                if(setEquals(list_of_sets[i], list_of_sets[j])){
+                    duplicate_found = true;
+                }
+            }
+
+            if(duplicate_found){
+                continue;
+
+            }else{
+                this.set_of_sets.add(list_of_sets[i]);
+            }
+        }
+    }
+    
+    has(test_set){
+        for (let set of this.set_of_sets) {
+            if(setEquals(test_set, set)){
+                return true;
+            }
+        }
+        return false;
+    }
+
+    getSets(){
+        return this.set_of_sets;
+    }
+}
+
+class MultiSet{
+
+    constructor(input_list){
+        this.set = new Set();
+        this.counter = {};
+        for(let i = 0; i < input_list.length; i++){
+            let val = input_list[i];
+            if(this.set.has(val)){
+                this.counter[val] = this.counter[val] + 1;
+            }else{
+                this.counter[val] = 1;
+                this.set.add(val);
+            }
+        }
+    }
+    
+    equals(multiset){
+        if(multiset instanceof MultiSet){
+            that = multiset;
+            let as = this.set;
+            let bs = that.set;
+            if (as.size !== bs.size){
+                return false;
+            } 
+            for (let a of as){
+                if (!bs.has(a) || this.counter[a] != that.counter[a]) {
+                    return false;
+                }
+            } 
+            return true;
+        }else{
+            return false;
+        }
+    }
+
+    has(val){
+        return this.set.has(val);
+    }
+}
+
 function generateEOSSInput(length){
     let out = [];
     for(let i = 0; i < length; i++){

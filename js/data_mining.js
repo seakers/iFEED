@@ -150,6 +150,7 @@ class DataMining{
         // If the feature application tree exists, run local search
         if(this.feature_application.data){
 
+
             // Run data mining in the marginal feature space
             let selected_node = null;            
             
@@ -159,23 +160,30 @@ class DataMining{
                     selected_node=d;
                 }                        
             })            
+
+            let extracted_features = null;
             
             // Save the currently applied feature
             let base_feature = this.feature_application.parse_tree(this.feature_application.data, selected_node);
 
-            let extracted_features = null;
+            if(this.enable_generalization){
+                
+                extracted_features = this.run_generalization_local_search(selected, non_selected, base_feature);
 
-            // Run local search either using disjunction or conjunction
-            let logical_connective = null;
-            if(option){
-                logical_connective = "OR";
             }else{
-                logical_connective = "AND";
+
+                // Run local search either using disjunction or conjunction
+                let logical_connective = null;
+                if(option){
+                    logical_connective = "OR";
+                }else{
+                    logical_connective = "AND";
+                }
+
+                extracted_features = this.get_marginal_driving_features(selected, non_selected, base_feature, logical_connective,
+                                                     this.support_threshold,this.confidence_threshold,this.lift_threshold);
             }
 
-            extracted_features = this.get_marginal_driving_features(selected, non_selected, base_feature, logical_connective,
-                                                     this.support_threshold,this.confidence_threshold,this.lift_threshold);
-        
             let features_to_add = [];
             this.recent_features_id = [];
 
@@ -258,7 +266,6 @@ class DataMining{
 
             this.display_features();              
         }
-
     }
 
     get_driving_features_with_generalization(selected, non_selected){
@@ -413,6 +420,31 @@ class DataMining{
 
         return output;
     }    
+
+    run_generalization_local_search(selected,non_selected,featureExpression){
+        
+        let output;
+        $.ajax({
+            url: "/api/data-mining/run-generalization-local-search",
+            type: "POST",
+            data: {
+                    problem: this.metadata.problem,  // eoss or gnc
+                    input_type: this.metadata.input_type, // Binary or Discrete
+                    featureExpression: featureExpression,
+                    selected: JSON.stringify(selected),
+                    non_selected:JSON.stringify(non_selected),
+                  },
+            async: false,
+            success: function (data, textStatus, jqXHR)
+            {
+                output = data;
+            },
+            error: function (jqXHR, textStatus, errorThrown)
+            {alert("error");}
+        });
+
+        return output;
+    } 
 
     display_features(){
 

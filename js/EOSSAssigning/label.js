@@ -98,14 +98,16 @@ class EOSSAssigningLabel extends Label{
     }
     
     actualName2Index(name, type){
+
         name = name.trim();
         if(name.indexOf(",") != -1){
             let names = name.split(",");
             let newNames = [];
             for(let i = 0; i < names.length; i++){
-                newNames = newNames.push(this.actualName2Index(names[i], type));
+                newNames.push(this.actualName2Index(names[i], type));
             }
             return newNames.join(",");
+
         }else{
             if(type === "orbit"){
                 if(this.orbit_list.includes(name)){
