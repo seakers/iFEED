@@ -817,6 +817,7 @@ class TradespacePlot{
 
         if(skip_color_reset){
             // Skip setting the color of the points
+            
         }else{
             this.data.forEach( (point) => {
                 this.setPointColor(point);

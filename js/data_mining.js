@@ -1467,7 +1467,9 @@ class DataMining{
                     input_generalization.orbit_generalization = data.orbitList;
                     input_generalization.instrument_generalization = data.instrumentList;
 
-                    let generalization_map = that.get_taxonomic_scheme()
+                    let params = {orbitList: data.orbitList, instrumentList: data.instrumentList};
+
+                    let generalization_map = that.get_taxonomic_scheme(params)
                     input_generalization.instance_map = generalization_map["instance_map"];
                     input_generalization.superclass_map = generalization_map["superclass_map"];
 
@@ -1481,7 +1483,7 @@ class DataMining{
         });    
     }
 
-    get_taxonomic_scheme(){
+    get_taxonomic_scheme(params){
         let that = this;
         let instance_map = null;
         let superclass_map = null;
@@ -1491,6 +1493,7 @@ class DataMining{
             type: "POST",
             data: {
                     problem: this.metadata.problem,  // ClimateCentric, GNC, etc
+                    params: JSON.stringify(params),
                   },
             async: false,
             success: function (data, textStatus, jqXHR)
@@ -1535,6 +1538,153 @@ class DataMining{
         });
 
         return {"instance_map":instance_map, "superclass_map":superclass_map};    
+    }
+
+    import_target_selection(filename){
+        let that = this;
+        this.initialize();
+
+        $.ajax({
+            url: "/api/data-mining/import-target-selection",
+            type: "POST",
+            data: {
+                    filename: filename,
+                  },
+            async: false,
+            success: function (data, textStatus, jqXHR)
+            {
+                let selected_id_list = data;
+                that.selected_archs = [];
+                
+                that.data.forEach((point) => {
+                    if(selected_id_list.indexOf(point.id) != -1){
+                        point.selected = true;
+                        that.selected_archs.push(point);
+                    }
+                });
+            
+                PubSub.publish(UPDATE_TRADESPACE_PLOT, null);
+            },
+            error: function (jqXHR, textStatus, errorThrown)
+            {alert("error");}
+        });
+    }
+
+    export_target_selection(selectionName){
+
+        if (this.selected_archs.length==0){
+            alert("First select target solutions!");
+            return;
+        }     
+
+        let selected = [];
+        let non_selected = [];
+
+        for (let i = 0; i< this.selected_archs.length; i++){
+            selected.push(this.selected_archs[i].id);
+        }
+
+        for (let i = 0; i < this.data.length; i++){
+            if(!this.data[i].hidden){
+                let id = this.data[i].id;
+                if (selected.indexOf(id) === -1){
+                    // non-selected
+                    non_selected.push(id);
+                }
+            }
+        }
+
+        if(selectionName == null){
+            selectionName = "";
+        }
+
+        $.ajax({
+            url: "/api/data-mining/export-target-selection",
+            type: "POST",
+            data: {
+                    problem: this.metadata.problem,  // eoss or gnc
+                    input_type: this.metadata.input_type, // Binary or Discrete
+                    selected: JSON.stringify(selected),
+                    non_selected:JSON.stringify(non_selected),
+                    name: selectionName,
+                  },
+            async: true,
+            success: function (data, textStatus, jqXHR)
+            {
+            },
+            error: function (jqXHR, textStatus, errorThrown)
+            {alert("error");}
+        });
+    }
+
+    import_feature_data(filename, set_target_selection_import, generalization_enabled){
+        let that = this;
+
+        if(filename == null){
+            filename = "feature_data"
+        }
+
+        let filename_data = filename + ".archive";
+        let filename_params = filename + ".params";
+        let filename_selection = filename + ".selection";
+
+        if(set_target_selection_import){
+            this.import_target_selection(filename_selection)
+        }
+
+        $.ajax({
+            url: "/api/data-mining/import-feature-data",
+            type: "POST",
+            data: {
+                    filename_data: filename_data,  // ClimateCentric, GNC, etc
+                    filename_params: filename_params,
+                    generalization_enabled: generalization_enabled,
+                  },
+            async: false,
+            success: function (data, textStatus, jqXHR)
+            {
+                that.all_features = data['data'];
+
+                // Clear the feature application
+                PubSub.publish(INITIALIZE_FEATURE_APPLICATION, null);
+
+                // Remove all highlights in the scatter plot (retain target solutions)
+                PubSub.publish(APPLY_FEATURE_EXPRESSION, null);
+
+                if(that.all_features.length === 0){ // If there is no driving feature returned
+                    return;
+
+                }else{
+                    for(let i = 0; i < that.all_features.length; i++){
+                        that.mined_features_id.push(that.all_features[i].id);
+                    }
+                }
+
+                that.display_features();  
+
+                if(generalization_enabled){
+                    if(that.metadata.problem === "ClimateCentric"){
+                        let input_generalization = {}
+                        input_generalization.orbit_generalization = data['params']["orbitList"];
+                        input_generalization.instrument_generalization = data['params']["instrumentList"];
+
+                        let params = {orbitList: input_generalization.orbit_generalization, 
+                                            instrumentList: input_generalization.instrument_generalization};
+
+                        let generalization_map = that.get_taxonomic_scheme(params)
+                        input_generalization.instance_map = generalization_map["instance_map"];
+                        input_generalization.superclass_map = generalization_map["superclass_map"];
+
+                        PubSub.publish(INPUT_GENERALIZATION_LOADED, input_generalization);
+                    }  
+                }
+
+            },
+            error: function (jqXHR, textStatus, errorThrown)
+            {
+                alert("error");
+            }
+        });
     }
 }
 

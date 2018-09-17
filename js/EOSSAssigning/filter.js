@@ -1,5 +1,3 @@
-var cnt = 0;
-var threshold = 10;
 
 class EOSSAssigningFilter extends Filter{
     
@@ -561,8 +559,9 @@ class EOSSAssigningFilter extends Filter{
                             if(iter.size < class_instances.length){ // There exist repeated items in the set
                                 continue;
                             }
-                            for(let i = 0; i < iter.length; i++){
-                                if(ground_items.indexOf(iter[i]) != -1){
+
+                            for(let i of iter){
+                                if(ground_items.indexOf(i) != -1){
                                     common_element_found = true;
                                     break;
                                 }
@@ -649,8 +648,8 @@ class EOSSAssigningFilter extends Filter{
                             if(iter.size < class_instances.length){ // There exist repeated items in the set
                                 continue;
                             }
-                            for(let i = 0; i < iter.length; i++){
-                                if(ground_items.indexOf(iter[i]) != -1){
+                            for(let i of iter){
+                                if(ground_items.indexOf(i) != -1){
                                     common_element_found = true;
                                     break;
                                 }
@@ -724,12 +723,12 @@ class EOSSAssigningFilter extends Filter{
                         if(iter.size < class_instances.length){ // There exist repeated items in the set
                             continue;
                         }
-                        for(let i = 0; i < iter.length; i++){
-                            if(ground_items.indexOf(iter[i]) != -1){
+                        for(let i of iter){
+                            if(ground_items.indexOf(i) != -1){
                                 common_element_found = true;
                                 break;
                             }
-                        }
+                        }   
                         instantiated_args[1] = [].concat(...ground_items, ...iter);
 
                     }else{  // There's only one generalized class
@@ -805,8 +804,8 @@ class EOSSAssigningFilter extends Filter{
                         if(iter.size < class_instances.length){ // There exist repeated items in the set
                             continue;
                         }
-                        for(let i = 0; i < iter.length; i++){
-                            if(ground_items.indexOf(iter[i]) != -1){
+                        for(let i of iter){
+                            if(ground_items.indexOf(i) != -1){
                                 common_element_found = true;
                                 break;
                             }
