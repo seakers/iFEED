@@ -48,7 +48,7 @@ class Filter{
         this.presetFeatureTypes = presetFeatureTypes;
         this.label = labelingScheme;
 
-        this.initialize();
+        // this.initialize();
 
         PubSub.subscribe(APPLY_FEATURE_EXPRESSION, (msg, data) => {
             this.apply_filter_expression(data);

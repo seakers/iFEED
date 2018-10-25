@@ -35,8 +35,7 @@ and open the template in the editor.
 </head>
 
 <body>
-    
-    
+
     
 <div class='title'>
     <h2>iFEED GUI</h2>
@@ -54,12 +53,10 @@ and open the template in the editor.
         <div class="clearfix"></div>
     </div>
     <div class='column c1'>
-
         <div class='row c1 r1'>
-
             <div class='tradespace_plot figure'></div>
 
-            <div class='tradespace_plot options'>
+<!--             <div class='tradespace_plot options'>
                 <div>     
                     <div id="plot_options">
                         <div>
@@ -87,7 +84,7 @@ and open the template in the editor.
                         </div>
                     </div>
                     <div id='selection_options'>
-<!--
+
                         <div>
                             <div>Range Selection</div>
                             Cost range: <br/>
@@ -98,7 +95,7 @@ and open the template in the editor.
                             <br/>
                             <button type="button" id="selectArchsWithinRangeButton" >Select Designs</button>
                         </div>
--->
+
                         <button type="button"  id="hide_selection">Hide selections</button>
                         <button type="button"  id="show_all_archs">Show all architectures</button> 
                         <button type="button"  id="select_highlighted">Select highlighted</button>
@@ -106,13 +103,14 @@ and open the template in the editor.
                         <button type="button"  id="cancel_selection">Cancel all selections</button>
                     </div>                    
                 </div>
-            </div>
+            </div> -->
+
         </div>
         <div class="row c1 r2">
             <div id="support_panel"> 
                 <ul class="tabs" data-persist="true">
                     <li><a id="tab1" href="#view1">Inspect Design</a></li>
-                    <li><a id="tab2" href="#view2">Filter Setting</a></li>
+                    <!-- <li><a id="tab2" href="#view2">Filter Setting</a></li> -->
                     <li><a id="tab3" href="#view3">Feature Status</a></li>
                 </ul>
                 <div class="tabcontents">
@@ -128,8 +126,8 @@ and open the template in the editor.
             <div id='feature_expression_panel'>
                 <div>
                     <div>Feature Application Panel</div>
-                    <button id='conjunctive_local_search' class='feature_application_options_button'>Improve specificity</button>
-                    <button id='disjunctive_local_search' class='feature_application_options_button'>Improve coverage</button>
+<!--                     <button id='conjunctive_local_search' class='feature_application_options_button'>Improve specificity</button>
+                    <button id='disjunctive_local_search' class='feature_application_options_button'>Improve coverage</button> -->
                     <button id='clear_all_features' class='feature_application_options_button'>Clear</button>
                 </div>
                 <div id='feature_expression'></div>
@@ -187,7 +185,7 @@ and open the template in the editor.
 
     }else if(problem_name === "ClimateCentric"){
         problem = new EOSSAssigning();
-        label = new EOSSAssigningLabel(true);
+        label = new EOSSAssigningLabel(false);
         filter = new EOSSAssigningFilter(label);
         tradespace_plot = new TradespacePlot();
 
@@ -221,6 +219,10 @@ and open the template in the editor.
 
         tradespace_plot.toggle_selection_and_highlight();
     }
+
+    data_mining.run_ga = true;
+    // data_mining.update = data_mining.update_scatter;
+
 
 
 </script>

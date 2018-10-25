@@ -26,7 +26,7 @@ class FeatureApplication{
         // top  right bottem left
         this.margin = {left:70,right:20,top:10,bottom:20},
         this.width = 1200 - this.margin.left - this.margin.right,
-        this.height = 1200 - this.margin.top - this.margin.bottom;
+        this.height = 800 - this.margin.top - this.margin.bottom;
 
 
         this.draggingNode = null;
@@ -34,10 +34,10 @@ class FeatureApplication{
         this.dragStarted = false;
         this.contextMenu = null;  
         
-	   	this.dragListener = d3.drag()
-	        .on('start', (d) => { this.dragStart(d); })
-	        .on('drag', (d) => { this.drag(d); })
-	        .on('end', (d) => { this.dragEnd(d); });
+	   	// this.dragListener = d3.drag()
+	    //     .on('start', (d) => { this.dragStart(d); })
+	    //     .on('drag', (d) => { this.drag(d); })
+	    //     .on('end', (d) => { this.dragEnd(d); });
 
         
 //    PubSub.subscribe(CANCEL_ADD_FEATURE, (msg, data) => {
@@ -366,24 +366,24 @@ class FeatureApplication{
             d.y0 = d.y;
         });    
 
-        d3.selectAll('.treeNode')
-   			.call(this.dragListener);
+      //   d3.selectAll('.treeNode')
+   			// .call(this.dragListener);
 
-        d3.selectAll('.treeNode')
-            .on('contextmenu', (d) => { 
+        // d3.selectAll('.treeNode')
+        //     .on('contextmenu', (d) => { 
             
-                d3.event.preventDefault();
-                var context = d.type;
-                let mouse_pos = d3.mouse(d3.select("#feature_application_panel").select('svg').select('g').node());
-                let mouseX = mouse_pos[0]; 
-                let mouseY = mouse_pos[1];                       
+        //         d3.event.preventDefault();
+        //         var context = d.type;
+        //         let mouse_pos = d3.mouse(d3.select("#feature_application_panel").select('svg').select('g').node());
+        //         let mouseX = mouse_pos[0]; 
+        //         let mouseY = mouse_pos[1];                       
            
-                if(!this.contextMenu){
-                    this.contextMenu = new ContextMenu(this);
-                }
+        //         if(!this.contextMenu){
+        //             this.contextMenu = new ContextMenu(this);
+        //         }
                
-                this.contextMenu.showMenu(d.data, mouse_pos);
-            });
+        //         this.contextMenu.showMenu(d.data, mouse_pos);
+        //     });
     }
         
     dragStart(d){

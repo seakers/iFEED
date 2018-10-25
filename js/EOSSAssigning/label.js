@@ -229,7 +229,9 @@ class EOSSAssigningLabel extends Label{
         }
         var featureName = exp.split("[")[0];
 
-        if(featureName==="paretoFront" || featureName==='FeatureToBeAdded' || featureName==='AND' || featureName==='OR'){return exp;}
+        if(featureName==="paretoFront" || featureName==='FeatureToBeAdded' || featureName==='AND' || featureName==='OR'){
+            return exp;
+        }
 
         if(featureName[0]=='~'){
             featureName = 'NOT '+ featureName.substring(1);
@@ -244,25 +246,99 @@ class EOSSAssigningLabel extends Label{
 
         var pporbits="";
         var ppinstruments="";
-        for(var i=0;i<orbits.length;i++){
+        for(let i = 0; i < orbits.length; i++){
             if(orbits[i].length===0){
                 continue;
             }
-            if(i>0){pporbits = pporbits + ",";}
+            if(i > 0){
+                pporbits = pporbits + ",";
+            }
             pporbits = pporbits + this.index2DisplayName(orbits[i], "orbit");
         }
-        for(var i=0;i<instruments.length;i++){
+        for(let i = 0; i < instruments.length; i++){
             if(instruments[i].length===0){
                 continue;
             }
-            if(i>0){ppinstruments = ppinstruments + ",";}
+            if(i > 0){
+                ppinstruments = ppinstruments + ",";
+            }
             ppinstruments = ppinstruments + this.index2DisplayName(instruments[i], "instrument");
         }
 
-        let ppexpression = this.featureActualName2DisplayName(featureName) + "[" + pporbits + ";" + ppinstruments + ";" + numbers + "]";
+        let ppexpression = null;
+        if(featureName === "inOrbit"){
+            if(ppinstruments.indexOf(",") === -1){
+                ppexpression = ppinstruments + " is assigned to " + pporbits;
+            }else{
+                ppexpression = ppinstruments + " are assigned to " + pporbits;
+            }
+        }else if(featureName === "notInOrbit"){
+            if(ppinstruments.indexOf(",") === -1){
+                ppexpression = ppinstruments + " is never assigned to " + pporbits;
+            }else{
+                ppexpression = ppinstruments + " are never assigned to " + pporbits;
+            }
+        }else if(featureName === "present"){
+            ppexpression = ppinstruments + " is used";
+        }else if(featureName === "absent"){
+            ppexpression = ppinstruments + " is never used";
+        }else if(featureName === "together"){
+            ppexpression = ppinstruments + " are assigned together"
+        }else if(featureName === "separate"){
+            ppexpression = ppinstruments + " are never assigned together"
+        }else if(featureName === "emptyOrbit"){
+            ppexpression = pporbits + " is empty"
+        }else{
+            let ppexpression = this.featureActualName2DisplayName(featureName) + "[" + pporbits + ";" + ppinstruments + ";" + numbers + "]";
+        }
         
         return ppexpression;
     }
+
+    // pp_feature_single(expression){
+        
+    //     var exp = expression;
+    //     if(exp[0]==="{"){
+    //         exp = exp.substring(1,exp.length-1);
+    //     }
+    //     var featureName = exp.split("[")[0];
+
+    //     if(featureName==="paretoFront" || featureName==='FeatureToBeAdded' || featureName==='AND' || featureName==='OR'){
+    //         return exp;
+    //     }
+
+    //     if(featureName[0]=='~'){
+    //         featureName = 'NOT '+ featureName.substring(1);
+    //     }
+
+    //     var featureArg = exp.split("[")[1];
+    //     featureArg = featureArg.substring(0,featureArg.length-1);
+
+    //     var orbits = featureArg.split(";")[0].split(",");
+    //     var instruments = featureArg.split(";")[1].split(",");
+    //     var numbers = featureArg.split(";")[2];
+
+    //     var pporbits="";
+    //     var ppinstruments="";
+    //     for(var i=0;i<orbits.length;i++){
+    //         if(orbits[i].length===0){
+    //             continue;
+    //         }
+    //         if(i>0){pporbits = pporbits + ",";}
+    //         pporbits = pporbits + this.index2DisplayName(orbits[i], "orbit");
+    //     }
+    //     for(var i=0;i<instruments.length;i++){
+    //         if(instruments[i].length===0){
+    //             continue;
+    //         }
+    //         if(i>0){ppinstruments = ppinstruments + ",";}
+    //         ppinstruments = ppinstruments + this.index2DisplayName(instruments[i], "instrument");
+    //     }
+
+    //     let ppexpression = this.featureActualName2DisplayName(featureName) + "[" + pporbits + ";" + ppinstruments + ";" + numbers + "]";
+        
+    //     return ppexpression;
+    // }
     
     pp_feature(expression){
 

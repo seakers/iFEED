@@ -4,6 +4,7 @@ class DataMining{
     constructor(filteringScheme, labelingScheme){
 
         this.run_ga = true;
+        this.update = this.update_bar;
         this.enable_generalization = false;
 
         this.filter = filteringScheme;
@@ -35,8 +36,9 @@ class DataMining{
         this.recent_features_id = [];    
 
         this.current_feature = null;
+        this.current_feature_id = null;
         this.current_feature_blink_interval=null;
-        this.utopia_point = {id:0,name:'utopiaPoint',expression:null,metrics:null,x0:-1,y0:-1,x:-1,y:-1};
+        // this.utopia_point = {id:0,name:'utopiaPoint',expression:null,metrics:null,x0:-1,y0:-1,x:-1,y:-1};
         
         this.coloursRainbow = ["#2c7bb6", "#00a6ca", "#00ccbc", "#90eb9d", "#ffff8c", "#f9d057", "#f29e2e", "#e76818", "#d7191c"];
         this.colourRangeRainbow = d3.range(0, 1, 1.0 / (this.coloursRainbow.length - 1));
@@ -116,6 +118,7 @@ class DataMining{
         this.user_added_features_id = [];   
         this.recent_features_id = [];    
         this.current_feature = null;
+        this.current_feature_id = null;
         this.current_feature_blink_interval=null;
         
         PubSub.publish(INITIALIZE_FEATURE_APPLICATION, null);
@@ -260,6 +263,9 @@ class DataMining{
                 return;
             }else{
                 for(let i = 0; i < this.all_features.length; i++){
+
+
+
                     this.mined_features_id.push(this.all_features[i].id);
                 }
             }
@@ -492,17 +498,225 @@ class DataMining{
         this.update();
     }
     
-    
-    update(newly_added_features){
+    update_bar(){
 
         let that = this;
-        
-        function get_utopia_point(){
-            // Utopia point
-            return d3.selectAll('.dot.feature_plot').filter((d) => {
-                if(d.id === that.utopia_point.id) return true;
+
+        if(that.current_feature_id === null){
+            d3.selectAll('.bar.feature_plot')
+                .style("fill","#FEFEFE")
+                .style("stroke-width", 1);
+        }
+
+        function get_current_feature(){
+            let id;
+            if(that.current_feature){
+                id = that.current_feature.id;
+            }
+
+            // The current feature
+            return d3.selectAll('.bar.feature_plot').filter(function(d){
+                if (d.id == id) return true;
                 return false;
             });
+        }
+
+        // Set variables
+        let margin = this.margin;
+        let width = this.width;
+        let height = this.height;
+
+        let duration = 500;
+
+        let supps = [];
+        let lifts = [];
+        let conf1s = [];
+        let conf2s = [];
+        let scores=[];   
+
+        d3.select('.feature_plot.figure').select('g').selectAll('.axis').remove();
+        d3.select('.feature_plot.figure').select('g').selectAll('.label').remove();
+
+        // Set the vertical axis to be lift
+        let metricIndex = 1;
+
+        // Sort features in descending order
+        let features = that.sortFeatures(this.all_features, metricIndex);
+
+        for (let i = 0; i < features.length; i++){
+            supps.push(features[i].metrics[0]);
+            lifts.push(features[i].metrics[1]);
+            conf1s.push(features[i].metrics[2]);
+            conf2s.push(features[i].metrics[3]);
+        }
+
+        // setup x
+        // data -> value
+        let xValue = function (d) {
+            return features.indexOf(d);
+        }; 
+        // value -> display
+        let xScale = d3.scaleLinear().range([0, width]); 
+
+        // don't want dots overlapping axis, so add in buffer to data domain 
+        let xBuffer = features.length * 0.05;
+
+        xScale.domain([0 - xBuffer, features.length - 1 + xBuffer]);
+
+        let barWidth = width / (features.length + (2 * xBuffer));
+
+        // data -> display
+        let xMap = function (d) {
+            return xScale(xValue(d));
+        }; 
+        this.xAxis = d3.axisBottom(xScale);
+
+        // setup y
+        // data -> value
+        let yValue = function (d) {
+            return d.metrics[metricIndex];
+        };
+        // value -> display
+        let yScale = d3.scaleLinear().range([height, 0]); 
+
+        let yBuffer = (d3.max(features, yValue) - d3.min(features, yValue)) * 0.05;
+        yScale.domain([d3.min(features, yValue) - yBuffer, d3.max(features, yValue) + yBuffer]);
+
+        // data -> display
+        let yMap = function (d) {
+            return yScale(yValue(d));
+        }; 
+        this.yAxis = d3.axisLeft(yScale);
+
+        // Setup zoom
+        this.zoom = d3.zoom()
+            .scaleExtent([0.2, 25])
+            .on("zoom", (d) => {
+
+                this.transform = d3.event.transform;
+                this.gX.call(this.xAxis.scale(this.transform.rescaleX(xScale)));
+
+                let scale = d3.event.transform.k;
+
+                d3.selectAll('.bar.feature_plot')
+                    .attr("transform", function (d) {
+                        let xCoord = that.transform.applyX(xMap(d));
+                        return "translate(" + xCoord + "," + 0 + ")";
+                    })
+                    .attr("width", function(d){
+                        return barWidth * scale;
+                    });    
+            });
+        d3.select('.feature_plot.figure').call(this.zoom);
+
+        let svg = d3.select('.feature_plot.figure').select('g')
+        
+        // x-axis
+        this.gX = svg.append("g")
+            .attr("class", "axis axis-x")
+            .attr("transform", "translate(0, " + height + ")")
+            .call(this.xAxis);
+
+        // y-axis
+        this.gY = svg.append("g")
+            .attr("class", "axis axis-y")
+            .call(this.yAxis);
+        
+        svg.append("text")
+            .attr("class", "label")
+            .attr("transform", "rotate(-90)")
+            .attr("y", 6)
+            .attr("dy", ".71em")
+            .style("text-anchor", "end")
+            .text('Lift')
+            .style('font-size','15px');
+        
+
+        let objects = d3.select(".objects.feature_plot")
+
+        // Remove unnecessary points
+        objects.selectAll('.bar.feature_plot')
+                .data(features)
+                .exit()
+                .remove();
+
+        // Create new bars
+        objects.selectAll(".bar.feature_plot")
+                .data(features)
+                .enter()
+                .append('rect')
+                .attr('class','point bar feature_plot')
+                .attr("x", function(d) {
+                    return 0;
+                })
+                .attr("width", barWidth)
+                .attr("y", function(d) { 
+                    return yMap(d); 
+                })
+                .attr("height", function(d) { 
+                    return height - yMap(d); 
+                })
+                .attr("transform",function(d){
+                    let xCoord = xMap(d);
+                    return "translate(" + xCoord + "," + 0 + ")";
+                })
+                .style("fill", "#FEFEFE")
+                .style("stroke", "black")
+                .style("stroke-width", 1);
+
+
+        d3.selectAll('.bar.feature_plot')
+            .on("mouseover", (d) => { 
+                
+                let id = d.id;
+
+                d3.selectAll('.bar.feature_plot')
+                    .style("fill","#FEFEFE");
+                d3.selectAll('.bar.feature_plot').filter(function(d){
+                    if (d.id == id) return true;
+                    return false;
+                }).style("fill", "#A5A5A5");
+                
+                this.feature_mouseover(d); 
+            })
+
+            .on('mouseout', (d) => { 
+
+                d3.selectAll('.bar.feature_plot')
+                    .style("fill","#FEFEFE");
+
+                if(this.current_feature){
+                    let id = this.current_feature_id;
+                    d3.selectAll('.bar.feature_plot').filter(function(d){
+                        if (d.id == id) return true;
+                        return false;
+                    }).style("fill", "#A5A5A5");
+                }
+                
+                this.feature_mouseout(d); 
+            })
+
+            .on('click', (d) => { 
+                let id = d.id;
+
+                d3.selectAll('.bar.feature_plot').style("stroke-width",1);
+                this.current_feature = d3.selectAll('.bar.feature_plot').filter(function(d){
+                    if (d.id == id) return true;
+                    return false;
+                }).style("stroke-width",3);
+
+                this.feature_click(d);
+            });    
+    }
+
+    update_scatter(newly_added_features){
+
+        let that = this;
+
+        if(that.current_feature_id === null){
+            d3.selectAll('.dot.feature_plot')
+                .style("fill","#FEFEFE")
+                .style("stroke-width", 1);
         }
 
         function get_current_feature(){
@@ -530,20 +744,6 @@ class DataMining{
         let conf2s = [];
         let scores=[];   
         let maxScore = -1;
-        
-        //Remove unnecessary points (cursor)
-        d3.select(".objects.feature_plot")
-                .selectAll('.dot.feature_plot')
-                .data(this.all_features)
-                .exit()
-                .remove();
-        
-        // Clear the previously existing interval
-        if(this.current_feature_blink_interval != null){
-            
-            clearInterval(this.current_feature_blink_interval);
-            d3.selectAll('.dot.feature_plot').style('opacity',1);
-        }
 
         d3.select('.feature_plot.figure').select('g').selectAll('.axis').remove();
         d3.select('.feature_plot.figure').select('g').selectAll('.label').remove();
@@ -563,27 +763,7 @@ class DataMining{
             
             var score = 1-Math.sqrt(Math.pow(1-conf1s[i],2)+Math.pow(1-conf2s[i],2));
             scores.push(score);
-
             if(score > maxScore) maxScore = score;
-        }
-        
-        // Add utopia point to the list
-        var max_conf1 = Math.max.apply(null, conf1s);
-        var max_conf2 = Math.max.apply(null, conf2s);
-        var max_conf = Math.max(max_conf1, max_conf2);
-
-        // Adjust the location of the utopia point
-        this.utopia_point.metrics = [Math.max.apply(null, lifts), Math.max.apply(null, supps), max_conf, max_conf];
-
-        // Insert the utopia point to the list of features
-        this.all_features.splice(0, 0, this.utopia_point);
-
-        // Add score for the utopia point (0.2 more than the best score found so far)
-        scores.splice(0,0,Math.max.apply(null,scores) + 0.2); 
-        
-        if(this.current_feature){ // If the current feature is defined
-            // Add the current feature
-            this.all_features.push(this.current_feature);
         }
         
         // Set the axis to be Conf(F->S) and Conf(S->F)
@@ -630,16 +810,11 @@ class DataMining{
             this.all_features[i].x = xMap(this.all_features[i]);
             this.all_features[i].y = yMap(this.all_features[i]);
             if(!this.all_features[i].x0){
-                // If previous location has not been initialize, save the current location
+                // If previous location has not been initialized, save the current location
                 this.all_features[i].x0 = this.all_features[i].x;
                 this.all_features[i].y0 = this.all_features[i].y;
             }
         }
-
-        //Needed to map the values of the dataset to the color scale
-        this.colorInterpolateRainbow = d3.scaleLinear()
-                .domain(d3.extent(scores))
-                .range([0,1]);
 
         // Setup zoom
         this.zoom = d3.zoom()
@@ -657,7 +832,6 @@ class DataMining{
                         return "translate(" + xCoord + "," + yCoord + ")";
                     });    
             });
-
         d3.select('.feature_plot.figure').call(this.zoom);
        
         let svg = d3.select('.feature_plot.figure').select('g')
@@ -691,7 +865,7 @@ class DataMining{
             .style('font-size','15px');
         
 
-        var objects = d3.select(".objects.feature_plot")
+        let objects = d3.select(".objects.feature_plot")
 
         // Remove unnecessary points
         objects.selectAll('.dot.feature_plot')
@@ -706,10 +880,11 @@ class DataMining{
                 .append('path')
                 .attr('class','point dot feature_plot')
                 .attr("d", d3.symbol().type((d) => {return d3.symbolTriangle;}).size(120))
-                .attr("transform", function (d) {
-                    return "translate(" + d.x0 + "," + d.y0 + ")";
-                })
-                .style("stroke-width",1);
+                .style("stroke-width",1)
+                .style('fill',"FEFEFE")
+                .attr("transform",function(d){
+                    return "translate(" + d.x + "," + d.y + ")";
+                });   
 
         // Get all the features that are not newly added
         d3.selectAll('.dot.feature_plot').filter(function(d){
@@ -728,65 +903,48 @@ class DataMining{
             return false;
         })
         .attr('d',d3.symbol().type(d3.symbolCross).size(120));
-        
-        // Utopia point: modify the shape to a star
-        get_utopia_point().attr('d',d3.symbol().type(d3.symbolStar).size(120));        
-
-        // The current feature: modify the shape to a cross
-        var _current_feature = get_current_feature().attr('d',d3.symbol().type(d3.symbolCross).size(120));
-
-        _current_feature.shown = true;
-        // The current feature
-        _current_feature.style('fill',"black");    
-        
-        function blink() {
-            if(_current_feature.shown) {
-                _current_feature.style("opacity",0);
-                _current_feature.shown = false;
-            } else {
-                _current_feature.style("opacity",1);
-                _current_feature.shown = true;
-            }
-        }
-
-        this.current_feature_blink_interval = setInterval(blink, 350);
-
-        
-        d3.selectAll('.dot.feature_plot').filter((d) => {
-                if (d.id === this.utopia_point.id) {
-                    return false;
-                }
-                else {
-                    return true;
-                }
-            })
-            .on("mouseover", (d) => { this.feature_mouseover(d); })
-            .on('mouseout', (d) => { this.feature_mouseout(d); })
-            .on('click', (d) => { this.feature_click(d); });   
-
-        
-        //Transition the colors to a rainbow
-        function updateRainbow() {
-            d3.selectAll(".dot.feature_plot")
-                .style("fill", function (d,i) { return that.colorScaleRainbow(that.colorInterpolateRainbow(scores[i])); })
-        }
-        
-        updateRainbow();
-
-        // Remove the utopia point from the list
-        this.all_features.splice(0,1);
-
-        if(this.current_feature){
-            // Remove the last feature, as it had been added temporarily to display the cursor
-            this.all_features.pop();
-        }
-
-        d3.selectAll('.dot.feature_plot').transition()
-            .duration(duration)
-            .attr("transform",function(d){
-                return "translate(" + d.x + "," + d.y + ")";
-            });   
                 
+        d3.selectAll('.dot.feature_plot')
+            .on("mouseover", (d) => { 
+                
+                let id = d.id;
+                d3.selectAll('.dot.feature_plot')
+                    .style("fill","#FEFEFE");
+                d3.selectAll('.dot.feature_plot').filter(function(d){
+                    if (d.id == id) return true;
+                    return false;
+                }).style("fill", "#A5A5A5");
+                
+                this.feature_mouseover(d); 
+            })
+
+            .on('mouseout', (d) => { 
+
+                d3.selectAll('.dot.feature_plot')
+                    .style("fill","#FEFEFE");
+
+                if(this.current_feature){
+                    let id = this.current_feature_id;
+                    d3.selectAll('.dot.feature_plot').filter(function(d){
+                        if (d.id == id) return true;
+                        return false;
+                    }).style("fill", "#A5A5A5");
+                }
+                
+                this.feature_mouseout(d); 
+            })
+
+            .on('click', (d) => { 
+
+                let id = d.id;
+                d3.selectAll('.dot.feature_plot').style("stroke-width",1);
+                this.current_feature = d3.selectAll('.dot.feature_plot').filter(function(d){
+                    if (d.id == id) return true;
+                    return false;
+                }).style("stroke-width",3);
+
+                this.feature_click(d); 
+            });   
     }
 
     feature_click(d){
@@ -917,6 +1075,7 @@ class DataMining{
         
         if(!expression || expression === ""){
             this.current_feature = null;
+            this.current_feature_id = null;
             // Assign new indices for the added features
             this.update();
 
@@ -984,6 +1143,7 @@ class DataMining{
 
             // Define new feature
             this.current_feature = {id:-1, name:expression, expression:expression, metrics:metrics, x0:x, x:x, y0:y, y:y};
+            this.current_feature_id = null;
 
             // Check if there exists a feature whose metrics match with the current feature's metrics
             let matched = find_equivalent_feature(metrics,[2,3]);       
@@ -994,6 +1154,9 @@ class DataMining{
                 // Add new feature to the list of features
                 this.user_added_features_id.push(new_feature.id);
                 this.all_features.push(new_feature);
+            
+            }else{
+                this.current_feature_id = matched.id;
             }
             
             // Stash the previous locations of all features
@@ -1686,5 +1849,47 @@ class DataMining{
             }
         });
     }
+
+
+    sortFeatures(features, sortBy){
+
+        let sorted = [];        
+        for (let i = 0; i < features.length; i++){
+            
+            let this_feature = features[i];
+            
+            if(sorted.length === 0){
+                sorted.push(this_feature);
+                continue;
+            }
+            
+            let metrics = this_feature.metrics;
+               
+            let value = this_feature.metrics[sortBy];
+            let maxval = sorted[0].metrics[sortBy];
+            let minval = sorted[sorted.length-1].metrics[sortBy];
+            
+            if(value >= maxval){
+                sorted.splice(0, 0, this_feature);
+
+            } else if (value <= minval){
+                sorted.push(this_feature);
+
+            } else {
+                for (let j = 0; j < sorted.length; j++){
+                    let refval = sorted[j].metrics[sortBy];
+                    let refval2 = sorted[j+1].metrics[sortBy];
+
+                    if(value <= refval && value > refval2){
+                        sorted.splice(j+1,0, this_feature); 
+                        break;
+                    }
+                }
+            }
+        }         
+        return sorted;
+    }
+
+
 }
 

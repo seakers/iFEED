@@ -20,7 +20,7 @@ class TradespacePlot{
 
         this.tradespace_plot_params = {
             "margin":{top: 20, right: 20, bottom: 30, left: 60},
-            "width": 960,
+            "width": 1215,
             "height": 540,
         };
 
