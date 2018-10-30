@@ -1,0 +1,44 @@
+
+#experiment_prompt_div{
+    width: 2000px;
+    margin: auto;
+    background-color: #C5EEFF;
+    border-radius: 25px;
+    opacity: 0.9;
+    padding: 25px;
+}
+
+#experiment_prompt_div > div{
+    margin: auto;
+    width: 1800px;
+}
+
+#experiment_prompt_content{
+    width:1800px;
+    float:left;
+}
+
+#promt_body_text_1{
+    font-size:22px;
+}
+
+#arrow_div{
+    margin-top: 30px;
+}
+
+#task_number{
+    font-size:12px;
+    margin:0 48%;
+}
+
+#prompt_page_number{
+    float:left;
+    width:100%;
+}
+
+#prompt_page_number > div{
+    margin:auto;
+    width:50px;
+    font-size: 19px;
+}
+

@@ -78,6 +78,8 @@ class EOSSAssigning extends Problem{
         });
 
         PubSub.publish(DESIGN_PROBLEM_LOADED, this);
+
+        this.experiment = null;
     }
     
     booleanArray2String(boolArray) {
@@ -115,7 +117,7 @@ class EOSSAssigning extends Problem{
 
         // Display the current architecture info
         let arch_info_display_outputs = support_panel.append('div')
-                .attr('id','arch_info_display_outputs');
+                                                        .attr('id','arch_info_display_outputs');
         
         for(let i = 0; i < this.metadata.output_list.length; i++){
             arch_info_display_outputs.append("p")
@@ -135,21 +137,26 @@ class EOSSAssigning extends Problem{
                 .style('font-size','20px');
         }
 
-        
         let bitString = null;
         
         if(typeof data == "string"){
             bitString = data;
+
         }else{
-            bitString = this.booleanArray2String(data.inputs);
+            if(this.experiment){
+                let boolArray = this.experiment.randomized.encodeBitStringBool(data.inputs);
+                bitString = this.booleanArray2String(boolArray);
+            }else{
+                bitString = this.booleanArray2String(data.inputs);
+            }
         }
         
         let json_arch=[];
         
-        for(let i=0;i<this.orbit_num;i++){
+        for(let i = 0; i < this.orbit_num; i++){
             
-            var orbit = this.orbit_list[i];
-            var assigned = [];
+            let orbit = this.orbit_list[i];
+            let assigned = [];
             
             for(let j = 0; j < this.instrument_num; j++){
 
@@ -162,11 +169,10 @@ class EOSSAssigning extends Problem{
             // Store the name of the orbit and the assigned instruments
             json_arch.push({"orbit":orbit,"children":assigned});
         }        
-    
         
-        var norb = json_arch.length;
-        var maxNInst = 0;
-        var totalNInst = 0;
+        let norb = json_arch.length;
+        let maxNInst = 0;
+        let totalNInst = 0;
 
         for (var i = 0; i < this.orbit_num; i++) {
             var nInst = json_arch[i].children.length;
@@ -361,9 +367,9 @@ class EOSSAssigning extends Problem{
             });
         });
 
-        for(var i=0;i<that.orbit_num;i++){
-            for(var j=0;j<that.instrument_num;j++){
-                if(indices.indexOf(i*that.instrument_num+j)==-1){
+        for(let i = 0; i < that.orbit_num; i++){
+            for(let j = 0; j < that.instrument_num; j++){
+                if(indices.indexOf(i * that.instrument_num + j) == -1){
                     bitString = bitString + "0";
                 }else{
                     bitString = bitString + "1";

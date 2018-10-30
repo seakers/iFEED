@@ -57,15 +57,6 @@ class DataMining{
 
         this.run_automated_local_search = false;
 
-
-        PubSub.subscribe(ADD_FEATURE, (msg, data) => {
-            this.add_feature_to_plot(data);
-        });  
-        
-        // PubSub.subscribe(DRAW_VENN_DIAGRAM, (msg, data) => {
-        //     self.draw_venn_diagram();
-        // });     
-        
         // Save the data
         PubSub.subscribe(DATA_PROCESSED, (msg, data) => {
             this.data = data;
@@ -216,8 +207,8 @@ class DataMining{
 
             PubSub.publish(CANCEL_ADD_FEATURE, null);
                         
-        }
-        else if(this.run_automated_local_search){
+                        
+        } else if(this.run_automated_local_search){
 
             // Run data mining from the scratch (no local search)
             
@@ -237,9 +228,9 @@ class DataMining{
                 }
             }
 
-            this.display_features();       
-        } 
-        else{            
+            this.display_features();     
+
+        } else{            
             // Run data mining from the scratch (no local search)
             
             // Clear the feature application
@@ -476,13 +467,8 @@ class DataMining{
             .attr("height", this.height + this.margin.top + this.margin.bottom)
             .append("g")
             .attr("transform", "translate(" + this.margin.left + "," + this.margin.top + ")");
-
-        // feature_plot.append('div')
-        //     .attr('class','feature_plot venn_diagram')
-        //     .append('div')
-        //     .text('Total number of designs: ' + ifeed.tradespace_plot.get_num_of_archs());
         
-        var objects = svg.append("svg")
+        let objects = svg.append("svg")
                 .attr("class", "objects feature_plot")
                 .attr("width", this.width)
                 .attr("height", this.height)
@@ -703,7 +689,7 @@ class DataMining{
                 this.current_feature = d3.selectAll('.bar.feature_plot').filter(function(d){
                     if (d.id == id) return true;
                     return false;
-                }).style("stroke-width",3);
+                }).style("stroke-width",4);
 
                 this.feature_click(d);
             });    
@@ -941,7 +927,7 @@ class DataMining{
                 this.current_feature = d3.selectAll('.dot.feature_plot').filter(function(d){
                     if (d.id == id) return true;
                     return false;
-                }).style("stroke-width",3);
+                }).style("stroke-width",4);
 
                 this.feature_click(d); 
             });   
@@ -1035,7 +1021,6 @@ class DataMining{
         
         // Update the placeholder with the driving feature and stash the expression    
         this.feature_application.update_feature_application('temp', expression);
-        //self.draw_venn_diagram(); 
     }
 
     feature_mouseout(d){
@@ -1063,7 +1048,8 @@ class DataMining{
                 for(let j = 0; j < indices.length; j++){
                     let index = indices[j];
                     if(round_num(metrics[index]) != round_num(_metrics[index])){
-                        match=false;
+                        match = false;
+                        break;
                     }
                 }
                 if(match){
@@ -1148,7 +1134,7 @@ class DataMining{
             // Check if there exists a feature whose metrics match with the current feature's metrics
             let matched = find_equivalent_feature(metrics,[2,3]);       
 
-            if(!matched){                
+            if(!matched){  
                 let new_feature =  JSON.parse(JSON.stringify(this.current_feature));
                 new_feature.id = this.featureID++;
                 // Add new feature to the list of features
@@ -1729,7 +1715,9 @@ class DataMining{
                 PubSub.publish(UPDATE_TRADESPACE_PLOT, null);
             },
             error: function (jqXHR, textStatus, errorThrown)
-            {alert("error");}
+            {
+                alert("error");
+            }
         });
     }
 
@@ -1845,11 +1833,72 @@ class DataMining{
             },
             error: function (jqXHR, textStatus, errorThrown)
             {
-                alert("error");
+                alert("Error in importing feature data");
             }
         });
     }
 
+    import_feature_data_and_compute_metrics(filename, filter){
+        let that = this;
+
+        if(filename == null){
+            filename = "feature_data"
+        }
+
+        let filename_data = filename + ".archive";
+        let filename_params = filename + ".params";
+        let filename_selection = filename + ".selection";
+
+        this.import_target_selection(filename_selection);
+
+        $.ajax({
+            url: "/api/data-mining/import-feature-data",
+            type: "POST",
+            data: {
+                    filename_data: filename_data,  // ClimateCentric, GNC, etc
+                    filename_params: filename_params,
+                    generalization_enabled: false,
+                  },
+            async: false,
+            success: function (data, textStatus, jqXHR)
+            {
+                that.all_features = data['data'];
+            },
+            error: function (jqXHR, textStatus, errorThrown)
+            {
+                alert("Error in importing feature data");
+            },
+            complete: function(jqXHR, textStatus){
+
+                let target_sample_ids = [];
+                for(let i = 0; i < that.selected_archs.length; i++){
+                    target_sample_ids.push(that.selected_archs[i].id);
+                }
+                
+                // Clear the feature application
+                PubSub.publish(INITIALIZE_FEATURE_APPLICATION, null);
+
+                // Remove all highlights in the scatter plot (retain target solutions)
+                PubSub.publish(APPLY_FEATURE_EXPRESSION, null);
+
+                if(that.all_features.length === 0){ // If there is no driving feature returned
+                    return;
+
+                }else{
+                    for(let i = 0; i < that.all_features.length; i++){
+
+                        let expression = that.all_features[i].expression;
+                        let metrics = filter.compute_feature_metrics(expression, target_sample_ids);
+
+                        that.all_features[i].metrics = metrics;
+                        that.mined_features_id.push(that.all_features[i].id);
+                    }
+                }
+
+                that.display_features();  
+            }
+        });
+    }
 
     sortFeatures(features, sortBy){
 
@@ -1889,7 +1938,5 @@ class DataMining{
         }         
         return sorted;
     }
-
-
 }
 

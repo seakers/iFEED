@@ -15,7 +15,7 @@
 .content{
     width:2400px; 
     height:1300px; 
-    margin:auto;
+    float:left;
 }
 
 #status_display{

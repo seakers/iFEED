@@ -54,6 +54,7 @@ class TradespacePlot{
         });         
 
         PubSub.subscribe(DATA_PROCESSED, (msg, data) => {
+            this.num_total_points = 0;
             this.data = data;
             this.data.forEach(point => {
                 point.selected = false;
@@ -361,8 +362,6 @@ class TradespacePlot{
                     that.toggle_selection_mode(clickedElement.select("input").attr("id")); 
                 }
             });   
-
-
     }
 
     setPointColor(point){
@@ -438,7 +437,6 @@ class TradespacePlot{
             let oldPoint = colorMap[this.lastHoveredArch];
             this.setPointColor(oldPoint);
         }
-
         return maxcolor;
     }
 

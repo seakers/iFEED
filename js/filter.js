@@ -178,6 +178,72 @@ class Filter{
         return id_list;
     }
 
+    compute_feature_metrics(feature_expression, target_sample_ids){
+
+        let metrics = [];
+
+        // If filter expression is empty, return
+        if (feature_expression === "" || !feature_expression){
+            metrics = [-1, -1, -1, -1];
+
+        }else{
+
+            // Compute the metrics of a feature
+            let total = this.data.length;
+            let highlighted = 0;
+            let selected = 0;
+            let intersection = 0;
+
+            let filtered_data = this.process_filter_expression(feature_expression, this.data);
+            let filtered_ids = this.get_data_ids(filtered_data);
+
+            for(let i = 0; i < target_sample_ids.length; i++){
+                if(filtered_ids.indexOf(target_sample_ids[i]) != -1){
+                    intersection += 1;
+                }
+            }
+
+            selected = target_sample_ids.length;
+            highlighted = filtered_ids.length;   
+
+            let p_snf = intersection / total;
+            let p_s = selected / total;
+            let p_f = highlighted / total;
+
+            let supp = p_snf;
+            let conf = null;
+            let conf2 = null;
+            let lift = null;
+
+            if(highlighted > 0){
+                conf = supp / p_f;
+            }else{
+                conf = 0;
+            }
+
+            if(selected > 0){
+                conf2 = supp / p_s;
+            }else{
+                conf2 = 0;
+            }
+
+            if(p_f > 0 && p_s > 0){
+                lift = p_snf / (p_f * p_s); 
+            }else{
+                lift = 0;
+            }
+
+            if(conf2 > 1){
+                console.log("intersection: " + intersection +", highlighted: " + highlighted + ", selected: " + selected);
+                console.log(filtered_ids);
+            }
+            
+
+            metrics = [supp, lift, conf, conf2];
+        }
+        return metrics;
+    }
+
     /*
         Compares the preset filter to a single architecture
         @param expression: A filter expression string

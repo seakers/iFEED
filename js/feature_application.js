@@ -28,30 +28,10 @@ class FeatureApplication{
         this.width = 1200 - this.margin.left - this.margin.right,
         this.height = 800 - this.margin.top - this.margin.bottom;
 
-
         this.draggingNode = null;
         this.selectedNode = null;
         this.dragStarted = false;
         this.contextMenu = null;  
-        
-	   	// this.dragListener = d3.drag()
-	    //     .on('start', (d) => { this.dragStart(d); })
-	    //     .on('drag', (d) => { this.drag(d); })
-	    //     .on('end', (d) => { this.dragEnd(d); });
-
-        
-//    PubSub.subscribe(CANCEL_ADD_FEATURE, (msg, data) => {
-//        
-//        self.visit_nodes(self.root, function(d){
-//            // Find the node to which to add new features
-//            if(d.add){
-//                d.add=false;
-//                return d;
-//            }     
-//        });
-//        self.update(); 
-//    }); 
-//    
 
         PubSub.subscribe(INITIALIZE_FEATURE_APPLICATION, (msg, data) => {
             this.clear_feature_application()
@@ -487,10 +467,6 @@ class FeatureApplication{
 
             this.update();
             
-            PubSub.publish(ADD_FEATURE, this.parse_tree(this.data));
-            //this.update_feature_expression(this.parse_tree(this.data));            
-            //ifeed.data_mining.draw_venn_diagram();  
-
             this.dragStarted = false;
             this.draggingNode = null;
         }
@@ -718,9 +694,6 @@ class FeatureApplication{
                 })
 
                 this.update();
-                
-                PubSub.publish(ADD_FEATURE, this.parse_tree(this.data));
-                //PubSub.publish(CANCEL_ADD_FEATURE, null);
             }
             
 
@@ -788,12 +761,8 @@ class FeatureApplication{
             this.stashed_root = null;
             this.visit_nodes(this.data, (d) => {
                 d.temp = false;
-            })
-            
-            PubSub.publish(ADD_FEATURE, this.parse_tree(this.data));
-            //PubSub.publish(CANCEL_ADD_FEATURE, null);
+            });
         }
-        
 
         //this.update_feature_expression(this.parse_tree(this.data));
         //ifeed.data_mining.draw_venn_diagram();   
@@ -998,7 +967,7 @@ class FeatureApplication{
                 // If the current node is null, return null    
                 expression = null;
 
-            }else if(root.type=="leaf"){
+            }else if(root.type === "leaf"){
                 // If the current node is a leaf node
 
                 if(deactivated(root)){
@@ -1146,10 +1115,7 @@ class FeatureApplication{
     clear_feature_application(){
         this.data = null;
         this.update();
-        this.update_feature_expression(null);
-        
-        PubSub.publish(ADD_FEATURE, null);
-        //ifeed.data_mining.draw_venn_diagram(); 
+        this.update_feature_expression(null);        
     }
     
     diagonal(s, d) {

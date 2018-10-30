@@ -12,7 +12,6 @@ class Problem{
             //this.calculate_pareto_ranking([], 1);
 
             PubSub.publish(DATA_PROCESSED,this.data);
-
         });     
 
         PubSub.subscribe(INSPECT_ARCH, (msg, data) => {
@@ -22,10 +21,6 @@ class Problem{
         PubSub.subscribe(RUN_LOCAL_SEARCH, (msg, data) => {
             this.run_local_search(data);
         });   
-        
-        // PubSub.subscribe(SET_CURRENT_ARCHITECTURE, (msg, data) => {
-        //     self.current_bitString = self.booleanArray2String(data.inputs)
-        // });   
     }
 
     preprocessing_problem_specific(data){

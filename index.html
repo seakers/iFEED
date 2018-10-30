@@ -14,7 +14,6 @@ and open the template in the editor.
     <script src="js/lib/jquery.js" type="text/javascript"></script>
     <script src="js/lib/jquery-ui.min.js"></script>
     
-    <!-- <script src="js/lib/d3.js"></script> -->
     <script src="https://d3js.org/d3.v4.min.js"></script>
     <script src="js/lib/d3-selection-multi.min.js" type="text/javascript"></script>
     <script src="js/lib/d3-shape.v1.min.js"></script>
@@ -28,6 +27,7 @@ and open the template in the editor.
     <link href="css/filter.css" rel="stylesheet" type="text/css"/>
     <link href="css/data_mining.css" rel="stylesheet" type="text/css"/>
     <link href="css/feature_application.css" rel="stylesheet" type="text/css"/>
+    <link href="css/experiment.css" rel="stylesheet" type="text/css"/>
 
     <script src="https://apis.google.com/js/platform.js" async defer></script>
     <meta name="google-signin-client_id" content="564804694787-lnsp9md3u0q8086nftbamu43drid6d4t.apps.googleusercontent.com">
@@ -41,6 +41,16 @@ and open the template in the editor.
     <h2>iFEED GUI</h2>
 </div>
 <div class='content'>
+
+    <div id='experiment_prompt_div'>
+        <div>
+            <div id='experiment_prompt_content'>
+            </div>
+            <div id='timer'></div>
+        </div>
+    </div>
+
+
     <div id='status_display'>
         <div>
             <div>Number of designs:</div>
@@ -55,56 +65,6 @@ and open the template in the editor.
     <div class='column c1'>
         <div class='row c1 r1'>
             <div class='tradespace_plot figure'></div>
-
-<!--             <div class='tradespace_plot options'>
-                <div>     
-                    <div id="plot_options">
-                        <div>
-                            X axis:
-                            <select id="x-axis-select"/>
-                        </div>
-                        <div>
-                            Y axis:
-                            <select id="y-axis-select"/>
-                        </div>
-                    </div>               
-                    <div id='interaction_modes'>
-                        <div>Mouse Selection</div>
-                        <div style="margin-top:3px">
-                            Zoom/Pan:
-                            <input id="zoom-pan" type="radio" checked="True"/>
-                        </div>
-                        <div>
-                            Drag-select:
-                            <input id="drag-select" type="radio"/>
-                        </div>
-                        <div>
-                            Deselect: 
-                            <input id="de-select" type="radio"/>
-                        </div>
-                    </div>
-                    <div id='selection_options'>
-
-                        <div>
-                            <div>Range Selection</div>
-                            Cost range: <br/>
-                            <input id="selectArchsWithinRange_minCost" class="select_within_range_text_box" type="text" value="0"/>&nbsp; ~&nbsp; <input id="selectArchsWithinRange_maxCost" class="select_within_range_text_box" type="text" value="inf"/>
-                            <br/>
-                            Science Benefit range: <br/>
-                            <input id="selectArchsWithinRange_minScience" class="select_within_range_text_box" type="text" value="0"/>&nbsp; ~&nbsp; <input id="selectArchsWithinRange_maxScience" class="select_within_range_text_box" type="text" value="1"/>
-                            <br/>
-                            <button type="button" id="selectArchsWithinRangeButton" >Select Designs</button>
-                        </div>
-
-                        <button type="button"  id="hide_selection">Hide selections</button>
-                        <button type="button"  id="show_all_archs">Show all architectures</button> 
-                        <button type="button"  id="select_highlighted">Select highlighted</button>
-                        <button type="button"  id="select_complement">Select complement</button>
-                        <button type="button"  id="cancel_selection">Cancel all selections</button>
-                    </div>                    
-                </div>
-            </div> -->
-
         </div>
         <div class="row c1 r2">
             <div id="support_panel"> 
@@ -126,8 +86,6 @@ and open the template in the editor.
             <div id='feature_expression_panel'>
                 <div>
                     <div>Feature Application Panel</div>
-<!--                     <button id='conjunctive_local_search' class='feature_application_options_button'>Improve specificity</button>
-                    <button id='disjunctive_local_search' class='feature_application_options_button'>Improve coverage</button> -->
                     <button id='clear_all_features' class='feature_application_options_button'>Clear</button>
                 </div>
                 <div id='feature_expression'></div>
@@ -166,6 +124,7 @@ and open the template in the editor.
 <script src="js/feature_application.js" type="text/javascript"></script>       
 <script src="js/context_menu.js" type="text/javascript"></script>
     
+<script src="js/experiment.js" type="text/javascript"></script>
 <script>
 
     let problem_name = "ClimateCentric";
@@ -203,9 +162,9 @@ and open the template in the editor.
     }
     
     
-    var data_mining = new DataMining(filter, label);
+    let data_mining = new DataMining(filter, label);
     
-    var feature_application = new FeatureApplication(data_mining, filter, label);    
+    let feature_application = new FeatureApplication(data_mining, filter, label);    
 
     PubSub.publish(LOAD_DATA, null);
 
@@ -223,7 +182,9 @@ and open the template in the editor.
     data_mining.run_ga = true;
     // data_mining.update = data_mining.update_scatter;
 
-
+    let experiment = new Experiment(ifeed);
+    problem.experiment = experiment;
+    label.experiment = experiment;
 
 </script>
 
