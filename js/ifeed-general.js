@@ -38,6 +38,9 @@ const VIEW_ARCHITECTURE = "view_architecture";
 const HIGHLIGHT_SUPPORT_PANEL = "highlight_support_panel";
 const ARCH_SELECTED = "arch_selected";
 
+const EXPERIMENT_START = "experiment_start";
+const EXPERIMENT_IMPORT_FEATURE = "experiment_import_feature";
+
 
 class Architecture{
     constructor(id,inputs,outputs){

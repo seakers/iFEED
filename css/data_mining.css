@@ -1,6 +1,14 @@
 
+.feature_plot.div{
+    margin-left:150px;
+}
+
 .feature_plot.figure{
     float:left;
+}
+
+#feature_sortby_div{
+    margin-left: 25px;
 }
 
 .feature_plot.venn_diagram{

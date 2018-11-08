@@ -37,19 +37,20 @@ and open the template in the editor.
 <body>
 
     
-<div class='title'>
-    <h2>iFEED GUI</h2>
-</div>
+<div class='title'></div>
 <div class='content'>
 
     <div id='experiment_prompt_div'>
         <div>
-            <div id='experiment_prompt_content'>
+            <div id='prompt_header_div'>
+                <div id='prompt_header'></div>
+            </div>
+            <div id='prompt_content_div'>
+                <div id='prompt_content'></div>
             </div>
             <div id='timer'></div>
         </div>
     </div>
-
 
     <div id='status_display'>
         <div>
@@ -71,7 +72,7 @@ and open the template in the editor.
                 <ul class="tabs" data-persist="true">
                     <li><a id="tab1" href="#view1">Inspect Design</a></li>
                     <!-- <li><a id="tab2" href="#view2">Filter Setting</a></li> -->
-                    <li><a id="tab3" href="#view3">Feature Status</a></li>
+                    <li><a id="tab3" href="#view3">Feature Analysis</a></li>
                 </ul>
                 <div class="tabcontents">
                     <div id="view1"></div>
@@ -185,6 +186,10 @@ and open the template in the editor.
     let experiment = new Experiment(ifeed);
     problem.experiment = experiment;
     label.experiment = experiment;
+
+    experiment.tradespace_plot = tradespace_plot;
+    experiment.data_mining = data_mining;
+    experiment.filter = filter;
 
 </script>
 

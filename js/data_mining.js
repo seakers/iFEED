@@ -5,6 +5,11 @@ class DataMining{
 
         this.run_ga = true;
         this.update = this.update_bar;
+
+        // bar chart sortby metric
+        this.metricIndex = 0;
+        this.metricName = "Coverage";
+
         this.enable_generalization = false;
 
         this.filter = filteringScheme;
@@ -81,7 +86,7 @@ class DataMining{
     initialize(){
         d3.select("#support_panel").select("#view3").select("g").remove();
         
-        var guideline = d3.select("#support_panel").select("#view3")
+        let guideline = d3.select("#support_panel").select("#view3")
                 .append("g")
                 .append("div")
                 .style("width","900px")
@@ -447,8 +452,6 @@ class DataMining{
 
         document.getElementById('tab3').click();
         
-        //ifeed.tradespace_plot.highlight_support_panel();
-
         // Remove previous plot
         d3.select("#view3").select("g").remove();
 
@@ -456,7 +459,7 @@ class DataMining{
 
         // Create plot div's
         let feature_plot = tab.append('div')
-            .attr('class','feature_plot')
+            .attr('class','feature_plot div')
             .style('width', this.width + this.margin.left + this.margin.right)
             .style('height', this.height + this.margin.top + this.margin.bottom);
 
@@ -479,6 +482,41 @@ class DataMining{
             this.all_features[i].x0 = -1;
             this.all_features[i].y0 = -1;
             this.all_features[i].id = this.featureID++;
+        }
+
+        if(this.update == this.update_bar){
+
+            d3.select("#view3").select("g")
+                .insert("div",":first-child")
+                .attr("id", "feature_sortby_div");
+            
+            let dropdown = d3.select("#feature_sortby_div")
+                .append("select")
+                .attr("id","feature_sortby_options");
+
+            let options = ["Coverage","Specificity"];
+
+            dropdown.selectAll("option")
+                    .data(options)
+                    .enter()
+                    .append("option")
+                    .attr("value",function(d){
+                        return d;
+                    })
+                    .text(function(d){
+                        return d;
+                    });    
+
+            let that = this;
+
+            dropdown.on("change", function(d){
+                let option = d3.select(this).node().value;            
+                that.metricIndex = options.indexOf(option);
+                that.metricName = option;
+                
+                d3.selectAll(".bar.feature_plot").remove();
+                that.update();
+            });  
         }
 
         this.update();
@@ -523,11 +561,8 @@ class DataMining{
         d3.select('.feature_plot.figure').select('g').selectAll('.axis').remove();
         d3.select('.feature_plot.figure').select('g').selectAll('.label').remove();
 
-        // Set the vertical axis to be lift
-        let metricIndex = 1;
-
         // Sort features in descending order
-        let features = that.sortFeatures(this.all_features, metricIndex);
+        let features = that.sortFeatures(this.all_features, this.metricIndex);
 
         for (let i = 0; i < features.length; i++){
             supps.push(features[i].metrics[0]);
@@ -560,7 +595,7 @@ class DataMining{
         // setup y
         // data -> value
         let yValue = function (d) {
-            return d.metrics[metricIndex];
+            return d.metrics[that.metricIndex];
         };
         // value -> display
         let yScale = d3.scaleLinear().range([height, 0]); 
@@ -614,10 +649,9 @@ class DataMining{
             .attr("y", 6)
             .attr("dy", ".71em")
             .style("text-anchor", "end")
-            .text('Lift')
+            .text(that.metricName)
             .style('font-size','15px');
         
-
         let objects = d3.select(".objects.feature_plot")
 
         // Remove unnecessary points
@@ -723,7 +757,6 @@ class DataMining{
         let height = this.height;
 
         let duration = 500;
-
         let supps = [];
         let lifts = [];
         let conf1s = [];
@@ -1033,7 +1066,6 @@ class DataMining{
 
         // Bring back the previously stored feature expression
         this.feature_application.update_feature_application('restore');        
-        //this.draw_venn_diagram();       
     }
     
     add_feature_to_plot(expression){
@@ -1874,7 +1906,7 @@ class DataMining{
                 for(let i = 0; i < that.selected_archs.length; i++){
                     target_sample_ids.push(that.selected_archs[i].id);
                 }
-                
+
                 // Clear the feature application
                 PubSub.publish(INITIALIZE_FEATURE_APPLICATION, null);
 

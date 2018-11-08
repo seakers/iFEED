@@ -31,7 +31,8 @@ class TradespacePlot{
             "overlap": "rgba(163,64,240,255)",
             "mouseover": "rgba(116,255,110,255)",
             "hidden": "rgba(110,110,110,22)",
-            "cursor": "rgba(0, 0, 0, 1)"
+            "cursor": "rgba(0, 0, 0, 1)",
+            "justAdded": "rgba(231, 76, 60, 1)"
         };
 
         this.output_list = [];
@@ -68,61 +69,39 @@ class TradespacePlot{
 
         PubSub.subscribe(UPDATE_TRADESPACE_PLOT, (msg, data) => {
             this.update(data);
-        });
+        });  
+        
+        PubSub.subscribe(ADD_ARCHITECTURE, (msg, data) => {
 
-        // PubSub.subscribe("update_target_selection", (msg) => {
-        //     this.update_target_selection();
-        // });     
-        
-        // PubSub.subscribe(HIGHLIGHT_SUPPORT_PANEL, (msg, data) => {
-        //     self.highlight_support_panel();
-        // });    
-        
-        // PubSub.subscribe(ADD_ARCHITECTURE, (msg, data) => {
-            
-        //     var allData = data.previous;
-        //     var added = data.added;
+            // Check if there exists a redundant architecture
+            for(let i = 0; i < this.data.length; i++){
+                if(this.data[i].inputs == data.inputs){
+                    console.log("Matching arch found");
+                    return;
+                }
+            }
 
-        //     if(Array.isArray(added)){
-        //         //allData = allData.concat(added);
-                
-        //     }else{
-        //         //allData.push(added);
-        //         added = [added];
-        //     }
+            this.data.forEach(point => {
+                point.justAdded = false;
+            });
 
-        //     self.drawPlot(allData,0,1);
-            
-        //     clearInterval(self.cursor_blink_interval);
-        //     d3.select('.tradespace_plot.dot.cursor').remove();
-        //     self.cursor_blink_interval=null;
-                            
-        //     d3.select('.tradespace_plot.objects').selectAll('.tradespace_plot.dot.cursor:not(.blink)')
-        //             .data(added)
-        //             .enter()
-        //             .append('path')
-        //             .attr("class","tradespace_plot dot cursor")
-        //             .attr('d', d3.symbol().type(d3.symbolCross).size(120))
-        //             .attr("transform", function (d) {
-        //                 var xCoord = self.xMap(d);
-        //                 var yCoord = self.yMap(d);
-        //                 return "translate(" + xCoord + "," + yCoord + ")";
-        //             })
-        //             .style("stroke-width",1)
-        //             .on("mouseover",self.arch_mouseover)
-        //             .on("mouseout",self.arch_mouseout)
-        //             .on('click',self.arch_click);        
-        // });        
-        
-        
-        // PubSub.subscribe(VIEW_ARCHITECTURE, (msg, data) => {
-        //     ifeed.UI_states.support_panel_active=false;
-        //     self.arch_mouseover(data);
-        // }); 
+            this.num_total_points += 1;
+            data.selected = false;
+            data.highlighted = false;
+            data.hidden = false;
+            data.drawingColor = this.color.justAdded;
+            data.justAdded = true;
 
+            this.data.push(data);
+            this.drawPlot(this.xIndex, this.yIndex);        
+        });        
         
+        PubSub.subscribe(VIEW_ARCHITECTURE, (msg, data) => {
+            // Remove the previous info
+            d3.select("#support_panel").select("#view1").select("g").remove();    
+            PubSub.publish(INSPECT_ARCH, data);
+        }); 
     }
-
 
     reset_tradespace_plot() {
         //Resets the main plot
@@ -185,7 +164,6 @@ class TradespacePlot{
         }
     }
     
-    
     /*
         Draws the scatter plot with architecture inputs
         @param source: a JSON object array containing the basic arch info
@@ -223,24 +201,12 @@ class TradespacePlot{
             .style("width", this.tradespace_plot_params.width + "px")
             .style("height", this.tradespace_plot_params.height + "px");
 
-        this.zoom = d3.zoom()
-            .scaleExtent([0.4, 25])
-            .on("zoom", d => {
-                this.transform = d3.event.transform;
-                gX.call(xAxis.scale(this.transform.rescaleX(this.xScale)));
-                gY.call(yAxis.scale(this.transform.rescaleY(this.yScale)));
-
-                this.drawPoints(this.context, false);
-            });
-
-
         // Create svg
         let svg = d3.select('.tradespace_plot.figure')
             .append("svg")
             .style("position","absolute")
             .attr("width", this.width + margin.left + margin.right)
             .attr("height", this.height + margin.top + margin.bottom)
-            .call(this.zoom)
             .append("g")
             .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
 
@@ -250,8 +216,7 @@ class TradespacePlot{
             .style("top", margin.top + "px")
             .style("left", margin.left + "px")
             .attr("width", this.width)
-            .attr("height", this.height)
-            .call(this.zoom);
+            .attr("height", this.height);
 
         this.context = canvas.node().getContext("2d");
 
@@ -376,6 +341,9 @@ class TradespacePlot{
         }
         else if (point.highlighted) {
             point.drawingColor = this.color.highlighted;
+        }
+        else if (point.justAdded){
+            point.drawingColor = this.color.justAdded;
         }
         else {
             point.drawingColor = this.color.default;
@@ -531,7 +499,7 @@ class TradespacePlot{
                 // d3.select('.tradespace_plot.dot.cursor.blink').remove();
                 // self.cursor_blink_interval=null;
 
-                //PubSub.publish(SET_CURRENT_ARCHITECTURE, arch);
+                PubSub.publish(SET_CURRENT_ARCHITECTURE, arch);
                 //PubSub.publish(ARCH_SELECTED, arch);
 
                 // // // The support panel is active, disable hovering 
@@ -586,8 +554,6 @@ class TradespacePlot{
         this.change_interaction_mode(mode);     
     }
     
-
-
     /*
        Removes selections and/or highlights in the scatter plot
        @param option: option to remove all selections and highlights or remove only highlights
@@ -632,7 +598,6 @@ class TradespacePlot{
         d3.select("#num_of_selected_archs").text(""+this.num_selected_points);
     }
     
-
     change_interaction_mode(option) { // three options: zoom-pan, drag-select, de-select
 
         if(option){
@@ -649,14 +614,12 @@ class TradespacePlot{
             d3.select(".tradespace_plot.figure").select("svg")
                 .on("mousedown.modes",null)
                 .on("mousemove.modes",null)
-                .on("mouseup.modes",null)
-                .call(this.zoom);
+                .on("mouseup.modes",null);
 
             d3.select(".tradespace_plot.figure").selectAll("canvas")
                 .on("mousedown.modes",null)
                 .on("mousemove.modes",null)
-                .on("mouseup.modes",null)
-                .call(this.zoom);
+                .on("mouseup.modes",null);
         }
         else {
             let svg = d3.select(".tradespace_plot.figure").select("svg")
@@ -870,7 +833,6 @@ class TradespacePlot{
 
         PubSub.publish(SELECTION_UPDATED, this.get_selected_architectures());
     }
-
 
     select_complement(){
 

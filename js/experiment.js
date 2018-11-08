@@ -5,25 +5,27 @@ class Experiment{
     constructor(ifeed){
 
         this.ifeed = ifeed;
+        this.data_mining = null;
+        this.filter = null;
+
         this.data = null;
 
-
         this.duration = + 10 * 60 * 1000; // 10 minutes
-        this.timer = new Timer(this.duration);
+        this.timer = new Timer();
 
         // Flag indicating whether the current session timed out
         this.session_timed_out = null;
 
         // Set the order of the task (target region) and the treatment condition
-        this.condition_order = this.shuffleArray([0, 1]); // DSE, sorted fetaures list, FSE
         this.task_number = 0;
-        this.condition_number = this.condition_order[0];
+        this.condition_order = this.shuffleArray([0, 1, 2]); // DSE, sorted fetaures list, FSE
+        this.problem_order = this.shuffleArray([0, 1, 2]); 
 
         // Randomize variable order
         this.orbitOrderStore = [
-                                [3, 1, 0, 4, 2],  // Task 0
-                                [4, 2, 3, 0, 1],  // Task 1
-                                [1, 0, 4, 2, 3]   // Task 2
+                                [3, 1, 0, 4, 2],  // Problem 0
+                                [4, 2, 3, 0, 1],  // Problem 1
+                                [1, 0, 2, 3, 4]   // Problem 2
                                                 ];
 
         this.instrOrderStore = [
@@ -31,15 +33,16 @@ class Experiment{
                                 [3, 1, 8, 7, 5, 6, 2, 0, 4, 9, 11, 10],
                                 [7, 0, 11, 2, 5, 4, 3, 1, 8, 10, 9, 6]
                                                                         ];
-        
-        this.orbitOrder = [0,1,2,3,4];
-        this.instrOrder = [0,1,2,3,4,5,6,7,8,9,10,11];
-        this.orbitOrder = this.orbitOrderStore[this.task_number];
-        this.instrOrder = this.instrOrderStore[this.task_number];
+
+        this.condition_number = this.condition_order[0];
+        this.problem_number = this.problem_order[0];
+        this.orbitOrder = [0, 1, 2, 3, 4];
+        this.instrOrder = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11];
+        // this.orbitOrder = this.orbitOrderStore[this.problem_number];
+        // this.instrOrder = this.instrOrderStore[this.problem_number];
+        this.randomized = new RandomizedVariable(this.orbitOrder, this.instrOrder);    
         this.norb = this.orbitOrder.length;
         this.ninstr = this.instrOrder.length;
-        
-        this.randomized = new RandomizedVariable(this.orbitOrder, this.instrOrder);     
 
         // Participant-specific info store
         this.account_id = "";
@@ -64,156 +67,28 @@ class Experiment{
         this.store_disjunctive_local_search = [];
         this.store_new_feature_tested = [];
         this.store_best_features_found = [];
+
+        PubSub.subscribe(EXPERIMENT_START, (msg, data) => {
+            this.update_task_direction();
+        });    
     }
     
     selectSubsetOfSamples(prob){
         this.data = this.ifeed.data;
         let subset = select_subset(this.data, prob);
-        
         PubSub.publish(DATA_IMPORTED, subset);
     }
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-    update_task_direction(){
-
-        ifeed.main_plot.cancel_selection();
-        ifeed.filter.initialize();
-        ifeed.data_mining.initialize();
-        ifeed.feature_application.clear_feature_application();
-        
-
-        // Change the prompt message and the target selection
-        
-        
-        if(that.condition_number==0){
-            if(that.task_number==0){
-                d3.select("#prompt_header").text("Task "+(that.task_order.indexOf(that.task_number)+1)+": Target Region (a)");
-                that.select_archs_using_ids(lower_cost_lower_perf);
-            }else{
-                d3.select("#prompt_header").text("Task "+(that.task_order.indexOf(that.task_number)+1)+": Target Region (b)");
-                that.select_archs_using_ids(higher_cost_higher_perf);
-            }
-            d3.select('#prompt_body_text_1').html('<p> - You can hover your mouse over each design to see the relevant information.</p>'
-                                        +'<p> - You can modify the existing design and check its performance and cost.</p>'
-                                        +'<p> - You can run a local search that randomly tries several designs with the similar configurations.</p>'
-                                        +'<p>** You are encouraged to take notes (either physically on a piece of paper or electronically using a notepad)</p>');
-
-            d3.select('body').style('background-color','#FFFFFF');
-            d3.select('#experiment_prompt_div').style('background-color','#FFC1D4');   
-            
-        }
-        else if(that.condition_number==1){
-            if(that.task_number==0){
-                d3.select("#prompt_header").text("Task "+(that.task_order.indexOf(that.task_number)+1)+": Target Region (a)");
-                that.select_archs_using_ids(lower_cost_lower_perf);
-            }else{
-                d3.select("#prompt_header").text("Task "+(that.task_order.indexOf(that.task_number)+1)+": Target Region (b)");
-                that.select_archs_using_ids(higher_cost_higher_perf);
-            }
-            d3.select('#prompt_body_text_1').html('<p> - You can hover your mouse over each design to see the relevant information.</p>'
-                                        +'<p> - You can view the feature analysis tab with data mining results displayed on it.</p>'
-                                        +'<p> - You can try making features more general or specific by modifying each feature. </p>'
-                                        +'<p>** You are encouraged to take notes (either physically on a piece of paper or electronically using a notepad)</p>');
-
-
-            d3.select('body').style('background-color','#FFFFFF');
-            d3.select('#experiment_prompt_div').style('background-color','#ABFFB3');
-        }
-
-        
-        d3.selectAll('.dot.main_plot.cursor').remove();
-        
-        d3.select("#num_of_archs").text(""+ifeed.main_plot.get_num_of_archs());
-        
-        
-        //Experiment
-        if(that.condition_number=="0"){
-
-            d3.select("#tab3").text('-');
-            d3.select("#view3").selectAll('g').remove();
-            
-            d3.select('#conjunctive_local_search').on('click',null); 
-            d3.select('#disjunctive_local_search').on('click',null);  
-            
-            
-            d3.selectAll('.dot.main_plot').on('click',ifeed.main_plot.arch_click);  
-            
-            
-        }else if(that.condition_number=="1"){
-            
-            d3.select("#tab3").text('Feature Analysis');
-            ifeed.data_mining.run();
-            
-            d3.selectAll('.dot.main_plot').on('click',null);  
-                        
-            d3.select('#conjunctive_local_search').on('click',function(){
-                ifeed.data_mining.run();
-            }); 
-
-            d3.select('#disjunctive_local_search').on('click',function(d){
-                ifeed.data_mining.run("asdf");
-            });           
-                        
-        }
-
-        that.resetTimer();
-    }
-    
-    previous_task(){
-        var i = that.task_order.indexOf(that.task_number);
-        if(i==0){
-            // pass
-        }else if(i==1){
-            that.task_number = that.task_order[0];
-            that.condition_number = that.condition_order[0];
-            that.orbitOrder = that.orbitOrderStore[that.task_number];
-            that.instrOrder = that.instrOrderStore[that.task_number];
-        }
-        that.update_task_direction();
-    }
-    
     next_task(){
 
-        store_task_specific_information();
+        //store_task_specific_information();
 
-        let i = that.task_order.indexOf(that.task_number);
-        if(i==0){
-            that.task_number = that.task_order[1];
-            that.condition_number = that.condition_order[1];
-            that.orbitOrder = that.orbitOrderStore[that.task_number];
-            that.instrOrder = that.instrOrderStore[that.task_number];
-        }else if(i==1){
+        if (this.task_number === this.condition_order.length - 1){
             // finished all tasks
 
             clearInterval(that.timeinterval);
             that.session_timed_out = true;
 
-            
             d3.select('body').selectAll('div').remove();
             session_timeout();
             var key_number = that.account_id;
@@ -236,11 +111,222 @@ class Experiment{
             print_experiment_summary();
             return;
 
-        }
+        } else {
+            this.task_number += 1;
+            this.condition_number = this.condition_order[this.task_number];
+            this.problem_number = this.problem_order[this.task_number];
+            this.orbitOrder = this.orbitOrderStore[this.problem_number];
+            this.instrOrder = this.instrOrderStore[this.problem_number];
+            this.randomized = new RandomizedVariable(this.orbitOrder, this.instrOrder);    
+        } 
 
+        this.update_task_direction();
+    }
+
+    previous_task(){
+        
+        this.task_number -= 1;
+
+        if(this.task_number === 0){
+            // pass
+
+        }else{
+            this.task_number += 1;
+            this.condition_number = this.condition_order[this.task_number];
+            this.problem_number = this.problem_order[this.task_number];
+            this.orbitOrder = this.orbitOrderStore[this.problem_number];
+            this.instrOrder = this.instrOrderStore[this.problem_number];
+            this.randomized = new RandomizedVariable(this.orbitOrder, this.instrOrder);   
+        }
         that.update_task_direction();
     }
+
+    update_task_direction(){
+
+        // Reset features
+        this.data_mining.initialize();
+
+        PubSub.publish(INITIALIZE_FEATURE_APPLICATION, null);
+
+
+
+
+
+
+
+
+
+
+        let options = ["optionA", "optionB", "optionC"];
+
+        d3.select("#prompt_header").text("Answer the following question:");
+        
+        let form = d3.select("#prompt_content")
+                        .append("form")
+                        .attr("id", "answer_form")
+                        .attr("action","javascript:void(0);");
+
+
+// <div class="slidecontainer">
+//   <input type="range" min="1" max="100" value="50" class="slider" id="myRange">
+// </div>
+
+        let answers = form.append("div")
+                            .attr("id", "answer_div");  
+
+        d3.select("#answer_div")
+            .append("div")
+            .append("div")
+            .text((d)=>{
+                //d3.select(".experiment.answer.slider")
+                return "50";
+            });
+            
+
+        d3.select("#answer_div > div").append("input")
+            .attr("class", "experiment answer slider")
+            .attr("type","range")
+            .attr("min","1")
+            .attr("max","100")
+            .attr("value","50")
+            .style("width", "380px")
+            .on("change",()=>{
+                let val = d3.select(".experiment.answer.slider").node().value;
+                d3.select("#answer_div > div > div").text(val);
+            });
+
+        d3.select("#answer_div")
+            .selectAll("#answer_div > div")
+            .data(options)
+            .enter()
+            .append("div")
+            .text((d) => {
+                return d;
+            })
+            .on("click", (d) => {
+
+                let selected = d;
+
+                d3.selectAll(".experiment.answer.options").nodes()
+                    .forEach((d)=>{
+                        if(d.value === selected){
+                            d.checked = true;
+                        }else{
+                            d.checked = false;
+                        }
+                    })
+            })
+            .append("input")
+            .attr("class", "experiment answer options")
+            .attr("type","radio")
+            .attr("value", function(d){
+                return d;
+            })
+            .attr("text", function(d){
+                return d;
+            });
+
+        form.append("input")
+            .attr("type", "submit")
+            .attr("value", "Submit")
+            .on("click", () => {
+                console.log("Answer submitted!");
+            });
+
+
+
+
+
+
+
+        //Change the prompt message and the target selection
+        // if(this.condition_number === 0){
+
+        //     if(this.task_number==0){
+        //         d3.select("#prompt_header").text("Task "+(this.task_order.indexOf(this.task_number)+1)+": Target Region (a)");
+        //     }else{
+        //         d3.select("#prompt_header").text("Task "+(this.task_order.indexOf(this.task_number)+1)+": Target Region (b)");
+        //     }
+
+        //     d3.select('#prompt_body_text_1').html('<p> - You can hover your mouse over each design to see the relevant information.</p>'
+        //                                 +'<p> - You can modify the existing design and check its performance and cost.</p>'
+        //                                 +'<p> - You can run a local search that randomly tries several designs with the similar configurations.</p>'
+        //                                 +'<p>** You are encouraged to take notes (either physically on a piece of paper or electronically using a notepad)</p>');
+
+        //     d3.select('body').style('background-color','#FFFFFF');
+        //     d3.select('#experiment_prompt_div').style('background-color','#FFC1D4');   
+            
+        // }
+        // else if(this.condition_number === 1){
+        //     if(that.task_number==0){
+        //         d3.select("#prompt_header").text("Task "+(that.task_order.indexOf(that.task_number)+1)+": Target Region (a)");
+        //         that.select_archs_using_ids(lower_cost_lower_perf);
+        //     }else{
+        //         d3.select("#prompt_header").text("Task "+(that.task_order.indexOf(that.task_number)+1)+": Target Region (b)");
+        //         that.select_archs_using_ids(higher_cost_higher_perf);
+        //     }
+        //     d3.select('#prompt_body_text_1').html('<p> - You can hover your mouse over each design to see the relevant information.</p>'
+        //                                 +'<p> - You can view the feature analysis tab with data mining results displayed on it.</p>'
+        //                                 +'<p> - You can try making features more general or specific by modifying each feature. </p>'
+        //                                 +'<p>** You are encouraged to take notes (either physically on a piece of paper or electronically using a notepad)</p>');
+
+
+        //     d3.select('body').style('background-color','#FFFFFF');
+        //     d3.select('#experiment_prompt_div').style('background-color','#ABFFB3');
+        // }
+
+                        
+        
+
+
+
+
+        // Experiment conditions
+        if(this.condition_number === 0){ // DSE
+            d3.select("#tab3").text('-');
+            d3.select("#tab1").text('Inspect Design');  
+
+            this.tradespace_plot.initialize();
+            
+        }else if(this.condition_number === 1){ // Bar plot
+            d3.select("#tab1").text('-');
+            d3.select("#view1").selectAll('g').remove();
+
+            d3.select("#tab3").text('Feature Analysis');            
+            this.data_mining.update = this.data_mining.update_bar;
+                        
+        }else if(this.condition_number === 2){ // FSE
+            d3.select("#tab1").text('-');
+            d3.select("#view1").selectAll('g').remove();
+
+            d3.select("#tab3").text('Feature Analysis');            
+            this.data_mining.update = this.data_mining.update_scatter;
+        }
+
+        // Load target selection and corresponding features
+        this.data_mining.import_feature_data_and_compute_metrics("EpsilonMOEA_2018-10-25-10-53_1", this.filter);
+
+        if(this.condition_number === 0){
+            d3.select("#view3").selectAll('g').remove();
+            document.getElementById('tab1').click();  
+        }
+
+        // Start timer
+        this.timer.start();
+    }
     
+
+    
+
+
+
+
+
+
+
+
+
+
     print_experiment_summary(){
 
         // task_order, condition_order, account_id
@@ -285,12 +371,10 @@ class Experiment{
 
     saveTextAsFile(filename, inputText){
 
-        var textToWrite = inputText;
-        var fileNameToSaveAs = filename;
-
-        var textFileAsBlob = new Blob([textToWrite], {type:'text/plain'});
-
-        var downloadLink = document.createElement("a");
+        let textToWrite = inputText;
+        let fileNameToSaveAs = filename;
+        let textFileAsBlob = new Blob([textToWrite], {type:'text/plain'});
+        let downloadLink = document.createElement("a");
 
         downloadLink.download = fileNameToSaveAs;
         downloadLink.innerHTML = "Download File";
@@ -311,40 +395,81 @@ class Experiment{
         downloadLink.click();
     }
 
-    set_variable_and_task_order(task){
-        that.task_number=task;
-        that.orbitOrder = that.orbitOrderStore[that.task_number];
-        that.instrOrder = that.instrOrderStore[that.task_number];
-        that.condition_number=3;
-        that.update_task_direction();
-        that.stopTimer();
-        added_features=[];
-    }
-
 
     session_timeout(){
         return;
     }
 
     store_task_specific_information(){
-        that.store_design_viewed.push(that.counter_design_viewed);
-        that.store_feature_viewed.push(that.counter_feature_viewed);
-        that.store_new_design_evaluated.push(that.counter_new_design_evaluated);
-        that.store_design_local_search.push(that.counter_design_local_search);
-        that.store_conjunctive_local_search.push(that.counter_conjunctive_local_search);
-        that.store_disjunctive_local_search.push(that.counter_disjunctive_local_search);
-        that.store_new_feature_tested.push(that.counter_new_feature_tested);
-        that.store_best_features_found.push(JSON.stringify(that.best_features_found));        
+        this.store_design_viewed.push(this.counter_design_viewed);
+        this.store_feature_viewed.push(this.counter_feature_viewed);
+        this.store_new_design_evaluated.push(this.counter_new_design_evaluated);
+        this.store_design_local_search.push(this.counter_design_local_search);
+        this.store_conjunctive_local_search.push(this.counter_conjunctive_local_search);
+        this.store_disjunctive_local_search.push(this.counter_disjunctive_local_search);
+        this.store_new_feature_tested.push(this.counter_new_feature_tested);
+        this.store_best_features_found.push(JSON.stringify(this.best_features_found));        
         
-        that.counter_design_viewed = 0;
-        that.counter_feature_viewed = 0;
-        that.counter_new_design_evaluated = 0;
-        that.counter_design_local_search = 0;
-        that.counter_conjunctive_local_search = 0;
-        that.counter_disjunctive_local_search = 0;
-        that.counter_new_feature_tested = 0;
-        that.best_features_found = [];             
+        this.counter_design_viewed = 0;
+        this.counter_feature_viewed = 0;
+        this.counter_new_design_evaluated = 0;
+        this.counter_design_local_search = 0;
+        this.counter_conjunctive_local_search = 0;
+        this.counter_disjunctive_local_search = 0;
+        this.counter_new_feature_tested = 0;
+        this.best_features_found = [];             
     }
+
+
+
+
+
+
+
+
+
+
+
+
+
+    // d3.select("#move_backward_button").on("click",function(d){
+    //     that.previous_task();
+    // });
+    // d3.select("#move_forward_button").on("click",function(d){
+    //     that.next_task();
+    // });
+    
+    /**
+     * Randomize array element order in-place.
+     * Using Durstenfeld shuffle algorithm.
+     */
+    shuffleArray(array) {
+        for (let i = array.length - 1; i > 0; i--) {
+            let j = Math.floor(Math.random() * (i + 1));
+            let temp = array[i];
+            array[i] = array[j];
+            array[j] = temp;
+        }
+        return array;
+    }
+
+
+
+   
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
     get_selected_arch_ids(){
         var target_string = "";
@@ -403,34 +528,6 @@ class Experiment{
             .classed('highlighted',true)
             .style("fill", ifeed.main_plot.color.highlighted);  
     }
-
-    // d3.select("#move_backward_button").on("click",function(d){
-    //     that.previous_task();
-    // });
-    // d3.select("#move_forward_button").on("click",function(d){
-    //     that.next_task();
-    // });
-    
-    
-    /**
-     * Randomize array element order in-place.
-     * Using Durstenfeld shuffle algorithm.
-     */
-    shuffleArray(array) {
-        for (var i = array.length - 1; i > 0; i--) {
-            var j = Math.floor(Math.random() * (i + 1));
-            var temp = array[i];
-            array[i] = array[j];
-            array[j] = temp;
-        }
-        return array;
-    }
-
-
-
-    // PubSub.subscribe(EXPERIMENT_START, (msg, data) => {
-    //     that.update_task_direction();
-    // });       
 }
 
 
@@ -439,15 +536,44 @@ class Experiment{
 
 class Timer{
 
-    constructor(duration){
-        this.duration = duration;
+    constructor(){
+        // Duration needs to be set up to use this class as a timer. Otherwise, it will act as a stopwatch
+        this.duration = null;
         this.timeinterval = null;
+        this.startTime = null;
+        this.endTime = null;
+        this.timeElapsed = null;
+        this.timerCallback = null;
     }
 
-    getTimeRemaining(endtime){
-      let t = Date.parse(endtime) - Date.parse(new Date());
+    setDuration(duration){
+        this.duration = duration;
+    }
+
+    start(){
+        clearInterval(this.timeinterval);
+        this.startTime = Date.parse(new Date());
+        this.endTime = null;
+        this.timeElapsed = null;
+
+        if(this.duration){
+            let deadline = new Date(startTime + this.duration);
+            this.startTimer(deadline);
+        }else{
+            this.startStopWatch();
+        }
+    }
+
+    stop(){
+        this.endTime = Date.parse(new Date());
+        this.timeElapsed = this.endTime - this.startTime;
+        clearInterval(this.timeinterval);
+    }  
+
+    getTimeRemaining(deadline){
+      let t = Date.parse(deadline) - Date.parse(new Date());
       let seconds = Math.floor( (t/1000) % 60 );
-      let minutes = Math.floor( (t/1000/60) % 60 );
+      let minutes = Math.floor( t/1000/60 );
       return {
         'total': t,
         'minutes': minutes,
@@ -455,21 +581,43 @@ class Timer{
       };
     }
 
-    stopTimer(){
-        clearInterval(this.timeinterval);
-    }  
-
-    startTimer(){
-        clearInterval(this.timeinterval);
-        let startTime = Date.parse(new Date());
-        let deadline = new Date(startTime + this.duration);
-        this.initializeClock(deadline);
+    getTimeElapsed(){
+        let out;
+        if(this.timeElapsed){
+            out = this.timeElapsed / 1000;
+        }else{
+            out = (Date.parse(new Date()) - this.startTime) / 1000;
+        }
+        return out;
     }
 
-    initializeClock(endtime){
+    getTimeElapsedInMinutesAndSeconds(){
+        let t = this.getTimeElapsed();
+        let seconds = Math.floor( t % 60 );
+        let minutes = Math.floor( (t/60) );
+        return {
+            'total': t,
+            'minutes': minutes,
+            'seconds': seconds
+        };
+    }
 
+    startStopWatch(){
         let that = this;
+        function updateClock(){
+            let t = that.getTimeElapsedInMinutesAndSeconds();
+            let minutes = t.minutes;
+            let seconds = t.seconds;
 
+            // Display the result in the element with id="timer"
+            document.getElementById("timer").innerHTML = "Elapsed time: " + minutes + "m " + seconds + "s ";
+        }
+        updateClock(); // run function once at first to avoid delay
+        this.timeinterval = setInterval(updateClock, 1000);
+    }
+
+    startTimer(endtime){
+        let that = this;
         function updateClock(){
             let t = that.getTimeRemaining(endtime);
             let minutes = t.minutes;
@@ -479,13 +627,7 @@ class Timer{
             document.getElementById("timer").innerHTML = minutes + "m " + seconds + "s ";
 
             if(t.total <= 0){
-                that.stopTimer();
-                alert('The task is finished! Please let the experimenter know that you have finished the task. Do not proceed unless directed to do so.')
-                
-                if(that.task_order.indexOf(that.task_number)==1){
-                    that.next_task();
-                }
-                return;
+                this.timerCallback();
             }
         }
         updateClock(); // run function once at first to avoid delay
@@ -541,10 +683,10 @@ class RandomizedVariable{
     decodeBitString(bitString){
         let original_bitString = "";
         for(let i = 0; i < this.norb; i++){
-            let orbIndex = that.orbitOrder.indexOf(i);
-            for(let j = 0; j < that.ninstr; j++){
-                let instIndex = that.instrOrder.indexOf(j);
-                original_bitString = original_bitString + bitString[orbIndex * that.ninstr + instIndex];
+            let orbIndex = this.orbitOrder.indexOf(i);
+            for(let j = 0; j < this.ninstr; j++){
+                let instIndex = this.instrOrder.indexOf(j);
+                original_bitString = original_bitString + bitString[orbIndex * this.ninstr + instIndex];
             }
         }
         return original_bitString;
@@ -698,6 +840,21 @@ class RandomizedVariable{
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 function select_subset(inputList, prob){
 
     let out = [];
@@ -712,37 +869,19 @@ function select_subset(inputList, prob){
     return out;
 }
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 var encodeArch = function(inputString){
     
-    var inputSplit = inputString.split(";");
+    let inputSplit = inputString.split(";");
     
-    var bitString = [];
-    for(var i=0;i<60;i++){
+    let bitString = [];
+    for(let i = 0; i < 60; i++){
         bitString.push(false);
     }
     
-    for(var i=0;i<5;i++){
+    for(let i = 0; i < 5; i++){
         var thisOrbitRelabeled = experiment.orbitOrder.indexOf(i);
         var instruments = inputSplit[i];
-        for(var j=0;j<instruments.length;j++){
+        for(let j = 0; j < instruments.length; j++){
             var thisInstr = experiment.instrList.indexOf(instruments[j]);
             var thisInstrRelabeled = experiment.instrOrder.indexOf(thisInstr);
             bitString[thisOrbitRelabeled*12+thisInstrRelabeled]=true;
@@ -750,8 +889,8 @@ var encodeArch = function(inputString){
     }
     
     var out = "";
-    for(var i=0;i<5;i++){
-        for(var j=0;j<12;j++){
+    for(let i = 0; i < 5; i++){
+        for(let j = 0; j < 12; j++){
             if(bitString[i*12+j]){
                 out = out + experiment.instrList[j];
             }
