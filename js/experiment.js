@@ -10,7 +10,6 @@ class Experiment{
 
         this.data = null;
 
-        this.duration = + 10 * 60 * 1000; // 10 minutes
         this.timer = new Timer();
 
         // Flag indicating whether the current session timed out
@@ -18,8 +17,8 @@ class Experiment{
 
         // Set the order of the task (target region) and the treatment condition
         this.task_number = 0;
-        this.condition_order = this.shuffleArray([0, 1, 2]); // DSE, sorted fetaures list, FSE
-        this.problem_order = this.shuffleArray([0, 1, 2]); 
+        this.condition_order = this.shuffleArray([0, 1, 2]); // condition number: DSE, sorted fetaures list, FSE
+        this.problem_order = this.shuffleArray([0, 1, 2]); // problem set number
 
         // Randomize variable order
         this.orbitOrderStore = [
@@ -40,6 +39,7 @@ class Experiment{
         this.instrOrder = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11];
         // this.orbitOrder = this.orbitOrderStore[this.problem_number];
         // this.instrOrder = this.instrOrderStore[this.problem_number];
+
         this.randomized = new RandomizedVariable(this.orbitOrder, this.instrOrder);    
         this.norb = this.orbitOrder.length;
         this.ninstr = this.instrOrder.length;
@@ -49,6 +49,13 @@ class Experiment{
         for(let i = 0; i < 10; i++){
             this.account_id += "" + Math.floor(Math.random()*10)
         }
+
+
+
+
+
+
+
 
         this.counter_design_viewed = 0;
         this.counter_feature_viewed = 0;
@@ -69,7 +76,7 @@ class Experiment{
         this.store_best_features_found = [];
 
         PubSub.subscribe(EXPERIMENT_START, (msg, data) => {
-            this.update_task_direction();
+            this.update_task();
         });    
     }
     
@@ -120,7 +127,7 @@ class Experiment{
             this.randomized = new RandomizedVariable(this.orbitOrder, this.instrOrder);    
         } 
 
-        this.update_task_direction();
+        this.update_task();
     }
 
     previous_task(){
@@ -138,102 +145,27 @@ class Experiment{
             this.instrOrder = this.instrOrderStore[this.problem_number];
             this.randomized = new RandomizedVariable(this.orbitOrder, this.instrOrder);   
         }
-        that.update_task_direction();
+        that.update_task();
     }
 
-    update_task_direction(){
+
+
+
+
+
+
+
+
+
+    update_task(){
 
         // Reset features
         this.data_mining.initialize();
 
         PubSub.publish(INITIALIZE_FEATURE_APPLICATION, null);
 
-
-
-
-
-
-
-
-
-
-        let options = ["optionA", "optionB", "optionC"];
-
-        d3.select("#prompt_header").text("Answer the following question:");
         
-        let form = d3.select("#prompt_content")
-                        .append("form")
-                        .attr("id", "answer_form")
-                        .attr("action","javascript:void(0);");
-
-
-// <div class="slidecontainer">
-//   <input type="range" min="1" max="100" value="50" class="slider" id="myRange">
-// </div>
-
-        let answers = form.append("div")
-                            .attr("id", "answer_div");  
-
-        d3.select("#answer_div")
-            .append("div")
-            .append("div")
-            .text((d)=>{
-                //d3.select(".experiment.answer.slider")
-                return "50";
-            });
-            
-
-        d3.select("#answer_div > div").append("input")
-            .attr("class", "experiment answer slider")
-            .attr("type","range")
-            .attr("min","1")
-            .attr("max","100")
-            .attr("value","50")
-            .style("width", "380px")
-            .on("change",()=>{
-                let val = d3.select(".experiment.answer.slider").node().value;
-                d3.select("#answer_div > div > div").text(val);
-            });
-
-        d3.select("#answer_div")
-            .selectAll("#answer_div > div")
-            .data(options)
-            .enter()
-            .append("div")
-            .text((d) => {
-                return d;
-            })
-            .on("click", (d) => {
-
-                let selected = d;
-
-                d3.selectAll(".experiment.answer.options").nodes()
-                    .forEach((d)=>{
-                        if(d.value === selected){
-                            d.checked = true;
-                        }else{
-                            d.checked = false;
-                        }
-                    })
-            })
-            .append("input")
-            .attr("class", "experiment answer options")
-            .attr("type","radio")
-            .attr("value", function(d){
-                return d;
-            })
-            .attr("text", function(d){
-                return d;
-            });
-
-        form.append("input")
-            .attr("type", "submit")
-            .attr("value", "Submit")
-            .on("click", () => {
-                console.log("Answer submitted!");
-            });
-
-
+        this.display_problem(0,0);
 
 
 
@@ -278,9 +210,6 @@ class Experiment{
                         
         
 
-
-
-
         // Experiment conditions
         if(this.condition_number === 0){ // DSE
             d3.select("#tab3").text('-');
@@ -310,13 +239,134 @@ class Experiment{
             d3.select("#view3").selectAll('g').remove();
             document.getElementById('tab1').click();  
         }
-
-        // Start timer
-        this.timer.start();
     }
     
 
     
+
+
+
+
+
+
+
+    start_problem_sequence(){
+
+    }
+
+    display_problem(problem_set, problem_number){
+
+        this.timer.start();
+
+        let options = ["Yes", "No"];
+
+        let questionText = "";
+        if(problem_number < 1){
+            questionText = "Is the given design in the target region?";
+        }else{
+            questionText = "Is the given feature a driving feature?";
+        }
+
+        // Remove all existing forms
+        d3.selectAll(".prompt_content").selectAll('div').remove();
+        d3.selectAll(".prompt_content").selectAll("input").remove();
+        d3.select("#prompt_r2").selectAll("button").remove();
+        d3.select("#prompt_c2").selectAll("div").remove();
+
+        d3.select(".prompt_header.question").text(questionText);
+        d3.select(".prompt_header.confidence").html("<p>How confident do you feel about your answer?<br>(0: Not confident, 100: Fully confident)</p>");
+
+        let containers = d3.select(".prompt_content.question")
+            .append("div")
+            .selectAll("label")
+            .data(options)
+            .enter()
+            .append("label")
+            .attr("class","experiment answer container")
+            .text((d) => {
+                return d;
+            })
+            .on("click", (d) => {
+                let selected = d;
+                d3.selectAll(".experiment.answer.options").nodes()
+                    .forEach((d)=>{
+                        if(d.value === selected){
+                            d.checked = true;
+                        }else{
+                            d.checked = false;
+                        }
+                    })
+            })
+
+        containers.append("input")
+            .attr("class", "experiment answer options")
+            .attr("type","radio")
+            .attr("value", function(d){
+                return d;
+            })
+            .attr("text", function(d){
+                return d;
+            });
+
+        containers.append("span")
+            .attr("class", "experiment answer checkmark")
+
+        let slider_width = 400;
+
+        d3.select(".prompt_content.confidence")
+            .append("div")
+            .style("margin-left", ()=>{
+                let temp = slider_width/2;
+                return temp + "px";
+            })
+            .text((d) => {
+                return "50";
+            })
+            .style("font-size","22px");
+            
+        d3.select(".prompt_content.confidence")
+            .append("input")
+            .attr("class", "experiment answer slider")
+            .attr("type","range")
+            .attr("min","1")
+            .attr("max","100")
+            .attr("value","50")
+            .style("width", slider_width + "px")
+            .on("change",() => {
+                let val = d3.select(".experiment.answer.slider").node().value;
+                d3.select(".prompt_content.confidence > div").text(val);
+            });
+
+        d3.select("#prompt_r2")
+            .insert("button", ":first-child")
+            .attr("class", "experiment answer submit")
+            .text("Submit")
+            .on("click", () => {
+                console.log("Answer submitted!");
+            });
+
+        d3.select("#prompt_c2")
+            .append("div")
+            .style("margin","auto")
+            .style("width","70%")
+            .append("img")
+            .attr("src", ()=>{
+                return "img/experiment/" + problem_set + "_" + problem_number + ".png";
+            })
+            .style("width", "100%");
+    }
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -869,7 +919,7 @@ function select_subset(inputList, prob){
     return out;
 }
 
-var encodeArch = function(inputString){
+let encodeArch = function(inputString){
     
     let inputSplit = inputString.split(";");
     
@@ -879,16 +929,16 @@ var encodeArch = function(inputString){
     }
     
     for(let i = 0; i < 5; i++){
-        var thisOrbitRelabeled = experiment.orbitOrder.indexOf(i);
-        var instruments = inputSplit[i];
+        let thisOrbitRelabeled = experiment.orbitOrder.indexOf(i);
+        let instruments = inputSplit[i];
         for(let j = 0; j < instruments.length; j++){
-            var thisInstr = experiment.instrList.indexOf(instruments[j]);
-            var thisInstrRelabeled = experiment.instrOrder.indexOf(thisInstr);
+            let thisInstr = experiment.instrList.indexOf(instruments[j]);
+            let thisInstrRelabeled = experiment.instrOrder.indexOf(thisInstr);
             bitString[thisOrbitRelabeled*12+thisInstrRelabeled]=true;
         }
     }
     
-    var out = "";
+    let out = "";
     for(let i = 0; i < 5; i++){
         for(let j = 0; j < 12; j++){
             if(bitString[i*12+j]){
@@ -900,33 +950,33 @@ var encodeArch = function(inputString){
     return out;
 }
 
-var decodeArch = function(inputString){
+let decodeArch = function(inputString){
     
-    var inputSplit = inputString.split(";");
+    let inputSplit = inputString.split(";");
     
-    var bitString = [];
-    for(var i=0;i<60;i++){
+    let bitString = [];
+    for(let i = 0; i < 60; i++){
         bitString.push(false);
     }
     
-    for(var i=0;i<5;i++){
-        var thisOrbitRelabeled = experiment.orbitOrder[i];
-        var instruments = inputSplit[i];
-        for(var j=0;j<instruments.length;j++){
-            var thisInstrRelabeled = experiment.instrOrder[instruments[j]];
+    for(let i = 0; i < 5; i++){
+        let thisOrbitRelabeled = experiment.orbitOrder[i];
+        let instruments = inputSplit[i];
+        for(let j = 0; j < instruments.length; j++){
+            let thisInstrRelabeled = experiment.instrOrder[instruments[j]];
             bitString[thisOrbitRelabeled*12+thisInstrRelabeled]=true;
         }
     }
                 //ppinstruments = ppinstruments + instrOrder[+instruments[i]];
 
-    var out = "";
-    for(var i=0;i<5;i++){
-        for(var j=0;j<12;j++){
-            if(bitString[i*12+j]){
+    let out = "";
+    for(let i = 0; i < 5; i++){
+        for(let j = 0; j < 12; j++){
+            if(bitString[i * 12 + j]){
                 out = out + experiment.instrList[j];
             }
         }
-        out=out+";";
+        out = out + ";";
     }
     return out;
 }
