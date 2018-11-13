@@ -114,15 +114,32 @@ class EOSSAssigning extends Problem{
     }
 
     display_arch_info(data) {
-        
-        let support_panel = d3.select("#view1").append("g");
 
         // Display the current architecture info
-        let arch_info_display_outputs = support_panel.append('div')
+        let support_panel = null;
+        let arch_info_display_outputs = null;
+
+        if(d3.select("#view1").select("g").node()){
+            support_panel = d3.select("#view1").select("g");
+
+        }else{
+            support_panel = d3.select("#view1").append("g");
+        }
+
+        if(d3.selectAll("#arch_info_display_outputs").node()){
+            
+            arch_info_display_outputs = d3.select("#arch_info_display_outputs");
+            arch_info_display_outputs.selectAll("p").remove();
+
+        }else{
+            
+            arch_info_display_outputs = support_panel.insert("div",":first-child")
                                                         .attr('id','arch_info_display_outputs');
+        }
 
         if(data.outputs){
             for(let i = 0; i < this.metadata.output_list.length; i++){
+
                 arch_info_display_outputs.append("p")
                     .text(d => {
                         let out = this.metadata.output_list[i] + ": ";
@@ -155,7 +172,7 @@ class EOSSAssigning extends Problem{
             }
         }
         
-        let json_arch=[];
+        let json_arch =[];
         
         for(let i = 0; i < this.orbit_num; i++){
             
@@ -178,30 +195,27 @@ class EOSSAssigning extends Problem{
         let maxNInst = 0;
         let totalNInst = 0;
 
-        for (var i = 0; i < this.orbit_num; i++) {
-            var nInst = json_arch[i].children.length;
+        for (let i = 0; i < this.orbit_num; i++) {
+            let nInst = json_arch[i].children.length;
             totalNInst = totalNInst + nInst;
             if (nInst > maxNInst) {
                 maxNInst = nInst;
             }
         }
 
-        d3.select("#support_panel").select("#view1")
-                .select("g").select("#arch_info_display_table_div").remove();
+        support_panel.select("#arch_info_display_table_div").remove();
 
-        var supportPanel = d3.select("#support_panel").select("#view1").select("g");
-
-        var table = supportPanel.append('div')
+        let table = support_panel.append('div')
                                 .attr('id','arch_info_display_table_div')
                                 .append("table")
                                 .attr("id", "arch_info_display_table");
 
-        var columns = [];
+        let columns = [];
         //columns.push({columnName: "orbit"});
         columns.push({columnName: "Slots"});
         
-        for ( i = 0; i < maxNInst; i++) {
-            var tmp = i + 1;
+        for (let i = 0; i < maxNInst; i++) {
+            let tmp = i + 1;
             columns.push({columnName: "Item " + tmp});
         }
 
@@ -284,7 +298,7 @@ class EOSSAssigning extends Problem{
             items: ':not(.not_draggable)',
             start: function(){
                 $('.not_draggable', this).each(function(){
-                    var $this = $(this);
+                    let $this = $(this);
                     $this.data('pos', $this.index());
                 });
             },
@@ -292,29 +306,31 @@ class EOSSAssigning extends Problem{
             connectWith: '.arch_info_display_cell_container',
             cursor: 'pointer',
             update: function(ui){
-                var bitString_save = that.current_bitString;
+                let bitString_save = that.current_bitString;
                 
                 that.current_bitString = that.update_current_architecture();
                 
-                if(bitString_save != that.current_bitString) that.enable_evaluate_architecture();
+                // if(bitString_save != that.current_bitString){
+                    that.enable_evaluate_architecture();
+                // } 
             }
         })
         .droppable({
             accept: '.arch_info_display_cell.candidates',
             drop: function(event, ui) {
                 
-                var bitString_save = that.current_bitString;
+                let bitString_save = that.current_bitString;
 
-                var instrNode = d3.select(ui.draggable.context);
-                var orbitNode = d3.select(this);
+                let instrNode = d3.select(ui.draggable.context);
+                let orbitNode = d3.select(this);
 
-                var instrName = instrNode.attr('name');
-                var orbitName = orbitNode.attr('name');           
+                let instrName = instrNode.attr('name');
+                let orbitName = orbitNode.attr('name');           
 
-                var Iindex = that.instrument_list.indexOf(instrName);
-                var OIndex = that.orbit_list.indexOf(orbitName);
+                let Iindex = that.instrument_list.indexOf(instrName);
+                let OIndex = that.orbit_list.indexOf(orbitName);
 
-                var index = that.instrument_num*OIndex+Iindex;
+                let index = that.instrument_num*OIndex+Iindex;
                                 
                 that.current_bitString = that.current_bitString.split('');
                 that.current_bitString[index] = '1';
@@ -323,28 +339,37 @@ class EOSSAssigning extends Problem{
                 that.display_arch_info(that.current_bitString);
                 that.enable_modify_architecture();
                 
-                if(bitString_save!=that.current_bitString) that.enable_evaluate_architecture();
+                // if(bitString_save != that.current_bitString){
+                    that.enable_evaluate_architecture();
+                // } 
             }
-        });        
+        });   
+
+        this.display_instrument_options();     
     }
     
     
     enable_evaluate_architecture(){
 
         let that = this;
+
+        let output_display_slot = d3.select('#arch_info_display_outputs');
                 
         if(d3.select('#arch_info_display_outputs > p').node()){
-
-            let output_display_slot = d3.select('#arch_info_display_outputs');
             output_display_slot.selectAll('p').remove();
-            output_display_slot.append('button')
-                                .attr('id','evaluate_architecture_button')
-                                .text('Evaluate this design')
-                                .on('click',(d) => {
-                                    let inputs = that.string2BooleanArray(that.current_bitString);
-                                    that.evaluate_architecture(inputs);
-                                });
-        }                       
+        }   
+
+        if(d3.select("#evaluate_architecture_button").node()){
+            output_display_slot.selectAll('button').remove();
+        }
+        
+        output_display_slot.append('button')
+                    .attr('id','evaluate_architecture_button')
+                    .text('Evaluate this design')
+                    .on('click',(d) => {
+                        let inputs = that.string2BooleanArray(that.current_bitString);
+                        that.evaluate_architecture(inputs);
+                    });                    
     }
     
     
