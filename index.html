@@ -21,13 +21,16 @@ and open the template in the editor.
     <script src="js/lib/tabcontent.js" type="text/javascript"></script>
     <script src="js/lib/pubsub.js" type="text/javascript"></script>
     
+    <script src="js/lib/intro.js"></script>
+    <link href="js/lib/introjs.css" rel="stylesheet" type="text/css"/>
     <link href="js/lib/tabcontent.css" rel="stylesheet" type="text/css"/>
-    
+
     <link href="css/tradespace_plot.css" rel="stylesheet" type="text/css"/>
     <link href="css/filter.css" rel="stylesheet" type="text/css"/>
     <link href="css/data_mining.css" rel="stylesheet" type="text/css"/>
     <link href="css/feature_application.css" rel="stylesheet" type="text/css"/>
     <link href="css/experiment.css" rel="stylesheet" type="text/css"/>
+    <link href="css/experiment_tutorial.css" rel="stylesheet" type="text/css"/>
 
     <script src="https://apis.google.com/js/platform.js" async defer></script>
     <meta name="google-signin-client_id" content="564804694787-lnsp9md3u0q8086nftbamu43drid6d4t.apps.googleusercontent.com">
@@ -134,6 +137,7 @@ and open the template in the editor.
 <script src="js/context_menu.js" type="text/javascript"></script>
     
 <script src="js/experiment.js" type="text/javascript"></script>
+<script src="js/experiment_tutorial.js" type="text/javascript"></script>
 <script>
 
     let problem_name = "ClimateCentric";
@@ -198,6 +202,11 @@ and open the template in the editor.
     experiment.tradespace_plot = tradespace_plot;
     experiment.data_mining = data_mining;
     experiment.filter = filter;
+    experiment.feature_application = feature_application;
+    experiment.problem = problem;
+
+    //let tutorial = new ExperimentTutorial(problem, experiment);
+
 
 </script>
 

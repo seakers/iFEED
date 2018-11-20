@@ -494,7 +494,7 @@ class DataMining{
                 .append("select")
                 .attr("id","feature_sortby_options");
 
-            let options = ["Coverage","Specificity"];
+            let options = ["Coverage", "Specificity"];
 
             dropdown.selectAll("option")
                     .data(options)
@@ -557,6 +557,7 @@ class DataMining{
         let conf1s = [];
         let conf2s = [];
         let scores=[];   
+        let complexities = [];
 
         d3.select('.feature_plot.figure').select('g').selectAll('.axis').remove();
         d3.select('.feature_plot.figure').select('g').selectAll('.label').remove();
@@ -569,6 +570,7 @@ class DataMining{
             lifts.push(features[i].metrics[1]);
             conf1s.push(features[i].metrics[2]);
             conf2s.push(features[i].metrics[3]);
+            complexities.push(features[i].complexity);
         }
 
         // setup x
@@ -608,6 +610,11 @@ class DataMining{
             return yScale(yValue(d));
         }; 
         this.yAxis = d3.axisLeft(yScale);
+
+        //Needed to map the values of the dataset to the color scale
+        this.colorInterpolateRainbow = d3.scaleLinear()
+            .domain(d3.extent(complexities))
+            .range([0,1]);
 
         // Setup zoom
         this.zoom = d3.zoom()
@@ -649,7 +656,7 @@ class DataMining{
             .attr("y", 6)
             .attr("dy", ".71em")
             .style("text-anchor", "end")
-            .text(that.metricName)
+            .text(this.metricName)
             .style('font-size','15px');
         
         let objects = d3.select(".objects.feature_plot")
@@ -688,30 +695,29 @@ class DataMining{
         d3.selectAll('.bar.feature_plot')
             .on("mouseover", (d) => { 
                 
-                let id = d.id;
-
-                d3.selectAll('.bar.feature_plot')
-                    .style("fill","#FEFEFE");
-                d3.selectAll('.bar.feature_plot').filter(function(d){
-                    if (d.id == id) return true;
-                    return false;
-                }).style("fill", "#A5A5A5");
+                // let id = d.id;
+                // d3.selectAll('.bar.feature_plot')
+                //     .style("fill","#FEFEFE");
+                // d3.selectAll('.bar.feature_plot').filter(function(d){
+                //     if (d.id == id) return true;
+                //     return false;
+                // }).style("fill", "#A5A5A5");
                 
                 this.feature_mouseover(d); 
             })
 
             .on('mouseout', (d) => { 
 
-                d3.selectAll('.bar.feature_plot')
-                    .style("fill","#FEFEFE");
+                // d3.selectAll('.bar.feature_plot')
+                //     .style("fill","#FEFEFE");
 
-                if(this.current_feature){
-                    let id = this.current_feature_id;
-                    d3.selectAll('.bar.feature_plot').filter(function(d){
-                        if (d.id == id) return true;
-                        return false;
-                    }).style("fill", "#A5A5A5");
-                }
+                // if(this.current_feature){
+                //     let id = this.current_feature_id;
+                //     d3.selectAll('.bar.feature_plot').filter(function(d){
+                //         if (d.id == id) return true;
+                //         return false;
+                //     }).style("fill", "#A5A5A5");
+                // }
                 
                 this.feature_mouseout(d); 
             })
@@ -726,7 +732,15 @@ class DataMining{
                 }).style("stroke-width",4);
 
                 this.feature_click(d);
-            });    
+            });  
+
+        //Transition the colors to a rainbow
+        function updateRainbow() {
+            d3.selectAll(".bar.feature_plot")
+                .style("fill", function (d,i) { return that.colorScaleRainbow(that.colorInterpolateRainbow(complexities[i])); })
+        }
+        
+        updateRainbow();
     }
 
     update_scatter(newly_added_features){
@@ -763,6 +777,7 @@ class DataMining{
         let conf2s = [];
         let scores=[];   
         let maxScore = -1;
+        let complexities = [];
 
         d3.select('.feature_plot.figure').select('g').selectAll('.axis').remove();
         d3.select('.feature_plot.figure').select('g').selectAll('.label').remove();
@@ -779,6 +794,7 @@ class DataMining{
             lifts.push(this.all_features[i].metrics[1]);
             conf1s.push(this.all_features[i].metrics[2]);
             conf2s.push(this.all_features[i].metrics[3]);
+            complexities.push(this.all_features[i].complexity);
             
             var score = 1-Math.sqrt(Math.pow(1-conf1s[i],2)+Math.pow(1-conf2s[i],2));
             scores.push(score);
@@ -834,6 +850,11 @@ class DataMining{
                 this.all_features[i].y0 = this.all_features[i].y;
             }
         }
+
+        //Needed to map the values of the dataset to the color scale
+        this.colorInterpolateRainbow = d3.scaleLinear()
+            .domain(d3.extent(complexities))
+            .range([0,1]);
 
         // Setup zoom
         this.zoom = d3.zoom()
@@ -929,6 +950,7 @@ class DataMining{
                 let id = d.id;
                 d3.selectAll('.dot.feature_plot')
                     .style("fill","#FEFEFE");
+                    
                 d3.selectAll('.dot.feature_plot').filter(function(d){
                     if (d.id == id) return true;
                     return false;
@@ -964,6 +986,14 @@ class DataMining{
 
                 this.feature_click(d); 
             });   
+
+        //Transition the colors to a rainbow
+        function updateRainbow() {
+            d3.selectAll(".dot.feature_plot")
+                .style("fill", function (d,i) { return that.colorScaleRainbow(that.colorInterpolateRainbow(complexities[i])); })
+        }
+        
+        updateRainbow();    
     }
 
     feature_click(d){
@@ -1721,6 +1751,22 @@ class DataMining{
         return {"instance_map":instance_map, "superclass_map":superclass_map};    
     }
 
+    make_target_selection(id_list){
+
+        let that = this;
+
+        this.selected_archs = [];
+
+        this.data.forEach((point) => {
+            if(id_list.indexOf(point.id) != -1){
+                point.selected = true;
+                this.selected_archs.push(point);
+            }
+        });
+    
+        PubSub.publish(UPDATE_TRADESPACE_PLOT, null);
+    }
+
     import_target_selection(filename){
         let that = this;
         this.initialize();
@@ -1735,16 +1781,8 @@ class DataMining{
             success: function (data, textStatus, jqXHR)
             {
                 let selected_id_list = data;
-                that.selected_archs = [];
-                
-                that.data.forEach((point) => {
-                    if(selected_id_list.indexOf(point.id) != -1){
-                        point.selected = true;
-                        that.selected_archs.push(point);
-                    }
-                });
-            
-                PubSub.publish(UPDATE_TRADESPACE_PLOT, null);
+
+                that.make_target_selection(selected_id_list);
             },
             error: function (jqXHR, textStatus, errorThrown)
             {

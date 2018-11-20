@@ -320,14 +320,14 @@ class EOSSAssigningLabel extends Label{
         let save = false;
         let savedString = '';
 
-        for(let i=0;i<expression.length;i++){
+        for(let i = 0; i < expression.length; i++){
             if(expression[i]=='{'){
                 save = true;
                 savedString = '{';
             }else if(expression[i]=='}'){
                 save = false;
                 savedString = savedString + '}';
-                feature_expression = savedString;
+                let feature_expression = savedString;
                 output = output + '{' + this.pp_feature_single(feature_expression) + '}';
             }else{
                 if(save){

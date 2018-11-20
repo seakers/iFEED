@@ -5,20 +5,35 @@ class Experiment{
     constructor(ifeed){
 
         this.ifeed = ifeed;
+        this.problem = null;
         this.data_mining = null;
         this.filter = null;
+        this.feature_application = null;
 
+        // Imported data store
         this.data = null;
 
-        this.timer = new Timer();
-
-        // Flag indicating whether the current session timed out
-        this.session_timed_out = null;
+        // Set the timer
+        this.clock = new Clock();
 
         // Set the order of the task (target region) and the treatment condition
-        this.task_number = 0;
+        this.task_number = -2;
         this.condition_order = this.shuffleArray([0, 1, 2]); // condition number: DSE, sorted fetaures list, FSE
-        this.problem_order = this.shuffleArray([0, 1, 2]); // problem set number
+        this.problemSet_order = this.shuffleArray([0, 1, 2]); // problem set number
+
+        this.problem_order_design = this.shuffleArray([0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11]);
+
+        this.problem_count = 0;
+        this.num_problem_design = 4;
+
+        // Placeholder for callback function
+        this.submit_callback = function(){
+            alert("No action set up!");
+        };
+
+        // Placeholder for display architecture info
+        this.display_arch_info = null;
+
 
         // Randomize variable order
         this.orbitOrderStore = [
@@ -33,13 +48,11 @@ class Experiment{
                                 [7, 0, 11, 2, 5, 4, 3, 1, 8, 10, 9, 6]
                                                                         ];
 
-        this.condition_number = this.condition_order[0];
-        this.problem_number = this.problem_order[0];
+        this.condition_number = -1;
+        this.problemSet_number = -1;
+
         this.orbitOrder = [0, 1, 2, 3, 4];
         this.instrOrder = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11];
-        // this.orbitOrder = this.orbitOrderStore[this.problem_number];
-        // this.instrOrder = this.instrOrderStore[this.problem_number];
-
         this.randomized = new RandomizedVariable(this.orbitOrder, this.instrOrder);    
         this.norb = this.orbitOrder.length;
         this.ninstr = this.instrOrder.length;
@@ -50,12 +63,9 @@ class Experiment{
             this.account_id += "" + Math.floor(Math.random()*10)
         }
 
-
-
-
-
-
-
+        // Answers
+        this.answerData = [];
+        this.gradedAnswerData = [];
 
         this.counter_design_viewed = 0;
         this.counter_feature_viewed = 0;
@@ -76,7 +86,7 @@ class Experiment{
         this.store_best_features_found = [];
 
         PubSub.subscribe(EXPERIMENT_START, (msg, data) => {
-            this.update_task();
+            this.next_task();
         });    
     }
     
@@ -91,21 +101,41 @@ class Experiment{
         //store_task_specific_information();
 
         if (this.task_number === this.condition_order.length - 1){
-            // finished all tasks
 
-            clearInterval(that.timeinterval);
-            that.session_timed_out = true;
+            // finished all tasks
+            this.clock.stop();
+
+            // Save all answer data
+            this.save_answer();
 
             d3.select('body').selectAll('div').remove();
-            session_timeout();
-            var key_number = that.account_id;
+            let key_number = this.account_id;
 
-            var img = $('<img />', {src : 'https://brand.cornell.edu/images/cornelllogo-stacked.png'});
-            img.appendTo('body');
-            d3.select('body').select('img').style("width","150px").style('margin','40px');
+            d3.select('body')
+                .append('div')
+                .style('width','100%')
+                .style('margin-top','120px');
 
-            d3.select('body').append('h1')
-                .text('The session ended').style("width","1200px").style("margin","auto");
+            d3.select("body")
+                .append("div")
+                .style("margin","auto")
+                .style("width","100%")
+                .append("img")
+                .attr("src", ()=>{
+                    return "img/cornell_logo.png";
+                }); 
+
+            d3.select('body').select('img')
+                    .style("width","200px")
+                    .style('margin','40px')
+                    .style('margin-left','70px');
+
+            d3.select('body')
+                .append('div')
+                .style('margin','auto')
+                .style('width','100%')
+                .append('h1')
+                .text('Session End').style("width","1200px").style("margin","auto");
 
             d3.select('body').append('h2')
                 .text("IMPORTANT: Please copy the key number below and paste it into the survey page (link provided below).").style("width","1200px").style("margin","auto");
@@ -115,15 +145,19 @@ class Experiment{
                 .text("Now follow the link to do a survey: https://cornell.qualtrics.com/jfe/form/SV_3xVqMtpF6vR8Qvj").style("width","1200px").style("margin","auto");
             d3.select('body').append('div').style("width","100%").style("height","30px"); 
 
-            print_experiment_summary();
+            //print_experiment_summary();
             return;
+
+        } else if(this.task_number < -1){
+            // Pre-experiment test
+            this.task_number += 1;
 
         } else {
             this.task_number += 1;
             this.condition_number = this.condition_order[this.task_number];
-            this.problem_number = this.problem_order[this.task_number];
-            this.orbitOrder = this.orbitOrderStore[this.problem_number];
-            this.instrOrder = this.instrOrderStore[this.problem_number];
+            this.problemSet_number = this.problemSet_order[this.task_number];
+            this.orbitOrder = this.orbitOrderStore[this.problemSet_number];
+            this.instrOrder = this.instrOrderStore[this.problemSet_number];
             this.randomized = new RandomizedVariable(this.orbitOrder, this.instrOrder);    
         } 
 
@@ -131,146 +165,236 @@ class Experiment{
     }
 
     previous_task(){
-        
-        this.task_number -= 1;
 
-        if(this.task_number === 0){
+        if(this.task_number === -1){
             // pass
 
         }else{
-            this.task_number += 1;
+            this.task_number -= 1;
             this.condition_number = this.condition_order[this.task_number];
-            this.problem_number = this.problem_order[this.task_number];
-            this.orbitOrder = this.orbitOrderStore[this.problem_number];
-            this.instrOrder = this.instrOrderStore[this.problem_number];
+            this.problemSet_number = this.problemSet_order[this.task_number];
+            this.orbitOrder = this.orbitOrderStore[this.problemSet_number];
+            this.instrOrder = this.instrOrderStore[this.problemSet_number];
             this.randomized = new RandomizedVariable(this.orbitOrder, this.instrOrder);   
         }
-        that.update_task();
+        this.update_task();
     }
-
-
-
-
-
-
-
-
-
 
     update_task(){
 
         // Reset features
         this.data_mining.initialize();
-
         PubSub.publish(INITIALIZE_FEATURE_APPLICATION, null);
 
-        
-        this.display_problem(0,0);
-
-
-
-
-
-        //Change the prompt message and the target selection
-        // if(this.condition_number === 0){
-
-        //     if(this.task_number==0){
-        //         d3.select("#prompt_header").text("Task "+(this.task_order.indexOf(this.task_number)+1)+": Target Region (a)");
-        //     }else{
-        //         d3.select("#prompt_header").text("Task "+(this.task_order.indexOf(this.task_number)+1)+": Target Region (b)");
-        //     }
-
-        //     d3.select('#prompt_body_text_1').html('<p> - You can hover your mouse over each design to see the relevant information.</p>'
-        //                                 +'<p> - You can modify the existing design and check its performance and cost.</p>'
-        //                                 +'<p> - You can run a local search that randomly tries several designs with the similar configurations.</p>'
-        //                                 +'<p>** You are encouraged to take notes (either physically on a piece of paper or electronically using a notepad)</p>');
-
-        //     d3.select('body').style('background-color','#FFFFFF');
-        //     d3.select('#experiment_prompt_div').style('background-color','#FFC1D4');   
-            
-        // }
-        // else if(this.condition_number === 1){
-        //     if(that.task_number==0){
-        //         d3.select("#prompt_header").text("Task "+(that.task_order.indexOf(that.task_number)+1)+": Target Region (a)");
-        //         that.select_archs_using_ids(lower_cost_lower_perf);
-        //     }else{
-        //         d3.select("#prompt_header").text("Task "+(that.task_order.indexOf(that.task_number)+1)+": Target Region (b)");
-        //         that.select_archs_using_ids(higher_cost_higher_perf);
-        //     }
-        //     d3.select('#prompt_body_text_1').html('<p> - You can hover your mouse over each design to see the relevant information.</p>'
-        //                                 +'<p> - You can view the feature analysis tab with data mining results displayed on it.</p>'
-        //                                 +'<p> - You can try making features more general or specific by modifying each feature. </p>'
-        //                                 +'<p>** You are encouraged to take notes (either physically on a piece of paper or electronically using a notepad)</p>');
-
-
-        //     d3.select('body').style('background-color','#FFFFFF');
-        //     d3.select('#experiment_prompt_div').style('background-color','#ABFFB3');
-        // }
-
-                        
-        
-
-        // Experiment conditions
-        if(this.condition_number === 0){ // DSE
-            d3.select("#tab3").text('-');
-            d3.select("#tab1").text('Inspect Design');  
-
-            this.tradespace_plot.initialize();
-            
-        }else if(this.condition_number === 1){ // Bar plot
-            d3.select("#tab1").text('-');
-            d3.select("#view1").selectAll('g').remove();
-
-            d3.select("#tab3").text('Feature Analysis');            
-            this.data_mining.update = this.data_mining.update_bar;
-                        
-        }else if(this.condition_number === 2){ // FSE
-            d3.select("#tab1").text('-');
-            d3.select("#view1").selectAll('g').remove();
-
-            d3.select("#tab3").text('Feature Analysis');            
-            this.data_mining.update = this.data_mining.update_scatter;
+        // Set stopwatch callback function
+        if(!this.clock.callbackExists()){
+            let d1 = 5 * 60 * 1000;
+            let a1 = function(){
+                alert("5 minutes passed! Please try to answer the question as quickly as possible.");
+                d3.select("#timer")     
+                    .style("font-size","30px")
+                    .style("color","red"); 
+            };
+            let callback = [a1];
+            let duration = [d1];
+            this.clock.addCallback(callback);
+            this.clock.addDuration(duration);
         }
 
-        // Load target selection and corresponding features
-        this.data_mining.import_feature_data_and_compute_metrics("EpsilonMOEA_2018-10-25-10-53_1", this.filter);
+        if(this.task_number === -1){
 
-        if(this.condition_number === 0){
+            d3.select("#tab3").text('-');
+            d3.select("#tab1").text('-');
+
+            d3.select("#view1").selectAll('g').remove();
             d3.select("#view3").selectAll('g').remove();
-            document.getElementById('tab1').click();  
+
+            // Disable design inspection
+            if(this.display_arch_info == null){
+                this.display_arch_info = this.problem.display_arch_info;
+            }
+            this.problem.display_arch_info = function(){};
+
+            alert("In each part of the experiment, a set of questions will be asked. In this part, you do NOT need any of the capabilities of iFEED to answer the questions. All relevant information will be provided in figures.");
+                  
+            this.start_pretest_sequence(); 
+
+        }else{
+            // Experiment conditions
+            if(this.condition_number === 0){ // DSE
+                d3.select("#tab3").text('-');
+                d3.select("#tab1").text('Inspect Design');  
+
+                this.tradespace_plot.initialize();
+
+                if(this.display_arch_info != null){
+                    this.problem.display_arch_info = this.display_arch_info;
+                }
+                
+                alert("In the next part of the experiment, try to answer the questions using iFEED's design inspection capability. Note that a new dataset has been loaded for this task.");
+
+            }else if(this.condition_number === 1){ // Bar plot
+                d3.select("#tab1").text('-');
+                d3.select("#view1").selectAll('g').remove();
+
+                d3.select("#tab3").text('Feature Analysis');            
+                this.data_mining.update = this.data_mining.update_bar;
+
+                // Disable design inspection
+                this.problem.display_arch_info = function(){};
+
+                alert("In the next part of the experiment, try to answer the questions using iFEED's feature analysis capability with a bar graph. Note that a new dataset has been loaded for this task.");
+
+            }else if(this.condition_number === 2){ // FSE
+                d3.select("#tab1").text('-');
+                d3.select("#view1").selectAll('g').remove();
+
+                d3.select("#tab3").text('Feature Analysis');            
+                this.data_mining.update = this.data_mining.update_scatter;
+
+                // Disable design inspection
+                this.problem.display_arch_info = function(){};
+
+                alert("In the next part of the experiment, try to answer the questions using iFEED's feature analysis capability with a scatter plot. Note that a new dataset has been loaded for this task.");
+            }
+            // Load target selection and corresponding features
+            this.data_mining.import_feature_data_and_compute_metrics("EpsilonMOEA_2018-10-25-10-53_1", this.filter);
+
+            if(this.condition_number === 0){
+                d3.select("#view3").selectAll('g').remove();
+                document.getElementById('tab1').click();  
+            }
+
+            this.start_problem_sequence();
         }
     }
     
+    record_answer(problem_type, problem_number){
 
-    
+        // Record:
+        // 1. problemSet number (orbit, instrument order)
+        // 2. task_number (task order)
+        // 3. condition_number (DSE or FSE)
+        // 4. problem_number
+        // 5. answer
+        // 6. confidence
+        // 7. time
 
+        let answer = 0;
+        let confidence = null;
 
+        if(problem_type === "text"){
+            answer = d3.select(".experiment.answer.container").node().value;
+            problem_type = "pretest";
 
+        }else{
+            d3.selectAll(".experiment.answer.options").nodes()
+                .forEach( (d) => {
+                    if(d.checked){
+                        answer = + d.value;
+                    }
+                })
 
+            confidence = + d3.select(".experiment.answer.slider").node().value;
+        }
 
+        this.clock.stop();
+        let time = this.clock.timeElapsed / 1000;
 
+        let json = {
+            "variable_ordering": this.problemSet_number,
+            "task_number": this.task_number,
+            "condition_number": this.condition_number,
+            "problem_type": problem_type,
+            "problem_number": problem_number,
+            "answer": answer,
+            "confidence": confidence,
+            "time": time
+        }
+        this.answerData.push(json);
+
+        console.log(json);
+    }
+
+    save_answer(){
+        let path = "";
+        let filename = path + this.account_id + '_answer.json';
+        let inputText = JSON.stringify(this.answerData);
+        this.saveTextAsFile(filename, inputText)
+    }
 
     start_problem_sequence(){
 
+        let that = this;
+
+        // Remove previously-existing submit button
+        d3.select(".experiment.answer.submit").remove();
+
+        let temp_problem_sequence = [];
+        for(let i = 0; i < this.num_problem_design; i++){
+            let index = this.task_number * this.num_problem_design + i;
+            temp_problem_sequence.push(this.problem_order_design[index]);
+        }
+
+        let problemSet = this.problemSet_number;
+
+        // Display the first problem in the sequence
+        this.display_problem(problemSet, temp_problem_sequence.splice(0,1)[0]);
+
+        this.submit_callback = function(){
+
+            let question_answered = false;
+            d3.selectAll(".experiment.answer.options").nodes()
+                .forEach( (d) => {
+                    if(d.checked){
+                        question_answered = true;
+                    }
+                })
+
+            if(question_answered){
+                // Add delay in loading the next question
+                setTimeout(function (){
+                    that.record_answer("main", that.problem_order_design[that.problem_count - 1]);
+
+                    if(temp_problem_sequence.length == 0){
+                        // Start new condition
+                        that.next_task();
+
+                    }else{
+                        // Display the next problem
+                        that.display_problem(problemSet, temp_problem_sequence.splice(0,1)[0]);
+                    }   
+                }, 1500); // How long do you want the delay to be (in milliseconds)? 
+            }else{
+                alert("Please answer the question before submitting the answer!");
+            }
+        }
+
+        d3.select("#prompt_r2")
+            .insert("button", ":first-child")
+            .attr("class", "experiment answer submit")
+            .text("Submit")
+            .on("click", this.submit_callback);
     }
 
-    display_problem(problem_set, problem_number){
+    display_problem(problemSet, problem_number){
 
-        this.timer.start();
+        this.clock.start();
 
-        let options = ["Yes", "No"];
+        let options = [0, 1];
 
         let questionText = "";
         if(problem_number < 1){
-            questionText = "Is the given design in the target region?";
+            questionText = "Do you think the given design will be located in the target region?";
         }else{
-            questionText = "Is the given feature a driving feature?";
+            // questionText = "Is the given feature a driving feature?";
+            questionText = "Do you think the given design will be located in the target region?";
         }
 
         // Remove all existing forms
         d3.selectAll(".prompt_content").selectAll('div').remove();
         d3.selectAll(".prompt_content").selectAll("input").remove();
-        d3.select("#prompt_r2").selectAll("button").remove();
+        d3.selectAll(".prompt_content").selectAll("textarea").remove();
         d3.select("#prompt_c2").selectAll("div").remove();
 
         d3.select(".prompt_header.question").text(questionText);
@@ -284,13 +408,17 @@ class Experiment{
             .append("label")
             .attr("class","experiment answer container")
             .text((d) => {
-                return d;
+                if(d === 1){
+                    return "Yes";
+                }else{
+                    return "No";
+                }
             })
             .on("click", (d) => {
                 let selected = d;
                 d3.selectAll(".experiment.answer.options").nodes()
                     .forEach((d)=>{
-                        if(d.value === selected){
+                        if(d.value === selected + ""){
                             d.checked = true;
                         }else{
                             d.checked = false;
@@ -302,9 +430,6 @@ class Experiment{
             .attr("class", "experiment answer options")
             .attr("type","radio")
             .attr("value", function(d){
-                return d;
-            })
-            .attr("text", function(d){
                 return d;
             });
 
@@ -337,23 +462,249 @@ class Experiment{
                 d3.select(".prompt_content.confidence > div").text(val);
             });
 
+        d3.select("#prompt_c2")
+            .append("div")
+            .style("margin","auto")
+            .style("width","85%")
+            .append("img")
+            .attr("src", ()=>{
+                return "img/experiment/" + problemSet + "_" + problem_number + ".png";
+            })                
+            .style("width","100%"); 
+
+        this.problem_count += 1;
+        d3.select("#prompt_problem_number").text("" + this.problem_count + " / "+ 12);
+    }
+
+    start_pretest_sequence(){
+        
+        let that = this;
+
+        // Remove previously-existing submit button
+        d3.select(".experiment.answer.submit").remove();
+
+        let problem_number = 0;
+
+        // Display the first problem in the sequence
+        this.display_pretest_problem(problem_number);
+
+        this.submit_callback = function(){
+
+            let text_answer = false;
+            let question_answered = false;
+
+            d3.selectAll(".experiment.answer.options").nodes()
+                .forEach( (d) => {
+                    if(d.checked){
+                        question_answered = true;
+                    }
+                })
+
+            if(problem_number > 9){
+                question_answered = true;
+                text_answer = true;
+            }
+
+            if(question_answered){
+                // Add delay in loading the next question
+                setTimeout(function (){
+
+                    if(text_answer){
+                        that.record_answer("text", problem_number);
+                    }else{
+                        that.record_answer("pretest", problem_number);
+                    }
+                    
+                    // Display the next problem
+                    problem_number += 1;
+
+                    if(problem_number === 12){
+                        that.next_task();
+
+                    }else{
+                        that.display_pretest_problem(problem_number);
+                    }
+                
+                }, 1500); // How long do you want the delay to be (in milliseconds)? 
+            }else{
+                alert("Please answer the question before submitting the answer!");
+            }
+        }
+
         d3.select("#prompt_r2")
             .insert("button", ":first-child")
             .attr("class", "experiment answer submit")
             .text("Submit")
-            .on("click", () => {
-                console.log("Answer submitted!");
-            });
+            .on("click", this.submit_callback);
+    }
 
-        d3.select("#prompt_c2")
-            .append("div")
-            .style("margin","auto")
-            .style("width","70%")
-            .append("img")
-            .attr("src", ()=>{
-                return "img/experiment/" + problem_set + "_" + problem_number + ".png";
-            })
-            .style("width", "100%");
+    display_pretest_problem(problem_number){
+
+        this.clock.start();
+
+        let options = [0, 1];
+        let options_text = null;
+        let questionText = "";
+
+        let type1 = [0, 1, 3, 4, 6, 8]; // Questions asking whether a design satisfies the given feature
+        let type2 = [2, 7]; // Questions asking participants to select the feature that has good higher coverage/specificity
+        let type3 = [5, 9]; // Question asking whether the feature has large coverage/specificity
+        let type4 = [10, 11];
+
+        if(problem_number === 2){
+            // Questions asking participants to select the feature that has good higher coverage/specificity
+            questionText = "Which of the two features (marked in the figure) explains more of the target designs?";
+            options_text = ["1", "2"];
+        
+        }else if(problem_number === 7){
+            // Questions asking participants to select the feature that has good higher coverage/specificity
+            questionText = "Which of the two features (marked in the figure) does a better job in highlighting the differences between the target designs and other designs?";
+            options_text = ["1", "2"];
+        
+        }else if(problem_number === 5 || problem_number === 9){
+            // Question asking whether the feature has large coverage/specificity
+            questionText = "The scatter plot highlights designs satisfying a certain feature. Does this feature have high coverage or high specificity?";
+            options_text = ["coverage", "specificity"];
+
+        }else{
+            // Questions asking whether a design satisfies the given feature
+            questionText = "Does the design satisfy the given feature (shown on the bottom)?";
+            options_text = ["No", "Yes"];
+        }
+
+        // Remove all existing forms
+        d3.selectAll(".prompt_content").selectAll('div').remove();
+        d3.selectAll(".prompt_content").selectAll("input").remove();
+        d3.selectAll(".prompt_content").selectAll("textarea").remove();
+        d3.select("#prompt_c2").selectAll("div").remove();
+
+        if(type4.indexOf(problem_number) != -1){
+
+            if(problem_number === 10){
+                questionText = "Describe what it means for a feature to have a large coverage. ";
+            }else{
+                questionText = "Describe what it means for a feature to have a large specificity. ";
+            }
+            d3.select(".prompt_header.question").text(questionText);
+            d3.select(".prompt_header.confidence").html("");
+
+            d3.select("#prompt_c1")
+                .select(".prompt_content.question")
+                .append("textarea")
+                .attr("class", "experiment answer container")
+                .attr("value", "Type your answer here.")
+                .style("width","560px")
+                .style("height","200px")
+                .style("cols","200")
+                .style("rows","20");
+
+        }else{
+
+            d3.select(".prompt_header.question").text(questionText);
+            d3.select(".prompt_header.confidence").html("<p>How confident do you feel about your answer?<br>(0: Not confident, 100: Fully confident)</p>");
+
+            let containers = d3.select(".prompt_content.question")
+                .append("div")
+                .selectAll("label")
+                .data(options)
+                .enter()
+                .append("label")
+                .attr("class","experiment answer container")
+                .text((d) => {
+                    return options_text[d];
+                })
+                .on("click", (d) => {
+                    let selected = d;
+                    d3.selectAll(".experiment.answer.options").nodes()
+                        .forEach((d)=>{
+                            if(d.value === selected + ""){
+                                d.checked = true;
+                            }else{
+                                d.checked = false;
+                            }
+                        })
+                })
+
+            containers.append("input")
+                .attr("class", "experiment answer options")
+                .attr("type","radio")
+                .attr("value", function(d){
+                    return d;
+                });
+
+            containers.append("span")
+                .attr("class", "experiment answer checkmark")
+
+            let slider_width = 400;
+
+            d3.select(".prompt_content.confidence")
+                .append("div")
+                .style("margin-left", ()=>{
+                    let temp = slider_width/2;
+                    return temp + "px";
+                })
+                .text((d) => {
+                    return "50";
+                })
+                .style("font-size","22px");
+                
+            d3.select(".prompt_content.confidence")
+                .append("input")
+                .attr("class", "experiment answer slider")
+                .attr("type","range")
+                .attr("min","1")
+                .attr("max","100")
+                .attr("value","50")
+                .style("width", slider_width + "px")
+                .on("change",() => {
+                    let val = d3.select(".experiment.answer.slider").node().value;
+                    d3.select(".prompt_content.confidence > div").text(val);
+                });
+
+            if(type1.indexOf(problem_number) != -1){
+
+                d3.select("#prompt_c2")
+                    .append("div")
+                    .style("margin","auto")
+                    .style("width","85%")
+                    .append("img")
+                    .attr("src", ()=>{
+                        return "img/pre_experiment_test/" + problem_number + "_" + 0 + ".png";
+                    });
+
+                d3.select("#prompt_c2")
+                    .append("div")
+                    .style("margin","auto")
+                    .style("width","85%")
+                    .append("img")
+                    .attr("src", ()=>{
+                        return "img/pre_experiment_test/" + problem_number + "_" + 1 + ".png";
+                    })
+                    .on("load", () => {
+                        d3.select("#prompt_c2")
+                            .selectAll("img")
+                            .nodes()
+                            .forEach((d) => {
+                                if(d.width > 770){
+                                    d3.select(d).style("width","770px");
+                                }
+                            });
+                    }); 
+
+            } else {
+                d3.select("#prompt_c2")
+                    .append("div")
+                    .style("margin","auto")
+                    .style("width","85%")
+                    .append("img")
+                    .attr("src", ()=>{
+                        return "img/pre_experiment_test/" + problem_number + ".png";
+                    })
+                    .style("width","770px");
+            }
+        }
+
+        d3.select("#prompt_problem_number").text("" + (problem_number + 1) + " / "+ 12);
     }
 
 
@@ -368,14 +719,9 @@ class Experiment{
 
 
 
-
-
-
-
-
-
-
-
+    make_target_selection(id_list){
+        this.data_mining.make_target_selection(id_list);
+    }
 
     print_experiment_summary(){
 
@@ -419,6 +765,8 @@ class Experiment{
         saveTextAsFile(filename, printout);
     }
 
+
+
     saveTextAsFile(filename, inputText){
 
         let textToWrite = inputText;
@@ -446,48 +794,29 @@ class Experiment{
     }
 
 
-    session_timeout(){
-        return;
-    }
 
     store_task_specific_information(){
-        this.store_design_viewed.push(this.counter_design_viewed);
-        this.store_feature_viewed.push(this.counter_feature_viewed);
-        this.store_new_design_evaluated.push(this.counter_new_design_evaluated);
-        this.store_design_local_search.push(this.counter_design_local_search);
-        this.store_conjunctive_local_search.push(this.counter_conjunctive_local_search);
-        this.store_disjunctive_local_search.push(this.counter_disjunctive_local_search);
-        this.store_new_feature_tested.push(this.counter_new_feature_tested);
-        this.store_best_features_found.push(JSON.stringify(this.best_features_found));        
+        // this.store_design_viewed.push(this.counter_design_viewed);
+        // this.store_feature_viewed.push(this.counter_feature_viewed);
+        // this.store_new_design_evaluated.push(this.counter_new_design_evaluated);
+        // this.store_design_local_search.push(this.counter_design_local_search);
+        // this.store_conjunctive_local_search.push(this.counter_conjunctive_local_search);
+        // this.store_disjunctive_local_search.push(this.counter_disjunctive_local_search);
+        // this.store_new_feature_tested.push(this.counter_new_feature_tested);
+        // this.store_best_features_found.push(JSON.stringify(this.best_features_found));        
         
-        this.counter_design_viewed = 0;
-        this.counter_feature_viewed = 0;
-        this.counter_new_design_evaluated = 0;
-        this.counter_design_local_search = 0;
-        this.counter_conjunctive_local_search = 0;
-        this.counter_disjunctive_local_search = 0;
-        this.counter_new_feature_tested = 0;
-        this.best_features_found = [];             
+        // this.counter_design_viewed = 0;
+        // this.counter_feature_viewed = 0;
+        // this.counter_new_design_evaluated = 0;
+        // this.counter_design_local_search = 0;
+        // this.counter_conjunctive_local_search = 0;
+        // this.counter_disjunctive_local_search = 0;
+        // this.counter_new_feature_tested = 0;
+        // this.best_features_found = [];             
     }
 
 
 
-
-
-
-
-
-
-
-
-
-
-    // d3.select("#move_backward_button").on("click",function(d){
-    //     that.previous_task();
-    // });
-    // d3.select("#move_forward_button").on("click",function(d){
-    //     that.next_task();
-    // });
     
     /**
      * Randomize array element order in-place.
@@ -539,10 +868,10 @@ class Experiment{
 
     select_archs_using_ids(target_ids_string){
 
-        var target_ids_split = target_ids_string.split(',');
-        var target_ids =[];
-        for(var i=0;i<target_ids_split.length;i++){
-            var id = + target_ids_split[i];
+        let target_ids_split = target_ids_string.split(',');
+        let target_ids =[];
+        for(let i = 0; i < target_ids_split.length; i++){
+            let id = + target_ids_split[i];
             target_ids.push(id);
         }
         d3.selectAll('.dot.main_plot')[0].forEach(function(d){
@@ -550,7 +879,6 @@ class Experiment{
                 d3.select(d).classed('selected',true).style("fill", ifeed.main_plot.color.selected);
             }
         });
-
     }
     
     turn_highlighted_to_selected(){
@@ -584,20 +912,81 @@ class Experiment{
 
 
 
-class Timer{
+class Clock{
 
-    constructor(){
-        // Duration needs to be set up to use this class as a timer. Otherwise, it will act as a stopwatch
-        this.duration = null;
+    constructor(){        
         this.timeinterval = null;
         this.startTime = null;
         this.endTime = null;
         this.timeElapsed = null;
-        this.timerCallback = null;
+
+        // Flag to indicate whether this class would be used as a stopwatch (true) or timer (false).
+        this.stopwatch = true;
+
+        // Duration needs to be set up to use this class as a timer
+        this.duration = [];
+        this.callback = [];
+    }
+
+    callbackExists(){
+        if(this.callback.length === 0){
+            return false;
+        }else{
+            return true;
+        }
+    }
+
+    setCallback(callback){
+        if(callback instanceof Array){
+            this.callback = callback;
+        }else{
+            this.callback = [callback];
+        }
     }
 
     setDuration(duration){
-        this.duration = duration;
+        if(duration instanceof Array){
+            this.duration = duration;
+        }else{
+            this.duration = [duration];
+        }
+    }
+
+    addCallback(callback){
+        if(callback instanceof Array){
+            this.callback = this.callback.concat(callback);
+        }else{
+            this.callback.push(callback);
+        }
+    }
+
+    addDuration(duration){
+        if(duration instanceof Array){
+            this.duration = this.duration.concat(duration);
+        }else{
+            this.duration.push(duration);
+        }
+    }
+
+    resetClock(){
+        this.stop();
+
+        this.timeinterval = null;
+        this.startTime = null;
+        this.endTime = null;
+        this.timeElapsed = null;
+
+        // Flag to indicate whether this class would be used as a stopwatch (true) or timer (false).
+        this.stopwatch = true;
+
+        // Duration needs to be set up to use this class as a timer
+        this.duration = [];
+        this.callback = [];
+    }
+
+    clearCallback(){
+        this.callback = [];
+        this.duration = [];
     }
 
     start(){
@@ -606,11 +995,16 @@ class Timer{
         this.endTime = null;
         this.timeElapsed = null;
 
-        if(this.duration){
-            let deadline = new Date(startTime + this.duration);
-            this.startTimer(deadline);
-        }else{
-            this.startStopWatch();
+        if(this.stopwatch){
+            this.startStopWatch(this.duration, this.callback);
+        } else{            
+            if(this.duration.length === 0){
+                alert("Duration needs to be set in order to use Clock as a timer.");
+
+            }else{
+                let deadline = new Date(startTime + this.duration[0]);
+                this.startTimer(deadline, this.callback);
+            }
         }
     }
 
@@ -634,17 +1028,17 @@ class Timer{
     getTimeElapsed(){
         let out;
         if(this.timeElapsed){
-            out = this.timeElapsed / 1000;
+            out = this.timeElapsed;
         }else{
-            out = (Date.parse(new Date()) - this.startTime) / 1000;
+            out = Date.parse(new Date()) - this.startTime;
         }
         return out;
     }
 
     getTimeElapsedInMinutesAndSeconds(){
         let t = this.getTimeElapsed();
-        let seconds = Math.floor( t % 60 );
-        let minutes = Math.floor( (t/60) );
+        let seconds = Math.floor( (t/1000) % 60 );
+        let minutes = Math.floor( t/1000/60 );
         return {
             'total': t,
             'minutes': minutes,
@@ -652,34 +1046,53 @@ class Timer{
         };
     }
 
-    startStopWatch(){
+    startStopWatch(duration, callback){
         let that = this;
+
         function updateClock(){
             let t = that.getTimeElapsedInMinutesAndSeconds();
             let minutes = t.minutes;
             let seconds = t.seconds;
 
+            if(callback.length != 0){
+                if(t.total > duration[0]){
+                    callback[0]();
+                    callback.splice(0,1);
+                    duration.splice(0,1);
+                }
+            }
+
             // Display the result in the element with id="timer"
             document.getElementById("timer").innerHTML = "Elapsed time: " + minutes + "m " + seconds + "s ";
         }
+
         updateClock(); // run function once at first to avoid delay
         this.timeinterval = setInterval(updateClock, 1000);
     }
 
-    startTimer(endtime){
+    startTimer(endtime, callback){
         let that = this;
         function updateClock(){
             let t = that.getTimeRemaining(endtime);
             let minutes = t.minutes;
             let seconds = t.seconds;
 
+            if(t.total <= 0){
+                if(callback.length != 0){
+                    callback[0]();
+
+                }else{
+                    alert("Timer finished!");
+                }
+
+                that.stop();
+                return;
+            }
+
             // Display the result in the element with id="timer"
             document.getElementById("timer").innerHTML = minutes + "m " + seconds + "s ";
-
-            if(t.total <= 0){
-                this.timerCallback();
-            }
         }
+
         updateClock(); // run function once at first to avoid delay
         this.timeinterval = setInterval(updateClock, 1000);
     }

@@ -3,6 +3,9 @@ class FeatureApplication{
 
     constructor(DataMiningScheme, filteringScheme, labelingScheme){
 
+        d3.select("#feature_expression_panel").style("width","96%");
+        d3.select("#feature_application_panel").style("width","96%");
+
         this.filter = filteringScheme;
         this.label = labelingScheme;
         this.data_mining = DataMiningScheme;
@@ -26,7 +29,7 @@ class FeatureApplication{
         // top  right bottem left
         this.margin = {left:70,right:20,top:10,bottom:20},
         this.width = 1200 - this.margin.left - this.margin.right,
-        this.height = 800 - this.margin.top - this.margin.bottom;
+        this.height = 750 - this.margin.top - this.margin.bottom;
 
         this.draggingNode = null;
         this.selectedNode = null;
@@ -764,8 +767,7 @@ class FeatureApplication{
             });
         }
 
-        //this.update_feature_expression(this.parse_tree(this.data));
-        //ifeed.data_mining.draw_venn_diagram();   
+        this.update_feature_expression(this.parse_tree(this.data));
     }
     
     get_node_ids(source,IDList){
@@ -1109,7 +1111,7 @@ class FeatureApplication{
 	        expression = expression.replace(/\|\|/g,' <span style="color:'+logic_color+';">OR</span> ');
 	    }
 
-   		d3.select('#feature_expression').html("<p>"+expression+"</p>");
+   		d3.select('#feature_expression').html("<p>" + expression + "</p>");
 	}
     
     clear_feature_application(){
