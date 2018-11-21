@@ -695,29 +695,30 @@ class DataMining{
         d3.selectAll('.bar.feature_plot')
             .on("mouseover", (d) => { 
                 
-                // let id = d.id;
-                // d3.selectAll('.bar.feature_plot')
-                //     .style("fill","#FEFEFE");
-                // d3.selectAll('.bar.feature_plot').filter(function(d){
-                //     if (d.id == id) return true;
-                //     return false;
-                // }).style("fill", "#A5A5A5");
+                let id = d.id;
+                d3.selectAll('.bar.feature_plot')
+                    .style("opacity", 1.0);
+
+                d3.selectAll('.bar.feature_plot').filter(function(d){
+                    if (d.id == id) return true;
+                    return false;
+                }).style("opacity", 0.45);
                 
                 this.feature_mouseover(d); 
             })
 
             .on('mouseout', (d) => { 
 
-                // d3.selectAll('.bar.feature_plot')
-                //     .style("fill","#FEFEFE");
+                d3.selectAll('.bar.feature_plot')
+                    .style("opacity", 1.0);
 
-                // if(this.current_feature){
-                //     let id = this.current_feature_id;
-                //     d3.selectAll('.bar.feature_plot').filter(function(d){
-                //         if (d.id == id) return true;
-                //         return false;
-                //     }).style("fill", "#A5A5A5");
-                // }
+                if(this.current_feature){
+                    let id = this.current_feature_id;
+                    d3.selectAll('.bar.feature_plot').filter(function(d){
+                        if (d.id == id) return true;
+                        return false;
+                    }).style("opacity", 0.45);
+                }
                 
                 this.feature_mouseout(d); 
             })
@@ -949,12 +950,12 @@ class DataMining{
                 
                 let id = d.id;
                 d3.selectAll('.dot.feature_plot')
-                    .style("fill","#FEFEFE");
-                    
+                    .style("opacity", 1.0);
+
                 d3.selectAll('.dot.feature_plot').filter(function(d){
                     if (d.id == id) return true;
                     return false;
-                }).style("fill", "#A5A5A5");
+                }).style("opacity", 0.45);
                 
                 this.feature_mouseover(d); 
             })
@@ -962,14 +963,14 @@ class DataMining{
             .on('mouseout', (d) => { 
 
                 d3.selectAll('.dot.feature_plot')
-                    .style("fill","#FEFEFE");
+                    .style("opacity",1.0);
 
                 if(this.current_feature){
                     let id = this.current_feature_id;
                     d3.selectAll('.dot.feature_plot').filter(function(d){
                         if (d.id == id) return true;
                         return false;
-                    }).style("fill", "#A5A5A5");
+                    }).style("opacity", 0.45);
                 }
                 
                 this.feature_mouseout(d); 

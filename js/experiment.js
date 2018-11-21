@@ -22,9 +22,13 @@ class Experiment{
         this.problemSet_order = this.shuffleArray([0, 1, 2]); // problem set number
 
         this.problem_order_design = this.shuffleArray([0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11]);
+        this.problem_order_feature = this.shuffleArray([0, 1, 2, 3, 4, 5, 6, 7, 8]);
 
-        this.problem_count = 0;
+        this.current_problem_count = -1;
+        this.current_problem_number = 0;
+        this.current_problem_type = "design"; // pretest, pretest_text, design, feature
         this.num_problem_design = 4;
+        this.num_problem_feature = 3;
 
         // Placeholder for callback function
         this.submit_callback = function(){
@@ -186,11 +190,11 @@ class Experiment{
         this.data_mining.initialize();
         PubSub.publish(INITIALIZE_FEATURE_APPLICATION, null);
 
-        // Set stopwatch callback function
+        // Set stopwatch callback functions
         if(!this.clock.callbackExists()){
-            let d1 = 5 * 60 * 1000;
+            let d1 = 3 * 60 * 1000;
             let a1 = function(){
-                alert("5 minutes passed! Please try to answer the question as quickly as possible.");
+                alert("3 minutes passed! Please try to answer the question as quickly as possible.");
                 d3.select("#timer")     
                     .style("font-size","30px")
                     .style("color","red"); 
@@ -271,6 +275,8 @@ class Experiment{
     
     record_answer(problem_type, problem_number){
 
+        // problem types: pretest, pretest_text, design, feature
+
         // Record:
         // 1. problemSet number (orbit, instrument order)
         // 2. task_number (task order)
@@ -283,7 +289,7 @@ class Experiment{
         let answer = 0;
         let confidence = null;
 
-        if(problem_type === "text"){
+        if(problem_type === "pretest_text"){
             answer = d3.select(".experiment.answer.container").node().value;
             problem_type = "pretest";
 
@@ -327,19 +333,28 @@ class Experiment{
 
         let that = this;
 
-        // Remove previously-existing submit button
+        // Remove existing submit button
         d3.select(".experiment.answer.submit").remove();
 
-        let temp_problem_sequence = [];
+        let problem_sequence_design = [];
+        let problem_sequence_feature = [];
+
         for(let i = 0; i < this.num_problem_design; i++){
             let index = this.task_number * this.num_problem_design + i;
-            temp_problem_sequence.push(this.problem_order_design[index]);
+            problem_sequence_design.push(this.problem_order_design[index]);
+        }
+
+        for(let i = 0; i < this.num_problem_feature; i++){
+            let index = this.task_number * this.num_problem_feature + i;
+            problem_sequence_feature.push(this.problem_order_feature[index]);
         }
 
         let problemSet = this.problemSet_number;
 
         // Display the first problem in the sequence
-        this.display_problem(problemSet, temp_problem_sequence.splice(0,1)[0]);
+        this.current_problem_type = "design"; // pretest, pretest_text, design, feature
+        this.current_problem_number = problem_sequence_design.splice(0,1)[0];
+        this.display_problem(problemSet, this.current_problem_type, this.current_problem_number);
 
         this.submit_callback = function(){
 
@@ -349,22 +364,38 @@ class Experiment{
                     if(d.checked){
                         question_answered = true;
                     }
-                })
+                });
 
             if(question_answered){
                 // Add delay in loading the next question
                 setTimeout(function (){
-                    that.record_answer("main", that.problem_order_design[that.problem_count - 1]);
 
-                    if(temp_problem_sequence.length == 0){
+                    that.record_answer(that.current_problem_type, that.current_problem_number);
+
+                    if(problem_sequence_design.length === 0 && problem_sequence_feature.length !== 0){
+                        // Display the next problem in the sequence
+                        that.current_problem_count += 1;
+                        that.current_problem_type = "feature"; // pretest, pretest_text, design, feature
+                        that.current_problem_number = problem_sequence_feature.splice(0,1)[0];
+                        that.display_problem(problemSet, that.current_problem_type, that.current_problem_number);
+
+                    } else if(problem_sequence_design.length === 0 && problem_sequence_feature.length === 0){
                         // Start new condition
                         that.next_task();
 
                     }else{
-                        // Display the next problem
-                        that.display_problem(problemSet, temp_problem_sequence.splice(0,1)[0]);
+                        // Display the next problem in the sequence
+                        that.current_problem_count += 1;
+                        if(that.current_problem_type == "design"){
+                            that.current_problem_number = problem_sequence_design.splice(0,1)[0];
+                        }else{
+                            that.current_problem_number = problem_sequence_feature.splice(0,1)[0];
+                        }
+                        that.display_problem(problemSet, that.current_problem_type, that.current_problem_number);
+
                     }   
-                }, 1500); // How long do you want the delay to be (in milliseconds)? 
+                }, 1300); // How long do you want the delay to be (in milliseconds)? 
+
             }else{
                 alert("Please answer the question before submitting the answer!");
             }
@@ -377,18 +408,17 @@ class Experiment{
             .on("click", this.submit_callback);
     }
 
-    display_problem(problemSet, problem_number){
+    display_problem(problemSet, problem_type, problem_number){
 
         this.clock.start();
 
         let options = [0, 1];
 
         let questionText = "";
-        if(problem_number < 1){
+        if(problem_type == "design"){
             questionText = "Do you think the given design will be located in the target region?";
-        }else{
-            // questionText = "Is the given feature a driving feature?";
-            questionText = "Do you think the given design will be located in the target region?";
+        } else {
+            questionText = "Is the given feature a driving feature?";
         }
 
         // Remove all existing forms
@@ -440,7 +470,7 @@ class Experiment{
 
         d3.select(".prompt_content.confidence")
             .append("div")
-            .style("margin-left", ()=>{
+            .style("margin-left", () => {
                 let temp = slider_width/2;
                 return temp + "px";
             })
@@ -467,13 +497,12 @@ class Experiment{
             .style("margin","auto")
             .style("width","85%")
             .append("img")
-            .attr("src", ()=>{
-                return "img/experiment/" + problemSet + "_" + problem_number + ".png";
+            .attr("src", () => {
+                return "img/experiment/" + problem_type + "_" + problemSet + "_" + problem_number + ".png";
             })                
             .style("width","100%"); 
 
-        this.problem_count += 1;
-        d3.select("#prompt_problem_number").text("" + this.problem_count + " / "+ 12);
+        d3.select("#prompt_problem_number").text("" + (this.current_problem_count + 1) + " / " + 32);
     }
 
     start_pretest_sequence(){
@@ -483,10 +512,10 @@ class Experiment{
         // Remove previously-existing submit button
         d3.select(".experiment.answer.submit").remove();
 
-        let problem_number = 0;
+        this.current_problem_count = 0;
 
         // Display the first problem in the sequence
-        this.display_pretest_problem(problem_number);
+        this.display_pretest_problem(this.current_problem_count);
 
         this.submit_callback = function(){
 
@@ -500,7 +529,7 @@ class Experiment{
                     }
                 })
 
-            if(problem_number > 9){
+            if(that.current_problem_count > 9){
                 question_answered = true;
                 text_answer = true;
             }
@@ -510,22 +539,22 @@ class Experiment{
                 setTimeout(function (){
 
                     if(text_answer){
-                        that.record_answer("text", problem_number);
+                        that.record_answer("pretest_text", that.current_problem_count);
                     }else{
-                        that.record_answer("pretest", problem_number);
+                        that.record_answer("pretest", that.current_problem_count);
                     }
                     
                     // Display the next problem
-                    problem_number += 1;
+                    that.current_problem_count += 1;
 
-                    if(problem_number === 12){
+                    if(that.current_problem_count === 12){
                         that.next_task();
 
                     }else{
-                        that.display_pretest_problem(problem_number);
+                        that.display_pretest_problem(that.current_problem_count);
                     }
                 
-                }, 1500); // How long do you want the delay to be (in milliseconds)? 
+                }, 1300); // How long do you want the delay to be (in milliseconds)? 
             }else{
                 alert("Please answer the question before submitting the answer!");
             }
@@ -704,7 +733,7 @@ class Experiment{
             }
         }
 
-        d3.select("#prompt_problem_number").text("" + (problem_number + 1) + " / "+ 12);
+        d3.select("#prompt_problem_number").text("" + (this.current_problem_count + 1) + " / "+ 32);
     }
 
 
