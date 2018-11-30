@@ -231,6 +231,12 @@ class ExperimentTutorial{
                         'The displayed information contains the science benefit score and the cost, as well as a figure that shows what items are assigned to each slot.'];
 
             classname = 'introjs_tooltip_large';
+
+            callback = function(targetElement) {
+                if(this._currentStep === 1){
+                    PubSub.publish(INSPECT_ARCH, that.problem.data[1039]);
+                }
+            }  
             
             title = "Inspecting Design by Hovering";
             prompt = '';
@@ -247,12 +253,10 @@ class ExperimentTutorial{
                        '<p> Below are some examples of what features might look like (these are just examples, so you don\'t have to pay attention to the details): </p>'
                         +'<p>   1. Item A is assigned to slot 1000 </p>'
                         +'<p>   2. Item A and item B are assigned together in the same slot</p>'
-                        +'<p>   3. Item C and item D are never assigned to the same slot</p>'
-                        +'<p>   4. Slot 2000 is empty </p>'
-                        +'<p>   5. At least two items out of items A, B, C are assigned to the same slot </p>'
-                        +'<p>   6. Item D is assigned to either slot 1000 or slot 2000</p>',
-                        
-                       'Some features may explain the target designs well, while other features may be inaccurate.'];
+                        +'<p>   3. Slot 2000 is empty </p>'
+                        +'<p>   4. Item D is assigned to either slot 1000 or slot 2000</p>'
+                        +'<p> </p>'
+                        +'<p>Some features are better than others in explaining the target designs. We use two different criteria to define the "goodness" of a feature.</p>'];
 
             classname='introjs_tooltip_large';
             
@@ -273,9 +277,9 @@ class ExperimentTutorial{
                         +'<p>(a) Item L is used, or item H is assigned to slot 5000. </p>'
                         +'<p>Take a look at the scatter plot, and note that some dots have turned pink or purple. The pink and purple dots are all the designs that have feature (a), meaning that they either use item L in the design or assigns item H to slot 5000.',
                         
-                        '<p>Pink dots represent designs that have the feature (a), but are not in the target region. Purple dots represent designs that have the feature (a) and are inside the target region. </p>',
+                        '<p>Pink dots represent designs that have feature (a), but are not in the target region. Purple dots represent designs that have the feature (a) and are inside the target region. </p>',
                         
-                       'Note that many of the target designs share this feature (as indicated by the large number of purple dots). We say that this feature has a good coverage of target designs. Such good coverage is desired in a good feature.',
+                       'Note that many of the target designs share feature (a) (as indicated by the large number of purple dots). We say that this feature has a good coverage of target designs. Such good coverage is desired in a good feature.',
                         
                        'However, feature (a) is not necessarily what we are looking for. It is too general, meaning that it also applies to many of the non-target designs as well (as indicated by the large number of pink dots). This leads us to the next criterion to define a good feature.'];
             
@@ -304,7 +308,7 @@ class ExperimentTutorial{
                         
                         '<p>Note that different dots are now in pink and purple colors. If you look closely, you will find that many of the pink dots have disappeared. This is good becuase we wanted to find a feature that uniquely describes the target region and does not cover the non-target region. </p><p>We say that feature (b) is specific to the target region, and this is the second criterion that we require from a good feature.</p>',
                         
-                        '<p>However, you may notice that many of the purple dots (target designs covered by the feature) have also disappeared. Only very small portion of the targets are in purple color now.</p><p>Therefore, (b) is too specific, meaning that it only accounts for a small number of targets. Or you can say that the coverage of target designs have decreased. </p>',
+                        '<p>However, you may notice that many of the purple dots (target designs covered by the feature) have also disappeared. Only a very small portion of the targets are in purple color now.</p><p>Therefore, (b) is too specific, meaning that it only accounts for a small number of targets. Or you can say that the coverage of target designs have decreased. </p>',
                         
                         '<p>As you may have noticed, there are two conflicting criteria that we are seeking from a good feature. Let\'s summarize those points in the next section.</p>'
                        ];
@@ -377,6 +381,8 @@ class ExperimentTutorial{
             contents = ["Feature Analysis tab contains a plot that shows how much coverage and specificity different features have. ",
                                             
                         "Each feature is represented by a triangle. The features shown in the plot are obtianed by running a data mining algorithm. ",
+
+                        "The color of a triangle represents how complex a feature is. Features that are blue are the most simplest, and they get more complex as the color gets close to red.",
                                                 
                        "<p>In the plot, the horizontal axis corresponds to the specificity, and the vertical axis corresponds to the coverage of a feature.</p>"
                        + "<p>Again, a good feature must have both large specificity and large coverage.</p>"];
@@ -438,9 +444,9 @@ class ExperimentTutorial{
                         
                        "Once a feature is added, you will see that the outline of the triangle is highlighted in bold. It shows where the current feature is located",
                                               
-                       "In the graphical representation of a feature, there exist two different kinds of nodes: nodes for logical connectives and nodes for individual features. The logical connectives are colored in blue, and they can be either AND or OR.",
+                       "In the graphical representation of a feature, there exist two different kinds of nodes: logical connectives and individual conditions. The logical connectives can either be AND or OR, and they specify how different conditions should be combined.",
                         
-                       "As shown in the corresponding feature expression, all feature nodes inside the same logical connective node are inside the same brackets and are combined using the same logical connection."];
+                       "As shown in the logical expression, the features under the same logical connective are inside the same brackets."];
 
             classname = 'introjs_tooltip_large';
 
@@ -487,7 +493,10 @@ class ExperimentTutorial{
             document.getElementById('tab3').click();
 
             this.experiment.feature_application.clear_feature_application();
-            
+
+            d3.select("#prompt_c1").style("width","80%");
+            d3.select("#prompt_c2").style("width","20%");
+
             title = 'End of the tutorial';
             
             objects = [null];
@@ -498,13 +507,15 @@ class ExperimentTutorial{
             
             prompt = '<p>We just covered all the capabilities of iFEED, and now you are ready to start the experiment. Before proceeding to the next step, please read the following directions carefully.'
 
-        		+'<p style="font-weight:bold;">  - In the actual task, you will be asked to answer 18 questions about three different datasets. </p>'
+        		+'<p style="font-weight:bold; font-size:23px">  - In the actual task, you will be asked to answer 36 questions about three different datasets. </p>'
                 
-                +'<p style="font-weight:bold;"> - To answer each question, you will need to use iFEED to find good features shared by the target designs. '
+                +'<p style="font-weight:bold; font-size:23px"> - To answer each question, you will need to use iFEED to find good features shared by the target designs. '
                 +'Only a subset of capabilities introduced in this tutorial may be available for you to use.</p>'
                 
-                +'<p style="font-weight:bold;">  - Try to answer each question as accurately as possible, and at the same time, as quickly as possible. Both accuracy and answer time are equally important in this experiment.</p>'
-                                    
+                +'<p style="font-weight:bold; font-size:23px">  - Try to answer each question as accurately as possible, and at the same time, as quickly as possible. Both accuracy and answer time are equally important in this experiment.</p>'
+                        
+                +'<p style="font-weight:bold; font-size:23px">  - We expect each question to take around 1~2 minutes to answer. If it takes more than that, you are probably overthinking it. If you are not sure about the answer, simply select the answer that you think is right given the information you have.</p>'
+
         		+'<p>Now you are ready to start the experiment. You can move on to the experiment by clicking the button below. Good luck!</p>';
             
             d3.select('.prompt_content.confidence')
@@ -516,7 +527,9 @@ class ExperimentTutorial{
                     .style('font-size','18px')
                     .text('Start the Experiment')
                     .on('click', ()=>{
-                         that.start_experiment();
+                        that.start_experiment();
+                        d3.select("#prompt_c1").style("width","45%");
+                        d3.select("#prompt_c2").style("width","55%");
                     });
         }
         

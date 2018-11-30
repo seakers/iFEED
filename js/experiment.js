@@ -21,14 +21,14 @@ class Experiment{
         this.condition_order = this.shuffleArray([0, 1, 2]); // condition number: DSE, sorted fetaures list, FSE
         this.problemSet_order = this.shuffleArray([0, 1, 2]); // problem set number
 
-        this.problem_order_design = this.shuffleArray([0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11]);
-        this.problem_order_feature = this.shuffleArray([0, 1, 2, 3, 4, 5, 6, 7, 8]);
+        this.problem_order_design = this.shuffleArray([0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23]);
+        this.problem_order_feature = this.shuffleArray([]);
 
         this.current_problem_count = -1;
         this.current_problem_number = 0;
         this.current_problem_type = "design"; // pretest, pretest_text, design, feature
-        this.num_problem_design = 4;
-        this.num_problem_feature = 3;
+        this.num_problem_design = 8;
+        this.num_problem_feature = 0;
 
         // Placeholder for callback function
         this.submit_callback = function(){
@@ -66,6 +66,8 @@ class Experiment{
         for(let i = 0; i < 10; i++){
             this.account_id += "" + Math.floor(Math.random()*10)
         }
+        let date = new Date();
+        this.account_id += "-" + date.getMonth() + "_" + date.getDate() + "_" + date.getHours() + "_" + date.getMinutes();
 
         // Answers
         this.answerData = [];
@@ -146,7 +148,7 @@ class Experiment{
             d3.select('body').append('h2')
                 .text("Key number: "+ key_number).style("width","1200px").style("margin","auto");
             d3.select('body').append('h2')
-                .text("Now follow the link to do a survey: https://cornell.qualtrics.com/jfe/form/SV_3xVqMtpF6vR8Qvj").style("width","1200px").style("margin","auto");
+                .text("Now follow the link to do a survey: https://cornell.qualtrics.com/jfe/form/SV_6RR4hCbV57k7uhT").style("width","1200px").style("margin","auto");
             d3.select('body').append('div').style("width","100%").style("height","30px"); 
 
             //print_experiment_summary();
@@ -191,19 +193,47 @@ class Experiment{
         PubSub.publish(INITIALIZE_FEATURE_APPLICATION, null);
 
         // Set stopwatch callback functions
-        if(!this.clock.callbackExists()){
-            let d1 = 3 * 60 * 1000;
-            let a1 = function(){
-                alert("3 minutes passed! Please try to answer the question as quickly as possible.");
+        let d1 = null;
+        let d2 = null;
+        let a1 = null;
+        let a2 = null;
+
+        // Set alert message given at the beginning of each task
+        let alertMsg = "";
+
+        if(this.task_number === -1){   
+            d1 = 1 * 90 * 1000;
+            a1 = function(){
+                alert("90 seconds passed! Try not to overthink. If you are not sure about the answer, select whichever feels more right, and specify the level of confidence you feel on your answer.");
                 d3.select("#timer")     
                     .style("font-size","30px")
                     .style("color","red"); 
             };
-            let callback = [a1];
-            let duration = [d1];
-            this.clock.addCallback(callback);
-            this.clock.addDuration(duration);
+            d2 = 2 * 60 * 1000; 
+            a2 = function(){
+                alert("2 minutes passed! Please move on to the next question.");
+            };
+            alertMsg = "\n\nJust to keep you on track with time, we will let you know when you spend more than 90 seconds on each question.";
+
+        } else {
+            d1 = 3 * 60 * 1000;
+            a1 = function(){
+                alert("3 minutes seconds passed! Try not to overthink. If you are not sure about the answer, select whichever feels more right, and specify the level of confidence you feel on your answer.");
+                d3.select("#timer")     
+                    .style("font-size","30px")
+                    .style("color","red"); 
+            };
+            d2 = 4 * 60 * 1000;
+            a2 = function(){
+                alert("4 minutes passed! Please submit the answer and move on to the next question.");
+            };
+            alertMsg = "\n\nThis time, We will let you know when you spend more than 3 minutes on each question.";
         }
+
+        let callback = [a1, a2];
+        let duration = [d1, d2];
+        this.clock.setCallback(callback);
+        this.clock.setDuration(duration);
 
         if(this.task_number === -1){
 
@@ -219,7 +249,11 @@ class Experiment{
             }
             this.problem.display_arch_info = function(){};
 
-            alert("In each part of the experiment, a set of questions will be asked. In this part, you do NOT need any of the capabilities of iFEED to answer the questions. All relevant information will be provided in figures.");
+            alertMsg = "In each part of the experiment, a set of questions will be asked. "
+                +"In this part, you do NOT need any of the capabilities of iFEED to answer the questions. "
+                +"All relevant information will be provided in separate figures." + alertMsg;
+
+            alert(alertMsg);
                   
             this.start_pretest_sequence(); 
 
@@ -235,7 +269,8 @@ class Experiment{
                     this.problem.display_arch_info = this.display_arch_info;
                 }
                 
-                alert("In the next part of the experiment, try to answer the questions using iFEED's design inspection capability. Note that a new dataset has been loaded for this task.");
+                alertMsg = "In the next part of the experiment, try to answer questions using iFEED's design inspection capability. "
+                            +"Note that a new dataset has been loaded for this task." + alertMsg;
 
             }else if(this.condition_number === 1){ // Bar plot
                 d3.select("#tab1").text('-');
@@ -247,7 +282,8 @@ class Experiment{
                 // Disable design inspection
                 this.problem.display_arch_info = function(){};
 
-                alert("In the next part of the experiment, try to answer the questions using iFEED's feature analysis capability with a bar graph. Note that a new dataset has been loaded for this task.");
+                alertMsg = "In the next part of the experiment, try to answer questions using iFEED's feature analysis capability with a bar graph. "
+                        +"Note that a new dataset has been loaded for this task." + alertMsg;
 
             }else if(this.condition_number === 2){ // FSE
                 d3.select("#tab1").text('-');
@@ -259,15 +295,19 @@ class Experiment{
                 // Disable design inspection
                 this.problem.display_arch_info = function(){};
 
-                alert("In the next part of the experiment, try to answer the questions using iFEED's feature analysis capability with a scatter plot. Note that a new dataset has been loaded for this task.");
+                alertMsg = "In the next part of the experiment, try to answer questions using iFEED's feature analysis capability with a scatter plot. "
+                    +"Note that a new dataset has been loaded for this task." + alertMsg;
             }
+
             // Load target selection and corresponding features
-            this.data_mining.import_feature_data_and_compute_metrics("EpsilonMOEA_2018-10-25-10-53_1", this.filter);
+            this.data_mining.import_feature_data("EpsilonMOEA_2018-11-19-14-05_0", true, false);
 
             if(this.condition_number === 0){
                 d3.select("#view3").selectAll('g').remove();
                 document.getElementById('tab1').click();  
             }
+
+            alert(alertMsg);
 
             this.start_problem_sequence();
         }
@@ -411,6 +451,9 @@ class Experiment{
     display_problem(problemSet, problem_type, problem_number){
 
         this.clock.start();
+        d3.select("#timer")
+            .style("color","black")
+            .style("font-size","24px");
 
         let options = [0, 1];
 
@@ -418,7 +461,7 @@ class Experiment{
         if(problem_type == "design"){
             questionText = "Do you think the given design will be located in the target region?";
         } else {
-            questionText = "Is the given feature a driving feature?";
+            questionText = "Is the given feature a driving feature (a feature satisfying coverage > 0.6 and specificity > 0.6)?";
         }
 
         // Remove all existing forms
@@ -502,7 +545,7 @@ class Experiment{
             })                
             .style("width","100%"); 
 
-        d3.select("#prompt_problem_number").text("" + (this.current_problem_count + 1) + " / " + 32);
+        d3.select("#prompt_problem_number").text("" + (this.current_problem_count + 1) + " / " + 36);
     }
 
     start_pretest_sequence(){
@@ -570,6 +613,9 @@ class Experiment{
     display_pretest_problem(problem_number){
 
         this.clock.start();
+        d3.select("#timer")
+            .style("color","black")
+            .style("font-size","24px");
 
         let options = [0, 1];
         let options_text = null;
@@ -610,9 +656,9 @@ class Experiment{
         if(type4.indexOf(problem_number) != -1){
 
             if(problem_number === 10){
-                questionText = "Describe what it means for a feature to have a large coverage. ";
+                questionText = "Describe in one or two sentences what it means for a feature to have a large coverage. ";
             }else{
-                questionText = "Describe what it means for a feature to have a large specificity. ";
+                questionText = "Describe in one or two sentences what it means for a feature to have a large specificity. ";
             }
             d3.select(".prompt_header.question").text(questionText);
             d3.select(".prompt_header.confidence").html("");
@@ -626,6 +672,18 @@ class Experiment{
                 .style("height","200px")
                 .style("cols","200")
                 .style("rows","20");
+
+            let d1 = 1 * 90 * 1000;
+            let a1 = function(){
+                alert("90 seconds passed! Please wrap up writing the answer and move on to the next question.");
+                d3.select("#timer")     
+                    .style("font-size","30px")
+                    .style("color","red"); 
+            };
+            let callback = [a1];
+            let duration = [d1];
+            this.clock.setCallback(callback);
+            this.clock.setDuration(duration);
 
         }else{
 
@@ -733,7 +791,7 @@ class Experiment{
             }
         }
 
-        d3.select("#prompt_problem_number").text("" + (this.current_problem_count + 1) + " / "+ 32);
+        d3.select("#prompt_problem_number").text("" + (this.current_problem_count + 1) + " / "+ 36);
     }
 
 
@@ -1025,7 +1083,15 @@ class Clock{
         this.timeElapsed = null;
 
         if(this.stopwatch){
-            this.startStopWatch(this.duration, this.callback);
+
+            let durationClone = [];
+            let callbackClone = [];
+            for(let i = 0; i < this.duration.length; i++){
+                durationClone.push(this.duration[i]);
+                callbackClone.push(this.callback[i]);
+            }
+            this.startStopWatch(durationClone, callbackClone);
+
         } else{            
             if(this.duration.length === 0){
                 alert("Duration needs to be set in order to use Clock as a timer.");
