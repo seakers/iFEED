@@ -1,215 +1,238 @@
-<!DOCTYPE html>
-<!--
-To change this license header, choose License Headers in Project Properties.
-To change this template file, choose Tools | Templates
-and open the template in the editor.
--->
+<!doctype html>
+
 <html>
-
-<head>
-    <title>iFEED Web Application</title>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-
+  <head>
+    <meta http-equiv="content-type" content="text/html; charset=UTF-8">
+    <link type="text/css" rel="stylesheet" href="css/experiment_tutorial.css">   
     <script src="js/lib/jquery.js" type="text/javascript"></script>
-    <script src="js/lib/jquery-ui.min.js"></script>
+    <script src="js/lib/d3.js"></script> 
     
-    <script src="https://d3js.org/d3.v4.min.js"></script>
-    <script src="js/lib/d3-selection-multi.min.js" type="text/javascript"></script>
-    <script src="js/lib/d3-shape.v1.min.js"></script>
-    <script src="js/lib/d3-path.v1.min.js"></script>
-    <script src="js/lib/tabcontent.js" type="text/javascript"></script>
-    <script src="js/lib/pubsub.js" type="text/javascript"></script>
-    
-    <script src="js/lib/intro.js"></script>
-    <link href="js/lib/introjs.css" rel="stylesheet" type="text/css"/>
-    <link href="js/lib/tabcontent.css" rel="stylesheet" type="text/css"/>
-
-    <link href="css/tradespace_plot.css" rel="stylesheet" type="text/css"/>
-    <link href="css/filter.css" rel="stylesheet" type="text/css"/>
-    <link href="css/data_mining.css" rel="stylesheet" type="text/css"/>
-    <link href="css/feature_application.css" rel="stylesheet" type="text/css"/>
-    <link href="css/experiment.css" rel="stylesheet" type="text/css"/>
-    <link href="css/experiment_tutorial.css" rel="stylesheet" type="text/css"/>
-
     <script src="https://apis.google.com/js/platform.js" async defer></script>
     <meta name="google-signin-client_id" content="564804694787-lnsp9md3u0q8086nftbamu43drid6d4t.apps.googleusercontent.com">
 
-</head>
+                               
+    <title>iFEED Tutorial</title>
+	<style>
 
-<body>
-
+		#div1, #div2 {
+		    float: left;
+		    width: 100px;
+		    height: 35px;
+		    margin: 10px;
+		    padding: 10px;
+		    border: 1px solid black;
+		}
+		
+		.img-hor-vert {
+		    -moz-transform: scale(-1, -1);
+		    -o-transform: scale(-1, -1);
+		    -webkit-transform: scale(-1, -1);
+		    transform: scale(-1, -1);
+		}
+		
+		
+	</style>
+  </head>
+  <body>
+   
+    <div id="main_div" style="margin:auto;width:1100px; background-color:#C5EEFF; border-radius:20px; padding:20px">
+    	<h3 id="main_header"></h3>
+        
+<!--        <iframe src="https://player.vimeo.com/video/242475403" width="1000" height="563" frameborder="0" webkitallowfullscreen mozallowfullscreen allowfullscreen></iframe>-->
+        <div id="video_embedding"></div>
+        <p id="main_text" style="font-size:22px"></p>
+    	<img id="main_img" style="margin:auto;">
+    	<img id="main_img2" style="margin:auto;">
+    	<p id="main_text3" style="font-size:22px"></p>
+    	
+    	<p id="main_img_credit" style="margin-top:5px; font-size:10px"></p>
+    	
+    	
+    	<div id="footer" style="margin-top:30px">
+    		<img src="img/rightarrow.png" class="img-hor-vert" id="tutorial_go_back_button" width="48" height="31">
+    		<img src="img/rightarrow.png" id="tutorial_continue_button" width="48" height="31">
+    		<div id="tutorial_page_number" style="font-size:14px; margin:0 48%"></div>
+    	</div>
+    </div>
     
-<div class='title'></div>
-<div class='content'>
 
-    <div id='experiment_prompt_div'>
-        <div id='prompt_r1'>
-            <div id='prompt_c1'>
-                <div id="prompt_question">
-                    <div class="prompt_header question"></div>
-                    <div class="prompt_content question"></div>
-                </div>
-                <div id="prompt_confidence">
-                    <div class="prompt_header confidence"></div>
-                    <div class="prompt_content confidence"></div>
-                </div>
-            </div>
-            <div id='prompt_c2'></div>
-        </div>
-        <div id='prompt_r2'>
-            <div id='timer'></div>
-            <div id='prompt_problem_number'></div>
-        </div>
-    </div>
 
-    <div id='status_display'>
-        <div>
-            <div>Number of designs:</div>
-            <div id="num_of_archs"></div>
-        </div>
-        <div>
-            <div>Number of target designs:</div>
-            <div id="num_of_selected_archs"></div> 
-        </div>
-        <div class="clearfix"></div>
-    </div>
-    <div class='column c1'>
-        <div class='row c1 r1'>
-            <div class='tradespace_plot figure'></div>
-        </div>
-        <div class="row c1 r2">
-            <div id="support_panel"> 
-                <ul class="tabs" data-persist="true">
-                    <li><a id="tab1" href="#view1">Inspect Design</a></li>
-                    <!-- <li><a id="tab2" href="#view2">Filter Setting</a></li> -->
-                    <li><a id="tab3" href="#view3">Feature Analysis</a></li>
-                </ul>
-                <div class="tabcontents">
-                    <div id="view1"></div>
-                    <div id="view2"></div>
-                    <div id="view3"></div>
-                </div>
-            </div>
-        </div>
-    </div>   
-    <div class='column c2'>
-        <div>
-            <div id='feature_expression_panel'>
-                <div>
-                    <div>Feature Application Panel</div>
-                    <button id='clear_all_features' class='feature_application_options_button'>Clear</button>
-                </div>
-                <div id='feature_expression'></div>
-            </div>
-            <div id='feature_application_panel'>
-                <div id='feature_application'></div>
-            </div>
-        </div>
-    </div>
-</div>
-
-<script src="js/util.js" type="text/javascript"></script>
-<script src="js/ifeed-general.js" type="text/javascript"></script>
-<script src="js/problem.js" type="text/javascript"></script>
-<script src="js/tradespace_plot.js" type="text/javascript"></script>
-<script src="js/filter.js" type="text/javascript"></script>
-<script src="js/label.js" type="text/javascript"></script>
-
-<script src="js/EOSSAssigning/problem.js" type="text/javascript"></script>
-<script src="js/EOSSAssigning/label.js" type="text/javascript"></script>
-<script src="js/EOSSAssigning/filter.js" type="text/javascript"></script>
-
-<script src="js/GNC/gnc.js" type="text/javascript"></script>
-<script src="js/GNC/gncLabel.js" type="text/javascript"></script>
-<script src="js/GNC/gncFilter.js" type="text/javascript"></script>
-
-<script src="js/Constellation/constellation.js" type="text/javascript"></script>
-<script src="js/Constellation/constellationLabel.js" type="text/javascript"></script>
-<script src="js/Constellation/constellationFilter.js" type="text/javascript"></script>
-
-<script src="js/EOSSPartitioningAndAssigning/problem.js" type="text/javascript"></script>
-<script src="js/EOSSPartitioningAndAssigning/label.js" type="text/javascript"></script>
-<script src="js/EOSSPartitioningAndAssigning/filter.js" type="text/javascript"></script>
-
-<script src="js/data_mining.js" type="text/javascript"></script>   
-<script src="js/feature_application.js" type="text/javascript"></script>       
-<script src="js/context_menu.js" type="text/javascript"></script>
-    
-<script src="js/experiment.js" type="text/javascript"></script>
-<script src="js/experiment_tutorial.js" type="text/javascript"></script>
 <script>
 
-    let problem_name = "ClimateCentric";
+    
+var account_id;
+var current_view;
+var max_view = 16;
 
-    var label = null;
-    var filter = null;
-    var problem = null;
-    var tradespace_plot = null;
 
-    var ifeed = new IFEED();
+function tutorial_go_back(){
+	if(current_view==1){
+		return;
+	}else{
+		current_view= current_view-1;
+	}
+	display_views();
+}
+    
+    
+function tutorial_continue(){
+	current_view = current_view+1;
+	display_views();
+}
+    
+    
 
-    if(problem_name === "GNC"){
-        problem = new GNC();
-        label = new GNCLabel();
-        filter = new GNCFilter(label);
-        tradespace_plot = new TradespacePlot(4,0);
+function clear_view(){
+	d3.select("#main_header").text("");
+	d3.select("#main_text").text('');
+	
+	d3.select("#main_img").attr("src","")
+			.style("width","0%")
+			.style("opacity",0);
+	
+	d3.select("#main_text2").remove();
 
-    }else if(problem_name === "ClimateCentric"){
-        problem = new EOSSAssigning();
-        label = new EOSSAssigningLabel(false);
-        filter = new EOSSAssigningFilter(label);
-        tradespace_plot = new TradespacePlot();
+	d3.select("#main_img2").attr("src","")
+			.style("width","0%")
+			.style("opacity",0);
+	
+	d3.select("#main_text3").text('');
+	
+	d3.select("#main_img_credit").text("");
+}
 
-    }else if(problem_name === "Constellation"){
-        problem = new Constellation();
-        label = new ConstellationLabel(false); // Relabeling disabled
-        filter = new ConstellationFilter(label);
-        tradespace_plot = new TradespacePlot();
 
-    }else if(problem_name === "Decadal2017Aerosols"){
-        problem = new EOSSPartitioningAndAssigning();
-        label = new EOSSPartitioningAndAssigningLabel();
-        filter = new EOSSPartitioningAndAssigningFilter(label);
-        tradespace_plot = new TradespacePlot();
+    
+function deactivate_continue_button(){
+	d3.select("#tutorial_continue_button").on("click",null);
+	d3.select('#tutorial_continue_button').style('opacity',0.3);
+}
+    
+function activate_continue_button(){
+	d3.select('#tutorial_continue_button').style('opacity',1);
+	d3.select("#tutorial_continue_button").on("click",tutorial_continue);
+}
+
+
+
+
+
+function display_views(){
+	
+	clear_view();
+
+    
+	d3.select('#tutorial_page_number').text("" + current_view + "/" + max_view);
+	
+	if(current_view==1){
+		
+		if(account_id==-1){
+			deactivate_continue_button();
+		}
+		
+		d3.select("#main_header").text("Experiment Overview");
+        
+        d3.select('#video_embedding').select('iframe').remove();
+        
+		d3.select("#main_text").html('<p>In this experiment, you will use a web-based data analysis tool called iFEED. It is a program developed to help engineers solve complex engineering design problems. </p>'
+                                     
+                                    +'<p>The task at hand deals with designing a constellation of satellites for Earth observation. This experiment does not require any background knowledge in this area. This tutorial will walk you through the capabilities of iFEED and explain how you can use them to analyze  data.</p>'
+                                                                                                             
+                                    +'<p>Click the right arrow below to continue</p>');
+				
+		d3.select("#main_img").attr("src","img/a-train.png")
+			.style("width","50%")
+			.style("margin","auto")
+			.style('opacity',1);
+		d3.select("#main_img_credit").text("Image credit: NASA A-train Satellite Constellation");
+		
+		d3.select('#tutorial_go_back_button').style('opacity',0.3);
+	}
+    
+    else if(current_view==2){
+        
+		d3.select("#main_header").text("Introduction Video");
+		d3.select("#main_text").html('<p></p>');
+
+		d3.select('#tutorial_go_back_button').style('opacity',1);        
+        
+        d3.select('#video_embedding').append('iframe')
+            .attr('src','https://player.vimeo.com/video/242475403')
+            .attr('width','1000')
+            .attr('height','563')
+            .attr('frameborder',"0")
+            .attr('webkitallowfullscreen',true)
+            .attr('mozallowfullscreen',true)
+            .attr('allowfullscreen',true);
     }
+
+	else if (current_view==3){
+        
+        d3.select('#video_embedding').select('iframe').remove();
+        
+		d3.select("#main_header").text("Design Task: Satellite system design");
+		d3.select("#main_text")
+				.text('As mentioned in the video, each design is represented by a figure similar to the one shown below (left):');
+		d3.select('#main_img').attr('src','img/architecture_example_2.png')
+				.style("width","72%")
+				.style("opacity",1);
+		
+		d3.select('#main_div').insert('p','#main_img2')
+				.attr('id','main_text2')
+				.style('font-size','22px')
+				.html('<p>The figure shows which set of measurement instruments is assigned to fly in each orbit. Each row represents one '
+                      +'spacecraft flying in a specified orbit. The columns represent what measurement instruments are onboard each of those spacecraft.</p>'
+
+                      +'<p>The real names of orbits and instruments are changed to numbers and alphabetical letters respectively, to simplify the task. There are total 5 candidate orbits, and 12 available measurement instruments.</p>');
+
+		d3.select("#main_img2").attr("src","img/candidate_list.png")
+				.style("width","40%")
+				.style('opacity',1);
+
+		d3.select("#main_text3").html('<p>From now on, we will call orbits \'slots\', and instruments \'items\'. In other words, each design is defined by how different items are assigned to different slots.</p>');
+	}
+    
+	else if (current_view==4){
+		d3.select("#main_header").text("How are designs evaluated?");
+		d3.select("#main_text")
+				.html('<p>Each design has corresponding science benefit score and cost. The science benefit score '
+                      +'is a number that tells us how much value each design brings to the climate monitoring community. The cost is a measure of how much it is going to cost (in million dollars) to design, implement, launch and operate those systems. Naturally, low-cost and high-science designs are desirable.</p>'
+
+                      +'<p>Depending on how items are assigned to different slots, the science score and the cost may vary significantly.</p>');
+
+
+		d3.select('#main_img').attr('src','img/architecture_example_3.png')
+				.style("width","46%")
+				.style("opacity",1);
+		
+		d3.select('#main_div').insert('p','#main_img2')
+			.attr('id','main_text2')
+			.style('font-size','22px')
+			.html('<p>Your goal in this experiment is to find patterns '
+                  +'that are shared uniquely by good designs. The following sections of the tutorial will explain how to find those patterns using iFEED.</p>');					
+
+	}
+	
+	else if (current_view==5){
+		window.location.replace("index2.html");
+	}
+}
+	
+
+d3.select("#tutorial_go_back_button").on("click",tutorial_go_back);
+d3.select("#tutorial_continue_button").on("click",tutorial_continue);
+activate_continue_button();
+
+
     
     
-    let data_mining = new DataMining(filter, label);
-    
-    let feature_application = new FeatureApplication(data_mining, filter, label);    
 
-    PubSub.publish(LOAD_DATA, null);
+current_view=1;
+display_views();
 
-    function select_fuzzy_pareto_front(rank){
 
-        problem.calculate_pareto_ranking([],20);
-    
-        let exp = "{paretoFront["+ rank +"]}";
-
-        filter.apply_filter_expression(exp);
-
-        tradespace_plot.toggle_selection_and_highlight();
-    }
-
-    data_mining.run_ga = true;
-    data_mining.update = data_mining.update_scatter;
-
-    let experiment = new Experiment(ifeed);
-    problem.experiment = experiment;
-    label.experiment = experiment;
-
-    experiment.tradespace_plot = tradespace_plot;
-    experiment.data_mining = data_mining;
-    experiment.filter = filter;
-    experiment.feature_application = feature_application;
-    experiment.problem = problem;
-
-    //let tutorial = new ExperimentTutorial(problem, experiment);
 
 
 </script>
-
-    
-</body>
+  </body>
 </html>

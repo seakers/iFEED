@@ -1,0 +1,215 @@
+<!DOCTYPE html>
+<!--
+To change this license header, choose License Headers in Project Properties.
+To change this template file, choose Tools | Templates
+and open the template in the editor.
+-->
+<html>
+
+<head>
+    <title>iFEED Web Application</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <script src="js/lib/jquery.js" type="text/javascript"></script>
+    <script src="js/lib/jquery-ui.min.js"></script>
+    
+    <script src="https://d3js.org/d3.v4.min.js"></script>
+    <script src="js/lib/d3-selection-multi.min.js" type="text/javascript"></script>
+    <script src="js/lib/d3-shape.v1.min.js"></script>
+    <script src="js/lib/d3-path.v1.min.js"></script>
+    <script src="js/lib/tabcontent.js" type="text/javascript"></script>
+    <script src="js/lib/pubsub.js" type="text/javascript"></script>
+    
+    <script src="js/lib/intro.js"></script>
+    <link href="js/lib/introjs.css" rel="stylesheet" type="text/css"/>
+    <link href="js/lib/tabcontent.css" rel="stylesheet" type="text/css"/>
+
+    <link href="css/tradespace_plot.css" rel="stylesheet" type="text/css"/>
+    <link href="css/filter.css" rel="stylesheet" type="text/css"/>
+    <link href="css/data_mining.css" rel="stylesheet" type="text/css"/>
+    <link href="css/feature_application.css" rel="stylesheet" type="text/css"/>
+    <link href="css/experiment.css" rel="stylesheet" type="text/css"/>
+    <link href="css/experiment_tutorial.css" rel="stylesheet" type="text/css"/>
+
+    <script src="https://apis.google.com/js/platform.js" async defer></script>
+    <meta name="google-signin-client_id" content="564804694787-lnsp9md3u0q8086nftbamu43drid6d4t.apps.googleusercontent.com">
+
+</head>
+
+<body>
+
+    
+<div class='title'></div>
+<div class='content'>
+
+    <div id='experiment_prompt_div'>
+        <div id='prompt_r1'>
+            <div id='prompt_c1'>
+                <div id="prompt_question">
+                    <div class="prompt_header question"></div>
+                    <div class="prompt_content question"></div>
+                </div>
+                <div id="prompt_confidence">
+                    <div class="prompt_header confidence"></div>
+                    <div class="prompt_content confidence"></div>
+                </div>
+            </div>
+            <div id='prompt_c2'></div>
+        </div>
+        <div id='prompt_r2'>
+            <div id='timer'></div>
+            <div id='prompt_problem_number'></div>
+        </div>
+    </div>
+
+    <div id='status_display'>
+        <div>
+            <div>Number of designs:</div>
+            <div id="num_of_archs"></div>
+        </div>
+        <div>
+            <div>Number of target designs:</div>
+            <div id="num_of_selected_archs"></div> 
+        </div>
+        <div class="clearfix"></div>
+    </div>
+    <div class='column c1'>
+        <div class='row c1 r1'>
+            <div class='tradespace_plot figure'></div>
+        </div>
+        <div class="row c1 r2">
+            <div id="support_panel"> 
+                <ul class="tabs" data-persist="true">
+                    <li><a id="tab1" href="#view1">Inspect Design</a></li>
+                    <!-- <li><a id="tab2" href="#view2">Filter Setting</a></li> -->
+                    <li><a id="tab3" href="#view3">Feature Analysis</a></li>
+                </ul>
+                <div class="tabcontents">
+                    <div id="view1"></div>
+                    <div id="view2"></div>
+                    <div id="view3"></div>
+                </div>
+            </div>
+        </div>
+    </div>   
+    <div class='column c2'>
+        <div>
+            <div id='feature_expression_panel'>
+                <div>
+                    <div>Feature Application Panel</div>
+                    <button id='clear_all_features' class='feature_application_options_button'>Clear</button>
+                </div>
+                <div id='feature_expression'></div>
+            </div>
+            <div id='feature_application_panel'>
+                <div id='feature_application'></div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="js/util.js" type="text/javascript"></script>
+<script src="js/ifeed-general.js" type="text/javascript"></script>
+<script src="js/problem.js" type="text/javascript"></script>
+<script src="js/tradespace_plot.js" type="text/javascript"></script>
+<script src="js/filter.js" type="text/javascript"></script>
+<script src="js/label.js" type="text/javascript"></script>
+
+<script src="js/EOSSAssigning/problem.js" type="text/javascript"></script>
+<script src="js/EOSSAssigning/label.js" type="text/javascript"></script>
+<script src="js/EOSSAssigning/filter.js" type="text/javascript"></script>
+
+<script src="js/GNC/gnc.js" type="text/javascript"></script>
+<script src="js/GNC/gncLabel.js" type="text/javascript"></script>
+<script src="js/GNC/gncFilter.js" type="text/javascript"></script>
+
+<script src="js/Constellation/constellation.js" type="text/javascript"></script>
+<script src="js/Constellation/constellationLabel.js" type="text/javascript"></script>
+<script src="js/Constellation/constellationFilter.js" type="text/javascript"></script>
+
+<script src="js/EOSSPartitioningAndAssigning/problem.js" type="text/javascript"></script>
+<script src="js/EOSSPartitioningAndAssigning/label.js" type="text/javascript"></script>
+<script src="js/EOSSPartitioningAndAssigning/filter.js" type="text/javascript"></script>
+
+<script src="js/data_mining.js" type="text/javascript"></script>   
+<script src="js/feature_application.js" type="text/javascript"></script>       
+<script src="js/context_menu.js" type="text/javascript"></script>
+    
+<script src="js/experiment.js" type="text/javascript"></script>
+<script src="js/experiment_tutorial.js" type="text/javascript"></script>
+<script>
+
+    let problem_name = "ClimateCentric";
+
+    var label = null;
+    var filter = null;
+    var problem = null;
+    var tradespace_plot = null;
+
+    var ifeed = new IFEED();
+
+    if(problem_name === "GNC"){
+        problem = new GNC();
+        label = new GNCLabel();
+        filter = new GNCFilter(label);
+        tradespace_plot = new TradespacePlot(4,0);
+
+    }else if(problem_name === "ClimateCentric"){
+        problem = new EOSSAssigning();
+        label = new EOSSAssigningLabel(false);
+        filter = new EOSSAssigningFilter(label);
+        tradespace_plot = new TradespacePlot();
+
+    }else if(problem_name === "Constellation"){
+        problem = new Constellation();
+        label = new ConstellationLabel(false); // Relabeling disabled
+        filter = new ConstellationFilter(label);
+        tradespace_plot = new TradespacePlot();
+
+    }else if(problem_name === "Decadal2017Aerosols"){
+        problem = new EOSSPartitioningAndAssigning();
+        label = new EOSSPartitioningAndAssigningLabel();
+        filter = new EOSSPartitioningAndAssigningFilter(label);
+        tradespace_plot = new TradespacePlot();
+    }
+    
+    
+    let data_mining = new DataMining(filter, label);
+    
+    let feature_application = new FeatureApplication(data_mining, filter, label);    
+
+    PubSub.publish(LOAD_DATA, null);
+
+    function select_fuzzy_pareto_front(rank){
+
+        problem.calculate_pareto_ranking([],20);
+    
+        let exp = "{paretoFront["+ rank +"]}";
+
+        filter.apply_filter_expression(exp);
+
+        tradespace_plot.toggle_selection_and_highlight();
+    }
+
+    data_mining.run_ga = true;
+    data_mining.update = data_mining.update_scatter;
+
+    let experiment = new Experiment(ifeed);
+    problem.experiment = experiment;
+    label.experiment = experiment;
+
+    experiment.tradespace_plot = tradespace_plot;
+    experiment.data_mining = data_mining;
+    experiment.filter = filter;
+    experiment.feature_application = feature_application;
+    experiment.problem = problem;
+
+    let tutorial = new ExperimentTutorial(problem, experiment);
+
+
+</script>
+
+    
+</body>
+</html>

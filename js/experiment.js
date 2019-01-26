@@ -19,6 +19,8 @@ class Experiment{
         // Set the order of the task (target region) and the treatment condition
         this.task_number = -2;
         this.condition_order = this.shuffleArray([0, 1, 2]); // condition number: DSE, sorted fetaures list, FSE
+        // this.condition_order = this.shuffleArray([1, 2]); // condition number: DSE, sorted fetaures list, FSE
+        // this.condition_order.splice(0, 0, 0);
         this.problemSet_order = this.shuffleArray([0, 1, 2]); // problem set number
 
         this.problem_order_design = this.shuffleArray([0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23]);
