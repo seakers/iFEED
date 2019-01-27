@@ -9,12 +9,6 @@ class ConstellationLabel extends Label{
         this.input_list = [];
         this.output_list = [];
 
-        // this.computer_actual_names = ["0","1","2","3"];
-        // this.sensor_actual_names = ["0","1","2","3"];
-
-        // this.computer_display_names = ["0","A","B","C"];
-        // this.sensor_display_names = ["0","A","B","C"];
-
         PubSub.subscribe(DESIGN_PROBLEM_LOADED, (msg, data) => {
             this.input_list = data.metadata.input_list;
             this.output_list = data.metadata.output_list;
@@ -36,27 +30,28 @@ class ConstellationLabel extends Label{
 
         if(type.indexOf("sma") != -1){
             type = "length";
+            value = value - 6370 * 1000; // semi-major axis to altitude
+
         }else if(type.indexOf("inc") != -1 || type.indexOf("raan") != -1 || type.indexOf("ta") != -1 ){
             type = "angle";
-        }
 
-        if(type != "length" && type != "angle"){
+        }else{
             return value;
         }
         
         if(type === "length"){
 
-            value = value / 1000 - 6370;  // meters to kilometers
+            value = value / 1000;  // meters to kilometers
             return value;
             
         } else if(type === "angle"){
 
-            value = value / Math.PI * 180;
+            value = value / Math.PI * 180; // Radian to degree
             return value.toFixed(2);
         } 
     }
     
-    displayName2ActualName(name,type){
+    displayName2ActualName(name, type){
 
         let value =  +name;
 
@@ -68,13 +63,20 @@ class ConstellationLabel extends Label{
             return null;
         }
 
-        if(type != "length" && type != "angle"){
+        if(type.indexOf("sma") != -1){
+            type = "length";
+            value = value + 6370; // semi-major axis to altitude
+
+        }else if(type.indexOf("inc") != -1 || type.indexOf("raan") != -1 || type.indexOf("ta") != -1 ){
+            type = "angle";
+            
+        }else{
             return value;
         }
 
         if(type === "length"){
             // kilometers to meters
-            value = (6370 + value) * 1000;  
+            value = value * 1000;  
             return value;
             
         } else if(type === "angle"){
@@ -120,7 +122,7 @@ class ConstellationLabel extends Label{
         let featureArg = exp.split("[")[1];
         featureArg = featureArg.substring(0, featureArg.length - 1);   
 
-        if(featureName.indexOf("inclination") != -1 || featureName.indexOf("semiMajorAxis") != -1 
+        if(featureName.indexOf("inclinationRange") != -1 || featureName.indexOf("altitudeRange") != -1 
             || featureName.indexOf("meanDiffRAAN") != -1){
 
             let lb = featureArg.split(";")[0];
@@ -128,10 +130,13 @@ class ConstellationLabel extends Label{
             let num = featureArg.split(";")[2];
 
             let type = null;
-            if(featureName === "inclination" || featureName === "meanDiffRAAN"){
-                type = "angle";
-            }else if(featureName === "semiMajorAxis"){
-                type = "length";
+
+            if(featureName === "inclinationRange"){
+                type = "inc";
+            }else if(featureName === "meanDiffRAAN"){
+                type = "raan";
+            }else if(featureName === "altitudeRange"){
+                type = "sma";
             }else{
                 type = null;
             }

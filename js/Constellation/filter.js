@@ -8,10 +8,10 @@ class ConstellationFilter extends Filter{
         let presetFeaturesInfo = [
                                 {value:"not_selected",text:"Preset Filters"},
                                 {value:"paretoFront",text:"Pareto front"},
-                                {value:"numPlanes",text:"# of planes",input:"singleNum",hints:""},
-                                {value:"semiMajorAxis",text:"Semi-major Axis",input:"lowerUpperBoundAndNum",hints:""},
-                                {value:"inclination",text:"Inclination",input:"lowerUpperBoundAndNum",hints:""},
-                                {value:"meanDiffRAAN",text:"Mean differences in RAAN",input:"lowerUpperBound",hints:""}
+                                {value:"numPlanes",text:"# of planes",input:"range",hints:""},
+                                {value:"altitudeRange",text:"Altitude range",input:"boundsAndCardinality",hints:""},
+                                {value:"inclinationRange",text:"Inclination range",input:"boundsAndCardinality",hints:""},
+                                //{value:"meanDiffRAAN",text:"Mean differences in RAAN",input:"bounds",hints:""}
                             ];  
 
         for (let i = 0; i < presetFeaturesInfo.length; i++){
@@ -39,10 +39,10 @@ class ConstellationFilter extends Filter{
             switch(name) {
                 case "numPlanes":
                     return that.numPlanes;
-                case "inclination":
-                    return that.inclination;
-                case "semiMajorAxis":
-                    return that.semiMajorAxis;
+                case "inclinationRange":
+                    return that.inclinationRange;
+                case "altitudeRange":
+                    return that.altitudeRange;
                 case "meanDiffRAAN":
                     return that.meanDiffRAAN;
 
@@ -102,23 +102,23 @@ class ConstellationFilter extends Filter{
             
             switch(inputType) {
                     
-                case "singleNum":
-                    filter_input_1.text("Input single integer number: ");
+                case "range":
+                    filter_input_1.text("Input either an integer, or a range in format 'n1~n2': ");
                     filter_input_1.append("input")
                                 .attr("type","text");
                     break;
 
-                 case "NameAndNum":
-                    filter_input_1.text("Input the name: ");
-                    filter_input_1.append("input")
-                                .attr("type","text");
+                 // case "NameAndNum":
+                 //    filter_input_1.text("Input the name: ");
+                 //    filter_input_1.append("input")
+                 //                .attr("type","text");
 
-                    filter_input_2.text("Input single integer number: ");
-                    filter_input_2.append("input")
-                                .attr("type","text");
-                    break;
+                 //    filter_input_2.text("Input single integer number: ");
+                 //    filter_input_2.append("input")
+                 //                .attr("type","text");
+                 //    break;
 
-                case "lowerUpperBound":
+                case "bounds":
                     filter_input_1.text("Input the lower bound: ");
                     filter_input_1.append("input")
                                 .attr("type","text");
@@ -128,7 +128,7 @@ class ConstellationFilter extends Filter{
                                 .attr("type","text");
                     break;
 
-                case "lowerUpperBoundAndNum":
+                case "boundsAndCardinality":
                     filter_input_1.text("Input the lower bound: ");
                     filter_input_1.append("input")
                                 .attr("type","text");
@@ -137,13 +137,10 @@ class ConstellationFilter extends Filter{
                     filter_input_2.append("input")
                                 .attr("type","text");
 
-                    filter_input_3.text("Input single integer number: ");
+                    filter_input_3.text("Input either an integer, or a range in format 'n1~n2': ");
                     filter_input_3.append("input")
                                 .attr("type","text");
 
-                    d3.select(".filter.hints.div")
-                        .append("div")
-                        .html('<p>To set the range of values, write in format: \"n1~n2\"</p>');  
                     break;
 
                 default:
@@ -202,19 +199,22 @@ class ConstellationFilter extends Filter{
         }else if(dropdown === "numPlanes"){
 
             let arg = input_textbox[0];
-            if(isNaN(arg)){ // If arg cannot be converted to a number
-                invalid_input = true;
-            }
+
             filter_expression = option + "[" + arg + "]";
 
-        }else if(dropdown === "inclination" || dropdown === "semiMajorAxis" || dropdown === "meanDiffRAAN"){
+        }else if(dropdown === "inclinationRange" || dropdown === "altitudeRange" || dropdown === "meanDiffRAAN"){
 
             let type = null;
 
-            if(dropdown === "inclination" || dropdown === "meanDiffRAAN"){
-                type = "angle";
-            }else if(dropdown === "semiMajorAxis"){
-                type = "length";
+            if(dropdown === "inclinationRange" ){
+                type = "inc";
+
+            }else if(dropdown === "meanDiffRAAN"){
+                type = "raan"
+
+            }else if(dropdown === "altitudeRange"){
+                type = "sma";
+
             }else{
                 type = null;
             }
@@ -307,18 +307,29 @@ class ConstellationFilter extends Filter{
 
         let that = this;
 
-
         this.numPlanes = (args, inputs) => {
+            // Counts the number of orbital planes
+
             validInputCheck(args);
 
-            let n = + args[0];
+            let temp = args[0];
+            let numRange = null;
+
+            if(temp.indexOf("~") != -1){
+                let low = + temp.split("~")[0];
+                let high = + temp.split("~")[1];
+                numRange = [low, high];
+
+            }else{
+                numRange = [+temp, +temp];
+            }
 
             let incIndexStart = null;
             let incIndexEnd = null;
             let raanIndexStart = null;
             let raanIndexEnd = null;
             
-            for(let i=0;i<this.input_list.length;i++){
+            for(let i = 0; i < this.input_list.length; i++){
 
                 if(this.input_list[i].indexOf("inc") != -1){
                     if(incIndexStart === null){
@@ -337,11 +348,10 @@ class ConstellationFilter extends Filter{
                     }
                     continue;
                 }
-
             }
 
-            let inclinations = inputs.slice(incIndexStart, incIndexEnd+1);
-            let raans = inputs.slice(raanIndexStart, raanIndexEnd+1);
+            let inclinations = inputs.slice(incIndexStart, incIndexEnd + 1);
+            let raans = inputs.slice(raanIndexStart, raanIndexEnd + 1);
 
             // Two spacecraft are in the same plane if they have the same inclination and raan (circular orbit)
             let planes = [];
@@ -352,10 +362,10 @@ class ConstellationFilter extends Filter{
                 let inc = inclinations[i];
                 let raan = raans[i];
 
-                for(let j=0;j<planes.length;j++){
+                for(let j = 0; j < planes.length; j++){
 
-                    if( Math.abs(inc - planes[j].inc) <= 0.017  &&  // 0.1 rad difference
-                        Math.abs(raan - planes[j].raan) <= 0.017){ // 0.1 rad difference
+                    if( Math.abs(inc - planes[j].inc) <= 0.017  &&  // 0.017 rad difference (~1 deg)
+                        Math.abs(raan - planes[j].raan) <= 0.017){ // 0.017 rad difference (~1 deg)
 
                         foundMatchingPlane = true;
                         break;
@@ -367,14 +377,14 @@ class ConstellationFilter extends Filter{
                 }
             }
 
-            if(n === planes.length){
+            if(planes.length >= numRange[0] && planes.length <= numRange[1]){
                 return true;
             }else{
                 return false;
             }    
         }
 
-        this.inclination = (args, inputs) => {
+        this.inclinationRange = (args, inputs) => {
             validInputCheck(args);
 
             let lb = + args[0];
@@ -386,6 +396,7 @@ class ConstellationFilter extends Filter{
                 let low = + num.split("~")[0];
                 let high = + num.split("~")[1];
                 numRange = [low, high];
+
             }else{
                 num = +num;
                 numRange = [num, num];
@@ -394,7 +405,7 @@ class ConstellationFilter extends Filter{
             let incIndexStart = null;
             let incIndexEnd = null;
             
-            for(let i=0;i<this.input_list.length;i++){
+            for(let i = 0; i < this.input_list.length; i++){
 
                 if(this.input_list[i].indexOf("inc") != -1){
                     if(incIndexStart === null){
@@ -409,7 +420,7 @@ class ConstellationFilter extends Filter{
             let inclinations = inputs.slice(incIndexStart, incIndexEnd+1);
 
             let cnt = 0;
-            for(let i=0;i<inclinations.length;i++){
+            for(let i = 0; i < inclinations.length; i++){
                 let inc = inclinations[i];
                 if( inc >= lb && inc <= ub ){
                     cnt++;
@@ -423,7 +434,7 @@ class ConstellationFilter extends Filter{
             }    
         }
 
-        this.semiMajorAxis = (args, inputs) => {
+        this.altitudeRange = (args, inputs) => {
             validInputCheck(args);
 
             let lb = + args[0];
@@ -435,6 +446,7 @@ class ConstellationFilter extends Filter{
                 let low = + num.split("~")[0];
                 let high = + num.split("~")[1];
                 numRange = [low, high];
+
             }else{
                 num = +num;
                 numRange = [num, num];
@@ -443,7 +455,7 @@ class ConstellationFilter extends Filter{
             let smaIndexStart = null;
             let smaIndexEnd = null;
             
-            for(let i=0;i<this.input_list.length;i++){
+            for(let i = 0; i < this.input_list.length; i++){
 
                 if(this.input_list[i].indexOf("sma") != -1){
                     if(smaIndexStart === null){
@@ -458,7 +470,7 @@ class ConstellationFilter extends Filter{
             let sma = inputs.slice(smaIndexStart, smaIndexEnd+1);
 
             let cnt = 0;
-            for(let i=0;i<sma.length;i++){
+            for(let i = 0; i < sma.length; i++){
                 let x = sma[i];
                 if( x >= lb && x <= ub ){
                     cnt++;
@@ -498,8 +510,16 @@ class ConstellationFilter extends Filter{
 
             let diffSum = 0;
             let cnt = 0;
-            for(let i = 0; i < raans.length - 1; i++){
-                let diff = Math.abs(raans[i] - raans[i+1]);
+            for(let i = 0; i < raans.length; i++){
+
+                let diff = null;
+
+                if(i == raans.length - 1){
+                    diff = Math.abs((2 * Math.PI - raans[i]) + raans[0]);
+                }else{
+                    diff = Math.abs(raans[i] - raans[i+1]);
+                }
+                
                 if(diff < 0.01){ // If the difference is less than about 0.6 degrees,
                     //  assume they are the same
                 }else{
@@ -516,27 +536,6 @@ class ConstellationFilter extends Filter{
                 return false;
             }    
         }
-
-
-        this.numLinks = (args, inputs) => {
-            validInputCheck(args);
-            let arg = +args[0];
-            let nLinks = 0;
-            let Ibin_1_index = this.input_list.indexOf("Ibin_1");
-            let Ibin_9_index = this.input_list.indexOf("Ibin_9");
-
-            for(let i = Ibin_1_index; i < Ibin_9_index + 1; i++){
-                nLinks += inputs[i];
-            }
-
-            if(nLinks === arg){
-                return true;
-            }else{
-                return false;
-            }  
-        }
-
-
 
     }
 }

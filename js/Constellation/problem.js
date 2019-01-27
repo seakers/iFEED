@@ -21,7 +21,7 @@ class Constellation extends Problem{
         let inputs = sma.concat(inc,raan,ta);
 
         this.metadata = {
-            problem: "constellation",
+            problem: "Constellation_10",
             input_num: 40,
             input_type: "continuous",
             input_list: inputs,
@@ -210,5 +210,4 @@ class Constellation extends Problem{
                     "vertical-align": "central",
                 });
     }
-      
 }

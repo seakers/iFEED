@@ -1,6 +1,8 @@
 
 let validInputCheck = function(args){
 
+    // Checks if the input is an array
+
     let valid = false;
     while(true){
 
@@ -13,6 +15,7 @@ let validInputCheck = function(args){
         valid = true;
         break;
     }
+
     if(!valid){
         console.log(args);
         throw "Exception in processing filter: Invalid argument";
@@ -143,6 +146,7 @@ class Filter{
         }else{
             PubSub.publish(UPDATE_FEATURE_APPLICATION, {"option": "direct-update", "expression": expression});
         }
+        
         document.getElementById('tab2').click();
         return true;
     }
