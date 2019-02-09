@@ -1,57 +1,21 @@
 
-class Constellation extends Problem{
+class WalkerConstellation extends Problem{
 
     constructor(){
         super();
 
         let that = this;
 
-        let sma = [];
-        let inc = [];
-        let raan = [];
-        let ta = [];
-
-        for(let i = 0; i < 20; i++){
-            sma.push("sma" + i);
-            inc.push("inc" + i);
-            raan.push("raan" + i);
-            ta.push("ta" + i);
-        }
-
-        let inputs = sma.concat(inc,raan,ta);
-
         this.metadata = {
-            problem: "Constellation_variable",
-            input_num: 80,
+            problem: "WalkerConstellation",
+            input_num: 5,
             input_type: "continuous",
-            input_list: inputs,
-            output_list: ["mean_resp","deltaV"],
+            input_list: ["sma","inc","t","p","f"],
+            output_list: ["mean_resp","num_sats"],
             output_num: 2,
             output_obj: [-1, -1], // 1 for lager-is-better, -1 for smaller-is-better
-            file_path: "constellation_variable_deltaV.csv"
+            file_path: "constellation_walker_allSolutions.csv"
         };
-
-        // this.metadata = {
-        //     problem: "Constellation_variable",
-        //     input_num: 80,
-        //     input_type: "continuous",
-        //     input_list: inputs,
-        //     output_list: ["mean_resp","num_sats","avg_sma"],
-        //     output_num: 3,
-        //     output_obj: [-1, -1, -1], // 1 for lager-is-better, -1 for smaller-is-better
-        //     file_path: "constellation_variable_allSolutions.csv"
-        // };
-
-        // this.metadata = {
-        //     problem: "Constellation_10",
-        //     input_num: 40,
-        //     input_type: "continuous",
-        //     input_list: inputs,
-        //     output_list: ["mean_resp","latency"],
-        //     output_num: 2,
-        //     output_obj: [-1, -1], // 1 for lager-is-better, -1 for smaller-is-better
-        //     file_path: "constellation-10-reduced.csv"
-        // };
 
         PubSub.subscribe(LABELING_SCHEME_LOADED, (msg, data) => {
             this.label = data;
@@ -173,8 +137,6 @@ class Constellation extends Problem{
         columns.push({columnName: "Value"});
         columns.push({columnName: "Input"});
         columns.push({columnName: "Value"});
-        columns.push({columnName: "Input"});
-        columns.push({columnName: "Value"});
 
         // create table header
         input_table.append('thead').append('tr')
@@ -204,11 +166,11 @@ class Constellation extends Problem{
         }
 
         rows = [];
-        for(let i = 0 ; i < reduced_input_names.length/3 ;i++){
+        for(let i = 0 ; i < reduced_input_names.length/2 ;i++){
             let row = {
-                name1:reduced_input_names[3*i],val1: reduced_input_data[3*i],
-                name2:reduced_input_names[3*i+1],val2: reduced_input_data[3*i+1],
-                name3:reduced_input_names[3*i+2],val3: reduced_input_data[3*i+2]};
+                name1:reduced_input_names[2*i],val1: reduced_input_data[2*i],
+                name2:reduced_input_names[2*i+1],val2: reduced_input_data[2*i+1]
+            }
             rows.push(row);
         }
         
@@ -222,13 +184,11 @@ class Constellation extends Problem{
                 .append('tr')
                 .selectAll('td')
                 .data(function(row,i){
-                    var thisRow = [];
+                    let thisRow = [];
                     thisRow.push({content:row.name1});
                     thisRow.push({content: that.label.actualName2DisplayName(row.val1, row.name1)});
                     thisRow.push({content:row.name2});
                     thisRow.push({content: that.label.actualName2DisplayName(row.val2, row.name2)});
-                    thisRow.push({content:row.name3});
-                    thisRow.push({content: that.label.actualName2DisplayName(row.val3, row.name3)});
                     return thisRow;
                 })
                 .enter()

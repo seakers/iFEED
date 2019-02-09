@@ -1,5 +1,5 @@
 
-class ConstellationFilter extends Filter{
+class WalkerConstellationFilter extends Filter{
     
     constructor(labelingScheme) {
 

@@ -133,7 +133,7 @@ class Problem{
                 }else{
                     remaining_outputs.push(archOutputs[i]);
                     remaining.push(archs[i]);
-                    //archs[i].pareto_ranking = -1;
+                    archs[i].pareto_ranking = 100;
                 }
             }
 

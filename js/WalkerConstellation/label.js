@@ -1,6 +1,6 @@
 
 
-class ConstellationLabel extends Label{
+class WalkerConstellationLabel extends Label{
 
     constructor(disabled){
 
@@ -20,9 +20,13 @@ class ConstellationLabel extends Label{
 
         let value = null;
 
-        if(name){
+        if(name === 0){
+            value = 0;
+
+        }else if(name){
             // if the value is not null
             value = +name;
+            
         }else{
             return null; 
         }
@@ -30,7 +34,7 @@ class ConstellationLabel extends Label{
         if(this.disabled){
             return value;
         }else if(value === 0){
-            // do nothing
+            // Do nothing
         }else if(!name){
             return null;
         }

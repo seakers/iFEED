@@ -160,6 +160,10 @@ and open the template in the editor.
 <script src="js/Constellation/label.js" type="text/javascript"></script>
 <script src="js/Constellation/filter.js" type="text/javascript"></script>
 
+<script src="js/WalkerConstellation/problem.js" type="text/javascript"></script>
+<script src="js/WalkerConstellation/label.js" type="text/javascript"></script>
+<script src="js/WalkerConstellation/filter.js" type="text/javascript"></script>
+
 <script src="js/EOSSPartitioningAndAssigning/problem.js" type="text/javascript"></script>
 <script src="js/EOSSPartitioningAndAssigning/label.js" type="text/javascript"></script>
 <script src="js/EOSSPartitioningAndAssigning/filter.js" type="text/javascript"></script>
@@ -170,7 +174,7 @@ and open the template in the editor.
     
 <script>
 
-    let problem_name = "Constellation";
+    let problem_name = "ClimateCentric";
 
     var label = null;
     var filter = null;
@@ -187,7 +191,7 @@ and open the template in the editor.
 
     }else if(problem_name === "ClimateCentric"){
         problem = new EOSSAssigning();
-        label = new EOSSAssigningLabel(true);
+        label = new EOSSAssigningLabel(false);
         filter = new EOSSAssigningFilter(label);
         tradespace_plot = new TradespacePlot();
 
@@ -195,6 +199,12 @@ and open the template in the editor.
         problem = new Constellation();
         label = new ConstellationLabel(false); // Relabeling disabled
         filter = new ConstellationFilter(label);
+        tradespace_plot = new TradespacePlot();
+
+    }else if(problem_name === "WalkerConstellation"){
+        problem = new WalkerConstellation();
+        label = new WalkerConstellationLabel(false); // Relabeling disabled
+        filter = new WalkerConstellationFilter(label);
         tradespace_plot = new TradespacePlot();
 
     }else if(problem_name === "Decadal2017Aerosols"){

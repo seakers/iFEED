@@ -39,7 +39,6 @@ class FeatureApplication{
 	        .on('drag', (d) => { this.drag(d); })
 	        .on('end', (d) => { this.dragEnd(d); });
 
-        
 //    PubSub.subscribe(CANCEL_ADD_FEATURE, (msg, data) => {
 //        
 //        self.visit_nodes(self.root, function(d){
@@ -51,7 +50,7 @@ class FeatureApplication{
 //        });
 //        self.update(); 
 //    }); 
-//    
+    
 
         PubSub.subscribe(INITIALIZE_FEATURE_APPLICATION, (msg, data) => {
             this.clear_feature_application()
