@@ -16,8 +16,8 @@ class EOSSAssigningLabel extends Label{
         
         this.orbit_list = [];
         this.instrument_list = [];
-        this.orbit_generalization = [];
-        this.instrument_generalization = [];
+        this.orbit_extended_list = [];
+        this.instrument_extended_list = [];
 
         this.orbit_relabeled = ["1000","2000","3000","4000","5000"];
         this.instrument_relabeld = ["A","B","C","D","E","F","G","H","I","J","K","L"];
@@ -34,9 +34,9 @@ class EOSSAssigningLabel extends Label{
             PubSub.publish(LABELING_SCHEME_LOADED, this);
         });
 
-        PubSub.subscribe(INPUT_GENERALIZATION_LOADED, (msg, data) => {
-            this.orbit_generalization = data.orbit_generalization;
-            this.instrument_generalization = data.instrument_generalization;
+        PubSub.subscribe(PROBLEM_CONCEPT_HIERARCHY_LOADED, (msg, data) => {
+            this.orbit_extended_list = data["params"]["orbit_list"];
+            this.instrument_extended_list = data["params"]["instrument_list"];
             PubSub.publish(LABELING_SCHEME_LOADED, this);
         });
     }
@@ -59,15 +59,15 @@ class EOSSAssigningLabel extends Label{
      */
     index2ActualName(index, type){
         if(type=="orbit"){
-            if(index  >= this.orbit_list.length && this.orbit_generalization.length != 0){
-                return this.orbit_generalization[index];
+            if(index  >= this.orbit_list.length && this.orbit_extended_list.length != 0){
+                return this.orbit_extended_list[index];
             }else{
                 return this.orbit_list[index];   
             }
 
         }else if(type=="instrument"){
-            if(index >= this.instrument_list.length && this.instrument_generalization.length != 0){
-                return this.instrument_generalization[index];
+            if(index >= this.instrument_list.length && this.instrument_extended_list.length != 0){
+                return this.instrument_extended_list[index];
             }else{
                 return this.instrument_list[index];
             }
@@ -113,14 +113,14 @@ class EOSSAssigningLabel extends Label{
                 if(this.orbit_list.includes(name)){
                     return this.orbit_list.indexOf(name);
                 }else{
-                    return this.orbit_generalization.indexOf(name);
+                    return this.orbit_extended_list.indexOf(name);
                 }
 
             }else if(type === "instrument"){
                 if(this.instrument_list.includes(name)){
                     return this.instrument_list.indexOf(name);
                 }else{
-                    return this.instrument_generalization.indexOf(name);
+                    return this.instrument_extended_list.indexOf(name);
                 }
             }else{
                 return "Wrong type specified: " + type;

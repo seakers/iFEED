@@ -53,16 +53,9 @@ class DataMining{
             .domain(d3.extent([]))
             .range([0,1]);
 
-        this.run_automated_local_search = false;
-
-
         PubSub.subscribe(ADD_FEATURE, (msg, data) => {
             this.add_feature_to_plot(data);
         });  
-        
-        // PubSub.subscribe(DRAW_VENN_DIAGRAM, (msg, data) => {
-        //     self.draw_venn_diagram();
-        // });     
         
         // Save the data
         PubSub.subscribe(DATA_PROCESSED, (msg, data) => {
@@ -123,6 +116,8 @@ class DataMining{
     }
     
     async run(option){
+
+        this.set_problem_parameters();
         
         // Store the id's of all samples
         let selected = [];
@@ -150,7 +145,6 @@ class DataMining{
         // If the feature application tree exists, run local search
         if(this.feature_application.data){
 
-
             // Run data mining in the marginal feature space
             let selected_node = null;            
             
@@ -166,23 +160,10 @@ class DataMining{
             // Save the currently applied feature
             let base_feature = this.feature_application.parse_tree(this.feature_application.data, selected_node);
 
-            if(this.enable_generalization){
-                
-                extracted_features = this.run_generalization_local_search(selected, non_selected, base_feature);
 
-            }else{
-
-                // Run local search either using disjunction or conjunction
-                let logical_connective = null;
-                if(option){
-                    logical_connective = "OR";
-                }else{
-                    logical_connective = "AND";
-                }
-
-                extracted_features = this.get_marginal_driving_features(selected, non_selected, base_feature, logical_connective,
+            extracted_features = this.get_marginal_driving_features(selected, non_selected, base_feature, logical_connective,
                                                      this.support_threshold,this.confidence_threshold,this.lift_threshold);
-            }
+            
 
             let features_to_add = [];
             this.recent_features_id = [];
@@ -214,28 +195,6 @@ class DataMining{
             PubSub.publish(CANCEL_ADD_FEATURE, null);
                         
         }
-        else if(this.run_automated_local_search){
-
-            // Run data mining from the scratch (no local search)
-            
-            // Clear the feature application
-            PubSub.publish(INITIALIZE_FEATURE_APPLICATION, null);
-
-            // Remove all highlights in the scatter plot (retain target solutions)
-            PubSub.publish(APPLY_FEATURE_EXPRESSION, null);
-
-            this.all_features = this.get_driving_features_automated(selected, non_selected, this.support_threshold, this.confidence_threshold, this.lift_threshold);
-
-            if(this.all_features.length === 0){ // If there is no driving feature returned
-                return;
-            }else{
-                for(let i = 0; i < this.all_features.length; i++){
-                    this.mined_features_id.push(this.all_features[i].id);
-                }
-            }
-
-            this.display_features();       
-        } 
         else{            
             // Run data mining from the scratch (no local search)
             
@@ -357,36 +316,6 @@ class DataMining{
 
         return output;
     }
-    
-    get_driving_features_automated(selected,non_selected,support_threshold,confidence_threshold,lift_threshold){
-
-        let output;
-        $.ajax({
-            url: "/api/data-mining/get-driving-features-automated",
-            type: "POST",
-            data: {ID: "get_driving_features",
-                    problem: this.metadata.problem,  // eoss or gnc
-                    input_type: this.metadata.input_type, // Binary or Discrete
-                    selected: JSON.stringify(selected),
-                    non_selected:JSON.stringify(non_selected),
-                    supp:support_threshold,
-                    conf:confidence_threshold,
-                    lift:lift_threshold
-                  },
-            async: false,
-            success: function (data, textStatus, jqXHR)
-            {
-                if(data=="[]"){
-                    alert("No driving feature mined. Please try modifying the selection. (Try selecting more designs)");
-                }
-                output = data;
-            },
-            error: function (jqXHR, textStatus, errorThrown)
-            {alert("error");}
-        });
-
-        return output;
-    }
 
     /*
         Run local search: can be used for both conjunction and disjunction
@@ -421,16 +350,43 @@ class DataMining{
         return output;
     }    
 
-    run_generalization_local_search(selected,non_selected,featureExpression){
+
+    generalize_feature(){
+
+        let expression = this.feature_application.parse_tree(this.feature_application.data);
+
+        let rootFeatureExpression = expression;
+        let nodeFeatureExpression = "";
+
+        this.set_problem_parameters();
         
+        // Store the id's of all samples
+        let selected = [];
+        let non_selected = [];
+
+        for (let i = 0; i< this.selected_archs.length; i++){
+            selected.push(this.selected_archs[i].id);
+        }
+
+        for (let i = 0; i < this.data.length; i++){
+            if(!this.data[i].hidden){
+                let id = this.data[i].id;
+                if (selected.indexOf(id) === -1){
+                    // non-selected
+                    non_selected.push(id);
+                }
+            }
+        }
+
         let output;
         $.ajax({
-            url: "/api/data-mining/run-generalization-local-search",
+            url: "/api/data-mining/generalize-feature",
             type: "POST",
             data: {
                     problem: this.metadata.problem,  // eoss or gnc
                     input_type: this.metadata.input_type, // Binary or Discrete
-                    featureExpression: featureExpression,
+                    rootFeatureExpression: rootFeatureExpression,
+                    nodeFeatureExpression: nodeFeatureExpression,
                     selected: JSON.stringify(selected),
                     non_selected:JSON.stringify(non_selected),
                   },
@@ -443,8 +399,66 @@ class DataMining{
             {alert("error");}
         });
 
+        let extracted_features = output;
+        let features_to_add = [];
+        this.recent_features_id = [];
+
+        // Check non-dominance against all existing features
+        for(let i = 0; i < extracted_features.length; i++){
+
+            let this_feature = extracted_features[i];
+
+            let id = this.featureID++;
+            // non-dominated
+            this.mined_features_id.push(id);
+            this.recent_features_id.push(id); 
+
+            this_feature.id = id;
+            features_to_add.push(this_feature);
+        }     
+
+        // Update the location of the current feature
+        // let x = this.current_feature.x;
+        // let y = this.current_feature.y;
+        // this.current_feature.x0 = x;
+        // this.current_feature.y0 = y;
+
+        this.update(features_to_add);
+
+        PubSub.publish(CANCEL_ADD_FEATURE, null);
+
+        this.get_problem_parameters();
+
         return output;
     } 
+
+
+
+    // generalize_feature(selected, non_selected, rootFeatureExpression, nodeFeatureExpression){
+        
+    //     let output;
+    //     $.ajax({
+    //         url: "/api/data-mining/generalize-feature",
+    //         type: "POST",
+    //         data: {
+    //                 problem: this.metadata.problem,  // eoss or gnc
+    //                 input_type: this.metadata.input_type, // Binary or Discrete
+    //                 rootFeatureExpression: rootFeatureExpression,
+    //                 nodeFeatureExpression: nodeFeatureExpression,
+    //                 selected: JSON.stringify(selected),
+    //                 non_selected:JSON.stringify(non_selected),
+    //               },
+    //         async: false,
+    //         success: function (data, textStatus, jqXHR)
+    //         {
+    //             output = data;
+    //         },
+    //         error: function (jqXHR, textStatus, errorThrown)
+    //         {alert("error");}
+    //     });
+
+    //     return output;
+    // } 
 
     display_features(){
 
@@ -1028,141 +1042,6 @@ class DataMining{
         return non_dominated;
     }
             
-    draw_venn_diagram(){
-
-        var venn_diagram_container = d3.select('.feature_plot .venn_diagram').select('div');
-        
-        if(venn_diagram_container[0][0]==null) return;
-
-        venn_diagram_container.select("svg").remove();
-        
-        var svg = venn_diagram_container
-                                    .append("svg")
-                                    .style('width','320px')  			
-                                    .style('border-width','3px')
-                                    .style('height','305px')
-                                    .style('border-style','solid')
-                                    .style('border-color','black')
-                                    .style('border-radius','40px')
-                                    .style('margin-top','10px')
-                                    .style('margin-bottom','10px'); 
-
-        
-        var total = ifeed.tradespace_plot.get_num_of_archs();
-        var intersection = d3.selectAll('.dot.tradespace_plot.selected.highlighted:not(.hidden):not(.cursor)')[0].length;
-        var selected = d3.selectAll('.dot.tradespace_plot.selected:not(.hidden):not(.cursor)')[0].length;
-        var highlighted = d3.selectAll('.dot.tradespace_plot.highlighted:not(.hidden):not(.cursor)')[0].length;
-
-        
-        var left_margin = 50;
-        var c1x = 110;
-        // Selection has a fixed radius
-        var r1 = 70;
-        var S_size = selected;
-
-        svg.append("circle")
-            .attr("id","venn_diag_c1")
-            .attr("cx", c1x)
-            .attr("cy", 180-30)
-            .attr("r", r1)
-            .style("fill", "steelblue")
-            .style("fill-opacity", ".5");
-
-        svg.append("text")
-            .attr("id","venn_diag_c1_text")
-            .attr("x",c1x-90)
-            .attr("y",180+r1+50-30)
-            .attr("font-family","sans-serif")
-            .attr("font-size","18px")
-            .attr("fill","steelblue")
-            .text("Selected:" + S_size );
-
-        var supp, conf, conf2, lift;
-
-        if(intersection==0){
-            var supp = 0;
-            var F_size = highlighted;
-        }else if(highlighted==0){
-            var supp = 0;
-            var F_size = 0;
-        }else{
-
-            var p_snf = intersection/total;
-            var p_s = selected/total;
-            var p_f = highlighted/total;
-
-            supp = p_snf;
-            conf = supp / p_f;
-            conf2 = supp / p_s;
-            lift = p_snf/(p_f*p_s); 
-
-            var F_size = supp * 1/conf * total;
-            var S_size = supp * 1/conf2 * total;
-
-
-            // Feature 
-            var	r2 = Math.sqrt(F_size/S_size)*r1;
-            var a1 = Math.PI * Math.pow(r1,2);
-            var a2 = Math.PI * Math.pow(r2,2);
-            // Conf(F->S) * |F| = P(FnS)
-            var intersection = supp * ifeed.tradespace_plot.get_num_of_archs() * a1 / S_size;
-
-            var c2x;
-            if (conf2 > 0.999){
-                c2x = c1x + r2 - r1;
-            }else{
-                var dist;
-                $.ajax({
-                    url: "/api/ifeed/venn-diagram-distance",
-                    type: "POST",
-                    data: {a1: a1,
-                           a2: a2,
-                           intersection: intersection},
-                    async: false,
-                    success: function (data, textStatus, jqXHR)
-                    {
-                        dist = + data;
-                    },
-                    error: function (jqXHR, textStatus, errorThrown)
-                    {alert("error");}
-                });
-                c2x = c1x + dist;
-            }
-
-            svg.append("circle")
-                .attr("id","venn_diag_c2")
-                .attr("cx", c2x)
-                .attr("cy", 180-30)
-                .attr("r", r2)
-                .style("fill", "brown")
-                .style("fill-opacity", ".5");
-
-        }
-
-        svg.append("text")
-            .attr("id","venn_diag_int_text")
-            .attr("x",left_margin-10)
-            .attr("y",70-30)
-            .attr("font-family","sans-serif")
-            .attr("font-size","18px")
-            .attr("fill","black")
-            .text("Intersection: " + Math.round(supp * total));
-
-        svg.append("text")
-            .attr("id","venn_diag_c2_text")
-            .attr("x",c1x+60)
-            .attr("y",180+r1+50-30)
-            .attr("font-family","sans-serif")
-            .attr("font-size","18px")
-            .attr("fill","brown")
-            .text("Features:" + Math.round(F_size) );
-    }
-
-
-
-
-
-
     run_clustering(param){
 
         if(!param){
@@ -1297,7 +1176,7 @@ class DataMining{
                 }
             });
 
-            let features = this.get_driving_features_automated(selected, non_selected, this.support_threshold, this.confidence_threshold, this.lift_threshold);
+            let features = this.get_driving_features(selected, non_selected, this.support_threshold, this.confidence_threshold, this.lift_threshold);
 
             extracted_features = extracted_features.concat(features);   
         }
@@ -1393,7 +1272,6 @@ class DataMining{
         PubSub.publish(UPDATE_TRADESPACE_PLOT, true);
     }
 
-
     compute_algebraic_complexity_of_features(startInd, endInd){
 
         let features = this.all_features;
@@ -1438,6 +1316,7 @@ class DataMining{
             type: "POST",
             data: {
                     problem: this.metadata.problem,  // ClimateCentric, GNC, etc
+                    params: JSON.stringify(this.metadata.problem_specific_params)
                   },
             async: false,
             success: function (data, textStatus, jqXHR)
@@ -1463,17 +1342,12 @@ class DataMining{
             success: function (data, textStatus, jqXHR)
             {
                 if(that.metadata.problem === "ClimateCentric"){
-                    let input_generalization = {}
-                    input_generalization.orbit_generalization = data.orbitList;
-                    input_generalization.instrument_generalization = data.instrumentList;
+                    let concept_hierarchy = that.get_problem_concept_hierarchy();
 
-                    let params = {orbitList: data.orbitList, instrumentList: data.instrumentList};
+                    console.log(data);
 
-                    let generalization_map = that.get_taxonomic_scheme(params)
-                    input_generalization.instance_map = generalization_map["instance_map"];
-                    input_generalization.superclass_map = generalization_map["superclass_map"];
-
-                    PubSub.publish(INPUT_GENERALIZATION_LOADED, input_generalization);
+                    concept_hierarchy["params"] = data;
+                    PubSub.publish(PROBLEM_CONCEPT_HIERARCHY_LOADED, concept_hierarchy);
                 }
             },
             error: function (jqXHR, textStatus, errorThrown)
@@ -1483,21 +1357,24 @@ class DataMining{
         });    
     }
 
-    get_taxonomic_scheme(params){
+    get_problem_concept_hierarchy(){
+        
         let that = this;
         let instance_map = null;
         let superclass_map = null;
 
         $.ajax({
-            url: "/api/data-mining/get-taxonomic-scheme",
+            url: "/api/data-mining/get-problem-concept-hierarchy",
             type: "POST",
             data: {
                     problem: this.metadata.problem,  // ClimateCentric, GNC, etc
-                    params: JSON.stringify(params),
+                    params: JSON.stringify(this.metadata.problem_specific_params),
                   },
             async: false,
             success: function (data, textStatus, jqXHR)
             {
+
+                // If the problem is "ClimateCentric"
                 if(that.metadata.problem === "ClimateCentric"){
                     instance_map = data.instanceMap;
                     superclass_map = data.superclassMap;
@@ -1529,6 +1406,9 @@ class DataMining{
                     }
                     console.log(instance_map);
                     console.log(superclass_map);
+
+                }else{
+                    alert("Unsupported problem formulation: " + that.metadata.problem);
                 }
             },
             error: function (jqXHR, textStatus, errorThrown)
@@ -1621,7 +1501,7 @@ class DataMining{
         let that = this;
 
         if(filename == null){
-            filename = "feature_data"
+            alert("Filename should be specified!");
         }
 
         let filename_data = filename + ".archive";
@@ -1638,7 +1518,6 @@ class DataMining{
             data: {
                     filename_data: filename_data,  // ClimateCentric, GNC, etc
                     filename_params: filename_params,
-                    generalization_enabled: generalization_enabled,
                   },
             async: false,
             success: function (data, textStatus, jqXHR)
@@ -1664,18 +1543,10 @@ class DataMining{
 
                 if(generalization_enabled){
                     if(that.metadata.problem === "ClimateCentric"){
-                        let input_generalization = {}
-                        input_generalization.orbit_generalization = data['params']["orbitList"];
-                        input_generalization.instrument_generalization = data['params']["instrumentList"];
-
-                        let params = {orbitList: input_generalization.orbit_generalization, 
-                                            instrumentList: input_generalization.instrument_generalization};
-
-                        let generalization_map = that.get_taxonomic_scheme(params)
-                        input_generalization.instance_map = generalization_map["instance_map"];
-                        input_generalization.superclass_map = generalization_map["superclass_map"];
-
-                        PubSub.publish(INPUT_GENERALIZATION_LOADED, input_generalization);
+                        let problem_specific_params = data["params"]
+                        let concept_hierarchy = that.get_problem_concept_hierarchy()
+                        concept_hierarchy["params"] = problem_specific_params
+                        PubSub.publish(PROBLEM_CONCEPT_HIERARCHY_LOADED, concept_hierarchy);
                     }  
                 }
 

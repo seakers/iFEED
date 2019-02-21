@@ -34,7 +34,10 @@ class ContextMenu {
             
             'leaf':[],
             
-            'default':[{'value':'addParent','text':'Add Parent Branch'},{'value':'duplicate','text':'Duplicate'},{'value':'toggle-activation','text':'Activate/Deactivate'},{'value':'delete','text':'Delete'}]
+            'default':[{'value':'addParent','text':'Add Parent Branch'},
+                        {'value':'duplicate','text':'Duplicate'},
+                        {'value':'toggle-activation','text':'Activate/Deactivate'},
+                        {'value':'delete','text':'Delete'}]
         };
 
         this.contextMenuSize = {

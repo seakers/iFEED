@@ -31,11 +31,11 @@ class EOSSAssigningFilter extends Filter{
             this.set_application_functions();
         });
 
-        PubSub.subscribe(INPUT_GENERALIZATION_LOADED, (msg, data) => {
-            this.orbit_generalization = data.orbit_generalization;
-            this.instrument_generalization = data.instrument_generalization;
-            this.instance_map = data.instance_map;
-            this.superclass_map = data.superclass_map;
+        PubSub.subscribe(PROBLEM_CONCEPT_HIERARCHY_LOADED, (msg, data) => {
+            this.orbit_extended_list = data["params"]["orbit_list"];
+            this.instrument_extended_list = data["params"]["instrument_list"];
+            this.instance_map = data["instance_map"];
+            this.superclass_map = data["superclass_map"];
             this.instance_index_map = {};
             this.instance_index_map["orbit"] = {};
             this.instance_index_map["instrument"] = {};
@@ -52,13 +52,13 @@ class EOSSAssigningFilter extends Filter{
                     let instance_name = instance_names[i];
                     
                     if(i === 0){
-                        if(this.orbit_generalization.indexOf(instance_name) != -1){
+                        if(this.orbit_extended_list.indexOf(instance_name) != -1){
                             class_type = "orbit";
-                            reference_list = this.orbit_generalization;
+                            reference_list = this.orbit_extended_list;
 
-                        }else if(this.instrument_generalization.indexOf(instance_name) != -1){
+                        }else if(this.instrument_extended_list.indexOf(instance_name) != -1){
                             class_type = "instrument";
-                            reference_list = this.instrument_generalization;
+                            reference_list = this.instrument_extended_list;
 
                         }else{
                             error("Unrecognized instance name: " + instance_name);

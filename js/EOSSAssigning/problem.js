@@ -12,7 +12,8 @@ class EOSSAssigning extends Problem{
             output_list: ['Science','Cost'],
             output_num: 2,
             output_obj: [1, -1], // 1 for lager-is-better, -1 for smaller-is-better
-            file_path: "EOSS_data_recalculated.csv"
+            file_path: "EOSS_data_recalculated.csv",
+            problem_specific_params: null
         };
 
         let that = this;
@@ -72,6 +73,9 @@ class EOSSAssigning extends Problem{
 
         this.orbit_num = this.orbit_list.length;
         this.instrument_num = this.instrument_list.length; 
+
+        // Set problem-specific parameters in metadata
+        this.metadata.problem_specific_params = {"orbit_list": this.orbit_list, "instrument_list": this.instrument_list};
 
         PubSub.subscribe(LABELING_SCHEME_LOADED, (msg, data) => {
             this.label = data;

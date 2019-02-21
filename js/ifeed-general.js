@@ -27,7 +27,10 @@ const ADD_FEATURE = "add_feature";
 // Initialize feature application (pub: data_mining.js, sub: feature_application.js)
 const INITIALIZE_FEATURE_APPLICATION = "initialize_feature_application";
 
-const INPUT_GENERALIZATION_LOADED = "input_generalization_loaded";
+const PROBLEM_CONCEPT_HIERARCHY_LOADED = "problem_concept_hierarhcy_loaded";
+
+const GENERALIZE_FEATURE = "generalize_feature";
+
 
 
 const DRAW_VENN_DIAGRAM = "draw_venn_diagram";

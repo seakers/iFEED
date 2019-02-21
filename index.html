@@ -128,8 +128,9 @@ and open the template in the editor.
             <div id='feature_expression_panel'>
                 <div>
                     <div>Feature Application Panel</div>
-                    <button id='conjunctive_local_search' class='feature_application_options_button'>Improve specificity</button>
-                    <button id='disjunctive_local_search' class='feature_application_options_button'>Improve coverage</button>
+                    <!-- <button id='conjunctive_local_search' class='feature_application_options_button'>Improve specificity</button>
+                    <button id='disjunctive_local_search' class='feature_application_options_button'>Improve coverage</button> -->
+                    <button id='generalize_feature' class='feature_application_options_button'>Generalize feature</button>
                     <button id='clear_all_features' class='feature_application_options_button'>Clear</button>
                 </div>
                 <div id='feature_expression'></div>
@@ -191,7 +192,7 @@ and open the template in the editor.
 
     }else if(problem_name === "ClimateCentric"){
         problem = new EOSSAssigning();
-        label = new EOSSAssigningLabel(false);
+        label = new EOSSAssigningLabel(true);
         filter = new EOSSAssigningFilter(label);
         tradespace_plot = new TradespacePlot();
 
