@@ -27,7 +27,7 @@ class DataMining{
         this.gY = null;
         
         this.featureID = 1;
-        this.transform = d3.zoomIdentity;
+        this.transform = null;
 
         this.all_features = [];
         this.mined_features_id = [];
@@ -81,7 +81,7 @@ class DataMining{
     initialize(){
         d3.select("#support_panel").select("#view3").select("g").remove();
         
-        var guideline = d3.select("#support_panel").select("#view3")
+        let guideline = d3.select("#support_panel").select("#view3")
                 .append("g")
                 .append("div")
                 .style("width","900px")
@@ -110,6 +110,11 @@ class DataMining{
         this.recent_features_id = [];    
         this.current_feature = null;
         this.current_feature_blink_interval=null;
+
+        this.xAxis = null;
+        this.yAxis = null;
+        this.gX = null;
+        this.gY = null;
         
         PubSub.publish(INITIALIZE_FEATURE_APPLICATION, null);
         this.featureID = 1;
@@ -118,7 +123,7 @@ class DataMining{
     async run(option){
 
         this.set_problem_parameters();
-        
+
         // Store the id's of all samples
         let selected = [];
         let non_selected = [];
@@ -160,6 +165,13 @@ class DataMining{
             // Save the currently applied feature
             let base_feature = this.feature_application.parse_tree(this.feature_application.data, selected_node);
 
+            // Run local search either using disjunction or conjunction
+            let logical_connective = null;
+            if(option){
+                logical_connective = "OR";
+            }else{
+                logical_connective = "AND";
+            }
 
             extracted_features = this.get_marginal_driving_features(selected, non_selected, base_feature, logical_connective,
                                                      this.support_threshold,this.confidence_threshold,this.lift_threshold);
@@ -184,19 +196,11 @@ class DataMining{
                 }
             }     
 
-            // Update the location of the current feature
-            // let x = this.current_feature.x;
-            // let y = this.current_feature.y;
-            // this.current_feature.x0 = x;
-            // this.current_feature.y0 = y;
-
             this.update(features_to_add);
 
             PubSub.publish(CANCEL_ADD_FEATURE, null);
                         
-        }
-        else{            
-            // Run data mining from the scratch (no local search)
+        } else { // Run data mining from the scratch (no local search)
             
             // Clear the feature application
             PubSub.publish(INITIALIZE_FEATURE_APPLICATION, null);
@@ -217,6 +221,7 @@ class DataMining{
 
             if(this.all_features.length === 0){ // If there is no driving feature returned
                 return;
+
             }else{
                 for(let i = 0; i < this.all_features.length; i++){
                     this.mined_features_id.push(this.all_features[i].id);
@@ -322,6 +327,8 @@ class DataMining{
     */  
     get_marginal_driving_features(selected,non_selected,featureExpression,logical_connective,
                                                    support_threshold,confidence_threshold,lift_threshold){
+
+        this.set_problem_generalized_concepts();
         
         let output;
         $.ajax({
@@ -352,6 +359,8 @@ class DataMining{
 
 
     generalize_feature(){
+
+        this.set_problem_generalized_concepts();
 
         let expression = this.feature_application.parse_tree(this.feature_application.data);
 
@@ -432,40 +441,10 @@ class DataMining{
         return output;
     } 
 
-
-
-    // generalize_feature(selected, non_selected, rootFeatureExpression, nodeFeatureExpression){
-        
-    //     let output;
-    //     $.ajax({
-    //         url: "/api/data-mining/generalize-feature",
-    //         type: "POST",
-    //         data: {
-    //                 problem: this.metadata.problem,  // eoss or gnc
-    //                 input_type: this.metadata.input_type, // Binary or Discrete
-    //                 rootFeatureExpression: rootFeatureExpression,
-    //                 nodeFeatureExpression: nodeFeatureExpression,
-    //                 selected: JSON.stringify(selected),
-    //                 non_selected:JSON.stringify(non_selected),
-    //               },
-    //         async: false,
-    //         success: function (data, textStatus, jqXHR)
-    //         {
-    //             output = data;
-    //         },
-    //         error: function (jqXHR, textStatus, errorThrown)
-    //         {alert("error");}
-    //     });
-
-    //     return output;
-    // } 
-
     display_features(){
 
         document.getElementById('tab3').click();
         
-        //ifeed.tradespace_plot.highlight_support_panel();
-
         // Remove previous plot
         d3.select("#view3").select("g").remove();
 
@@ -484,19 +463,14 @@ class DataMining{
             .attr("height", this.height + this.margin.top + this.margin.bottom)
             .append("g")
             .attr("transform", "translate(" + this.margin.left + "," + this.margin.top + ")");
-
-        // feature_plot.append('div')
-        //     .attr('class','feature_plot venn_diagram')
-        //     .append('div')
-        //     .text('Total number of designs: ' + ifeed.tradespace_plot.get_num_of_archs());
         
-        var objects = svg.append("svg")
+        let objects = svg.append("svg")
                 .attr("class", "objects feature_plot")
                 .attr("width", this.width)
                 .attr("height", this.height)
                 .style('margin-bottom','30px');
 
-        // Initialize location
+        // Initialize the location of each feature
         for (let i = 0; i < this.all_features.length; i++){
             this.all_features[i].x0 = -1;
             this.all_features[i].y0 = -1;
@@ -510,12 +484,20 @@ class DataMining{
     update(newly_added_features){
 
         let that = this;
-        
+
+        // If there is no feature to display, return
+        if(this.all_features.length === 0 && newly_added_features == null){
+            return;
+        }
+
         function get_utopia_point(){
             // Utopia point
             return d3.selectAll('.dot.feature_plot').filter((d) => {
-                if(d.id === that.utopia_point.id) return true;
-                return false;
+                if(d.id === that.utopia_point.id){
+                    return true;
+                } else{
+                    return false;
+                }
             });
         }
 
@@ -582,9 +564,9 @@ class DataMining{
         }
         
         // Add utopia point to the list
-        var max_conf1 = Math.max.apply(null, conf1s);
-        var max_conf2 = Math.max.apply(null, conf2s);
-        var max_conf = Math.max(max_conf1, max_conf2);
+        let max_conf1 = Math.max.apply(null, conf1s);
+        let max_conf2 = Math.max.apply(null, conf2s);
+        let max_conf = Math.max(max_conf1, max_conf2);
 
         // Adjust the location of the utopia point
         this.utopia_point.metrics = [Math.max.apply(null, lifts), Math.max.apply(null, supps), max_conf, max_conf];
@@ -601,38 +583,41 @@ class DataMining{
         }
         
         // Set the axis to be Conf(F->S) and Conf(S->F)
-        let x = 2;
-        let y = 3;
+        let xIndex = 2;
+        let yIndex = 3;
 
         // setup x
         // data -> value
         let xValue = function (d) {
-            return d.metrics[x];
+            return d.metrics[xIndex];
         }; 
+
         // value -> display
         let xScale = d3.scaleLinear().range([0, width]); 
 
         // don't want dots overlapping axis, so add in buffer to data domain 
         let xBuffer = (d3.max(this.all_features, xValue) - d3.min(this.all_features, xValue)) * 0.05;
-
         xScale.domain([d3.min(this.all_features, xValue) - xBuffer, d3.max(this.all_features, xValue) + xBuffer]);
 
         // data -> display
         let xMap = function (d) {
             return xScale(xValue(d));
         }; 
+
         this.xAxis = d3.axisBottom(xScale);
 
         // setup y
         // data -> value
         let yValue = function (d) {
-            return d.metrics[y];
+            return d.metrics[yIndex];
         };
+
         // value -> display
         let yScale = d3.scaleLinear().range([height, 0]); 
 
         let yBuffer = (d3.max(this.all_features, yValue) - d3.min(this.all_features, yValue)) * 0.05;
         yScale.domain([d3.min(this.all_features, yValue) - yBuffer, d3.max(this.all_features, yValue) + yBuffer]);
+
         // data -> display
         let yMap = function (d) {
             return yScale(yValue(d));
@@ -703,7 +688,6 @@ class DataMining{
             .style("text-anchor", "end")
             .text('Coverage')
             .style('font-size','15px');
-        
 
         var objects = d3.select(".objects.feature_plot")
 
@@ -795,12 +779,26 @@ class DataMining{
             this.all_features.pop();
         }
 
-        d3.selectAll('.dot.feature_plot').transition()
-            .duration(duration)
-            .attr("transform",function(d){
-                return "translate(" + d.x + "," + d.y + ")";
-            });   
-                
+        // Move objects to their correct locations
+        if(this.transform){
+
+            this.gX.call(this.xAxis.scale(this.transform.rescaleX(xScale)));
+            this.gY.call(this.yAxis.scale(this.transform.rescaleY(yScale)));
+
+            d3.selectAll('.dot.feature_plot')
+                .attr("transform", function (d) {
+                    let xCoord = that.transform.applyX(xMap(d));
+                    let yCoord = that.transform.applyY(yMap(d));
+                    return "translate(" + xCoord + "," + yCoord + ")";
+                });   
+        }else{
+            d3.selectAll('.dot.feature_plot').transition()
+                .duration(duration)
+                .attr("transform",function(d){
+                    return "translate(" + d.x + "," + d.y + ")";
+                });   
+
+        }   
     }
 
     feature_click(d){
@@ -930,6 +928,7 @@ class DataMining{
         }
         
         if(!expression || expression === ""){
+
             this.current_feature = null;
             // Assign new indices for the added features
             this.update();
@@ -1313,6 +1312,26 @@ class DataMining{
     set_problem_parameters(){
         $.ajax({
             url: "/api/data-mining/set-problem-parameters",
+            type: "POST",
+            data: {
+                    problem: this.metadata.problem,  // ClimateCentric, GNC, etc
+                    params: JSON.stringify(this.metadata.problem_specific_params)
+                  },
+            async: false,
+            success: function (data, textStatus, jqXHR)
+            {
+                console.log(data);
+            },
+            error: function (jqXHR, textStatus, errorThrown)
+            {
+                alert("error");
+            }
+        });    
+    }
+
+    set_problem_generalized_concepts(){
+        $.ajax({
+            url: "/api/data-mining/set-problem-generalized-concepts",
             type: "POST",
             data: {
                     problem: this.metadata.problem,  // ClimateCentric, GNC, etc

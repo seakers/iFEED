@@ -133,13 +133,13 @@
 
 .column.c2{
     width:1160px;
-    height:1550px;
+    height:1050px;
     float:left;
 }
 
 .column.c2 > div{
     width:1160px;
-    height:1550px;
+    height:1050px;
     border-style:solid;
     border-width:1px;
     float:left;

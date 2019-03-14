@@ -25,8 +25,8 @@ class FeatureApplication{
 
         // top  right bottem left
         this.margin = {left:70,right:20,top:10,bottom:20},
-        this.width = 1200 - this.margin.left - this.margin.right,
-        this.height = 1200 - this.margin.top - this.margin.bottom;
+        this.width = 1700 - this.margin.left - this.margin.right,
+        this.height = 950 - this.margin.top - this.margin.bottom;
 
 
         this.draggingNode = null;
@@ -71,6 +71,10 @@ class FeatureApplication{
        
         d3.select('#disjunctive_local_search').on('click',(d) => {
             this.data_mining.run("asdf");
+        }); 
+
+        d3.select('#generalize_feature').on('click',(d) => {
+            this.data_mining.generalize_feature();
         }); 
 
 		PubSub.publish(FEATURE_APPLICATION_LOADED, this);
@@ -1148,7 +1152,6 @@ class FeatureApplication{
         this.update_feature_expression(null);
         
         PubSub.publish(ADD_FEATURE, null);
-        //ifeed.data_mining.draw_venn_diagram(); 
     }
     
     diagonal(s, d) {

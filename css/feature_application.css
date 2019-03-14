@@ -15,8 +15,6 @@
     font-size: 20px;
 }
 
-
-
 #feature_expression{
     float:left;
     margin-top:3px;
@@ -40,7 +38,7 @@
     float:left;
     margin-top: 10px;   
     width:1120px;
-    height:1200px;
+    height:800px;
     padding:20px;
     overflow:scroll;
     

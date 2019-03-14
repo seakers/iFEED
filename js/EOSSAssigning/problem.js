@@ -82,6 +82,11 @@ class EOSSAssigning extends Problem{
         });
 
         PubSub.publish(DESIGN_PROBLEM_LOADED, this);
+
+        PubSub.subscribe(PROBLEM_CONCEPT_HIERARCHY_LOADED, (msg, data) => {
+            this.metadata.problem_specific_params["orbit_extended_list"] = data["params"]["orbit_list"];
+            this.metadata.problem_specific_params["instrument_extended_list"] = data["params"]["instrument_list"];
+        });
     }
     
     booleanArray2String(boolArray) {

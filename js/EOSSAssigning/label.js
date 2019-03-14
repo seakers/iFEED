@@ -19,10 +19,10 @@ class EOSSAssigningLabel extends Label{
         this.orbit_extended_list = [];
         this.instrument_extended_list = [];
 
-        this.orbit_relabeled = ["1000","2000","3000","4000","5000"];
-        this.instrument_relabeld = ["A","B","C","D","E","F","G","H","I","J","K","L"];
-        // this.orbit_relabeled = ["slot1","slot2","slot3","slot4","slot5"];
-        // this.instrument_relabeld = ["A","B","C","D","E","F","G","H","I","J","K","L"];
+        // this.orbit_relabeled = ["LEO-600-polar","SSO-600-AM","SSO-600-DD","SSO-800-DD","SSO-800-PM"];
+        // this.instrument_relabeled = ["ACE_ORCA","ACE_POL","ACE_LID","CLAR_ERB","ACE_CPR","DESD_SAR","DESD_LID","GACM_VIS","GACM_SWIR","HYSP_TIR","POSTEPS_IRS","CNES_KaRIN"];
+        this.orbit_relabeled = ["1","2","3","4","5"];
+        this.instrument_relabeled = ["A","B","C","D","E","F","G","H","I","J","K","L"];
 
         this.feature_names = ["present","absent","inOrbit","notInOrbit","together","togetherInOrbit","separate","emptyOrbit","numOrbits","subsetOfInstruments"];
         this.feature_relabeled = null;
@@ -37,6 +37,15 @@ class EOSSAssigningLabel extends Label{
         PubSub.subscribe(PROBLEM_CONCEPT_HIERARCHY_LOADED, (msg, data) => {
             this.orbit_extended_list = data["params"]["orbit_list"];
             this.instrument_extended_list = data["params"]["instrument_list"];
+
+            for(let i = this.orbit_relabeled.length; i < this.orbit_extended_list.length; i++){
+                this.orbit_relabeled.push(this.orbit_extended_list[i]);
+            }
+
+            for(let i = this.instrument_relabeled.length; i < this.instrument_extended_list.length; i++){
+                this.instrument_relabeled.push(this.instrument_extended_list[i]);
+            }
+
             PubSub.publish(LABELING_SCHEME_LOADED, this);
         });
     }
@@ -86,11 +95,12 @@ class EOSSAssigningLabel extends Label{
         if(this.disabled){
             return this.index2ActualName(index,type);
         }
+
         if(type=="orbit"){
             return this.orbit_relabeled[index];
 
         }else if(type=="instrument"){
-            return this.instrument_relabeld[index];
+            return this.instrument_relabeled[index];
 
         }else{
             return "Naming Error";
@@ -138,7 +148,7 @@ class EOSSAssigningLabel extends Label{
         let output='';
         for(let i = 0; i < split.length; i++){
             var name = split[i];
-            if(this.orbit_relabeled.indexOf(name)==-1 && this.instrument_relabeld.indexOf(name)==-1){
+            if(this.orbit_relabeled.indexOf(name)==-1 && this.instrument_relabeled.indexOf(name)==-1){
                 return null;
             }
             if(i > 0) output = output + ",";
@@ -146,7 +156,7 @@ class EOSSAssigningLabel extends Label{
             if(type == "orbit"){
                 output = output + $.inArray(name,this.orbit_relabeled);
             }else if(type == "instrument"){
-                output = output + $.inArray(name,this.instrument_relabeld);
+                output = output + $.inArray(name,this.instrument_relabeled);
             }else{
                 return "Naming Error";
             }
@@ -173,7 +183,7 @@ class EOSSAssigningLabel extends Label{
             if(nth==-1){ // Couldn't find gthe name from the list
                 return name;
             }
-            return this.instrument_relabeld[nth];
+            return this.instrument_relabeled[nth];
         } else{
             return name;
         }
@@ -192,7 +202,7 @@ class EOSSAssigningLabel extends Label{
             }
             return this.orbit_list[nth];
         } else if(type=="instrument"){
-            var nth = $.inArray(name,this.instrument_relabeld);
+            var nth = $.inArray(name,this.instrument_relabeled);
             if(nth==-1){ // Couldn't find gthe name from the list
                 return name;
             }

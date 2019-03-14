@@ -943,12 +943,12 @@ class TradespacePlot{
 
             if(point.highlighted && point.selected){
                 // do nothing
-            }
-            else if(point.highlighted){ // highlighted but not selected
+                
+            } else if(point.highlighted){ // highlighted but not selected
                 point.highlighted = false;
                 point.selected = true;
-            }
-            else if(point.selected){ // selected but not highlighted
+
+            } else if(point.selected){ // selected but not highlighted
                 point.highlighted = true;
                 point.selected = false;
             }
