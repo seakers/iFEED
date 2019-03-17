@@ -31,7 +31,6 @@ class DataMining{
 
         this.all_features = [];
         this.mined_features_id = [];
-        this.user_added_features_id = [];   
         this.recent_features_id = [];    
 
         this.current_feature = null;
@@ -55,6 +54,12 @@ class DataMining{
 
         PubSub.subscribe(ADD_FEATURE, (msg, data) => {
             this.add_feature_to_plot(data);
+        });  
+
+        PubSub.subscribe(GENERALIZE_FEATURE, (msg, data) => {
+            let root = data.root;
+            let node = data.node;
+            this.generalize_feature(root, node);
         });  
         
         // Save the data
@@ -106,7 +111,6 @@ class DataMining{
         
         this.all_features = [];
         this.mined_features_id = [];
-        this.user_added_features_id = [];   
         this.recent_features_id = [];    
         this.current_feature = null;
         this.current_feature_blink_interval=null;
@@ -358,14 +362,25 @@ class DataMining{
     }    
 
 
-    generalize_feature(){
+    generalize_feature(root, node){
 
         this.set_problem_generalized_concepts();
 
-        let expression = this.feature_application.parse_tree(this.feature_application.data);
+        let rootFeatureExpression = null;
+        let nodeFeatureExpression = null;
 
-        let rootFeatureExpression = expression;
-        let nodeFeatureExpression = "";
+        if(root == null){
+            rootFeatureExpression = this.feature_application.parse_tree(this.feature_application.data);
+        }else{
+            rootFeatureExpression = root;
+        }
+
+        if(node == null){
+            nodeFeatureExpression = "";
+
+        }else{
+            nodeFeatureExpression = node;
+        }
 
         this.set_problem_parameters();
         
@@ -425,12 +440,6 @@ class DataMining{
             this_feature.id = id;
             features_to_add.push(this_feature);
         }     
-
-        // Update the location of the current feature
-        // let x = this.current_feature.x;
-        // let y = this.current_feature.y;
-        // this.current_feature.x0 = x;
-        // this.current_feature.y0 = y;
 
         this.update(features_to_add);
 
@@ -527,7 +536,7 @@ class DataMining{
         let scores=[];   
         let maxScore = -1;
         
-        //Remove unnecessary points (cursor)
+        //Remove unnecessary points (including the cursor)
         d3.select(".objects.feature_plot")
                 .selectAll('.dot.feature_plot')
                 .data(this.all_features)
@@ -557,7 +566,7 @@ class DataMining{
             conf1s.push(this.all_features[i].metrics[2]);
             conf2s.push(this.all_features[i].metrics[3]);
             
-            var score = 1-Math.sqrt(Math.pow(1-conf1s[i],2)+Math.pow(1-conf2s[i],2));
+            let score = 1-Math.sqrt(Math.pow(1-conf1s[i],2)+Math.pow(1-conf2s[i],2));
             scores.push(score);
 
             if(score > maxScore) maxScore = score;
@@ -629,13 +638,13 @@ class DataMining{
             this.all_features[i].x = xMap(this.all_features[i]);
             this.all_features[i].y = yMap(this.all_features[i]);
             if(!this.all_features[i].x0){
-                // If previous location has not been initialize, save the current location
+                // If previous location has not been initialized, set the current location
                 this.all_features[i].x0 = this.all_features[i].x;
                 this.all_features[i].y0 = this.all_features[i].y;
             }
         }
 
-        //Needed to map the values of the dataset to the color scale
+        // Needed to map the values of the dataset to the color scale
         this.colorInterpolateRainbow = d3.scaleLinear()
                 .domain(d3.extent(scores))
                 .range([0,1]);
@@ -791,6 +800,7 @@ class DataMining{
                     let yCoord = that.transform.applyY(yMap(d));
                     return "translate(" + xCoord + "," + yCoord + ")";
                 });   
+
         }else{
             d3.selectAll('.dot.feature_plot').transition()
                 .duration(duration)
@@ -898,11 +908,8 @@ class DataMining{
         // Remove the tooltip
         d3.selectAll("#tooltip_g").remove();
 
-        // Remove all the features created temporarily
-
         // Bring back the previously stored feature expression
         this.feature_application.update_feature_application('restore');        
-        //this.draw_venn_diagram();       
     }
     
     add_feature_to_plot(expression){
@@ -1004,8 +1011,8 @@ class DataMining{
             if(!matched){                
                 let new_feature =  JSON.parse(JSON.stringify(this.current_feature));
                 new_feature.id = this.featureID++;
+
                 // Add new feature to the list of features
-                this.user_added_features_id.push(new_feature.id);
                 this.all_features.push(new_feature);
             }
             

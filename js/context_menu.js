@@ -29,12 +29,13 @@ class ContextMenu {
         
         this.contextItems = {
             
-            'logic':[{'value':'addChild','text':'Add Feature'},
+            'logic':[{'value':'addChild','text':'Add feature'},
                      {'value':'toggle-logic','text':'Change to X'}],
             
             'leaf':[],
             
-            'default':[{'value':'addParent','text':'Add Parent Branch'},
+            'default':[{'value':'addParent','text':'Add parent branch'},
+                        {'value':'generalize','text':'Generalize this node'},
                         {'value':'duplicate','text':'Duplicate'},
                         {'value':'toggle-activation','text':'Activate/Deactivate'},
                         {'value':'delete','text':'Delete'}]
@@ -225,14 +226,15 @@ class ContextMenu {
     
     ContextMenuAction(context,option){
 
+        let feature_application = this.feature_application;
+
+        let root = feature_application.data;
         let node = context;
 
-        let self = this.feature_application;
-        let visit_nodes = self.visit_nodes;
-        let construct_tree = self.construct_tree;
-        let construct_node = self.construct_node;
-
-        let parse_tree = self.parse_tree;
+        let visit_nodes = feature_application.visit_nodes;
+        let construct_tree = feature_application.construct_tree;
+        let construct_node = feature_application.construct_node;
+        let parse_tree = feature_application.parse_tree;
 
         let nodeID = node.id;
         let parent = node.parent;
@@ -250,7 +252,7 @@ class ContextMenu {
                         node.add = false;
                         
                     }else{
-                        visit_nodes(self.data, (d) => {
+                        visit_nodes(feature_application.data, (d) => {
                             if(d.id === nodeID){
                                 d.add = true;
                             }else{
@@ -297,7 +299,7 @@ class ContextMenu {
                     }else{
                         logic = "AND";
                     }
-                    let tempNode = construct_node(self, depth, "logic", logic, [node], parent);
+                    let tempNode = construct_node(feature_application, depth, "logic", logic, [node], parent);
                     parent.children.splice(index, 1, tempNode);
 
                 }else{ 
@@ -309,9 +311,22 @@ class ContextMenu {
                     }else{
                         logic = "AND";
                     }
-                    self.data = construct_node(self, 0, "logic", logic, [node], null);
+                    feature_application.data = construct_node(feature_application, 0, "logic", logic, [node], null);
                 }
   
+                break;
+
+            case 'generalize':
+
+                let rootExpression = feature_application.parse_tree(root);
+                let nodeExpression = feature_application.parse_tree(node);
+
+                if(rootExpression == nodeExpression){
+                    nodeExpression = null;
+                }
+
+                let data = {"root": rootExpression, "node": nodeExpression};
+                PubSub.publish(GENERALIZE_FEATURE, data);        
                 break;
 
             case 'duplicate':
@@ -327,8 +342,8 @@ class ContextMenu {
                         logic = "AND";
                     }
 
-                    let duplicate = construct_tree(self, parse_tree(node), depth);     
-                    let tempNode = construct_node(self, depth, "logic", logic, [duplicate], parent);
+                    let duplicate = construct_tree(feature_application, parse_tree(node), depth);     
+                    let tempNode = construct_node(feature_application, depth, "logic", logic, [duplicate], parent);
                     parent.children.splice(index, 0, tempNode);
                 }
                 break;
@@ -358,7 +373,7 @@ class ContextMenu {
             case 'delete':
 
                 if(node.depth === 0){
-                    self.data = null;
+                    feature_application.data = null;
 
                 }else{
                     let index = parent.children.indexOf(node);
@@ -372,13 +387,7 @@ class ContextMenu {
                 break;
         }    
 
-        let root = self.data;
-        let exp = self.parse_tree(root);
-
-        self.update();
-        
-        PubSub.publish(ADD_FEATURE, self.parse_tree(root));
-        
-        //PubSub.publish(DRAW_VENN_DIAGRAM, this.feature_application.parse_tree(root)); 
+        feature_application.update();        
+        PubSub.publish(ADD_FEATURE, feature_application.parse_tree(root));        
     }
 }
