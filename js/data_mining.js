@@ -364,6 +364,7 @@ class DataMining{
 
     generalize_feature(root, node){
 
+        this.set_problem_parameters();
         this.set_problem_generalized_concepts();
 
         let rootFeatureExpression = null;
@@ -381,8 +382,6 @@ class DataMining{
         }else{
             nodeFeatureExpression = node;
         }
-
-        this.set_problem_parameters();
         
         // Store the id's of all samples
         let selected = [];
@@ -896,10 +895,13 @@ class DataMining{
                 return;
             }
         }
+
+        if(d.description){
+            console.log(d.description);
+        }
         
         // Update the placeholder with the driving feature and stash the expression    
         this.feature_application.update_feature_application('temp', expression);
-        //self.draw_venn_diagram(); 
     }
 
     feature_mouseout(d){

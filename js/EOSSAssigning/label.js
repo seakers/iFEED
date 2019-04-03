@@ -20,6 +20,9 @@ class EOSSAssigningLabel extends Label{
         this.instrument_extended_list = [];
 
         // this.orbit_relabeled = ["LEO-600-polar","SSO-600-AM","SSO-600-DD","SSO-800-DD","SSO-800-PM"];
+        // this.instrument_relabeled = ["OCE_SPEC","AERO_POL","AERO_LID",
+        //     "HYP_ERB","CPR_RAD","VEG_INSAR","VEG_LID","CHEM_UVSPEC",
+        //     "CHEM_SWIRSPEC","HYP_IMAG","HIRES_SOUND","SAR_ALTIM"];
         // this.instrument_relabeled = ["ACE_ORCA","ACE_POL","ACE_LID","CLAR_ERB","ACE_CPR","DESD_SAR","DESD_LID","GACM_VIS","GACM_SWIR","HYSP_TIR","POSTEPS_IRS","CNES_KaRIN"];
         this.orbit_relabeled = ["1","2","3","4","5"];
         this.instrument_relabeled = ["A","B","C","D","E","F","G","H","I","J","K","L"];
@@ -265,11 +268,11 @@ class EOSSAssigningLabel extends Label{
             if(instruments[i].length===0){
                 continue;
             }
-            if(i>0){ppinstruments = ppinstruments + ",";}
+            if(i>0){ppinstruments = ppinstruments + ", ";}
             ppinstruments = ppinstruments + this.index2DisplayName(instruments[i], "instrument");
         }
 
-        let ppexpression = this.featureActualName2DisplayName(featureName) + "[" + pporbits + ";" + ppinstruments + ";" + numbers + "]";
+        let ppexpression = this.featureActualName2DisplayName(featureName) + "[" + pporbits + ";  " + ppinstruments + ";  " + numbers + "]";
         
         return ppexpression;
     }

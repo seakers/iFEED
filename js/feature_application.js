@@ -25,7 +25,7 @@ class FeatureApplication{
 
         // top  right bottem left
         this.margin = {left:70,right:20,top:10,bottom:20},
-        this.width = 1700 - this.margin.left - this.margin.right,
+        this.width = 2400 - this.margin.left - this.margin.right,
         this.height = 950 - this.margin.top - this.margin.bottom;
 
 
@@ -122,7 +122,7 @@ class FeatureApplication{
         }    
 
         if(!featureMargin){
-            featureMargin = 180;
+            featureMargin = 340;
         }
 
         let that = this;   

@@ -14,8 +14,8 @@ class EOSSAssigningFilter extends Filter{
                                {value:"together",text:"Together",input:"multipleInstInput",hints:"Designs that have the specified instruments in any one orbit are chose"},
                                {value:"separate",text:"Separate",input:"multipleInstInput",hints:"Designs that do not have the specified instruments in the same orbit are chosen"},
                                {value:"emptyOrbit",text:"Empty orbit",input:"orbitInput",hints:"Designs that have no instrument inside the specified orbit are chosen"},
-                               {value:"numOrbits",text:"Number of orbit used",input:"numOrbit",hints:"Designs that have the specified number of non-empty orbits are chosen"},
-                               //{value:"numOfInstruments",text:"Number of instruments",input:"numOfInstruments",hints:"This highlights all the designs with the specified number of instruments. If you specify an orbit name, it will count all instruments in that orbit. If you can also specify an instrument name, and only those instruments will be counted across all orbits. If you leave both instruments and orbits blank, all instruments across all orbits will be counted."},
+                               {value:"numOrbits",text:"Number of orbit used",input:"numOrbits",hints:"Designs that have the specified number of non-empty orbits are chosen"},
+                               {value:"numInstruments",text:"Number of instruments",input:"numInstruments",hints:"This highlights all the designs with the specified number of instruments. If you specify an orbit name, it will count all instruments in that orbit. If you can also specify an instrument name, and only those instruments will be counted across all orbits. If you leave both instruments and orbits blank, all instruments across all orbits will be counted."},
                                {value:"subsetOfInstruments",text:"Num of instruments in a subset",input:"subsetOfInstruments",hints:"The specified orbit should contain at least m number and at maximum M number of instruments from the specified instrument set. m is the first entry and M is the second entry in the second field"},
                             ];  
 
@@ -61,7 +61,7 @@ class EOSSAssigningFilter extends Filter{
                             reference_list = this.instrument_extended_list;
 
                         }else{
-                            error("Unrecognized instance name: " + instance_name);
+                            throw "Unrecognized instance name: " + instance_name;
 
                         }
                     }
@@ -101,6 +101,8 @@ class EOSSAssigningFilter extends Filter{
                     return that.emptyOrbit;
                 case "numOrbits":
                     return that.numOrbits;
+                case "numInstruments":
+                    return that.numInstruments;
                 case "subsetOfInstruments":
                     return that.subsetOfInstruments;
                 default:
@@ -176,13 +178,13 @@ class EOSSAssigningFilter extends Filter{
                                 .attr("type","text");
                     break;
                     
-                case "numOrbit":
+                case "numOrbits":
                     filter_input_1.text("Input number of orbits");
                     filter_input_1.append("input")
                                 .attr("type","text");
                     break;
                 
-                case "numOfInstruments":
+                case "numInstruments":
                     filter_input_1.text("Input an orbit name (Could be N/A): ");
                     filter_input_1.append("input")
                                 .attr("type","text")
@@ -316,25 +318,27 @@ class EOSSAssigningFilter extends Filter{
             let numbers = input_textbox[1].trim().replace(/\s+/g, "");
             filter_expression = option + "["+ orb_relabel + ";" + inst_relabel + ";"+ numbers+"]";
             
-        }else if(option=="numOfInstruments"){
+        }else if(option=="numInstruments"){
             
             let orbit = input_textbox[0];
             let instrument = input_textbox[1];
             let number = input_textbox[2];
-            // There are 3 possibilities
 
             let orbitEmpty = false; 
             let instrumentEmpty = false;
 
+            // There are 3 possibilities
             if(orbit=="N/A" || orbit.length==0){
                 orbitEmpty=true;
             }
             if(instrument=="N/A" || instrument.length==0){
                 instrumentEmpty = true;
             }
+
             if(orbitEmpty && instrumentEmpty){
                 // Count all instruments across all orbits
                 filter_expression=option + "[;;" + number + "]";
+
             }else if(orbitEmpty){
                 // Count the number of specified instrument
                 
@@ -416,9 +420,23 @@ class EOSSAssigningFilter extends Filter{
             let args = argString.split(";");
 
             for(let i = 0; i < args.length; i++){
-                let temp = args[i].split(",");
+                let temp;
+                if(args[i].indexOf(",") != -1){
+                    temp = args[i].split(",");
+
+                }else if(args[i].indexOf("-") != -1){
+                    temp = args[i].split("-");
+                
+                }else{
+                    temp = args[i].split(",");
+                }
+
                 for(let j = 0; j < temp.length; j++){
-                    temp[j] = +temp[j];
+                    if(temp[j] === ""){
+                        temp[j] = -1;
+                    }else{
+                        temp[j] = +temp[j];
+                    }
                 }
                 args[i] = temp;
             }
@@ -894,6 +912,77 @@ class EOSSAssigningFilter extends Filter{
                 }
             }
             if(numb === count){
+                out = true;
+            }
+            return out;
+        }  
+
+        this.numInstruments = (args, inputs) => {
+            validInputCheck(args);
+
+            let orb = +args[0];
+            let instr = +args[1];
+            
+            let nBounds = [];
+            if(args[2].length === 2){
+                nBounds.push( + args[2][0] );
+                nBounds.push( + args[2][1] );
+            }else{
+                nBounds.push( + args[2]);
+                nBounds.push( + args[2]);
+            }
+            let out = false;
+            let count = 0;
+
+            if(orb != -1 && instr != -1){
+                if(instr >= this.ninstr){
+                    let instance_list = this.instance_index_map["instrument"][instr];
+                    for(let i = 0; i < instance_list.length; i++){
+                        let tempInstr = instance_list[i];
+                        if(inputs[orb * this.ninstr + tempInstr] === true){
+                            count++;
+                        }
+                    }
+                }else{
+                    throw "Instrument argument must be a high-level class";
+                }
+
+            } if(orb != -1){
+                for(let i = 0; i < this.ninstr; i++){
+                    if(inputs[orb * this.ninstr + i] === true){
+                        count++;
+                    }
+                }
+
+            } else if(instr != -1){
+                if(instr >= this.ninstr){
+                    let instance_list = this.instance_index_map["instrument"][instr];
+                    for(let i = 0; i < instance_list.length; i++){
+                        let tempInstr = instance_list[i];
+                        for(let o = 0; o < this.norb; o++){
+                            if(inputs[o * this.ninstr + tempInstr] === true){
+                                count++;
+                            }
+                        }
+                    }
+                }else{
+                    for(let o = 0; o < this.norb; o++){
+                        if(inputs[o * this.ninstr + instr] === true){
+                            count++;
+                        }
+                    }
+                }
+            } else{
+                for(let o = 0; o < this.norb; o++){
+                    for(let i = 0; i < this.ninstr; i++){
+                        if(inputs[o * this.ninstr + i] === true){
+                            count++;
+                        }   
+                    }
+                }
+            }
+
+            if(count >= nBounds[0] && count <= nBounds[1]){
                 out = true;
             }
             return out;
