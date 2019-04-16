@@ -1,15 +1,15 @@
 
 #feature_expression_panel{
     float:left;
-    width:620px;
-    height:160px;
+    width:700px;
+    height: 70px;
     padding:20px;
 }
 
 #feature_expression_panel > div > div{
     height:30px; 
     float:left;
-    width:620px;
+    width:700px;
     margin-top:5px;
     margin-bottom: 5px;
     font-size: 20px;
@@ -21,7 +21,8 @@
     margin-bottom: 3px;
     
     width:100%;
-    height:125px;
+   /* height:125px;*/
+    height: 5px;
     
     overflow:scroll;
     
@@ -33,12 +34,11 @@
     width:100%;
 }
 
-
 #feature_application{
     float:left;
     margin-top: 10px;   
     width:1120px;
-    height:800px;
+    height:890px;
     padding:20px;
     overflow:scroll;
     

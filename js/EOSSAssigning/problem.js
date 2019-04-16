@@ -117,7 +117,10 @@ class EOSSAssigning extends Problem{
     }
 
     display_arch_info(data) {
-        
+
+        // Remove previously-added content
+        d3.select('#view1').selectAll('g').remove();
+
         let support_panel = d3.select("#support_panel")
             .select("#view1")
             .append("g");
@@ -143,7 +146,6 @@ class EOSSAssigning extends Problem{
                 })
                 .style('font-size','20px');
         }
-
         
         let bitString = null;
         

@@ -33,6 +33,8 @@ class ContextMenu {
                      {'value':'toggle-logic','text':'Change to X'}],
             
             'leaf':[],
+
+            'featType': [{'value':'toggle-col-exp','text':'Collapse/Expand'}],
             
             'default':[{'value':'addParent','text':'Add parent branch'},
                         {'value':'generalize','text':'Generalize this node'},
@@ -44,6 +46,11 @@ class ContextMenu {
         this.contextMenuSize = {
             
             'logic':{'height':null,
+                    'width':null,
+                    'margin':0.15,
+                    'scaled':false},
+
+            'featType':{'height':null,
                     'width':null,
                     'margin':0.15,
                     'scaled':false},
@@ -62,6 +69,13 @@ class ContextMenu {
         let depth = context.depth;    
         let add = context.add;
         let deactivated = context.deactivated;
+
+        let hasChildren;
+        if(context.children){
+            hasChildren = context.children.length !== 0;
+        }else{
+            hasChildren = false;
+        }
 
         let items = this.contextItems[type];
         items = items.concat(this.contextItems['default']);
@@ -140,8 +154,7 @@ class ContextMenu {
         
         d3.selectAll('.menu-entry')
             .append('text')
-            .text(function(d){ 
-            
+            .text(function(d){             
                 if(d.value === 'addChild'){
                     if(add){
                         return 'Cancel Add Feature';
@@ -160,6 +173,12 @@ class ContextMenu {
                         return 'Activate';
                     }else{
                         return 'Deactivate';
+                    }
+                }else if(d.value === 'toggle-col-exp'){
+                    if(hasChildren){
+                        return 'Collapse';
+                    }else{
+                        return 'Expand';
                     }
                 }else{
                     return d.text; 
@@ -224,7 +243,7 @@ class ContextMenu {
         }
     }
     
-    ContextMenuAction(context,option){
+    ContextMenuAction(context, option){
 
         let feature_application = this.feature_application;
 
@@ -368,6 +387,18 @@ class ContextMenu {
                     });
                 }     
 
+                break;
+
+            case 'toggle-col-exp':
+
+                if(node.children){
+                    node._children = node.children;
+                    node.children = [];
+
+                }else{                
+                    node.children = node._children;
+                    node._children = [];
+                } 
                 break;
 
             case 'delete':

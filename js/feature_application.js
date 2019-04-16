@@ -26,7 +26,7 @@ class FeatureApplication{
         // top  right bottem left
         this.margin = {left:70,right:20,top:10,bottom:20},
         this.width = 2400 - this.margin.left - this.margin.right,
-        this.height = 950 - this.margin.top - this.margin.bottom;
+        this.height = 1040 - this.margin.top - this.margin.bottom;
 
 
         this.draggingNode = null;
@@ -51,7 +51,6 @@ class FeatureApplication{
 //        self.update(); 
 //    }); 
     
-
         PubSub.subscribe(INITIALIZE_FEATURE_APPLICATION, (msg, data) => {
             this.clear_feature_application()
         });   
@@ -90,12 +89,12 @@ class FeatureApplication{
 
         d3.select('#feature_application_panel').select('#feature_application').select('svg').remove();
 
-        let svg = d3.select('#feature_application_panel').select('#feature_application')
-                    .append('svg')
-                    .attr('width', width + margin.left + margin.right)
-                    .attr('height', height + margin.bottom + margin.top)
-                    .append('g')
-                    .attr('transform','translate('+ margin.left + "," + margin.top + ")");
+        d3.select('#feature_application_panel').select('#feature_application')
+            .append('svg')
+            .attr('width', width + margin.left + margin.right)
+            .attr('height', height + margin.bottom + margin.top)
+            .append('g')
+            .attr('transform','translate('+ margin.left + "," + margin.top + ")");
 
         this.i = 0;
         this.data = this.construct_tree(this, expression);  
@@ -106,7 +105,6 @@ class FeatureApplication{
 
         this.update();  
     }
-    
 
     update(featureMargin){
 
@@ -122,7 +120,7 @@ class FeatureApplication{
         }    
 
         if(!featureMargin){
-            featureMargin = 340;
+            featureMargin = 170;
         }
 
         let that = this;   
@@ -159,7 +157,11 @@ class FeatureApplication{
 
         // Normalize for fixed-depth.
         nodes.forEach(function(d) { 
-            d.y = d.depth * featureMargin;
+            if(d.depth === 1){
+                d.y = 130;
+            }else{
+                d.y = d.depth * featureMargin;
+            }
         });
 
         let svg = d3.select('#feature_application_panel')
@@ -169,7 +171,6 @@ class FeatureApplication{
         let node = svg.selectAll("g.treeNode")
                         .data(nodes, function(d) {return d.id || (d.id = d.data.id); });
 
-        
         // Enter any new nodes at the parent's previous position.
         let nodeEnter = node.enter()
             .append("g")
@@ -278,7 +279,7 @@ class FeatureApplication{
                 return that.label.pp_feature_single(d.data.name);
             })
             .style("fill",function(d){
-                if(d.data.type=="logic" && d.data.add){
+                if(d.data.type === "logic" && d.data.add){
                     return that.color.add;
                 }else{
                     return "black";
@@ -440,7 +441,6 @@ class FeatureApplication{
         }
     }
 
-
     drag(d){
         if(this.dragStarted){    
 
@@ -499,13 +499,14 @@ class FeatureApplication{
         }
     }
 
-
     check_tree_structure(){
         // Checks and ensures that the tree structure is correct
 
         if(this.data === null){
             return;
         }   
+
+        let that = this;
 
         let update_parent_info = (node) => {
             if(node.children){
@@ -597,6 +598,65 @@ class FeatureApplication{
                 }
             }
         }
+
+        let collapse_feature_with_same_types = (node) => {
+
+            if(node.type === "logic" && node.children){ // current node is a logic node
+
+                let indices_to_delete = [];
+                let children = node.children;
+                let depth = children[0].depth;
+                let temp = node.temp;
+
+                let feature_type_to_node_index = {};
+                for(let i = 0; i < children.length; i++){
+
+                    if(children[i].type === "logic"){
+                       continue;
+                    }
+
+                    let base_feature = children[i];
+                    let feature_type = that.label.pp_feature_type(base_feature.name);
+
+                    if(Object.keys(feature_type_to_node_index).indexOf(feature_type) === -1){
+                        feature_type_to_node_index[feature_type] = [];
+                    }
+                    feature_type_to_node_index[feature_type].push(i);
+                }
+
+                for(let i = 0; i < Object.keys(feature_type_to_node_index).length; i++){
+
+                    let feature_type = Object.keys(feature_type_to_node_index)[i];
+                    let corresponding_node_indices = feature_type_to_node_index[feature_type];
+
+                    if(corresponding_node_indices.length > 1){
+
+                        indices_to_delete = indices_to_delete.concat(corresponding_node_indices);
+
+                        let newNode = that.construct_node(that, depth, "featType", feature_type, [], node);
+                        newNode.temp = temp;
+
+                        let corresponding_nodes = [];
+                        for(let j = 0; j < corresponding_node_indices.length; j++){
+                            let node = children[corresponding_node_indices[j]];
+                            node.depth = depth + 1;
+                            node.parent = newNode;
+                            corresponding_nodes.push(node);
+                        }
+                        newNode.children = corresponding_nodes;
+                        node.children.push(newNode);
+                    }
+                }
+
+                indices_to_delete.reverse();
+
+                for(let j = 0; j < indices_to_delete.length; j++){
+                    node.children.splice(indices_to_delete[j], 1);
+                }
+            }
+        }
+
+        // this.visit_nodes(this.data, collapse_feature_with_same_types);
 
         this.visit_nodes(this.data, update_parent_info);
         this.visit_nodes(this.data, update_depth_info);
@@ -796,8 +856,6 @@ class FeatureApplication{
             PubSub.publish(ADD_FEATURE, this.parse_tree(this.data));
             //PubSub.publish(CANCEL_ADD_FEATURE, null);
         }
-        
-
         //this.update_feature_expression(this.parse_tree(this.data));
         //ifeed.data_mining.draw_venn_diagram();   
     }
@@ -976,21 +1034,18 @@ class FeatureApplication{
                     
                 }else{
                     if(node.children){
-
                         let children = node.children;
                         let activated = false;
                         for(let i = 0; i < children.length; i++){
                             if(!children[i].deactivated){
-                                activated=true;
+                                activated = true;
                             }
                         }
                         if(!activated){
-                            node.deactivated=true;
+                            node.deactivated = true;
                             return true;
                         }
-
                     }
-
                 }
                 return false;
             }
@@ -1001,11 +1056,11 @@ class FeatureApplication{
                 // If the current node is null, return null    
                 expression = null;
 
-            }else if(root.type=="leaf"){
+            }else if(root.type === "leaf"){
                 // If the current node is a leaf node
 
                 if(deactivated(root)){
-                    expression="";
+                    expression = "";
                     
                 }else{
                     
@@ -1047,20 +1102,36 @@ class FeatureApplication{
                 // Current node is a logical node and is not deactivated
                 expression = "";
 
-                for(let i = 0; i < root.children.length; i++){
+                let logic = null;
 
-                    let child = root.children[i];
-                    let logic = null;
-
+                if(root.type === "featType"){
+                    if(root.parent.name === "AND"){
+                        logic = "&&";
+                    }else{
+                        logic = "||";
+                    }
+                }else{
                     if(root.name === "AND"){
                         logic = "&&";
                     }else{
                         logic = "||";
                     }
+                }
 
-                    let new_expression = _parse_tree(child,placeholderNode);
+                let children;
+                if(root.type === "featureType" && root.children.length === 0){
+                    children = root._children;
+                }else{
+                    children = root.children;
+                }
 
-                    if(expression != "" && new_expression != ""){
+                for(let i = 0; i < children.length; i++){
+
+                    let child = children[i];
+
+                    let new_expression = _parse_tree(child, placeholderNode);
+
+                    if(expression !== "" && new_expression !== ""){
                         expression = expression + logic;
                     }
                     expression = expression + new_expression;    

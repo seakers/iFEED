@@ -19,13 +19,13 @@ class EOSSAssigningLabel extends Label{
         this.orbit_extended_list = [];
         this.instrument_extended_list = [];
 
-        // this.orbit_relabeled = ["LEO-600-polar","SSO-600-AM","SSO-600-DD","SSO-800-DD","SSO-800-PM"];
-        // this.instrument_relabeled = ["OCE_SPEC","AERO_POL","AERO_LID",
-        //     "HYP_ERB","CPR_RAD","VEG_INSAR","VEG_LID","CHEM_UVSPEC",
-        //     "CHEM_SWIRSPEC","HYP_IMAG","HIRES_SOUND","SAR_ALTIM"];
+        this.orbit_relabeled = ["LEO-600-polar","SSO-600-AM","SSO-600-DD","SSO-800-DD","SSO-800-PM"];
+        this.instrument_relabeled = ["OCE_SPEC","AERO_POL","AERO_LID",
+            "HYP_ERB","CPR_RAD","VEG_INSAR","VEG_LID","CHEM_UVSPEC",
+            "CHEM_SWIRSPEC","HYP_IMAG","HIRES_SOUND","SAR_ALTIM"];
         // this.instrument_relabeled = ["ACE_ORCA","ACE_POL","ACE_LID","CLAR_ERB","ACE_CPR","DESD_SAR","DESD_LID","GACM_VIS","GACM_SWIR","HYSP_TIR","POSTEPS_IRS","CNES_KaRIN"];
-        this.orbit_relabeled = ["1","2","3","4","5"];
-        this.instrument_relabeled = ["A","B","C","D","E","F","G","H","I","J","K","L"];
+        // this.orbit_relabeled = ["1","2","3","4","5"];
+        // this.instrument_relabeled = ["A","B","C","D","E","F","G","H","I","J","K","L"];
 
         this.feature_names = ["present","absent","inOrbit","notInOrbit","together","togetherInOrbit","separate","emptyOrbit","numOrbits","subsetOfInstruments"];
         this.feature_relabeled = null;
@@ -216,19 +216,23 @@ class EOSSAssigningLabel extends Label{
     }
     
     pp_feature_type(expression){
-        
+
         if(expression.indexOf('[')==-1){
             return expression;
         }
-        var type='';
-        var erase = false;
-        for(var i=0;i<expression.length;i++){
-            if(expression[i]=='['){
-                erase=true;
-            }else if(expression[i]==']'){
-                erase=false;
+
+        let type = '';
+        let erase = false;
+        for(let i = 0; i < expression.length; i++){
+            if(expression[i] === '['){
+                erase = true;
+            }else if(expression[i] === ']'){
+                erase = false;
+            }else if(expression[i] === '{' || expression[i] === '}'){
+                // do nothing
+                continue;
             }else if(!erase){
-                type=type+expression[i];
+                type = type + expression[i];
             }
         }
         return type;
@@ -242,33 +246,40 @@ class EOSSAssigningLabel extends Label{
         }
         var featureName = exp.split("[")[0];
 
-        if(featureName==="paretoFront" || featureName==='FeatureToBeAdded' || featureName==='AND' || featureName==='OR'){return exp;}
+        if(featureName==="paretoFront" || featureName==='FeatureToBeAdded' || featureName==='AND' || featureName==='OR'){
+            return exp;
 
-        if(featureName[0]=='~'){
+        }else if(this.feature_names.indexOf(exp) !== -1){
+            return exp;
+        }
+
+        if(featureName[0] === '~'){
             featureName = 'NOT '+ featureName.substring(1);
         }
 
-        var featureArg = exp.split("[")[1];
+        let featureArg = exp.split("[")[1];
         featureArg = featureArg.substring(0,featureArg.length-1);
 
-        var orbits = featureArg.split(";")[0].split(",");
-        var instruments = featureArg.split(";")[1].split(",");
-        var numbers = featureArg.split(";")[2];
+        let orbits = featureArg.split(";")[0].split(",");
+        let instruments = featureArg.split(";")[1].split(",");
+        let numbers = featureArg.split(";")[2];
 
-        var pporbits="";
-        var ppinstruments="";
-        for(var i=0;i<orbits.length;i++){
+        let pporbits="";
+        let ppinstruments="";
+        for(let i = 0; i < orbits.length; i++){
             if(orbits[i].length===0){
                 continue;
             }
             if(i>0){pporbits = pporbits + ",";}
             pporbits = pporbits + this.index2DisplayName(orbits[i], "orbit");
         }
-        for(var i=0;i<instruments.length;i++){
+        for(let i = 0; i < instruments.length; i++){
             if(instruments[i].length===0){
                 continue;
             }
-            if(i>0){ppinstruments = ppinstruments + ", ";}
+            if(i > 0){
+                ppinstruments = ppinstruments + ", ";
+            }
             ppinstruments = ppinstruments + this.index2DisplayName(instruments[i], "instrument");
         }
 
