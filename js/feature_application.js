@@ -1,3 +1,4 @@
+var temp;
 
 class FeatureApplication{
 
@@ -27,7 +28,6 @@ class FeatureApplication{
         this.margin = {left:70,right:20,top:10,bottom:20},
         this.width = 2400 - this.margin.left - this.margin.right,
         this.height = 1040 - this.margin.top - this.margin.bottom;
-
 
         this.draggingNode = null;
         this.selectedNode = null;
@@ -208,37 +208,14 @@ class FeatureApplication{
         
         // Transition nodes to their new position.
         let nodeUpdate = nodeEnter.merge(node);
-        
+
+        temp = nodeUpdate;
+
+        this.adjust_vertical_location();
+
         nodeUpdate.transition()
             .duration(duration)
             .attr("transform", (d) => { 
-
-                if(d.parent){         
-                    if(d.verticalOffset){
-                        // pass
-
-                    }else{
-                        // Adjust the vertical location of each node so that it doesn't overlap with other nodes
-                        let offset = 28;
-                        let sibling = d.parent.children;
-                        let depth = d.depth;
-
-                        if(sibling.length % 2 === 1 && depth % 2 === 0){
-                            // When the number of children is odd, add offset to the vertical position
-                            let index = sibling.indexOf(d);
-                            let mid = (sibling.length - 1) / 2;
-                            if(index === mid){
-                                // Do nothing, as this one is in the middle
-                            }else if(index < mid){
-                                d.x = d.x - offset;
-                            }else{
-                                d.x = d.x + offset;
-                            }
-
-                            d.verticalOffset = true;
-                        }
-                    }
-                }
                 return "translate(" + d.y+ "," + d.x + ")";  
             })
             .style('opacity', 1.0);
@@ -495,6 +472,95 @@ class FeatureApplication{
 
             this.dragStarted = false;
             this.draggingNode = null;
+        }
+    }
+
+    adjust_vertical_location(){
+
+        let offset = 33;
+
+        let that = this;
+
+        function get_nodes_given_depth(depth){
+            let nodes = d3.selectAll(".treeNode").nodes().filter((d) => {
+                if(d.__data__.data.type === "leaf"){
+                    if(d.__data__.depth === depth){
+                        return true;
+                    }else{
+                        return false;
+                    }
+                }
+                return false;
+            });
+            return nodes;
+        }
+
+        function get_vertical_location_of_nodes(nodes){
+            let vertical_loc = [];
+            nodes.forEach((d)=>{
+                vertical_loc.push(d.__data__.x);
+            });
+            return vertical_loc;
+        }
+
+        let nodes_vertical_loc_cumulated = get_vertical_location_of_nodes(get_nodes_given_depth(1));
+        let depth = 2;
+        let nodes = get_nodes_given_depth(depth);
+
+        while(nodes.length !== 0){
+
+            let vertical_loc_current_depth = [];
+
+            for(let i = 0; i < nodes.length; i++){
+                let node = nodes[i];
+                let vertical_loc = node.__data__.x;
+                let parent_vertical_loc = node.__data__.parent.x;
+
+                let minDiffIndex = 0;
+                let minDiff = 9999999999;
+                for(let j = 0; j < nodes_vertical_loc_cumulated.length; j++){
+                    let test = nodes_vertical_loc_cumulated[j];
+                    if(Math.abs(test - vertical_loc) < minDiff){
+                        minDiffIndex = j;
+                        minDiff = Math.abs(test - vertical_loc);
+                    }
+                }
+
+                if(minDiff < 10){
+                    let diff = vertical_loc - nodes_vertical_loc_cumulated[minDiffIndex];
+                    let positive_offset = false;
+
+                    if(Math.abs(diff) < 0.3){
+                        if(parent_vertical_loc - vertical_loc > 0){
+                            positive_offset = true;
+                        }else{
+                            positive_offset = false;
+                        }
+                    }else if(diff > 0){
+                        positive_offset = true;
+                    }else{
+                        positive_offset = false;
+                    }
+
+                    if(vertical_loc_current_depth.length !== 0){
+                        let last_node_loc = vertical_loc_current_depth[vertical_loc_current_depth.length - 1];
+                        if(Math.abs(last_node_loc - vertical_loc) < 10){
+                            positive_offset = positive_offset === false;
+                        }
+                    }
+
+                    if(positive_offset){
+                        node.__data__.x = vertical_loc + offset;
+                    }else{
+                        node.__data__.x = vertical_loc - offset;
+                    }        
+                }
+                vertical_loc_current_depth.push(node.__data__.x);
+            }
+
+            nodes_vertical_loc_cumulated = nodes_vertical_loc_cumulated.concat(get_vertical_location_of_nodes(get_nodes_given_depth(depth)));
+            depth = depth + 1;
+            nodes = get_nodes_given_depth(depth);
         }
     }
 
