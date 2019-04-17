@@ -240,11 +240,11 @@ class EOSSAssigningLabel extends Label{
     
     pp_feature_single(expression){
         
-        var exp = expression;
+        let exp = expression;
         if(exp[0]==="{"){
             exp = exp.substring(1,exp.length-1);
         }
-        var featureName = exp.split("[")[0];
+        let featureName = exp.split("[")[0];
 
         if(featureName==="paretoFront" || featureName==='FeatureToBeAdded' || featureName==='AND' || featureName==='OR'){
             return exp;

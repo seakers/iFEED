@@ -290,10 +290,10 @@ class FeatureApplication{
 
         d3.selectAll('.nodeRange')
             .attr('pointer-events','mouseover')
-            .on('mouseover',function(d){
+            .on('mouseover', function(d){
                 that.selectedNode = that.select_treeNode_by_id(d.id).node().__data__;
             })
-            .on('mouseout',function(d){
+            .on('mouseout', function(d){
                 that.selectedNode = null;
             });
 
@@ -377,7 +377,7 @@ class FeatureApplication{
             .on('contextmenu', (d) => { 
             
                 d3.event.preventDefault();
-                var context = d.type;
+                let context = d.type;
                 let mouse_pos = d3.mouse(d3.select("#feature_application_panel").select('svg').select('g').node());
                 let mouseX = mouse_pos[0]; 
                 let mouseY = mouse_pos[1];                       
@@ -408,6 +408,11 @@ class FeatureApplication{
 
         let id = d.id;
 
+        // Hide all descendant nodes and links
+        if(d.data.type !== "leaf"){
+            this.remove_descendants(id);
+        }
+
         // Remove the link to the parent node
         d3.selectAll('.treeLink').filter((d) => {
             if(d.id === id){
@@ -432,30 +437,19 @@ class FeatureApplication{
         }).style('opacity',0.2);
 
         this.select_treeNode_by_id(id).attr('pointer-events','none');
-
-        if(d.data.type === "leaf"){
-            return;
-        }else{
-            // Hide all descendant nodes and links
-            this.remove_descendants(id);
-        }
     }
 
     drag(d){
         if(this.dragStarted){    
-
 	        let mouse_pos = d3.mouse(d3.select("#feature_application_panel").select('svg').select('g').node());
 	        let mouseX = mouse_pos[0]; 
 	        let mouseY = mouse_pos[1];        
-
             this.select_treeNode_by_id(d.id).attr("transform","translate("+ mouseX + "," + mouseY + ")");
-            this.updateTempConnector(d.id, mouseX, mouseY);            
+            this.updateTempConnector(d.id, mouseX, mouseY);          
         }
-
     }
 
     dragEnd(d){
-
         if(this.dragStarted){
             this.select_treeNode_by_id(d.id).attr('pointer-events','');
 
@@ -486,6 +480,11 @@ class FeatureApplication{
                 }
             }else{
                 // No node selected (all nodes go back to the previous positions)
+                d3.selectAll('.nodeRange')
+                    .on('mouseover', function(d){
+                        that.selectedNode = that.select_treeNode_by_id(d.id).node().__data__;
+                    })
+                    .attr('r',40);
             }
 
             this.update();
@@ -905,7 +904,7 @@ class FeatureApplication{
         })
         .style('opacity', 0);
 
-        d3.selectAll('.treeNode').filter((d) => {
+        let descendantNodes = d3.selectAll('.treeNode').filter((d) => {
             if(d.id === nodeID){
                 return false;
             }else if(descendantNodesID.indexOf(d.id) != -1){
@@ -913,9 +912,16 @@ class FeatureApplication{
             }else{
                 return false;
             }
-        })
-        .attr('transform','translate('+ parentNode.y + "," + parentNode.x + ")")
-        .style('opacity', 0);
+        });
+
+        descendantNodes
+            .attr('transform','translate('+ parentNode.y + "," + parentNode.x + ")")
+            .style('opacity', 0);
+
+        descendantNodes
+            .select('.nodeRange')
+            .on('mouseover', null)
+            .attr('r',0);
     }
 
     construct_node(self, depth, type, name, children, parent){
@@ -1170,8 +1176,7 @@ class FeatureApplication{
         	.append("path")
             .attr("class", "tempTreeLink")
             .attr('d', (d) => {
-                let o = null;
-                o = {x: that.selectedNode.x0, y: that.selectedNode.y0};
+                let o = {x: that.selectedNode.x0, y: that.selectedNode.y0};
                 return that.diagonal(d, o);
             })
             .attr('pointer-events', 'none')
