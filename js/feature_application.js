@@ -481,14 +481,18 @@ class FeatureApplication{
 
         let that = this;
 
-        function get_nodes_given_depth(depth){
+        function get_nodes_given_depth(depth, includeLeafNodesOnly){
             let nodes = d3.selectAll(".treeNode").nodes().filter((d) => {
-                if(d.__data__.data.type === "leaf"){
-                    if(d.__data__.depth === depth){
-                        return true;
-                    }else{
+                if(includeLeafNodesOnly){
+                    if(d.__data__.data.type !== "leaf"){
                         return false;
                     }
+                }
+
+                if(d.__data__.depth === depth){
+                    return true;
+                }else{
+                    return false;
                 }
                 return false;
             });
@@ -503,7 +507,7 @@ class FeatureApplication{
             return vertical_loc;
         }
 
-        let nodes_vertical_loc_cumulated = get_vertical_location_of_nodes(get_nodes_given_depth(1));
+        let nodes_vertical_loc_cumulated = get_vertical_location_of_nodes(get_nodes_given_depth(1, true));
         let depth = 2;
         let nodes = get_nodes_given_depth(depth);
 
@@ -544,7 +548,13 @@ class FeatureApplication{
 
                     if(vertical_loc_current_depth.length !== 0){
                         let last_node_loc = vertical_loc_current_depth[vertical_loc_current_depth.length - 1];
-                        if(Math.abs(last_node_loc - vertical_loc) < 10){
+                        let temp_loc;
+                        if(positive_offset){
+                            temp_loc = vertical_loc + offset;
+                        }else{
+                            temp_loc = vertical_loc - offset;
+                        }  
+                        if(Math.abs(last_node_loc - temp_loc) < 10){
                             positive_offset = positive_offset === false;
                         }
                     }
@@ -555,10 +565,13 @@ class FeatureApplication{
                         node.__data__.x = vertical_loc - offset;
                     }        
                 }
+
                 vertical_loc_current_depth.push(node.__data__.x);
+                if(node.__data__.data.type === "leaf"){
+                    nodes_vertical_loc_cumulated.push(node.__data__.x);
+                }   
             }
 
-            nodes_vertical_loc_cumulated = nodes_vertical_loc_cumulated.concat(get_vertical_location_of_nodes(get_nodes_given_depth(depth)));
             depth = depth + 1;
             nodes = get_nodes_given_depth(depth);
         }

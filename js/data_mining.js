@@ -1372,8 +1372,6 @@ class DataMining{
                 if(that.metadata.problem === "ClimateCentric"){
                     let concept_hierarchy = that.get_problem_concept_hierarchy();
 
-                    console.log(data);
-
                     concept_hierarchy["params"] = data;
                     PubSub.publish(PROBLEM_CONCEPT_HIERARCHY_LOADED, concept_hierarchy);
                 }
@@ -1390,7 +1388,6 @@ class DataMining{
         let that = this;
         let instance_map = null;
         let superclass_map = null;
-
         $.ajax({
             url: "/api/data-mining/get-problem-concept-hierarchy",
             type: "POST",
@@ -1401,7 +1398,6 @@ class DataMining{
             async: false,
             success: function (data, textStatus, jqXHR)
             {
-
                 // If the problem is "ClimateCentric"
                 if(that.metadata.problem === "ClimateCentric"){
                     instance_map = data.instanceMap;
@@ -1411,29 +1407,22 @@ class DataMining{
                     if(Object.keys(instance_map).length == 0){
 
                         // For each superclass
-                        for (let key in superclass_map) {
-                            if (superclass_map.hasOwnProperty(key)) {
+                        for (let var_name in superclass_map) {
+                            if (superclass_map.hasOwnProperty(var_name)) {
 
-                                // Separate class name and instance name
-                                let class_name = key.substring(0, key.indexOf('_'));
-                                let instance_name = key.substring(key.indexOf('_') + 1);
-
-                                let list_of_superclasses = superclass_map[key];
+                                let list_of_superclasses = superclass_map[var_name];
                                 for(let i = 0; i < list_of_superclasses.length; i++){
 
                                     let superclass_name = list_of_superclasses[i];
                                     if(!instance_map.hasOwnProperty(superclass_name)){
                                         instance_map[superclass_name] = [];
                                     }
-
                                     // Add each instance to super classes
-                                    instance_map[superclass_name].push(instance_name);
+                                    instance_map[superclass_name].push(var_name);
                                 }
                             }
                         }
                     }
-                    console.log(instance_map);
-                    console.log(superclass_map);
 
                 }else{
                     alert("Unsupported problem formulation: " + that.metadata.problem);
