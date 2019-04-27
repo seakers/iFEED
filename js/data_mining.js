@@ -223,7 +223,10 @@ class DataMining{
                 }
             }
 
-            if(this.all_features.length === 0){ // If there is no driving feature returned
+            if(this.all_features === null){
+                return;
+
+            } else if(this.all_features.length === 0){ // If there is no driving feature returned
                 return;
 
             }else{
@@ -245,7 +248,7 @@ class DataMining{
         $.ajax({
             url: "/api/data-mining/get-driving-features-with-generalization",
             type: "POST",
-            data: {ID: "get_driving_features",
+            data: {
                     problem: this.metadata.problem,  // eoss or gnc
                     input_type: this.metadata.input_type, // Binary or Discrete
                     selected: JSON.stringify(selected),
@@ -275,7 +278,7 @@ class DataMining{
         $.ajax({
             url: "/api/data-mining/get-driving-features-epsilon-moea",
             type: "POST",
-            data: {ID: "get_driving_features",
+            data: {
                     problem: this.metadata.problem,  // eoss or gnc
                     input_type: this.metadata.input_type, // Binary or Discrete
                     selected: JSON.stringify(selected),
@@ -296,13 +299,12 @@ class DataMining{
         return output;
     }
 
-    get_driving_features(selected,non_selected,support_threshold,confidence_threshold,lift_threshold){
-
+    get_driving_features(selected, non_selected, support_threshold, confidence_threshold, lift_threshold){
         let output;
         $.ajax({
             url: "/api/data-mining/get-driving-features",
             type: "POST",
-            data: {ID: "get_driving_features",
+            data: {
                     problem: this.metadata.problem,  // eoss or gnc
                     input_type: this.metadata.input_type, // Binary or Discrete
                     selected: JSON.stringify(selected),
@@ -320,9 +322,10 @@ class DataMining{
                 output = data;
             },
             error: function (jqXHR, textStatus, errorThrown)
-            {alert("error");}
+            {
+                alert("Error in extracting driving features");
+            }
         });
-
         return output;
     }
 

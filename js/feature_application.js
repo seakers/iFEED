@@ -8,6 +8,7 @@ class FeatureApplication{
         this.label = labelingScheme;
         this.data_mining = DataMiningScheme;
 
+        this.metadata = null;
         this.data = [];
         
         this.color = {"default":"#616161",
@@ -50,6 +51,10 @@ class FeatureApplication{
 //        });
 //        self.update(); 
 //    }); 
+
+        PubSub.subscribe(DESIGN_PROBLEM_LOADED, (msg, data) => {
+            this.metadata = data.metadata;
+        }); 
     
         PubSub.subscribe(INITIALIZE_FEATURE_APPLICATION, (msg, data) => {
             this.clear_feature_application()
@@ -98,12 +103,57 @@ class FeatureApplication{
 
         this.i = 0;
         this.data = this.construct_tree(this, expression);  
-                                
+        
         this.visit_nodes(this.data, (d) => {
             d.temp = true;
         });
 
         this.update();  
+    }
+
+    sort_feature_types(root){
+
+        if(root.children === null){
+            return;
+        }
+
+        let branches = [];
+        let nodes_of_same_feature_type = {};
+        for(let i = 0; i < root.children.length; i++){
+            let node = root.children[i];
+
+            if(node.type === "logic"){
+                branches.push(node);
+                continue;
+            }
+
+            let type = this.label.pp_feature_type(node.name);
+            if(!(type in nodes_of_same_feature_type)){
+                nodes_of_same_feature_type[type] = [];
+            }
+            nodes_of_same_feature_type[type].push(node);
+        }
+
+        let sorted_nodes = [];
+        // Iterate over each feature type
+        for (let type in nodes_of_same_feature_type) {
+            if (nodes_of_same_feature_type.hasOwnProperty(type)) {  
+                for(let i = 0; i < root.children.length; i++){
+                    let node = root.children[i];
+                    if(node.type === "logic"){
+                        continue;
+                    }
+                    if(this.label.pp_feature_type(node.name) === type){
+                        sorted_nodes.push(node);
+                    }
+                }
+            }
+        }
+        root.children = sorted_nodes.concat(branches);
+
+        for(let i = 0; i < branches.length; i++){
+            this.sort_feature_types(branches[i]);
+        }
     }
 
     update(featureMargin){
@@ -477,8 +527,6 @@ class FeatureApplication{
 
     adjust_vertical_location(){
 
-        let offset = 33;
-
         let that = this;
 
         function get_nodes_given_depth(depth, includeLeafNodesOnly){
@@ -507,9 +555,67 @@ class FeatureApplication{
             return vertical_loc;
         }
 
+        let nodes_at_depth_1 = get_nodes_given_depth(1, true);
+        let nodes_of_same_feature_type = {};
+
+        nodes_at_depth_1.forEach((d) => {
+            let type = that.label.pp_feature_type(d.__data__.data.name);
+            if(!(type in nodes_of_same_feature_type)){
+                nodes_of_same_feature_type[type] = [];
+            }
+            nodes_of_same_feature_type[type].push(d);
+        });
+
+        let vertical_offset = 40;
+
+        // Iterate over each feature type
+        for (let type in nodes_of_same_feature_type) {
+            if (nodes_of_same_feature_type.hasOwnProperty(type)) {  
+
+                let nodes = nodes_of_same_feature_type[type];
+                let numNodes = nodes.length;
+
+                if(numNodes < 2){
+                    continue;
+                }
+
+                let evenNum = false;
+                let midPoint = null;
+
+                if(numNodes % 2 === 0){
+                    evenNum = true;
+                    let index1 = numNodes / 2 - 1;
+                    let index2 = numNodes / 2;
+                    midPoint = (nodes[index1].__data__.x + nodes[index2].__data__.x) / 2;
+                }else{
+                    evenNum = false;
+                    let index = Math.floor(numNodes / 2);
+                    midPoint = nodes[index].__data__.x;
+                }
+
+                for(let i = 0; i < Math.floor(numNodes / 2); i++){
+                    nodes[i].__data__.x = midPoint - vertical_offset * (Math.floor(numNodes / 2) - i);
+                }
+
+                for(let i = Math.ceil(numNodes / 2); i < numNodes; i++){
+                    if(evenNum){
+                        if(i === Math.ceil(numNodes / 2)){
+                            nodes[i].__data__.x = midPoint;
+                        }else{
+                            nodes[i].__data__.x = midPoint + vertical_offset * (i - Math.ceil(numNodes / 2));
+                        }
+                    }else{
+                        nodes[i].__data__.x = midPoint + vertical_offset * (i - Math.ceil(numNodes / 2) + 1);
+                    }
+                }
+            }
+        }
+
         let nodes_vertical_loc_cumulated = get_vertical_location_of_nodes(get_nodes_given_depth(1, true));
         let depth = 2;
         let nodes = get_nodes_given_depth(depth);
+
+        let offset = 33;
 
         while(nodes.length !== 0){
 
@@ -554,7 +660,7 @@ class FeatureApplication{
                         }else{
                             temp_loc = vertical_loc - offset;
                         }  
-                        if(Math.abs(last_node_loc - temp_loc) < 10){
+                        if(Math.abs(last_node_loc - temp_loc) < 1){
                             positive_offset = positive_offset === false;
                         }
                     }
@@ -744,7 +850,8 @@ class FeatureApplication{
         this.visit_nodes(this.data, remove_redundant_features); 
 
         this.visit_nodes(this.data, update_parent_info);
-        this.visit_nodes(this.data, update_depth_info);        
+        this.visit_nodes(this.data, update_depth_info);     
+        this.sort_feature_types(this.data);   
     }
 
  
@@ -1357,6 +1464,31 @@ class FeatureApplication{
                 console.log(data);
                 CNF_expression = data;
                 that.update_feature_application("direct-update", CNF_expression);
+            },
+            error: function (jqXHR, textStatus, errorThrown)
+            {alert("error");}
+        });
+    }
+
+    simplify_feature(){
+
+        let feature = this.parse_tree(this.data);
+        let simplified_feature = "";
+        let that = this;
+
+        $.ajax({
+            url: "/api/data-mining/simplify-feature-expression",
+            type: "POST",
+            data: {
+                    problem: that.metadata.problem,
+                    expression: feature,
+                  },
+            async: false,
+            success: function (data, textStatus, jqXHR)
+            {
+                console.log(data);
+                simplified_feature = data;
+                that.update_feature_application("direct-update", simplified_feature);
             },
             error: function (jqXHR, textStatus, errorThrown)
             {alert("error");}

@@ -69,8 +69,12 @@ class EOSSAssigningFilter extends Filter{
                     instance_indices.push(reference_list.indexOf(instance_name));
                 }
 
-                let class_index = reference_list.indexOf(class_name);
-                this.instance_index_map[class_type][class_index] = instance_indices;
+                if(reference_list === null){
+                    continue;
+                }else{
+                    let class_index = reference_list.indexOf(class_name);
+                    this.instance_index_map[class_type][class_index] = instance_indices;
+                }
             }
         });
 

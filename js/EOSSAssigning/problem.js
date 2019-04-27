@@ -12,7 +12,9 @@ class EOSSAssigning extends Problem{
             output_list: ['Science','Cost'],
             output_num: 2,
             output_obj: [1, -1], // 1 for lager-is-better, -1 for smaller-is-better
-            file_path: "EOSS_data_recalculated.csv",
+            // file_path: "EOSS_data_recalculated.csv",
+            // file_path: "ClimateCentric.csv",
+            file_path: "ClimateCentricCombinedData.csv",
             problem_specific_params: null
         };
 
@@ -349,7 +351,6 @@ class EOSSAssigning extends Problem{
                                 });
         }                       
     }
-    
     
     update_current_architecture(){
         
