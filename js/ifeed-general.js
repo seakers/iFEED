@@ -23,13 +23,15 @@ const FEATURE_APPLICATION_LOADED = "feature_application_loaded";
 // Update feature application (pub: filter.js, sub: feature_application.js)
 const UPDATE_FEATURE_APPLICATION = "update_feature_application";
 // Add feature to the feature space plot (pub: feature_application.js, sub: data_mining.js)
-const ADD_FEATURE = "add_feature";
+const ADD_FEATURE_FROM_EXPRESSION = "add_feature_from_expression";
 // Initialize feature application (pub: data_mining.js, sub: feature_application.js)
 const INITIALIZE_FEATURE_APPLICATION = "initialize_feature_application";
 
 const PROBLEM_CONCEPT_HIERARCHY_LOADED = "problem_concept_hierarhcy_loaded";
 
 const GENERALIZE_FEATURE = "generalize_feature";
+
+const REMOVE_FEATURE_CURSOR = "remove_feature_cursor";
 
 
 

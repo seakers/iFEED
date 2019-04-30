@@ -7,9 +7,7 @@ class FeatureApplication{
         this.filter = filteringScheme;
         this.label = labelingScheme;
         this.data_mining = DataMiningScheme;
-
         this.metadata = null;
-        this.data = [];
         
         this.color = {"default":"#616161",
                      "logic":"#2383FF",
@@ -39,18 +37,6 @@ class FeatureApplication{
 	        .on('start', (d) => { this.dragStart(d); })
 	        .on('drag', (d) => { this.drag(d); })
 	        .on('end', (d) => { this.dragEnd(d); });
-
-//    PubSub.subscribe(CANCEL_ADD_FEATURE, (msg, data) => {
-//        
-//        self.visit_nodes(self.root, function(d){
-//            // Find the node to which to add new features
-//            if(d.add){
-//                d.add=false;
-//                return d;
-//            }     
-//        });
-//        self.update(); 
-//    }); 
 
         PubSub.subscribe(DESIGN_PROBLEM_LOADED, (msg, data) => {
             this.metadata = data.metadata;
@@ -516,9 +502,7 @@ class FeatureApplication{
 
             this.update();
             
-            PubSub.publish(ADD_FEATURE, this.parse_tree(this.data));
-            //this.update_feature_expression(this.parse_tree(this.data));            
-            //ifeed.data_mining.draw_venn_diagram();  
+            PubSub.publish(ADD_FEATURE_FROM_EXPRESSION, this.parse_tree(this.data));
 
             this.dragStarted = false;
             this.draggingNode = null;
@@ -889,8 +873,9 @@ class FeatureApplication{
     }
     
     update_feature_application(option, expression){
+        let that = this;
         
-        var get_node_to_add_features = function(d){
+        let get_node_to_add_features = function(d){
             // Find the node to which to add new features
             if(d.add){
                 return d;
@@ -901,13 +886,11 @@ class FeatureApplication{
 
         let direct_update = false;
         
-        if(option=='direct-update'){ // Make the direct update to the feature application status
-            option='temp';
+        if(option === 'direct-update'){ // Make the direct update to the feature application status
+            option = 'temp';
             direct_update = true;
         }
-        
-        let that = this;
-                
+           
         if(option === 'temp'){
             // Mouseover on the feature plot
 
@@ -954,9 +937,7 @@ class FeatureApplication{
                 this.draw_feature_application_tree(expression)
             }
             
-            
             if(direct_update){ // Make a direct update to the feature application status; not temporary
-
                 // Remove the stashed information                
                 this.stashed_node_ids = null;
                 this.stashed_root = null;    
@@ -964,11 +945,7 @@ class FeatureApplication{
                 this.visit_nodes(this.data, (d) => {
                     d.temp = false;
                 })
-
-                this.update();
-                
-                PubSub.publish(ADD_FEATURE, this.parse_tree(this.data));
-                //PubSub.publish(CANCEL_ADD_FEATURE, null);
+                this.update();                
             }
             
 
@@ -1025,24 +1002,17 @@ class FeatureApplication{
             }
 
             this.update();
-
             this.stashed_root = null;
             this.stashed_node_ids=null;
 
 
-        }else if(option=='update'){
-
+        } else if(option === 'update'){
             this.stashed_node_ids = null;
             this.stashed_root = null;
             this.visit_nodes(this.data, (d) => {
                 d.temp = false;
-            })
-            
-            PubSub.publish(ADD_FEATURE, this.parse_tree(this.data));
-            //PubSub.publish(CANCEL_ADD_FEATURE, null);
+            })            
         }
-        //this.update_feature_expression(this.parse_tree(this.data));
-        //ifeed.data_mining.draw_venn_diagram();   
     }
     
     get_node_ids(source,IDList){
@@ -1412,8 +1382,7 @@ class FeatureApplication{
         this.data = null;
         this.update();
         this.update_feature_expression(null);
-        
-        PubSub.publish(ADD_FEATURE, null);
+        PubSub.publish(REMOVE_FEATURE_CURSOR, null);
     }
     
     diagonal(s, d) {
