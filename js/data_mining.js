@@ -414,7 +414,7 @@ class DataMining{
                 let tempFeatures = [];
                 for(let i = 0; i < extractedFeatures.length; i++){
                     let thisFeature = extractedFeatures[i];
-                    if(precision - thisFeature.metrics[2] > 0.05 || recall - thisFeature.metrics[3] > 0.05){
+                    if(precision - thisFeature.metrics[2] > 0.01 || recall - thisFeature.metrics[3] > 0.01){
                         continue;
                     }else{
                         tempFeatures.push(thisFeature);
@@ -437,7 +437,9 @@ class DataMining{
                         bestFeature = tempFeatures[i];
                     }
                 }
-                that.show_generalization_suggestion(bestFeature.description, bestFeature);
+
+                that.add_new_features(tempFeatures, true);
+                // that.show_generalization_suggestion(bestFeature.description, bestFeature);
                 PubSub.publish(CANCEL_ADD_FEATURE, null); 
                 that.get_problem_parameters();
             },
@@ -530,26 +532,28 @@ class DataMining{
         }
 
         let featuresToAdd = [];
-        let featuresToRemove = [];
+        let featuresToRemove = {};
         for(let i = 0; i < features.length; i++){
-
             let thisFeature = features[i];
 
             // Check if there exists a feature whose metrics match with the current feature's metrics
             let matchedFeature = find_equivalent_feature(thisFeature.metrics,[2,3]);  
 
-            if(matchedFeature === null || replaceEquivalentFeature){                
+            if(matchedFeature === null || replaceEquivalentFeature || singleFeatureAdded){                
                 let featureCopy =  JSON.parse(JSON.stringify(thisFeature));
                 featureCopy.id = this.featureID++;
                 featuresToAdd.push(featureCopy);
+
+                if(matchedFeature !== null){
+                    featuresToRemove[featureCopy.id] = matchedFeature;
+                }
             }
         }
-
         document.getElementById('tab3').click();
             
         // Update the plot
         if(singleFeatureAdded){
-            this.update(featuresToAdd[0], null, featuresToAdd[0]);
+            this.update(featuresToAdd[0], featuresToRemove, featuresToAdd[0]);
         }else{
             this.update(featuresToAdd, null, this.currentFeature);
         }
@@ -620,11 +624,11 @@ class DataMining{
             }
 
             let new_feature = {id:-1, name:expression, expression:expression, metrics:metrics, x0:x, x:x, y0:y, y:y};
-            this.add_new_features(new_feature);
+            this.add_new_features(new_feature, true);
         }
     }
     
-    update(addedFeatures, removedFeatures, currentFeature){
+    update(featuresToBeAdded, mapFeaturesToBeRemoved, currentFeature){
         let that = this;
 
         // Set variables
@@ -637,7 +641,7 @@ class DataMining{
         let yIndex = 3;
 
         // If there is no feature to display, return
-        if(this.allFeatures.length === 0 && addedFeatures === null){
+        if(this.allFeatures.length === 0 && featuresToBeAdded === null){
             return;
         }
 
@@ -675,20 +679,75 @@ class DataMining{
             this.allFeatures[i].y0 = this.allFeatures[i].y;
         }
 
+        if(mapFeaturesToBeRemoved){
+            if(typeof(mapFeaturesToBeRemoved) === "object"){
+                if(Object.keys(mapFeaturesToBeRemoved).length !== 0){ // check whether the key is not empty
+                    for(let id in mapFeaturesToBeRemoved){
+                        // Take the feature to be added from the featuresToBeAdded list
+                        let addedFeature, featureIndex, removedFeature;
+
+                        if(featuresToBeAdded.constructor === Array){
+                            for(let i = 0; i < featuresToBeAdded.length; i++){
+                                if(featuresToBeAdded[i].id === id){
+                                    featureIndex = i;
+                                    break;
+                                }
+                            }
+                            addedFeature = featuresToBeAdded.splice(featureIndex, 1);
+                        }else{
+                            addedFeature = featuresToBeAdded;
+                            featuresToBeAdded = null;
+                        }
+
+                        // Find the index of the feature to be removed
+                        for(let i = 0; i < this.allFeatures.length; i++){
+                            if(this.allFeatures[i].id === mapFeaturesToBeRemoved[id].id){
+                                featureIndex = i;
+                                break;
+                            }
+                        }
+                        removedFeature = this.allFeatures[featureIndex];
+
+                        // Copy information from the removed feature to the added feature
+                        addedFeature.id = removedFeature.id;
+                        addedFeature.x = removedFeature.x;
+                        addedFeature.y = removedFeature.y;
+                        addedFeature.x0 = removedFeature.x0;
+                        addedFeature.y0 = removedFeature.y0;
+
+                        // Replace the feature in allFeatures with the new one
+                        this.allFeatures.splice(featureIndex, 1, addedFeature);
+
+                        let node = d3.selectAll('.dot.feature_plot').filter((d) => {
+                            if(d.id === removedFeature.id){
+                                return true;
+                            } else{
+                                return false;
+                            }
+                        });
+                        node.node().__data__.expression = addedFeature.expression;
+                        node.node().__data__.name = addedFeature.name;
+                    }
+                }   
+            }else{
+                error();
+            }
+        }
+
         // Add new features
         let addedFeaturesID = [];
         let singleFeatureAdded = false;
-        if(addedFeatures){
-            if(addedFeatures.constructor === Array){
-                this.allFeatures = this.allFeatures.concat(addedFeatures);
-                for(let i = 0; i < addedFeatures.length; i++){
-                    addedFeaturesID.push(addedFeatures[i].id);
+        if(featuresToBeAdded){
+            if(featuresToBeAdded.constructor === Array){
+                this.allFeatures = this.allFeatures.concat(featuresToBeAdded);
+                for(let i = 0; i < featuresToBeAdded.length; i++){
+                    addedFeaturesID.push(featuresToBeAdded[i].id);
                 }
-            }else{
+            } else {
                 // A single feature is added manually
                 singleFeatureAdded = true;
-                this.allFeatures.push(addedFeatures);
-                addedFeaturesID.push(addedFeatures.id);
+                this.allFeatures.push(featuresToBeAdded);
+                addedFeaturesID.push(featuresToBeAdded.id);
             }
 
             // Rescale metrics
