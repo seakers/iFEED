@@ -186,17 +186,15 @@ class DataMining{
 
             // Check non-dominance against all existing features
             for(let i = 0; i < extractedFeatures.length; i++){
-
                 let thisFeature = extractedFeatures[i];
-
                 if(this.check_if_non_dominated(thisFeature, this.allFeatures)){
                     // non-dominated
                     let id = this.featureID++;
                     thisFeature.id = id;
                     featuresToAdd.push(thisFeature);
                 }
-            }     
-            this.update(featuresToAdd, null, null);
+            }
+            this.add_new_features(featuresToAdd, false);
             PubSub.publish(CANCEL_ADD_FEATURE, null);
                         
         } else { // Run data mining from the scratch (no local search)
@@ -506,7 +504,7 @@ class DataMining{
             // -> replace equivalent feature (?)
     // Cursor movement -> don't modify the recently-modified-features-mark
 
-    add_single_feature(feature, replaceEquivalentFeature){
+    add_new_features(features, replaceEquivalentFeature){
         let that = this;  
         function find_equivalent_feature(metrics, indices){
             for(let i = 0; i < that.allFeatures.length; i++){
@@ -525,20 +523,35 @@ class DataMining{
             return null;
         }
 
-        // Check if there exists a feature whose metrics match with the current feature's metrics
-        let matchedFeature = find_equivalent_feature(feature.metrics,[2,3]);       
+        let singleFeatureAdded = false;
+        if(features.constructor !== Array){
+            features = [features];
+            singleFeatureAdded = true;
+        }
 
-        if(matchedFeature === null || replaceEquivalentFeature){                
-            let newFeature =  JSON.parse(JSON.stringify(feature));
-            newFeature.id = this.featureID++;
+        let featuresToAdd = [];
+        let featuresToRemove = [];
+        for(let i = 0; i < features.length; i++){
 
-            // // Add new feature to the list of features
-            // this.allFeatures.push(new_feature);
+            let thisFeature = features[i];
 
-            document.getElementById('tab3').click();
-        
-            // Update the plot
-            this.update(newFeature, null, newFeature);
+            // Check if there exists a feature whose metrics match with the current feature's metrics
+            let matchedFeature = find_equivalent_feature(thisFeature.metrics,[2,3]);  
+
+            if(matchedFeature === null || replaceEquivalentFeature){                
+                let featureCopy =  JSON.parse(JSON.stringify(thisFeature));
+                featureCopy.id = this.featureID++;
+                featuresToAdd.push(featureCopy);
+            }
+        }
+
+        document.getElementById('tab3').click();
+            
+        // Update the plot
+        if(singleFeatureAdded){
+            this.update(featuresToAdd[0], null, featuresToAdd[0]);
+        }else{
+            this.update(featuresToAdd, null, this.currentFeature);
         }
     }
 
@@ -607,7 +620,7 @@ class DataMining{
             }
 
             let new_feature = {id:-1, name:expression, expression:expression, metrics:metrics, x0:x, x:x, y0:y, y:y};
-            this.add_single_feature(new_feature);
+            this.add_new_features(new_feature);
         }
     }
     
@@ -688,14 +701,16 @@ class DataMining{
 
             // Get the maximum values
             for (let i = 0; i < this.allFeatures.length; i++){
-                supps.push(this.allFeatures[i].metrics[0]);
-                lifts.push(this.allFeatures[i].metrics[1]);
-                conf1s.push(this.allFeatures[i].metrics[2]);
-                conf2s.push(this.allFeatures[i].metrics[3]);
+                let thisFeature = this.allFeatures[i];
+                supps.push(thisFeature.metrics[0]);
+                lifts.push(thisFeature.metrics[1]);
+                conf1s.push(thisFeature.metrics[2]);
+                conf2s.push(thisFeature.metrics[3]);
                 let score = 1-Math.sqrt(Math.pow(1-conf1s[i],2)+Math.pow(1-conf2s[i],2));
                 scores.push(score);
                 if(score > maxScore) maxScore = score;
             }
+
             let max_conf1 = Math.max.apply(null, conf1s);
             let max_conf2 = Math.max.apply(null, conf2s);
             let max_conf = Math.max(max_conf1, max_conf2);
@@ -826,11 +841,13 @@ class DataMining{
                     .enter()
                     .append('path')
                     .attr('class','point dot feature_plot')
-                    .attr("d", d3.symbol().type((d) => {return d3.symbolTriangle;}).size(120))
                     .attr("transform", function (d) {
                         return "translate(" + d.x0 + "," + d.y0 + ")";
                     })
                     .style("stroke-width",1);
+
+            d3.selectAll(".point.dot.feature_plot")
+                .attr("d", d3.symbol().type((d) => {return d3.symbolTriangle;}).size(120));
 
             // Modify the shape of all features that were added recently, to crosses
             if(!singleFeatureAdded){
@@ -1574,7 +1591,7 @@ class DataMining{
             progressBarColor: 'rgb(0, 255, 184)',
             buttons: [
                 ['<button style="'+ buttonsStyle +'"> Accept </button>', function (instance, toast) {
-                    that.add_single_feature(generalizedFeature, true);
+                    that.add_new_features(generalizedFeature, true);
                     that.feature_application.update_feature_application('direct-update', generalizedFeature.expression);
 
                     instance.hide({

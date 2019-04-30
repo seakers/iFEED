@@ -329,3 +329,9 @@ function EOSSSetInputInstrument(input, orbit, instrument){
     return input;
 }
 
+d3.selection.prototype.moveToFront = function() {
+  return this.each(function(){
+    this.parentNode.appendChild(this);
+  });
+};
+
