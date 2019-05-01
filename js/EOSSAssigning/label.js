@@ -27,7 +27,9 @@ class EOSSAssigningLabel extends Label{
         // this.orbit_relabeled = ["1","2","3","4","5"];
         // this.instrument_relabeled = ["A","B","C","D","E","F","G","H","I","J","K","L"];
 
-        this.feature_names = ["present","absent","inOrbit","notInOrbit","together","togetherInOrbit","separate","emptyOrbit","numOrbits","subsetOfInstruments"];
+        this.feature_names = ["present","absent","inOrbit","notInOrbit","together",
+                            "togetherInOrbit","separate","emptyOrbit","numOrbits",
+                            "subsetOfInstruments", "absentExceptInOrbit", "notInOrbitExceptInstrument", "notInOrbitExceptOrbit"];
         this.feature_relabeled = null;
         // this.feature_relabeled = ["present","absent","assignedTo","notAssignedTo","together","bothAssignedTo","notAssignedTogether","emptySlot","numSlots","AtLeastTwoItemsAssignedTo"];
 

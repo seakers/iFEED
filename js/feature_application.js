@@ -1,4 +1,3 @@
-var temp;
 
 class FeatureApplication{
 
@@ -244,9 +243,7 @@ class FeatureApplication{
         
         // Transition nodes to their new position.
         let nodeUpdate = nodeEnter.merge(node);
-
-        temp = nodeUpdate;
-
+        
         this.adjust_vertical_location();
 
         nodeUpdate.transition()
@@ -502,7 +499,7 @@ class FeatureApplication{
 
             this.update();
             
-            PubSub.publish(ADD_FEATURE_FROM_EXPRESSION, this.parse_tree(this.data));
+            PubSub.publish(ADD_FEATURE_FROM_EXPRESSION, {expression:this.parse_tree(this.data), replaceEquivalentFeature:true});
 
             this.dragStarted = false;
             this.draggingNode = null;
@@ -885,7 +882,7 @@ class FeatureApplication{
         }
 
         let direct_update = false;
-        
+
         if(option === 'direct-update'){ // Make the direct update to the feature application status
             option = 'temp';
             direct_update = true;
@@ -945,9 +942,9 @@ class FeatureApplication{
                 this.visit_nodes(this.data, (d) => {
                     d.temp = false;
                 })
-                this.update();                
+                this.update();   
+                PubSub.publish(ADD_FEATURE_FROM_EXPRESSION, {expression:expression, replaceEquivalentFeature:true});
             }
-            
 
         }else if(option=='restore'){
             // Restore the stashed tree
@@ -1011,7 +1008,8 @@ class FeatureApplication{
             this.stashed_root = null;
             this.visit_nodes(this.data, (d) => {
                 d.temp = false;
-            })            
+            })  
+            PubSub.publish(ADD_FEATURE_FROM_EXPRESSION, {expression:this.parse_tree(this.data), replaceEquivalentFeature:false});
         }
     }
     

@@ -418,7 +418,7 @@ class ContextMenu {
                 break;
         }    
 
-        feature_application.update();        
-        PubSub.publish(ADD_FEATURE_FROM_EXPRESSION, feature_application.parse_tree(root));        
+        feature_application.update();   
+        PubSub.publish(ADD_FEATURE_FROM_EXPRESSION, {expression:feature_application.parse_tree(root), replaceEquivalentFeature:true});       
     }
 }

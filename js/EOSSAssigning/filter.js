@@ -17,6 +17,9 @@ class EOSSAssigningFilter extends Filter{
                                {value:"numOrbits",text:"Number of orbit used",input:"numOrbits",hints:"Designs that have the specified number of non-empty orbits are chosen"},
                                {value:"numInstruments",text:"Number of instruments",input:"numInstruments",hints:"This highlights all the designs with the specified number of instruments. If you specify an orbit name, it will count all instruments in that orbit. If you can also specify an instrument name, and only those instruments will be counted across all orbits. If you leave both instruments and orbits blank, all instruments across all orbits will be counted."},
                                {value:"subsetOfInstruments",text:"Num of instruments in a subset",input:"subsetOfInstruments",hints:"The specified orbit should contain at least m number and at maximum M number of instruments from the specified instrument set. m is the first entry and M is the second entry in the second field"},
+                               {value:"absentExceptInOrbit",text:"absentExceptInOrbit",input:"numOrbits",hints:"Designs that have the specified number of non-empty orbits are chosen"},
+                               {value:"notInOrbitExceptInstrument",text:"notInOrbitExceptInstrument",input:"numInstruments",hints:"This highlights all the designs with the specified number of instruments. If you specify an orbit name, it will count all instruments in that orbit. If you can also specify an instrument name, and only those instruments will be counted across all orbits. If you leave both instruments and orbits blank, all instruments across all orbits will be counted."},
+                               {value:"notInOrbitExceptOrbit",text:"notInOrbitExceptOrbit",input:"subsetOfInstruments",hints:"The specified orbit should contain at least m number and at maximum M number of instruments from the specified instrument set. m is the first entry and M is the second entry in the second field"},
                             ];  
 
         for (let i = 0; i < presetFeaturesInfo.length; i++){
@@ -109,6 +112,13 @@ class EOSSAssigningFilter extends Filter{
                     return that.numInstruments;
                 case "subsetOfInstruments":
                     return that.subsetOfInstruments;
+                case "absentExceptInOrbit":
+                    return that.absentExceptInOrbit;
+                case "notInOrbitExceptInstrument":
+                    return that.notInOrbitExceptInstrument;
+                case "notInOrbitExceptOrbit":
+                    return that.notInOrbitExceptOrbit;
+
                 default:
                     return null;
             }
@@ -705,6 +715,124 @@ class EOSSAssigningFilter extends Filter{
                         }
                     } 
                 }  
+            }
+            return out;
+        }
+
+        this.absentExceptInOrbit = (args, inputs) => {
+            validInputCheck(args);
+
+            let orbits = args[0];
+            let instrument = args[1][0];
+            let out = true;
+            let instantiated_args = Array.from(args);
+
+            if(instrument >= this.ninstr){
+                let instrument_instance_list = this.instance_index_map["instrument"][instrument];
+                for(let i = 0; i < instrument_instance_list.length; i++){
+                    instantiated_args[1][0] = instrument_instance_list[i];
+                    if(!this.absentExceptInOrbit(instantiated_args, inputs)){
+                        out = false;
+                        break;
+                    }
+                }
+
+            } else{     
+                out = true;
+                let allowedOrbits = [];
+                for(let i = 0; i < orbits.length; i++){
+                    let orbit = orbits[i];
+                    allowedOrbits.push(orbit);
+                    if(orbit >= this.norb){
+                        let instance_list = this.instance_index_map["orbit"][orbit];
+                        allowedOrbits = allowedOrbits.concat(instance_list);
+                    }
+                }
+                
+                for(let o = 0; o < this.norb; o++){
+                    if(allowedOrbits.indexOf(o) !== -1){
+                        continue;
+                    }else{
+                        if(inputs[o * this.ninstr + instrument] === true){
+                            out = false;
+                            break;
+                        }
+                    }
+                }
+            }  
+            return out;
+        }
+
+        this.notInOrbitExceptInstrument = (args, inputs) => {
+            validInputCheck(args);
+
+            let orbit = args[0][0];
+            let instrumentClass = args[1][0];
+            let instrumentException = args[1][1];
+            let out = true;
+            let instantiated_args = Array.from(args);
+
+            if(orbit >= this.norb){
+                let instance_list = this.instance_index_map["orbit"][orbit];
+                for(let i = 0; i < instance_list.length; i++){
+                    instantiated_args[0][0] = instance_list[i];
+                    if(!this.notInOrbitExceptInstrument(instantiated_args, inputs)){
+                        out = false;
+                        break;
+                    }
+                }
+            } else {
+                out = true;
+                let instrument_instance_list = this.instance_index_map["instrument"][instrumentClass];
+                for(let i = 0; i < instrument_instance_list.length; i++){
+                    let instrIndex = instrument_instance_list[i];
+                    if(instrIndex === instrumentException){
+                        continue;
+                    }else{
+                        if(inputs[orbit * this.ninstr + instrIndex] === true){
+                            out = false;
+                            break;
+                        }
+                    }
+                }
+                 
+            }
+            return out;
+        }
+
+        this.notInOrbitExceptOrbit = (args, inputs) => {
+            validInputCheck(args);
+
+            let orbitClass = args[0][0];
+            let orbitException = args[0][1];
+            let instrument = args[1][0];
+            let out = true;
+            let instantiated_args = Array.from(args);
+
+            if(instrument >= this.ninstr){
+                let instance_list = this.instance_index_map["instrument"][instrument];
+                for(let i = 0; i < instance_list.length; i++){
+                    instantiated_args[1][0] = instance_list[i];
+                    if(!this.notInOrbitExceptOrbit(instantiated_args, inputs)){
+                        out = false;
+                        break;
+                    }
+                }
+            } else {
+                out = true;
+                let orbit_instance_list = this.instance_index_map["orbit"][orbitClass];
+                for(let i = 0; i < orbit_instance_list.length; i++){
+                    let orbitIndex = orbit_instance_list[i];
+                    if(orbitIndex === orbitException){
+                        continue;
+                    }else{
+                        if(inputs[orbitIndex * this.ninstr + instrument] === true){
+                            out = false;
+                            break;
+                        }
+                    }
+                }
+                 
             }
             return out;
         }
