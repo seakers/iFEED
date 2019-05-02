@@ -192,8 +192,14 @@ class FeatureApplication{
 
         // Normalize for fixed-depth.
         nodes.forEach(function(d) { 
-            if(d.depth === 1){
-                d.y = 130;
+            if(d.depth === 0){
+                if(d.data.name === "IF_THEN"){
+                    d.y = 60;
+                }else{
+                    d.y = 0;
+                }
+            }else if(d.depth === 1){
+                d.y = 150;
             }else{
                 d.y = d.depth * featureMargin;
             }
@@ -243,7 +249,7 @@ class FeatureApplication{
         
         // Transition nodes to their new position.
         let nodeUpdate = nodeEnter.merge(node);
-        
+
         this.adjust_vertical_location();
 
         nodeUpdate.transition()
@@ -297,6 +303,14 @@ class FeatureApplication{
             })
             .style("font-size",23)
             .style("fill-opacity", 1);  
+
+        nodeUpdate.filter((d) => {
+            if(d.data.name === "IF_THEN"){
+                return true;
+            }else{
+                return false;
+            }        
+        }).select("text").attr("y", -25);
 
         d3.selectAll('.nodeRange')
             .attr('pointer-events','mouseover')
@@ -1079,11 +1093,9 @@ class FeatureApplication{
     }
 
     construct_node(self, depth, type, name, children, parent){
-
         if(self === null){
             self = this;
         }
-
         return {id:self.i++, depth:depth, type:type, name:name, children:children, parent:parent};
     }
 
@@ -1130,56 +1142,71 @@ class FeatureApplication{
         let logic = null;
         let thisNode = null;
 
-        while(true){
+        if(_e.indexOf("_IF_") !== -1 && _e.indexOf("_THEN_") !== -1){
+            e = e.substring("_IF_".length);
+            let conditional = e.split("_THEN_")[0];
+            let consequent = e.split("_THEN_")[1];
+            let conditionalNode = self.construct_tree(self, conditional, d+1);
+            let consequentNode = self.construct_tree(self, consequent, d+1);
+            thisNode = self.construct_node(self, d, "logic", "IF_THEN", [], null);
+            
+            // Add children to the current node
+            thisNode.children.push(conditionalNode);
+            thisNode.children.push(consequentNode);
+            conditionalNode.parent = thisNode;
+            consequentNode.parent = thisNode;
 
-            let temp=null;
-            let _temp=null;
+        }else{
+            while(true){
 
-            if(first){
+                let temp = null;
+                let _temp = null;
 
-                // The first filter in a series to be applied
-                first = false;
-                let name = null;
+                if(first){
 
-                if (_e.indexOf("&&") != -1){
-                    logic = "&&";
-                    name="AND";
+                    // The first filter in a series to be applied
+                    first = false;
+                    let name = null;
+
+                    if (_e.indexOf("&&") != -1){
+                        logic = "&&";
+                        name="AND";
+                    }else{
+                        logic = "||";
+                        name="OR";
+                    }            
+                    thisNode = self.construct_node(self, d, "logic", name, [], null);
+
                 }else{
-                    logic = "||";
-                    name="OR";
-                }            
-                thisNode = self.construct_node(self, d, "logic", name, [], null);
+                    _e = _e.substring(2);
+                    e = e.substring(2);
+                }
 
-            }else{
-                _e = _e.substring(2);
-                e = e.substring(2);
+                if(_e.indexOf(logic) === -1){
+                    // Last element in the list
+                    let child = this.construct_tree(self, e, d+1);
+                    thisNode.children.push(child);
+                    child.parent = thisNode;
+                    break;
+                }else{
+                    // Not last
+
+                    // Get the current feature expression
+                    _temp = _e.split(logic,1)[0];
+                    temp = e.substring(0,_temp.length);
+
+                    // Add the child to the current node
+                    let child = this.construct_tree(self, temp, d+1);
+                    thisNode.children.push(child);
+                    child.parent = thisNode;
+
+                    // Get the rest of the expression for the next loop
+                    _e = _e.substring(_temp.length);
+                    e = e.substring(temp.length);            
+                }
+
             }
-
-            if(_e.indexOf(logic)==-1){
-                // Last element in the list
-                let child = this.construct_tree(self, e, d+1);
-                thisNode.children.push(child);
-                child.parent = thisNode;
-                break;
-            }else{
-                // Not last
-
-                // Get the current feature expression
-                _temp = _e.split(logic,1)[0];
-                temp = e.substring(0,_temp.length);
-
-                // Add the child to the current node
-                let child = this.construct_tree(self, temp, d+1);
-                thisNode.children.push(child);
-                child.parent = thisNode;
-
-                // Get the rest of the expression for the next loop
-                _e = _e.substring(_temp.length);
-                e = e.substring(temp.length);            
-            }
-
         }
-
         return thisNode;
     }
     
@@ -1254,54 +1281,68 @@ class FeatureApplication{
                     }
                 }
 
-            }else if(root.type === "logic" && (deactivated(root) || !root.children)){
+            } else if (root.type === "logic" && (deactivated(root) || !root.children)){
                 // Current node is a logic node but its children are either all emtpy or deactivated
                 expression = "";
 
-            }else{
+            } else {
                 // Current node is a logical node and is not deactivated
                 expression = "";
 
-                let logic = null;
+                if(root.type === "logic" && root.name === "IF_THEN"){ // IF_THEN
 
-                if(root.type === "featType"){
-                    if(root.parent.name === "AND"){
-                        logic = "&&";
+                    let conditional = root.children[0];
+                    let consequent = root.children[1];
+                    let conditionalExpression = _parse_tree(conditional, placeholderNode);
+                    let consequentExpression = _parse_tree(consequent, placeholderNode);
+
+                    if(!conditionalExpression.startsWith("(")){
+                        conditionalExpression = "(" + conditionalExpression + ")";
+                    }
+                    if(!consequentExpression.startsWith("(")){
+                        consequentExpression = "(" + consequentExpression + ")";
+                    }
+
+                    expression = "_IF_" + conditionalExpression
+                            + "_THEN_" + consequentExpression;  
+
+                }else{ // AND or OR
+                    let logic = null;
+                    if(root.type === "featType"){
+                        if(root.parent.name === "AND"){
+                            logic = "&&";
+                        }else{
+                            logic = "||";
+                        }
                     }else{
-                        logic = "||";
+                        if(root.name === "AND"){
+                            logic = "&&";
+                        }else{
+                            logic = "||";
+                        }
                     }
-                }else{
-                    if(root.name === "AND"){
-                        logic = "&&";
+
+                    let children;
+                    if(root.type === "featType" && root.children.length === 0){
+                        children = root._children;
                     }else{
-                        logic = "||";
+                        children = root.children;
+                    }
+
+                    for(let i = 0; i < children.length; i++){
+                        let child = children[i];
+                        let new_expression = _parse_tree(child, placeholderNode);
+                        if(expression !== "" && new_expression !== ""){
+                            expression = expression + logic;
+                        }
+                        expression = expression + new_expression;    
                     }
                 }
 
-                let children;
-                if(root.type === "featureType" && root.children.length === 0){
-                    children = root._children;
-                }else{
-                    children = root.children;
-                }
-
-                for(let i = 0; i < children.length; i++){
-
-                    let child = children[i];
-
-                    let new_expression = _parse_tree(child, placeholderNode);
-
-                    if(expression !== "" && new_expression !== ""){
-                        expression = expression + logic;
-                    }
-                    expression = expression + new_expression;    
-                }
-
-                if(expression!=""){
+                if(expression !== ""){
                     expression = "(" + expression + ")"; 
                 }
             }
-            
             return expression;
         }
 

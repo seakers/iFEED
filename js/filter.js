@@ -209,7 +209,7 @@ class Filter{
         if(get_nested_parenthesis_depth(e) === 0){
 
             // Given expression does not have a nested structure
-            if(e.indexOf("&&") == -1 && e.indexOf("||") == -1){
+            if(e.indexOf("&&") === -1 && e.indexOf("||") === -1){
 
                 // There is no logical connective: Single filter expression
                 for(let i = 0; i < data.length; i++){
@@ -228,56 +228,73 @@ class Filter{
             _e = collapse_paren_into_symbol(e);
         }
 
-        while(!last){
-            let e_temp, _e_temp;
-
-            if(first){
-                // The first filter in a series to be applied
-                filtered = JSON.parse(JSON.stringify(data));
-                first = false;
-            }else{
-                logic = _e.substring(0,2);
-                _e = _e.substring(2);
-                e = e.substring(2);
-            }
-
-            let next; // The imediate next logical connective
-            let and = _e.indexOf("&&");
-            let or = _e.indexOf("||");
-            if(and==-1 && or==-1){
-                next = "";
-            } else if(and==-1){ 
-                next = "||";
-            } else if(or==-1){
-                next = "&&";
-            } else if(and < or){
-                next = "&&";
-            } else{
-                next = "||";
-            }
-
-            if(next){
-                _e_temp = _e.split(next,1)[0];
-                e_temp = e.substring(0,_e_temp.length);
-
-                _e = _e.substring(_e_temp.length);
-                e = e.substring(_e_temp.length);
-            }else{
-                _e_temp = _e;
-                e_temp = e;
-                last=true;
-            }
-
-            if(logic=='||'){
-                let filtered_temp = this.process_filter_expression(e_temp, data);
-                for(let j = 0; j < filtered_temp.length; j++){
-                    if(filtered.indexOf(filtered_temp[j]) === -1){
-                        filtered.push(filtered_temp[j]);
+        if(_e.indexOf("_IF_") !== -1 && _e.indexOf("_THEN_") !== -1){
+            e = e.substring("_IF_".length);
+            let conditional = e.split("_THEN_")[0];
+            let consequent = e.split("_THEN_")[1];
+            let conditionalFiltered = this.process_filter_expression(conditional, data);
+            let consequentFiltered = this.process_filter_expression(consequent, data);
+            for(let i = 0; i < data.length; i++){
+                if(conditionalFiltered.indexOf(data[i]) !== -1){
+                    if(consequentFiltered.indexOf(data[i]) !== -1){
+                        filtered.push(data[i]);
                     }
+                }else{
+                    filtered.push(data[i]);
+                }
+            }
+        }else{
+            while(!last){
+                let e_temp, _e_temp;
+
+                if(first){
+                    // The first filter in a series to be applied
+                    filtered = JSON.parse(JSON.stringify(data));
+                    first = false;
+                }else{
+                    logic = _e.substring(0,2);
+                    _e = _e.substring(2);
+                    e = e.substring(2);
                 }
 
-            }else{
-                filtered = this.process_filter_expression(e_temp, filtered); 
+                let next; // The imediate next logical connective
+                let and = _e.indexOf("&&");
+                let or = _e.indexOf("||");
+                if(and==-1 && or==-1){
+                    next = "";
+                } else if(and==-1){ 
+                    next = "||";
+                } else if(or==-1){
+                    next = "&&";
+                } else if(and < or){
+                    next = "&&";
+                } else{
+                    next = "||";
+                }
+
+                if(next){
+                    _e_temp = _e.split(next,1)[0];
+                    e_temp = e.substring(0,_e_temp.length);
+
+                    _e = _e.substring(_e_temp.length);
+                    e = e.substring(_e_temp.length);
+                }else{
+                    _e_temp = _e;
+                    e_temp = e;
+                    last=true;
+                }
+
+                if(logic=='||'){
+                    let filtered_temp = this.process_filter_expression(e_temp, data);
+                    for(let j = 0; j < filtered_temp.length; j++){
+                        if(filtered.indexOf(filtered_temp[j]) === -1){
+                            filtered.push(filtered_temp[j]);
+                        }
+                    }
+
+                }else{
+                    filtered = this.process_filter_expression(e_temp, filtered); 
+                }
             }
         }
         return filtered;

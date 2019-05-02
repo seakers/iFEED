@@ -241,14 +241,16 @@ class EOSSAssigningLabel extends Label{
     }
     
     pp_feature_single(expression){
-        
+    
         let exp = expression;
         if(exp[0]==="{"){
             exp = exp.substring(1,exp.length-1);
         }
         let featureName = exp.split("[")[0];
 
-        if(featureName==="paretoFront" || featureName==='FeatureToBeAdded' || featureName==='AND' || featureName==='OR'){
+        if(featureName==="paretoFront" || featureName==='FeatureToBeAdded' 
+            || featureName==='AND' || featureName==='OR' 
+            || featureName === 'IF_THEN'){
             return exp;
 
         }else if(this.feature_names.indexOf(exp) !== -1){
@@ -260,7 +262,7 @@ class EOSSAssigningLabel extends Label{
         }
 
         let featureArg = exp.split("[")[1];
-        featureArg = featureArg.substring(0,featureArg.length-1);
+        featureArg = featureArg.substring(0, featureArg.length-1);
 
         let orbits = featureArg.split(";")[0].split(",");
         let instruments = featureArg.split(";")[1].split(",");
@@ -304,16 +306,16 @@ class EOSSAssigningLabel extends Label{
         let save = false;
         let savedString = '';
 
-        for(let i=0;i<expression.length;i++){
-            if(expression[i]=='{'){
+        for(let i = 0; i < expression.length; i++){
+            if(expression[i] === '{'){
                 save = true;
                 savedString = '{';
-            }else if(expression[i]=='}'){
+            } else if (expression[i] === '}'){
                 save = false;
                 savedString = savedString + '}';
                 feature_expression = savedString;
                 output = output + '{' + this.pp_feature_single(feature_expression) + '}';
-            }else{
+            } else {
                 if(save){
                     savedString = savedString + expression[i];
                 }else{

@@ -17,9 +17,9 @@ class EOSSAssigningFilter extends Filter{
                                {value:"numOrbits",text:"Number of orbit used",input:"numOrbits",hints:"Designs that have the specified number of non-empty orbits are chosen"},
                                {value:"numInstruments",text:"Number of instruments",input:"numInstruments",hints:"This highlights all the designs with the specified number of instruments. If you specify an orbit name, it will count all instruments in that orbit. If you can also specify an instrument name, and only those instruments will be counted across all orbits. If you leave both instruments and orbits blank, all instruments across all orbits will be counted."},
                                {value:"subsetOfInstruments",text:"Num of instruments in a subset",input:"subsetOfInstruments",hints:"The specified orbit should contain at least m number and at maximum M number of instruments from the specified instrument set. m is the first entry and M is the second entry in the second field"},
-                               {value:"absentExceptInOrbit",text:"absentExceptInOrbit",input:"numOrbits",hints:"Designs that have the specified number of non-empty orbits are chosen"},
-                               {value:"notInOrbitExceptInstrument",text:"notInOrbitExceptInstrument",input:"numInstruments",hints:"This highlights all the designs with the specified number of instruments. If you specify an orbit name, it will count all instruments in that orbit. If you can also specify an instrument name, and only those instruments will be counted across all orbits. If you leave both instruments and orbits blank, all instruments across all orbits will be counted."},
-                               {value:"notInOrbitExceptOrbit",text:"notInOrbitExceptOrbit",input:"subsetOfInstruments",hints:"The specified orbit should contain at least m number and at maximum M number of instruments from the specified instrument set. m is the first entry and M is the second entry in the second field"},
+                               {value:"absentExceptInOrbit",text:"absentExceptInOrbit",input:"orbitAndInstInput",hints:""},
+                               {value:"notInOrbitExceptInstrument",text:"notInOrbitExceptInstrument",input:"orbitAndMultipleInstInput",hints:""},
+                               {value:"notInOrbitExceptOrbit",text:"notInOrbitExceptOrbit",input:"multipleOrbitAndInstInput",hints:""},
                             ];  
 
         for (let i = 0; i < presetFeaturesInfo.length; i++){
@@ -185,6 +185,26 @@ class EOSSAssigningFilter extends Filter{
                     filter_input_2.append("input")
                                 .attr("type","text");
                     break;
+
+                case "orbitAndInstInput":
+                    filter_input_1.text("Input orbit name: ");
+                    filter_input_1.append("input")
+                                .attr("type","text");
+                    
+                    filter_input_2.text("Input instrument name: ");
+                    filter_input_2.append("input")
+                                .attr("type","text");
+                    break;
+
+                case "multipleOrbitAndInstInput":
+                    filter_input_1.text("Input multiple orbit names: ");
+                    filter_input_1.append("input")
+                                .attr("type","text");
+                    
+                    filter_input_2.text("Input instrument name: ");
+                    filter_input_2.append("input")
+                                .attr("type","text");
+                    break;
                     
                 case "orbitInput":
                     filter_input_1.text("Input orbit name: ");
@@ -289,7 +309,8 @@ class EOSSAssigningFilter extends Filter{
             }
             filter_expression = option + "[;" + inst_relabel + ";]";
             
-        }else if(option === "inOrbit" || option === "notInOrbit"){
+        }else if(option === "inOrbit" || option === "notInOrbit" || 
+            option === "absentExceptInOrbit" || option === "notInOrbitExceptInstrument" || option === "notInOrbitExceptOrbit"){
             
             let orbit = input_textbox[0].trim();
             let instrument = input_textbox[1];
@@ -301,7 +322,7 @@ class EOSSAssigningFilter extends Filter{
             }            
             
             filter_expression = option + "["+ orb_relabel + ";" + inst_relabel + ";]";
-            
+
         }else if(option === "emptyOrbit"){
             
             let orbit = input_textbox[0].trim();

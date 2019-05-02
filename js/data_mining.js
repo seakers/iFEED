@@ -488,9 +488,7 @@ class DataMining{
             features[i].id = this.featureID++;
         }
         this.utopiaPoint = {id:-1, name:null, expression:null, metrics:null, x0:-1, y0:-1, x:-1, y:-1, utopiaPoint: true};
-
-        this.allFeatures = features;
-        this.update(this.allFeatures);
+        this.update(features);
     }
 
 
@@ -542,7 +540,6 @@ class DataMining{
                 let featureCopy =  JSON.parse(JSON.stringify(thisFeature));
                 featureCopy.id = this.featureID++;
                 featuresToAdd.push(featureCopy);
-            
                 if(matchedFeature != null){
                     featuresToRemove[featureCopy.id] = matchedFeature;
                 }
@@ -694,9 +691,10 @@ class DataMining{
             if(typeof(mapFeaturesToBeRemoved) === "object"){
                 if(Object.keys(mapFeaturesToBeRemoved).length !== 0){ // check whether the key is not empty
                     for(let id in mapFeaturesToBeRemoved){
-                        // Take the feature to be added from the featuresToBeAdded list
-                        let addedFeature, featureIndex, removedFeature;
 
+                        // Take the feature to be added from the featuresToBeAdded list
+                        let addedFeature, removedFeature;
+                        let featureIndex = null;
                         if(featuresToBeAdded.constructor === Array){
                             for(let i = 0; i < featuresToBeAdded.length; i++){
                                 if(featuresToBeAdded[i].id === id){
@@ -704,10 +702,13 @@ class DataMining{
                                     break;
                                 }
                             }
-                            addedFeature = featuresToBeAdded.splice(featureIndex, 1);
+                            if(featureIndex === null){
+                                continue;
+                            }else{
+                                addedFeature = featuresToBeAdded.splice(featureIndex, 1);
+                            }
                         }else{
                             addedFeature = featuresToBeAdded;
-                            featuresToBeAdded = null;
                         }
 
                         // Find the index of the feature to be removed
@@ -793,6 +794,11 @@ class DataMining{
             // Get the maximum values
             for (let i = 0; i < this.allFeatures.length; i++){
                 let thisFeature = this.allFeatures[i];
+
+                if(thisFeature.metrics == null){
+                    console.log(thisFeature);
+                }
+
                 supps.push(thisFeature.metrics[0]);
                 lifts.push(thisFeature.metrics[1]);
                 conf1s.push(thisFeature.metrics[2]);
