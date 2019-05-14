@@ -14,7 +14,9 @@ class EOSSAssigning extends Problem{
             output_obj: [1, -1], // 1 for lager-is-better, -1 for smaller-is-better
             // file_path: "EOSS_data_recalculated.csv",
             // file_path: "ClimateCentric.csv",
-            file_path: "ClimateCentricCombinedData.csv",
+            // file_path: "ClimateCentric_042319.csv",
+            file_path: "ClimateCentric_050819.csv",
+            // file_path: "ClimateCentric_0423_0508_combined.csv",
             problem_specific_params: null
         };
 

@@ -418,7 +418,7 @@ class EOSSAssigningFilter extends Filter{
 
         @return: A boolean indicating whether the input architecture passes the filter
     */
-    check_preset_feature_single_sample(input_expression,data){
+    check_preset_feature_single_sample(input_expression, data){
 
         let out = false;
         let matched = false;
@@ -789,7 +789,10 @@ class EOSSAssigningFilter extends Filter{
 
             let orbit = args[0][0];
             let instrumentClass = args[1][0];
-            let instrumentException = args[1][1];
+            let instrumentExceptions = [];
+            for(let i = 1; i < args[1].length; i++){
+                instrumentExceptions.push(args[1][i]);
+            }
             let out = true;
             let instantiated_args = Array.from(args);
 
@@ -807,7 +810,7 @@ class EOSSAssigningFilter extends Filter{
                 let instrument_instance_list = this.instance_index_map["instrument"][instrumentClass];
                 for(let i = 0; i < instrument_instance_list.length; i++){
                     let instrIndex = instrument_instance_list[i];
-                    if(instrIndex === instrumentException){
+                    if(instrumentExceptions.indexOf(instrIndex) !== -1){
                         continue;
                     }else{
                         if(inputs[orbit * this.ninstr + instrIndex] === true){
@@ -816,7 +819,6 @@ class EOSSAssigningFilter extends Filter{
                         }
                     }
                 }
-                 
             }
             return out;
         }

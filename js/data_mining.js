@@ -417,7 +417,7 @@ class DataMining{
                 let tempFeatures = [];
                 for(let i = 0; i < extractedFeatures.length; i++){
                     let thisFeature = extractedFeatures[i];
-                    if(precision - thisFeature.metrics[2] > 0.01 || recall - thisFeature.metrics[3] > 0.01){
+                    if(precision - thisFeature.metrics[2] > 0.005 || recall - thisFeature.metrics[3] > 0.01){
                         continue;
                     }else{
                         tempFeatures.push(thisFeature);
@@ -441,8 +441,8 @@ class DataMining{
                     }
                 }
 
-                that.add_new_features(tempFeatures, true);
-                // that.show_generalization_suggestion(bestFeature.description, bestFeature);
+                // that.add_new_features(tempFeatures, true);
+                that.show_generalization_suggestion(bestFeature.description, bestFeature);
                 PubSub.publish(CANCEL_ADD_FEATURE, null); 
                 that.get_problem_parameters();
             },

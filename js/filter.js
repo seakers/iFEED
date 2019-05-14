@@ -192,8 +192,7 @@ class Filter{
         // To be implemented 
     }
     
-    process_filter_expression(expression, data){
-        
+    process_filter_expression(expression, data){        
         let e, _e;
 
         e = expression;
@@ -230,19 +229,49 @@ class Filter{
 
         if(_e.indexOf("_IF_") !== -1 && _e.indexOf("_THEN_") !== -1){
             e = e.substring("_IF_".length);
+
             let conditional = e.split("_THEN_")[0];
-            let consequent = e.split("_THEN_")[1];
+            let rightHandSide = e.split("_THEN_")[1];
+            let consequent, alternative;
+            if(rightHandSide.indexOf("_ELSE_") === -1){
+                consequent = rightHandSide;
+                alternative = null;
+            }else{
+                consequent = rightHandSide.split("_ELSE_")[0];
+                alternative = rightHandSide.split("_ELSE_")[1];
+            }
+
             let conditionalFiltered = this.process_filter_expression(conditional, data);
             let consequentFiltered = this.process_filter_expression(consequent, data);
-            for(let i = 0; i < data.length; i++){
-                if(conditionalFiltered.indexOf(data[i]) !== -1){
-                    if(consequentFiltered.indexOf(data[i]) !== -1){
+            let alternativeFiltered = null;
+            if(alternative !== null){
+                alternativeFiltered = this.process_filter_expression(alternative, data);
+            }
+
+            if(alternative === null){
+                for(let i = 0; i < data.length; i++){
+                    if(this.contains_sample(conditionalFiltered, data[i])){
+                        if(this.contains_sample(consequentFiltered, data[i])){
+                            filtered.push(data[i]);
+                        }
+                    }else{
                         filtered.push(data[i]);
                     }
-                }else{
-                    filtered.push(data[i]);
+                }
+            }else{
+                for(let i = 0; i < data.length; i++){
+                    if(this.contains_sample(conditionalFiltered, data[i])){
+                        if(this.contains_sample(consequentFiltered, data[i])){
+                            filtered.push(data[i]);
+                        }
+                    }else{
+                        if(this.contains_sample(alternativeFiltered, data[i])){
+                            filtered.push(data[i]);
+                        }
+                    }
                 }
             }
+            
         }else{
             while(!last){
                 let e_temp, _e_temp;
@@ -284,10 +313,10 @@ class Filter{
                     last=true;
                 }
 
-                if(logic=='||'){
+                if(logic == '||'){
                     let filtered_temp = this.process_filter_expression(e_temp, data);
                     for(let j = 0; j < filtered_temp.length; j++){
-                        if(filtered.indexOf(filtered_temp[j]) === -1){
+                        if(!this.contains_sample(filtered, filtered_temp[j])){
                             filtered.push(filtered_temp[j]);
                         }
                     }
@@ -298,6 +327,18 @@ class Filter{
             }
         }
         return filtered;
+    }
+
+    contains_sample(dataset, sample){
+        if(!dataset){
+            return false;
+        }
+        for(let i = 0; i < dataset.length; i++){
+            if(dataset[i].id === sample.id){
+                return true;
+            }
+        }
+        return false;
     }
 
     get_data_ids(data){

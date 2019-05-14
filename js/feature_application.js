@@ -10,6 +10,7 @@ class FeatureApplication{
         
         this.color = {"default":"#616161",
                      "logic":"#2383FF",
+                     "ifThen":"#20C16E",
                      "add":"#FF7979",
                      "deactivated":"#E3E3E3",
                      "temp":"#C6F3B6"};
@@ -99,6 +100,10 @@ class FeatureApplication{
     sort_feature_types(root){
 
         if(root.children === null){
+            return;
+        }
+
+        if(root.type === "logic" && root.name === "IF_THEN"){
             return;
         }
 
@@ -237,6 +242,8 @@ class FeatureApplication{
         nodeEnter.filter((d) => {
                 if(d.data.type === "leaf"){
                     return false;
+                }else if(d.data.type === "logic" && d.data.name === "IF_THEN"){
+                    return false;
                 }else{
                     return true;
                 };
@@ -246,6 +253,16 @@ class FeatureApplication{
             .attr('r',40)
             .attr('opacity',0)
             .style('fill','red');
+
+        // Set up mouseover and mouseout events for nodeRange circles
+        d3.selectAll('.nodeRange')
+            .attr('pointer-events','mouseover')
+            .on('mouseover', function(d){
+                that.selectedNode = that.select_treeNode_by_id(d.id).node().__data__;
+            })
+            .on('mouseout', function(d){
+                that.selectedNode = null;
+            });
         
         // Transition nodes to their new position.
         let nodeUpdate = nodeEnter.merge(node);
@@ -272,8 +289,9 @@ class FeatureApplication{
                     if(d.data.type === "logic"){
                         if(d.data.add){
                             return that.color.add;
-                        
-                        }else{
+                        }else if(d.data.name === "IF_THEN"){
+                            return that.color.ifThen;
+                        }else {
                             return that.color.logic;
                         }
                     }else{
@@ -292,7 +310,11 @@ class FeatureApplication{
                 else{ return "start"; }
             })
             .text(function(d) {
-                return that.label.pp_feature_single(d.data.name);
+                if(d.data.name === "IF_THEN"){
+                    return "";
+                }else{
+                    return that.label.pp_feature_single(d.data.name);
+                }
             })
             .style("fill",function(d){
                 if(d.data.type === "logic" && d.data.add){
@@ -304,6 +326,7 @@ class FeatureApplication{
             .style("font-size",23)
             .style("fill-opacity", 1);  
 
+        // Adjust the horizontal location of IF_THEN nodes
         nodeUpdate.filter((d) => {
             if(d.data.name === "IF_THEN"){
                 return true;
@@ -311,15 +334,6 @@ class FeatureApplication{
                 return false;
             }        
         }).select("text").attr("y", -25);
-
-        d3.selectAll('.nodeRange')
-            .attr('pointer-events','mouseover')
-            .on('mouseover', function(d){
-                that.selectedNode = that.select_treeNode_by_id(d.id).node().__data__;
-            })
-            .on('mouseout', function(d){
-                that.selectedNode = null;
-            });
 
         // Transition exiting nodes to the parent's new position.
         let nodeExit = node.exit().transition()
@@ -339,15 +353,18 @@ class FeatureApplication{
         nodeExit.select("text")
             .style("fill-opacity", 1e-6);
 
-        // Update the links…
-        let link = svg.selectAll("path.treeLink")
+        // Update the links
+        let link = svg.selectAll(".treeLink")
             .data(links, function(d){
-            	return d.id;
+                return d.id;
             });
 
         // Enter any new links at the parent's previous position.
-        let linkEnter = link.enter().insert("path", "g")
-            .attr("class", "treeLink")
+        let linkEnter = link.enter()
+                            .insert("g","g")
+                            .attr("class", "treeLink");
+
+        linkEnter.append("path")
             .attr('d', (d) => {
                 let o = null;
                 if(d.parent){
@@ -355,17 +372,54 @@ class FeatureApplication{
                 }else{
                     o = {x: d.x0, y: d.y0};
                 }
-        		return that.diagonal(o, o);
-  			})
+                return that.diagonal(o, o);
+            })
             .style("stroke-width",function(d){
                 return 8;
             })
             .style("fill-opacity", 0.94)
             .style('fill','none');
-        
-        var linkUpdate = linkEnter.merge(link);
-        
-        linkUpdate.transition()
+
+        linkEnter
+            .filter((d) => {
+                if(d.data.parent.type === "logic"
+                    && d.data.parent.name === "IF_THEN"){
+                    return true;
+                }else{
+                    return false;
+                }    
+            })
+            .append("text")
+            .style("font-size","20px")
+            .attr("transform", function(d) {
+                return "translate(" + d.parent.y0 + "," + d.parent.x0 + ")";
+            })   
+            .attr("dy", ".35em")
+            .attr("text-anchor", "middle")
+            .text(function(d) {
+                let index = d.parent.children.indexOf(d);
+                if(index === 0){
+                    return "IF";
+                }else if(index === 1){
+                    return "THEN";
+                }else if(index === 2){
+                    return "ELSE"
+                }
+            })
+            .attr("fill", (d) => {
+                if(d.data.deactivated){
+                    return that.color.deactivated;
+                }else{
+                    return "Black";
+                }
+            })
+            .style('opacity', 1.0);
+
+        // Update nodes
+        let linkUpdate = linkEnter.merge(link);
+
+        linkUpdate.select("path")
+            .transition()
             .duration(duration)
             .attr('d', function(d){ return that.diagonal(d, d.parent) })
             .style("stroke",function(d){
@@ -379,13 +433,45 @@ class FeatureApplication{
             })
             .style('opacity', 1.0);
 
+        linkUpdate.select("text")
+            .transition()
+            .duration(duration)
+            .attr("transform", function(d) {
+                let x = ((d.x + d.parent.x)/2);
+                let y = ((d.y + d.parent.y)/2);
+                if(d.x === d.parent.x){
+                    x = x - 15;
+                }else{
+                    y = y - 30;
+                }
+                return "translate(" + y + "," + x + ")";
+            })
+            .attr("fill", (d) => {
+                if(d.data.deactivated){
+                    return that.color.deactivated;
+                }else{
+                    return "Black";
+                }
+            })
+            .style('opacity', 1.0);
+
         // Transition exiting nodes to the parent's new position.
-        link.exit().transition()
+        let linkExit = link.exit();
+
+        linkExit.select("path")
+            .transition()
             .duration(duration)
             .attr('d', function(d) {
-	        	var o = {x: d.parent.x, y: d.parent.y}
+	        	let o = {x: d.parent.x, y: d.parent.y}
 	        	return that.diagonal(o, o)
 	      	})
+            .remove();
+
+        linkExit.select("text")
+            .transition()
+            .attr("transform", function(d) {
+                return "translate(" + d.parent.y0 + "," + d.parent.x0 + ")";
+            })
             .remove();
 
         // Stash the old positions for transition.
@@ -399,17 +485,14 @@ class FeatureApplication{
 
         d3.selectAll('.treeNode')
             .on('contextmenu', (d) => { 
-            
                 d3.event.preventDefault();
                 let context = d.type;
                 let mouse_pos = d3.mouse(d3.select("#feature_application_panel").select('svg').select('g').node());
                 let mouseX = mouse_pos[0]; 
                 let mouseY = mouse_pos[1];                       
-           
                 if(!this.contextMenu){
                     this.contextMenu = new ContextMenu(this);
                 }
-               
                 this.contextMenu.showMenu(d.data, mouse_pos);
             });
     }
@@ -438,18 +521,23 @@ class FeatureApplication{
         }
 
         // Remove the link to the parent node
-        d3.selectAll('.treeLink').filter((d) => {
+        let linksToHide = d3.selectAll('.treeLink').filter((d) => {
             if(d.id === id){
                 return true;
             }else{
                 return false;
             }        
-        })
-        .attr('d', (d) => {
-            let o = {x: d.parent.x, y: d.parent.y}
-            return this.diagonal(o, o)
-        })
-        .style('opcaity',0);
+        });
+
+        linksToHide.select("path")
+            .attr('d', (d) => {
+                let o = {x: d.parent.x, y: d.parent.y}
+                return this.diagonal(o, o)
+            })
+            .style('opcaity',0);
+
+        linksToHide.select("text").style('opacity',0);
+
 
         d3.selectAll('.nodeRange').filter((d) => {
             if(d.type === 'leaf'){
@@ -850,7 +938,7 @@ class FeatureApplication{
     }
 
  
-    visit_nodes(source,func,reverse){
+    visit_nodes(source, func, reverse){
 
         if(source === null){
             return;
@@ -860,7 +948,8 @@ class FeatureApplication{
             let re;
             if(typeof func != 'undefined'){
                 re = func(source);
-                // If func is a function that returns something, stop traversing tree and return. Otherwise, apply func and keep traversing the tree
+                // If func is a function that returns something, stop traversing tree and return. 
+                //Otherwise, apply func and keep traversing the tree
                 if(re) return re; 
             }
             if(reverse){
@@ -871,7 +960,7 @@ class FeatureApplication{
             }else{
                 if(source){
                     if(source.children){
-                        for(var i=0;i<source.children.length;i++){
+                        for(let i = 0; i < source.children.length; i++){
                             re = recursive(source.children[i],func)
                             if(re) return re;
                         }   
@@ -927,8 +1016,37 @@ class FeatureApplication{
                     }
 
                     // Add to the parent node
-                    parentNode.children.push(subtree); 
-                    subtree.parent = parentNode;
+                    if(parentNode.type === "logic" 
+                        && parentNode.name === "IF_THEN"){
+
+                        if(parentNode.addToConditional){
+                            if(parentNode.children.length == 2){
+                                parentNode.children.splice(0, 1, subtree); 
+                            }else{
+                                parentNode.children.splice(0, 0, subtree); 
+                            }
+                            subtree.parent = parentNode;
+
+                        }else if(parentNode.addToConsequent){
+                            if(parentNode.children.length == 2){
+                                parentNode.children.splice(1, 1, subtree); 
+                            }else{
+                                parentNode.children.push(subtree); 
+                            }
+                            subtree.parent = parentNode;
+                        }
+
+                        if(parentNode.children[0] != null && parentNode.children[1] != null){
+                            parentNode.deactivated = false;
+                            parentNode.children[0].deactivated = false;
+                            parentNode.children[1].deactivated = false;
+                        }
+                        parentNode.add = false;
+
+                    }else{
+                        parentNode.children.push(subtree); 
+                        subtree.parent = parentNode;
+                    }
                     
                     this.update();  
                 }else{ 
@@ -957,7 +1075,7 @@ class FeatureApplication{
                     d.temp = false;
                 })
                 this.update();   
-                PubSub.publish(ADD_FEATURE_FROM_EXPRESSION, {expression:expression, replaceEquivalentFeature:true});
+                PubSub.publish(ADD_FEATURE_FROM_EXPRESSION, {expression:this.parse_tree(this.data), replaceEquivalentFeature:true});
             }
 
         }else if(option=='restore'){
@@ -1059,18 +1177,22 @@ class FeatureApplication{
             }
         });
 
-        d3.selectAll('.treeLink').filter((d) => {
+        let linksToHide = d3.selectAll('.treeLink').filter((d) => {
             if (descendantNodesID.indexOf(d.id) != -1){
                 return true;
             }else{
                 return false;
             }
-        })
-        .attr('d', (d) => {
-            let o = {x: parentNode.x, y: parentNode.y}
-            return this.diagonal(o, o)
-        })
-        .style('opacity', 0);
+        });
+
+        linksToHide.select("path")
+            .attr('d', (d) => {
+                let o = {x: parentNode.x, y: parentNode.y}
+                return this.diagonal(o, o)
+            })
+            .style('opacity', 0);
+
+        linksToHide.select("text").style("opacity", 0);
 
         let descendantNodes = d3.selectAll('.treeNode').filter((d) => {
             if(d.id === nodeID){
@@ -1144,15 +1266,33 @@ class FeatureApplication{
 
         if(_e.indexOf("_IF_") !== -1 && _e.indexOf("_THEN_") !== -1){
             e = e.substring("_IF_".length);
-            let conditional = e.split("_THEN_")[0];
-            let consequent = e.split("_THEN_")[1];
+
+            let conditional, consequent, alternative;
+            conditional = e.split("_THEN_")[0];
+            let rightHandSide = e.split("_THEN_")[1];
+            if(rightHandSide.indexOf("_ELSE_") === -1){
+                consequent = rightHandSide;
+                alternative = null;
+            }else{
+                consequent = rightHandSide.split("_ELSE_")[0];
+                alternative = rightHandSide.split("_ELSE_")[1];
+            }
+            
             let conditionalNode = self.construct_tree(self, conditional, d+1);
             let consequentNode = self.construct_tree(self, consequent, d+1);
+            let alternativeNode = null;
+            if(alternative != null){
+                alternativeNode = self.construct_tree(self, alternative, d+1);
+            }
             thisNode = self.construct_node(self, d, "logic", "IF_THEN", [], null);
             
             // Add children to the current node
             thisNode.children.push(conditionalNode);
             thisNode.children.push(consequentNode);
+            if(alternative != null){
+                thisNode.children.push(alternativeNode);
+                alternativeNode.parent = thisNode;
+            }
             conditionalNode.parent = thisNode;
             consequentNode.parent = thisNode;
 
@@ -1250,7 +1390,6 @@ class FeatureApplication{
                     expression = "";
                     
                 }else{
-                    
                     if(placeholderNode){
                         // If placeholder exists
                         if(placeholderNode === root.parent && root.parent.children.indexOf(root) === 0){ 
@@ -1288,13 +1427,25 @@ class FeatureApplication{
             } else {
                 // Current node is a logical node and is not deactivated
                 expression = "";
-
                 if(root.type === "logic" && root.name === "IF_THEN"){ // IF_THEN
-
                     let conditional = root.children[0];
                     let consequent = root.children[1];
+                    let alternative = null;
+                    if(root.children.length === 3){
+                        alternative = root.children[2];
+                    }
+
                     let conditionalExpression = _parse_tree(conditional, placeholderNode);
                     let consequentExpression = _parse_tree(consequent, placeholderNode);
+                    let alternativeExpression = null;
+                    if(alternative != null){
+                        if(alternative.deactivated){
+                            alternative = null;
+                            alternativeExpression = null;
+                        }else{
+                            alternativeExpression = _parse_tree(alternative, placeholderNode);
+                        }
+                    }
 
                     if(!conditionalExpression.startsWith("(")){
                         conditionalExpression = "(" + conditionalExpression + ")";
@@ -1302,11 +1453,20 @@ class FeatureApplication{
                     if(!consequentExpression.startsWith("(")){
                         consequentExpression = "(" + consequentExpression + ")";
                     }
-
+                    if(alternative != null){
+                        if(!alternativeExpression.startsWith("(")){
+                            alternativeExpression = "(" + alternativeExpression + ")";
+                        }
+                    }
+                    
                     expression = "_IF_" + conditionalExpression
                             + "_THEN_" + consequentExpression;  
 
-                }else{ // AND or OR
+                    if(alternative != null){
+                        expression = expression + "_ELSE_" + alternativeExpression;
+                    }
+
+                } else { // AND or OR
                     let logic = null;
                     if(root.type === "featType"){
                         if(root.parent.name === "AND"){

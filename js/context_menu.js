@@ -31,13 +31,18 @@ class ContextMenu {
             
             'logic':[{'value':'addChild','text':'Add feature'},
                      {'value':'toggle-logic','text':'Change to X'}],
-            
+
+            'logic-if-then':[{'value':'addToConditional','text':'Add feature to conditional'},
+                    {'value':'addToConsequent','text':'Add feature to consequent'},
+                    {'value':'cancelAddNode','text':'Cancel adding new node'},
+                    {'value':'switchIfThen','text':'Switch conditional and consequent'}],
+
             'leaf':[],
 
             'featType': [{'value':'toggle-col-exp','text':'Collapse/Expand'}],
             
             'default':[{'value':'addParent','text':'Add parent branch'},
-                        {'value':'generalize','text':'Generalize this node'},
+                        {'value':'addIfThen','text':'Add if-then statement'},
                         {'value':'duplicate','text':'Duplicate'},
                         {'value':'toggle-activation','text':'Activate/Deactivate'},
                         {'value':'delete','text':'Delete'}]
@@ -46,6 +51,11 @@ class ContextMenu {
         this.contextMenuSize = {
             
             'logic':{'height':null,
+                    'width':null,
+                    'margin':0.15,
+                    'scaled':false},
+
+            'ifThen':{'height':null,
                     'width':null,
                     'margin':0.15,
                     'scaled':false},
@@ -64,6 +74,7 @@ class ContextMenu {
 
     showMenu (context, coord) {
 
+        let parent = context.parent;
         let type = context.type;
         let logic = context.name;
         let depth = context.depth;    
@@ -77,7 +88,12 @@ class ContextMenu {
             hasChildren = false;
         }
 
-        let items = this.contextItems[type];
+        let items = [];
+        if(type === "logic" && logic === "IF_THEN"){
+            items = this.contextItems["logic-if-then"];
+        }else{
+            items = this.contextItems[type];
+        }        
         items = items.concat(this.contextItems['default']);
         
         let x,y;
@@ -104,8 +120,9 @@ class ContextMenu {
         d3.select('.context-menu').remove();
         this.scaleItems(context,items);
         
+        // If the node is a logical connective, remove the 'addParent' and 'addIfThen' options. 
+        // If the node is the root node, then keep the option 'addParent'
         if(type === 'logic' && depth != 0){
-            // If the node is a logical connective, remove the 'addParent' option. If the node is the root node, then keep the option
             let index;
             for(let i = 0; i < items.length; i++){
                 if(items[i].value === 'addParent'){
@@ -114,9 +131,66 @@ class ContextMenu {
                 }
             }
             items.splice(index,1);
-        }    
+        } 
+
+        if(type === 'logic'){
+            let index;
+            for(let i = 0; i < items.length; i++){
+                if(items[i].value === 'addIfThen'){
+                    index = i;
+                    break;
+                }
+            }
+            items.splice(index,1);
+        }  
+
+        if(parent){
+            if(parent.type === "logic" && parent.name === "IF_THEN"){
+                let index;
+                for(let i = 0; i < items.length; i++){
+                    if(items[i].value === 'addIfThen'){
+                        index = i;
+                        break;
+                    }
+                }
+                items.splice(index,1);
+            }
+        }
         
-        let size = this.contextMenuSize[type];
+        if(parent){
+            if(type === 'leaf' 
+                && parent.type === "logic" 
+                && parent.name === "IF_THEN"){
+
+                let index;
+                for(let i = 0; i < items.length; i++){
+                    if(items[i].value === 'duplicate'){
+                        index = i;
+                        break;
+                    }
+                }
+                items.splice(index,1);
+            }   
+        }
+
+        if(deactivated){
+            let index;
+            for(let i = 0; i < items.length; i++){
+                if(items[i].value === 'duplicate'){
+                    index = i;
+                    break;
+                }
+            }
+            items.splice(index,1);
+        }
+
+ 
+        let size;
+        if(type === "logic" && logic === "IF_THEN"){
+            size = this.contextMenuSize["ifThen"];
+        }else{
+            size = this.contextMenuSize[type];
+        }
         let width = size.width;
         let height = size.height;
         let margin = size.margin;
@@ -198,11 +272,15 @@ class ContextMenu {
     }
     
     // Automatically set width, height, and margin;
-    scaleItems(context,items) {
+    scaleItems(context, items) {
         
         let type = context.type;
         let logic = context.name;
-        let depth = context.depth;         
+        let depth = context.depth;
+
+        if(type === "logic" && logic === "IF_THEN"){
+            type = "ifThen";
+        }         
         
         if(!this.contextMenuSize[type]['scaled']){
 
@@ -246,15 +324,14 @@ class ContextMenu {
     ContextMenuAction(context, option){
 
         let feature_application = this.feature_application;
-
         let root = feature_application.data;
-        let node = context;
-
+        
         let visit_nodes = feature_application.visit_nodes;
         let construct_tree = feature_application.construct_tree;
         let construct_node = feature_application.construct_node;
         let parse_tree = feature_application.parse_tree;
 
+        let node = context;
         let nodeID = node.id;
         let parent = node.parent;
 
@@ -262,14 +339,12 @@ class ContextMenu {
         // 'leaf':[],
         // 'default':[addParent,duplicate,toggle-activation,delete]
 
-        if(node.type=='logic'){
+        if(node.type === 'logic'){
 
             switch(option) { // Logical connective node
                 case 'addChild':
-
                     if(node.add){
                         node.add = false;
-                        
                     }else{
                         visit_nodes(feature_application.data, (d) => {
                             if(d.id === nodeID){
@@ -277,18 +352,46 @@ class ContextMenu {
                             }else{
                                 d.add = false;
                             }
-                        })
+                        });
                     }
                     break;
 
                 case 'toggle-logic':
-
                     if(node.name === 'AND'){
                         node.name = 'OR';
                     }else{
                         node.name = 'AND';
                     }
                     break;
+
+                case 'addToConditional':
+                    visit_nodes(feature_application.data, (d) => {
+                        d.add = false;
+                    });
+                    node.add = true;
+                    node.addToConditional = true;
+                    node.addToConsequent = false;
+                    break;
+
+                case 'addToConsequent':
+                    visit_nodes(feature_application.data, (d) => {
+                        d.add = false;
+                    });
+                    node.add = true;
+                    node.addToConditional = false;
+                    node.addToConsequent = true;
+                    break;
+
+                case 'cancelAddNode':
+                    node.add = false;
+                    node.addToConditional = false;
+                    node.addToConsequent = false;
+                    break;
+
+                case 'switchIfThen':
+                    let conditional = node.children[0];
+                    let consequent = node.children[1];
+                    node.children = [consequent, conditional];
 
                 default:
                     break;
@@ -335,22 +438,28 @@ class ContextMenu {
   
                 break;
 
-            case 'generalize':
+            case 'addIfThen':
+                if(parent){ 
+                    // This is a leaf node because of the condition set up previously (logic nodes do not have option to add parent)
+                    let index = parent.children.indexOf(node);
+                    let logic = parent.name;
+                    let depth = node.depth;
+                    let tempNode = construct_node(feature_application, depth, "logic", "IF_THEN", [node], parent);
+                    parent.children.splice(index, 1, tempNode);
 
-                let rootExpression = feature_application.parse_tree(root);
-                let nodeExpression = feature_application.parse_tree(node);
+                    // Deactivate if-then node as it does not have the conditional part
+                    visit_nodes(tempNode, function(d){
+                        d.deactivated = true;
+                    });
+                    this.display_ifThen_deactivation_message();
 
-                if(rootExpression == nodeExpression){
-                    nodeExpression = null;
+                }else{ 
+                    error("The selected node should have a parent");
                 }
-
-                let data = {"root": rootExpression, "node": nodeExpression};
-                PubSub.publish(GENERALIZE_FEATURE, data);        
                 break;
 
             case 'duplicate':
                 if(parent){
-
                     let index = parent.children.indexOf(node);
                     let logic = parent.name;
                     let depth = node.depth;
@@ -364,6 +473,8 @@ class ContextMenu {
                     let duplicate = construct_tree(feature_application, parse_tree(node), depth);     
                     let tempNode = construct_node(feature_application, depth, "logic", logic, [duplicate], parent);
                     parent.children.splice(index, 0, tempNode);
+                    tempNode.parent = parent;
+                    duplicate.parent = tempNode;
                 }
                 break;
 
@@ -385,12 +496,51 @@ class ContextMenu {
                     visit_nodes(node,function(d){
                         d.deactivated = true;
                     });
-                }     
 
+                    // Deactivate a node whose children are all deactivated
+                    visit_nodes(node, function(d){
+                        if(d.children){
+                            let all_children_deactivated = true;
+                            for(let i = 0; i < d.children.length; i++){
+                                if(d.children[i].deactivated !== true){
+                                    all_children_deactivated = false;
+                                }
+                            }
+                            if(all_children_deactivated){
+                                d.deactivated = true;
+                            }
+                        }
+                    }, true);
+                }
+
+                // Deactivate IF_THEN node if either the conditional or the consequent parts are missing
+                let deactivated_ifThen_nodes = [];
+                visit_nodes(node, function(d){
+                    if(d.type === 'logic' && d.name === 'IF_THEN'){
+                        if(d.children.length >= 2){
+                            if(d.children[0].deactivated === true || d.children[1].deactivated === true){
+                                d.deactivated = true; 
+                                deactivated_ifThen_nodes.push(d);                               
+                            }
+                        }else{
+                            d.deactivated = true;
+                            deactivated_ifThen_nodes.push(d);          
+                        }
+                    }
+                }, true);
+
+                if(deactivated_ifThen_nodes.length !== 0){
+                    for(let i = 0; i < deactivated_ifThen_nodes.length; i++){
+                        let thisNode = deactivated_ifThen_nodes[i];
+                        // deactivate all children nodes
+                        visit_nodes(thisNode, function(d){
+                            d.deactivated = true;
+                        });
+                    }
+                }
                 break;
 
             case 'toggle-col-exp':
-
                 if(node.children){
                     node._children = node.children;
                     node.children = [];
@@ -402,7 +552,6 @@ class ContextMenu {
                 break;
 
             case 'delete':
-
                 if(node.depth === 0){
                     feature_application.data = null;
 
@@ -410,6 +559,16 @@ class ContextMenu {
                     let index = parent.children.indexOf(node);
                     if (index > -1) {
                         parent.children.splice(index, 1);
+                    }
+
+                    if(parent.type === 'logic' && parent.name === 'IF_THEN'){
+                        if(parent.children.length < 2){
+                            // Deactivate if-then node as it does not have either the conditional or the consequent part
+                            visit_nodes(parent, function(d){
+                                d.deactivated = true;
+                            });
+                            this.display_ifThen_deactivation_message();
+                        }
                     }
                 }
                 break;
@@ -420,5 +579,21 @@ class ContextMenu {
 
         feature_application.update();   
         PubSub.publish(ADD_FEATURE_FROM_EXPRESSION, {expression:feature_application.parse_tree(root), replaceEquivalentFeature:true});       
+    }
+
+    display_ifThen_deactivation_message(){
+        iziToast.show({
+            theme: 'dark',
+            icon: 'icon-person',
+            title: 'To activate IF-THEN node: ',
+            titleSize: 22,
+            message: 'please add a feature in the conditional part by right-clicking '
+                        + 'the IF-THEN node and selecting add "Add feature to conditional" option.',
+            messageSize: 18,
+            messageLineHeight: 30,
+            position: 'bottomRight', // bottomRight, bottomLeft, topRight, topLeft, topCenter, bottomCenter
+            progressBarColor: 'rgb(0, 255, 184)',
+            timeout: 6000,
+        });
     }
 }
