@@ -99,6 +99,10 @@ class FeatureApplication{
 
     sort_feature_types(root){
 
+        if(root == null){
+            return;
+        }
+
         if(root.children === null){
             return;
         }

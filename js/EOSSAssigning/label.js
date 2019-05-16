@@ -40,8 +40,9 @@ class EOSSAssigningLabel extends Label{
         });
 
         PubSub.subscribe(PROBLEM_CONCEPT_HIERARCHY_LOADED, (msg, data) => {
-            this.orbit_extended_list = data["params"]["orbit_list"];
-            this.instrument_extended_list = data["params"]["instrument_list"];
+
+            this.orbit_extended_list = data["params"]["rightSet"];
+            this.instrument_extended_list = data["params"]["leftSet"];
 
             for(let i = this.orbit_relabeled.length; i < this.orbit_extended_list.length; i++){
                 this.orbit_relabeled.push(this.orbit_extended_list[i]);
@@ -101,10 +102,10 @@ class EOSSAssigningLabel extends Label{
             return this.index2ActualName(index,type);
         }
 
-        if(type=="orbit"){
+        if(type === "orbit"){
             return this.orbit_relabeled[index];
 
-        }else if(type=="instrument"){
+        }else if(type === "instrument"){
             return this.instrument_relabeled[index];
 
         }else{
@@ -152,15 +153,15 @@ class EOSSAssigningLabel extends Label{
         let split = input.split(',');
         let output='';
         for(let i = 0; i < split.length; i++){
-            var name = split[i];
-            if(this.orbit_relabeled.indexOf(name)==-1 && this.instrument_relabeled.indexOf(name)==-1){
+            let name = split[i];
+            if(this.orbit_relabeled.indexOf(name) === -1 && this.instrument_relabeled.indexOf(name) === -1){
                 return null;
             }
             if(i > 0) output = output + ",";
 
-            if(type == "orbit"){
+            if(type === "orbit"){
                 output = output + $.inArray(name,this.orbit_relabeled);
-            }else if(type == "instrument"){
+            }else if(type === "instrument"){
                 output = output + $.inArray(name,this.instrument_relabeled);
             }else{
                 return "Naming Error";

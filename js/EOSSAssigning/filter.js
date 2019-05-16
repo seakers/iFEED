@@ -35,8 +35,8 @@ class EOSSAssigningFilter extends Filter{
         });
 
         PubSub.subscribe(PROBLEM_CONCEPT_HIERARCHY_LOADED, (msg, data) => {
-            this.orbit_extended_list = data["params"]["orbit_list"];
-            this.instrument_extended_list = data["params"]["instrument_list"];
+            this.orbit_extended_list = data["params"]["rightSet"];
+            this.instrument_extended_list = data["params"]["leftSet"];
             this.instance_map = data["instance_map"];
             this.superclass_map = data["superclass_map"];
             this.instance_index_map = {};

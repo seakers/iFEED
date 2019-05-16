@@ -126,6 +126,7 @@ class DataMining{
         this.yAxis = null;
         this.gX = null;
         this.gY = null;
+        this.transform = null;
         
         PubSub.publish(INITIALIZE_FEATURE_APPLICATION, null);
         this.featureID = 1;
@@ -440,9 +441,10 @@ class DataMining{
                         bestFeature = tempFeatures[i];
                     }
                 }
+                
+                let description = that.relabel_generalization_description(bestFeature.description);
 
-                // that.add_new_features(tempFeatures, true);
-                that.show_generalization_suggestion(bestFeature.description, bestFeature);
+                that.show_generalization_suggestion(description, bestFeature);
                 PubSub.publish(CANCEL_ADD_FEATURE, null); 
                 that.get_problem_parameters();
             },
@@ -479,6 +481,10 @@ class DataMining{
                 .attr("width", this.width)
                 .attr("height", this.height)
                 .style('margin-bottom','30px');
+
+        if(typeof features === 'undefined' || features == null){
+            return;
+        }
 
         // Initialize the location of each feature
         this.featureID = 1;
@@ -830,22 +836,25 @@ class DataMining{
             }
         }
 
-        // Insert the utopia point to the list of features
-        this.allFeatures.splice(0, 0, this.utopiaPoint);
+        if(this.allFeatures.length !== 0 && this.allFeatures.length !== 1){
 
-        // Add cursor 
-        let cursorFeature;
-        if(currentFeature){
-            this.currentFeature = currentFeature;
-            cursorFeature = JSON.parse(JSON.stringify(currentFeature));
-            
-        }else{
-            this.currentFeature = null;
-            cursorFeature = JSON.parse(JSON.stringify(this.utopiaPoint));
-            
+            // Insert the utopia point to the list of features
+            this.allFeatures.splice(0, 0, this.utopiaPoint);
+
+            // Add cursor 
+            let cursorFeature;
+            if(currentFeature){
+                this.currentFeature = currentFeature;
+                cursorFeature = JSON.parse(JSON.stringify(currentFeature));
+                
+            }else{
+                this.currentFeature = null;
+                cursorFeature = JSON.parse(JSON.stringify(this.utopiaPoint));
+                
+            }
+            cursorFeature.cursor = true;
+            this.allFeatures.push(cursorFeature);
         }
-        cursorFeature.cursor = true;
-        this.allFeatures.push(cursorFeature);
 
         // setup x
         // data -> value
@@ -978,9 +987,11 @@ class DataMining{
             })
             .attr('d',d3.symbol().type(d3.symbolCross).size(120));
 
-            // Modify the shape of the cursor to cross
-            if(that.recentlyAddedFeatureIDs.indexOf(cursorFeature.id) !== -1){
-                get_cursor().attr('d',d3.symbol().type(d3.symbolCross).size(120));
+            if(typeof cursorFeature !== 'undefined' && cursorFeature != null){
+                // Modify the shape of the cursor to cross
+                if(that.recentlyAddedFeatureIDs.indexOf(cursorFeature.id) !== -1){
+                    get_cursor().attr('d',d3.symbol().type(d3.symbolCross).size(120));
+                }
             }
         }
 
@@ -999,11 +1010,14 @@ class DataMining{
             .on('mouseout', (d) => { this.feature_mouseout(d); })
             .on('click', (d) => { this.feature_click(d); });   
 
-        // Remove the utopia point from the list
-        this.allFeatures.splice(0, 1);
+        if(this.allFeatures.length !== 0 && this.allFeatures.length !== 1){
 
-        // Remove cursor from the list
-        this.allFeatures.pop();
+            // Remove the utopia point from the list
+            this.allFeatures.splice(0, 1);
+
+            // Remove cursor from the list
+            this.allFeatures.pop();
+        }
 
         // Move objects to their correct locations
         if(this.transform){
@@ -1584,7 +1598,7 @@ class DataMining{
 
     export_target_selection(selectionName){
 
-        if (this.selected_archs.length==0){
+        if (this.selected_archs.length === 0){
             alert("First select target solutions!");
             return;
         }     
@@ -1670,9 +1684,13 @@ class DataMining{
 
                 if(generalization_enabled){
                     if(that.metadata.problem === "ClimateCentric"){
-                        let problem_specific_params = data["params"]
-                        let concept_hierarchy = that.get_problem_concept_hierarchy()
-                        concept_hierarchy["params"] = problem_specific_params
+
+                        // Params loaded from a file
+                        let problem_specific_params = data["params"];
+
+                        // Concept hierarchy info obtained from the vassar server
+                        let concept_hierarchy = that.get_problem_concept_hierarchy();
+                        concept_hierarchy["params"] = problem_specific_params;
                         PubSub.publish(PROBLEM_CONCEPT_HIERARCHY_LOADED, concept_hierarchy);
                     }  
                 }
@@ -1683,6 +1701,32 @@ class DataMining{
                 alert("error");
             }
         });
+    }
+
+    relabel_generalization_description(message){
+
+        let instrument_original_names = this.label.instrument_list;
+        let instrument_relabeled_names = this.label.instrument_relabeled;
+        let orbit_original_names = this.label.orbit_list;
+        let orbit_relabeled_names = this.label.orbit_relabeled;
+
+        for(let i = 0; i < instrument_original_names.length; i++){
+            let instr_original = instrument_original_names[i];  
+            if(message.indexOf(instr_original) !== -1){
+                let instr_relabeled = instrument_relabeled_names[i];
+                message = message.replace(new RegExp(instr_original, 'g'), instr_relabeled);
+            }
+        }
+
+        for(let i = 0; i < orbit_original_names.length; i++){
+            let orb_original = orbit_original_names[i];            
+            if(message.indexOf(orb_original) !== -1){
+                let orb_relabeled = orbit_relabeled_names[i];
+                message = message.replace(new RegExp(orb_original, 'g'), orb_relabeled);
+            }
+        }
+
+        return message;
     }
 
     show_generalization_suggestion(message, generalizedFeature){
@@ -1714,7 +1758,7 @@ class DataMining{
                     instance.hide({
                         transitionOut: 'fadeOutUp',
                         onClosing: function(instance, toast, closedBy){
-                            console.info('closedBy: ' + closedBy); // The return will be: 'closedBy: buttonName'
+                            // pass
                         }
                     }, toast, 'buttonName');
 
@@ -1723,7 +1767,7 @@ class DataMining{
                     instance.hide({
                         transitionOut: 'fadeOutUp',
                         onClosing: function(instance, toast, closedBy){
-                            console.info('closedBy: ' + closedBy); // The return will be: 'closedBy: buttonName'
+                            // pass
                         }
                     }, toast, 'buttonName');
                 }]
