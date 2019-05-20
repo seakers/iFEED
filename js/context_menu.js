@@ -425,9 +425,8 @@ class ContextMenu {
                     parent.children.splice(index, 1, tempNode);
 
                 }else{ 
-                    // This is the root node
+                    // The current node is either the root node or a leaf node without parent
                     let logic = node.name; 
-
                     if(logic === "AND"){
                         logic = "OR";    
                     }else{
@@ -435,27 +434,32 @@ class ContextMenu {
                     }
                     feature_application.data = construct_node(feature_application, 0, "logic", logic, [node], null);
                 }
-  
                 break;
 
             case 'addIfThen':
+
                 if(parent){ 
-                    // This is a leaf node because of the condition set up previously (logic nodes do not have option to add parent)
                     let index = parent.children.indexOf(node);
                     let logic = parent.name;
                     let depth = node.depth;
-                    let tempNode = construct_node(feature_application, depth, "logic", "IF_THEN", [node], parent);
-                    parent.children.splice(index, 1, tempNode);
+                    let tempIfThenNode = construct_node(feature_application, depth, "logic", "IF_THEN", [node], parent);
+                    parent.children.splice(index, 1, tempIfThenNode);
 
-                    // Deactivate if-then node as it does not have the conditional part
-                    visit_nodes(tempNode, function(d){
+                    // Deactivate if-then node as it is missing either the conditional or the consequent part
+                    visit_nodes(tempIfThenNode, function(d){
                         d.deactivated = true;
                     });
-                    this.display_ifThen_deactivation_message();
 
                 }else{ 
-                    error("The selected node should have a parent");
+                    feature_application.data = construct_node(feature_application, 0, "logic", "IF_THEN", [node], null);
+
+                    // Deactivate if-then node as it is missing either the conditional or the consequent part
+                    visit_nodes(feature_application.data, function(d){
+                        d.deactivated = true;
+                    });
                 }
+
+                this.display_ifThen_deactivation_message();
                 break;
 
             case 'duplicate':

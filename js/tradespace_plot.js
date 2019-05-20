@@ -30,7 +30,7 @@ class TradespacePlot{
             "highlighted": "rgba(248,101,145,255)",
             "overlap": "rgba(163,64,240,255)",
             "mouseover": "rgba(116,255,110,255)",
-            "hidden": "rgba(110,110,110,22)",
+            "hidden": "rgba(0, 0, 0, 0.05)",
             "cursor": "rgba(0, 0, 0, 1)"
         };
 
@@ -307,9 +307,9 @@ class TradespacePlot{
 
     setPointColor(point){
         if(point.hidden){
-            point.drawingColor = this.color.default;
-        }
-        else if (point.selected && point.highlighted) {
+            point.drawingColor = this.color.hidden;
+
+        }else if (point.selected && point.highlighted) {
             point.drawingColor = this.color.overlap;
         }
         else if (point.selected) {
@@ -326,13 +326,12 @@ class TradespacePlot{
     drawPoints(context, hidden) {
         context.clearRect(0, 0, this.width, this.height);
         context.save();
-        
         this.data.forEach(point => {
             let tx = this.transform.applyX(this.xMap(point));
             let ty = this.transform.applyY(this.yMap(point));
             context.beginPath();
             if(point.hidden){
-                context.fillStyle = "rgba(110,110,110,0.0085)";
+                context.fillStyle = point.drawingColor;
             }else{
                 context.fillStyle = hidden ? point.interactColor : point.drawingColor;
             }
@@ -822,7 +821,6 @@ class TradespacePlot{
     hide_selection(){
 
         this.data.forEach( (point) => {
-
             if(point.highlighted || point.selected){
                 point.highlighted = false;
                 point.selected = false;

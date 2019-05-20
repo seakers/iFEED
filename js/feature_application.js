@@ -382,7 +382,8 @@ class FeatureApplication{
                 return 8;
             })
             .style("fill-opacity", 0.94)
-            .style('fill','none');
+            .style('fill','none')
+            .style('opacity', 1.0);
 
         linkEnter
             .filter((d) => {
@@ -457,6 +458,16 @@ class FeatureApplication{
                     return "Black";
                 }
             })
+            .text(function(d) {
+                let index = d.parent.children.indexOf(d);
+                if(index === 0){
+                    return "IF";
+                }else if(index === 1){
+                    return "THEN";
+                }else if(index === 2){
+                    return "ELSE"
+                }
+            })
             .style('opacity', 1.0);
 
         // Transition exiting nodes to the parent's new position.
@@ -468,10 +479,15 @@ class FeatureApplication{
             .attr('d', function(d) {
 	        	let o = {x: d.parent.x, y: d.parent.y}
 	        	return that.diagonal(o, o)
-	      	})
-            .remove();
+	      	});
 
         linkExit.select("text")
+            .transition()
+            .attr("transform", function(d) {
+                return "translate(" + d.parent.y0 + "," + d.parent.x0 + ")";
+            });
+
+        linkExit
             .transition()
             .attr("transform", function(d) {
                 return "translate(" + d.parent.y0 + "," + d.parent.x0 + ")";
