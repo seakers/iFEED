@@ -121,7 +121,6 @@ class EOSSAssigning extends Problem{
     }
 
     display_arch_info(data) {
-
         // Remove previously-added content
         d3.select('#view1').selectAll('g').remove();
 
@@ -152,22 +151,19 @@ class EOSSAssigning extends Problem{
         }
         
         let bitString = null;
-        
         if(typeof data == "string"){
             bitString = data;
         }else{
             bitString = this.booleanArray2String(data.inputs);
         }
+        this.current_bitString = bitString;
         
         let json_arch=[];
         
-        for(let i=0;i<this.orbit_num;i++){
-            
+        for(let i = 0; i < this.orbit_num; i++){
             var orbit = this.orbit_list[i];
             var assigned = [];
-            
             for(let j = 0; j < this.instrument_num; j++){
-
                 if(bitString[i * this.instrument_num + j] === '1'){
                     var instrument = this.instrument_list[j];
                     //Store the instrument names assigned to jth orbit
@@ -178,11 +174,9 @@ class EOSSAssigning extends Problem{
             json_arch.push({"orbit":orbit,"children":assigned});
         }        
     
-        
         var norb = json_arch.length;
         var maxNInst = 0;
         var totalNInst = 0;
-
         for (var i = 0; i < this.orbit_num; i++) {
             var nInst = json_arch[i].children.length;
             totalNInst = totalNInst + nInst;
@@ -355,29 +349,25 @@ class EOSSAssigning extends Problem{
     }
     
     update_current_architecture(){
-        
         var indices = [];
         var bitString = "";
 
         let that = this;
-
-        d3.selectAll('.arch_info_display_cell_container')[0].forEach(function(d){                            
-
+        d3.selectAll('.arch_info_display_cell_container').nodes().forEach((d) => {                            
             var orbitName = d3.select(d).attr('name');                    
             var OIndex = that.orbit_list.indexOf(orbitName);
 
-            d3.select(d).selectAll('.arch_info_display_cell.instrument')[0].forEach(function(d){
+            d3.select(d).selectAll('.arch_info_display_cell.instrument').nodes().forEach((d) => {
                 var instrName = d3.select(d).attr('name');
-
                 var Iindex = that.instrument_list.indexOf(instrName);
                 var index = that.instrument_num*OIndex+Iindex;
                 indices.push(index);
             });
         });
 
-        for(var i=0;i<that.orbit_num;i++){
-            for(var j=0;j<that.instrument_num;j++){
-                if(indices.indexOf(i*that.instrument_num+j)==-1){
+        for(var i = 0; i < this.orbit_num; i++){
+            for(var j = 0; j < this.instrument_num; j++){
+                if(indices.indexOf(i * this.instrument_num + j)==-1){
                     bitString = bitString + "0";
                 }else{
                     bitString = bitString + "1";
@@ -394,12 +384,9 @@ class EOSSAssigning extends Problem{
         var support_panel = d3.select("#support_panel")
                 .select("#view1")
                 .select("g");
-        
-        if(d3.select('#instr_options_display')[0][0]){
-            return;
-        }
-        
-        var instrOptions = support_panel.insert("div","#arch_info_display_outputs + *").attr('id','instr_options_display');
+
+        var instrOptions = support_panel.insert("div", "#arch_info_display_outputs + *")
+                                        .attr('id','instr_options_display');
         
         instrOptions.append('p')
                 .text('Candidate Instruments')
@@ -412,13 +399,12 @@ class EOSSAssigning extends Problem{
                 .attr("id", "instr_options_table");
 
         var candidate_instruments = [];
-        for(var i=0;i<Math.round(that.instrument_num/2);i++){
+
+        for(var i = 0; i < 2; i++){
             var temp = [];
-            for(var j=0;j<2;j++){
-                var index = j*Math.round(that.instrument_num/2) + i;
-                if(index < that.instrument_num){
-                    temp.push(that.instrument_list[index]);
-                }
+            for(var j = 0; j < Math.round(this.instrument_num / 2); j++){
+                var index = i * Math.round(this.instrument_num / 2) + j;
+                temp.push(this.instrument_list[index]);
             }
             candidate_instruments.push(temp);
         }
@@ -459,8 +445,9 @@ class EOSSAssigning extends Problem{
                 .attr('id','instr_options_trash')
                 .append('p')
                 .style('margin','auto')
-                .style('padding','15px')
+                .style('padding','17px')
                 .text('Drag here to remove')
+                .style('font-size','23px')
                 .style('font-weight','bold');
 
         $('#instr_options_trash').droppable({
