@@ -12,7 +12,7 @@
     font-size:14px;
 }
 
-.content{
+#content{
     width:2400px; 
     height:1300px; 
     margin:auto;
@@ -181,29 +181,29 @@
     background-color: #EEEEEE;
 }
 
-
 #instr_options_display{
     float:left;
-    width:1100px;
+    width:360px;
     margin-left: 0%;
-    margin-top: 10px;
+    margin-top: 510px;
     margin-bottom: 10px;
     background-color: #E6E6E6;
     padding:20px;
 }
 
 #instr_options_table{
-    width:800px;
+    width:340px;
     float:left;
+    margin-top:20px;
     border-spacing: 10px;
 }
 
 #instr_options_trash{
     float:left;
-    width:140px;
+    width:320px;
     margin-top:10px;
-    margin-left:20px;
-    height:95px;
+    margin-left:10px;
+    height:125px;
     background-color: #FF8B8B;
 }
 

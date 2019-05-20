@@ -1,4 +1,5 @@
 
+
 class EOSSAssigning extends Problem{
 
     constructor(){
@@ -121,6 +122,7 @@ class EOSSAssigning extends Problem{
     }
 
     display_arch_info(data) {
+
         // Remove previously-added content
         d3.select('#view1').selectAll('g').remove();
 
@@ -131,35 +133,34 @@ class EOSSAssigning extends Problem{
         // Display the current architecture info
         let arch_info_display_outputs = support_panel.append('div')
                 .attr('id','arch_info_display_outputs');
-        
-        for(let i = 0; i < this.metadata.output_list.length; i++){
-            arch_info_display_outputs.append("p")
-                .text(d => {
-                    let out = this.metadata.output_list[i] + ": ";
-                    let val = data.outputs[i];    
-                    if (typeof val == "number"){
-                        if (val > 100){ 
-                            val = val.toFixed(2);
-                        }
-                        else{ 
-                            val = val.toFixed(4); 
-                        }
-                    }
-                    return out + val;
-                })
-                .style('font-size','20px');
-        }
-        
-        let bitString = null;
-        if(typeof data == "string"){
+
+        var bitString = null;
+        if(typeof data === "string"){
             bitString = data;
+
         }else{
+            for(let i = 0; i < this.metadata.output_list.length; i++){
+                arch_info_display_outputs.append("p")
+                    .text((d) => {
+                        let out = this.metadata.output_list[i] + ": ";
+                        let val = data.outputs[i];    
+                        if (typeof val == "number"){
+                            if (val > 100){ 
+                                val = val.toFixed(2);
+                            }
+                            else{ 
+                                val = val.toFixed(4); 
+                            }
+                        }
+                        return out + val;
+                    })
+                    .style('font-size','20px');
+            }
             bitString = this.booleanArray2String(data.inputs);
         }
         this.current_bitString = bitString;
         
         let json_arch=[];
-        
         for(let i = 0; i < this.orbit_num; i++){
             var orbit = this.orbit_list[i];
             var assigned = [];
@@ -266,7 +267,7 @@ class EOSSAssigning extends Problem{
                     return "70px";
                 }
             })
-            .text(function (d) {
+            .text((d) => {
                if(d.type=="orbit"){
                   return that.label.actualName2DisplayName(d.content,"orbit");
               }
@@ -275,77 +276,73 @@ class EOSSAssigning extends Problem{
     }
     
     enable_modify_architecture(){
-
         let that = this;
         
-        $('.arch_info_display_cell_container').sortable({
-    
+        $('.arch_info_display_cell_container')
+        .sortable({
             items: ':not(.not_draggable)',
             start: function(){
                 $('.not_draggable', this).each(function(){
                     var $this = $(this);
                     $this.data('pos', $this.index());
                 });
-            },
-                               
+            },  
             connectWith: '.arch_info_display_cell_container',
             cursor: 'pointer',
-            update: function(ui){
+            update: (ui) => {
                 var bitString_save = that.current_bitString;
-                
                 that.current_bitString = that.update_current_architecture();
-                
-                if(bitString_save!=that.current_bitString) that.enable_evaluate_architecture();
+                if(bitString_save !== that.current_bitString){
+                    that.enable_evaluate_architecture();
+                } 
             }
         })
         .droppable({
             accept: '.arch_info_display_cell.candidates',
             drop: function(event, ui) {
-                
                 var bitString_save = that.current_bitString;
 
                 var instrNode = d3.select(ui.draggable.context);
                 var orbitNode = d3.select(this);
-
                 var instrName = instrNode.attr('name');
                 var orbitName = orbitNode.attr('name');           
 
                 var Iindex = that.instrument_list.indexOf(instrName);
                 var OIndex = that.orbit_list.indexOf(orbitName);
-
                 var index = that.instrument_num*OIndex+Iindex;
                                 
                 that.current_bitString = that.current_bitString.split('');
                 that.current_bitString[index] = '1';
                 that.current_bitString = that.current_bitString.join('');
                                 
-                that.display_arch_info(that.current_bitString);
-                that.enable_modify_architecture();
-                
-                if(bitString_save!=that.current_bitString) that.enable_evaluate_architecture();
+                that.display_arch_info(that.current_bitString);                
+                if(bitString_save !== that.current_bitString){
+                    that.enable_evaluate_architecture();
+                    that.enable_modify_architecture();
+                }
             }
         });        
     }
     
-    
     enable_evaluate_architecture(){
-
         let that = this;
-        
-        d3.select('#run_design_local_search').remove();
-        
-        if(d3.select('#arch_info_display_outputs > p')[0][0]){
+        var output_display_slot = d3.select('#arch_info_display_outputs');
 
-            var output_display_slot = d3.select('#arch_info_display_outputs');
+        if(d3.select('#arch_info_display_outputs > p').node()){
             output_display_slot.selectAll('p').remove();
-            output_display_slot.append('button')
-                                .attr('id','evaluate_architecture_button')
-                                .text('Evaluate this design')
-                                .on('click',(d) => {
-                                    var inputs = that.string2BooleanArray(that.current_bitString);
-                                    that.evaluate_architecture(inputs);
-                                });
-        }                       
+        }
+
+        if(d3.select('#evaluate_architecture_button').node()){
+            output_display_slot.select('#evaluate_architecture_button').remove();
+        }
+
+        output_display_slot.append('button')
+                            .attr('id','evaluate_architecture_button')
+                            .text('Evaluate this design')
+                            .on('click',(d) => {
+                                var inputs = that.string2BooleanArray(that.current_bitString);
+                                that.evaluate_architecture(inputs);
+                            });
     }
     
     update_current_architecture(){
@@ -380,12 +377,14 @@ class EOSSAssigning extends Problem{
     display_instrument_options(){
 
         let that = this;
-        
-        var support_panel = d3.select("#support_panel")
-                .select("#view1")
-                .select("g");
 
-        var instrOptions = support_panel.insert("div", "#arch_info_display_outputs + *")
+        let container = d3.select('.column.c2').select('div');
+
+        container.selectAll('div').remove();
+        container.style('width','500px')
+                    .style('border-width','0px');
+
+        var instrOptions = container.insert("div", "#arch_info_display_outputs + *")
                                         .attr('id','instr_options_display');
         
         instrOptions.append('p')
@@ -399,12 +398,13 @@ class EOSSAssigning extends Problem{
                 .attr("id", "instr_options_table");
 
         var candidate_instruments = [];
-
-        for(var i = 0; i < 2; i++){
+        for(var i = 0; i < Math.round(this.instrument_num / 2); i++){
             var temp = [];
-            for(var j = 0; j < Math.round(this.instrument_num / 2); j++){
-                var index = i * Math.round(this.instrument_num / 2) + j;
-                temp.push(this.instrument_list[index]);
+            for(var j = 0; j < 2; j++){
+                var index = j * Math.round(this.instrument_num / 2) + i;
+                if(index < this.instrument_num){
+                    temp.push(this.instrument_list[index]);
+                }
             }
             candidate_instruments.push(temp);
         }
@@ -425,7 +425,7 @@ class EOSSAssigning extends Problem{
                     return d;
                 })
                 .attr("width", function (d, i) {
-                    return "70px";
+                    return "150px";
                 })
                 .attr('class',function(d){
                     return 'arch_info_display_cell candidates';
@@ -445,7 +445,7 @@ class EOSSAssigning extends Problem{
                 .attr('id','instr_options_trash')
                 .append('p')
                 .style('margin','auto')
-                .style('padding','17px')
+                .style('padding','40px')
                 .text('Drag here to remove')
                 .style('font-size','23px')
                 .style('font-weight','bold');
