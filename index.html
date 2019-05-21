@@ -160,6 +160,7 @@ and open the template in the editor.
 <script src="js/feature_application.js" type="text/javascript"></script>       
 <script src="js/context_menu.js" type="text/javascript"></script>
     
+<script src="js/experiment.js" type="text/javascript"></script>
 <script>
 
     let problem_name = "ClimateCentric";
@@ -219,6 +220,8 @@ and open the template in the editor.
 
         tradespace_plot.toggle_selection_and_highlight();
     }
+
+    var experiment = new Experiment(problem, tradespace_plot, filter, data_mining, feature_application, label);
 
 </script>
 

@@ -43,7 +43,10 @@ const VIEW_ARCHITECTURE = "view_architecture";
 const HIGHLIGHT_SUPPORT_PANEL = "highlight_support_panel";
 const ARCH_SELECTED = "arch_selected";
 
-const SET_EXPERIMENT_MODE = "set_experiment_mode";
+
+// EXPERIMENT
+const EXPERIMENT_SET_MODE = "experiment_set_mode";
+const EXPERIMENT_START = "experiment_start";
 
 
 class Architecture{

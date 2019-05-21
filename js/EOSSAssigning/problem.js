@@ -92,6 +92,26 @@ class EOSSAssigning extends Problem{
             this.metadata.problem_specific_params["orbit_extended_list"] = data["params"]["orbit_list"];
             this.metadata.problem_specific_params["instrument_extended_list"] = data["params"]["instrument_list"];
         });
+
+        // EXPERIMENT
+        PubSub.subscribe(EXPERIMENT_SET_MODE, (msg, data) => {
+            if(data === "design-synthesis"){
+                this.experimentMode = data;
+                this.display_instrument_options();
+
+                var emptyBitString = "";
+                for(var i = 0; i < 60; i++){
+                    emptyBitString += "0";
+                }
+                this.display_arch_info(emptyBitString);
+
+                // Display the current architecture info
+                d3.select('#arch_info_display_outputs')
+                    .append("p")
+                    .text("Drag instruments to empty orbit slots to build and evaluate new designs")
+                    .style('font-size','20px');
+            }
+        });  
     }
     
     booleanArray2String(boolArray) {
@@ -273,6 +293,14 @@ class EOSSAssigning extends Problem{
               }
               return that.label.actualName2DisplayName(d.content,"instrument");
             });
+
+
+        // EXPERIMENT
+        if(typeof this.experimentMode !== "undefined" && this.experimentMode !== null){
+            if(this.experimentMode === "design-synthesis"){
+                this.enable_modify_architecture();
+            }
+        }
     }
     
     enable_modify_architecture(){
@@ -504,9 +532,7 @@ class EOSSAssigning extends Problem{
     }
     
     evaluate_architecture(inputs){
-
         let that = this;
-
         $.ajax({
             url: "/api/vassar/evaluate-architecture",
             type: "POST",
@@ -516,44 +542,16 @@ class EOSSAssigning extends Problem{
             async: false,
             success: function (data, textStatus, jqXHR)
             {
-                var arch = that.preprocessing(data);                
-                                                
-                PubSub.publish(VIEW_ARCHITECTURE, arch);
-                PubSub.publish(ADD_ARCHITECTURE, {'previous':ifeed.data,'added':arch});
-                
-                //ifeed.data.push(arch); 
+                var arch = that.preprocessing(data);    
+                console.log(arch);
+
+                PubSub.publish(INSPECT_ARCH, arch);
+                PubSub.publish(ADD_ARCHITECTURE, arch);
             },
             error: function (jqXHR, textStatus, errorThrown)
             {
                 alert("error");
             }
         });        
-    }
-    
-    run_local_search(architecture){
-        let that = this;
-        var inputs = architecture.inputs;
-        
-        $.ajax({
-            url: "/api/vassar/run-local-search",
-            type: "POST",
-            data: {
-                    inputs: JSON.stringify(inputs),
-                  },
-            async: false,
-            success: function (data, textStatus, jqXHR)
-            {
-                var archs = that.preprocessing(data);
-                archs.push(architecture);
-                
-                PubSub.publish(ADD_ARCHITECTURE, {'previous':ifeed.data,'added':archs});
-                
-                //ifeed.data = ifeed.data.concat(archs);                 
-            },
-            error: function (jqXHR, textStatus, errorThrown)
-            {
-                alert("error");
-            }
-        });  
-    }    
+    }   
 }

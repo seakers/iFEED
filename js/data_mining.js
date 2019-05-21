@@ -88,6 +88,25 @@ class DataMining{
             this.feature_application = data;
         });  
 
+        // EXPERIMENT
+        PubSub.subscribe(EXPERIMENT_SET_MODE, (msg, data) => {
+            if(data === "manual-generalization"){
+                this.allFeatures = [];
+                this.display_features([]);
+
+            } else if(data === "automated-generalization"){
+                this.import_feature_data("AOSMOEA_2019-05-16-02-49_0", true, true);
+
+            } else if(data === "interactive-generalization"){
+                this.run();
+            
+            } else if(data === "design-synthesis"){
+                this.initialize = function(){
+                    d3.select("#support_panel").select("#view3").select("g").remove();
+                }
+            }
+        });  
+
         this.initialize();        
     }
 
@@ -1588,7 +1607,6 @@ class DataMining{
                         that.selected_archs.push(point);
                     }
                 });
-            
                 PubSub.publish(UPDATE_TRADESPACE_PLOT, null);
             },
             error: function (jqXHR, textStatus, errorThrown)
@@ -1694,7 +1712,6 @@ class DataMining{
                         PubSub.publish(PROBLEM_CONCEPT_HIERARCHY_LOADED, concept_hierarchy);
                     }  
                 }
-
             },
             error: function (jqXHR, textStatus, errorThrown)
             {
