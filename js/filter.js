@@ -176,9 +176,7 @@ class Filter{
                 }
             });
         }
-
-        PubSub.publish(UPDATE_TRADESPACE_PLOT, null);
-
+        PubSub.publish(UPDATE_TRADESPACE_PLOT, true);
         return id_list;
     }
 

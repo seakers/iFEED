@@ -855,7 +855,7 @@ class Experiment{
                 selected_data.push(d);
             }
         })
-
+        this.tradespace_plot.update(true);
         PubSub.publish(SELECTION_UPDATED, selected_data);  
     }
     
