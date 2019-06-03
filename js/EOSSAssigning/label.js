@@ -178,14 +178,14 @@ class EOSSAssigningLabel extends Label{
         name = name.trim();
         if(type == "orbit"){
             
-            var nth = $.inArray(name,this.orbit_list);
+            let nth = $.inArray(name,this.orbit_list);
             if(nth==-1){// Couldn't find the name from the list
                 return name;
             }
             return this.orbit_relabeled[nth];
             
         } else if(type=="instrument"){
-            var nth = $.inArray(name,this.instrument_list);
+            let nth = $.inArray(name,this.instrument_list);
             if(nth==-1){ // Couldn't find gthe name from the list
                 return name;
             }
@@ -202,13 +202,13 @@ class EOSSAssigningLabel extends Label{
         
         name = name.trim();
         if(type=="orbit"){
-            var nth = $.inArray(name,this.orbit_relabeled);
+            let nth = $.inArray(name,this.orbit_relabeled);
             if(nth==-1){// Couldn't find the name from the list
                 return name;
             }
             return this.orbit_list[nth];
         } else if(type=="instrument"){
-            var nth = $.inArray(name,this.instrument_relabeled);
+            let nth = $.inArray(name,this.instrument_relabeled);
             if(nth==-1){ // Couldn't find gthe name from the list
                 return name;
             }

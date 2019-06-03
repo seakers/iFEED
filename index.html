@@ -23,18 +23,18 @@ and open the template in the editor.
     <script src="js/lib/tabcontent.js" type="text/javascript"></script>
     <script src="js/lib/pubsub.js" type="text/javascript"></script>
     <script src="js/lib/iziToast.min.js" type="text/javascript"></script>
-    
-    <link href="js/lib/tabcontent.css" rel="stylesheet" type="text/css"/>
-    
+    <script src="js/lib/intro.js"></script>
+
+    <link href="css/introjs.css" rel="stylesheet" type="text/css"/>
+    <link href="css/tabcontent.css" rel="stylesheet" type="text/css"/>
     <link href="css/tradespace_plot.css" rel="stylesheet" type="text/css"/>
     <link href="css/filter.css" rel="stylesheet" type="text/css"/>
     <link href="css/data_mining.css" rel="stylesheet" type="text/css"/>
     <link href="css/feature_application.css" rel="stylesheet" type="text/css"/>
-
     <link href="css/iziToast.min.css" rel="stylesheet" type="text/css">
 
-    <!-- <script src="https://apis.google.com/js/platform.js" async defer></script> -->
-    <!-- <meta name="google-signin-client_id" content="564804694787-lnsp9md3u0q8086nftbamu43drid6d4t.apps.googleusercontent.com"> -->
+    <link href="css/experiment.css" rel="stylesheet" type="text/css">
+    <link href="css/experiment_tutorial.css" rel="stylesheet" type="text/css">
 
 </head>
 
@@ -50,57 +50,18 @@ and open the template in the editor.
             <div>Number of target designs:</div>
             <div id="num_of_selected_archs"></div> 
         </div>
-        <div class="clearfix"></div>
+        <div id="timer"></div>
     </div>
     <div class='column c1'>
-
         <div class='row c1 r1'>
-
             <div class='tradespace_plot figure'></div>
-
-            <div class='tradespace_plot options'>
-                <div>     
-                    <div id="plot_options">
-                        <div>
-                            X axis:
-                            <select id="x-axis-select"/>
-                        </div>
-                        <div>
-                            Y axis:
-                            <select id="y-axis-select"/>
-                        </div>
-                    </div>               
-                    <div id='interaction_modes'>
-                        <div>Mouse Selection</div>
-                        <div style="margin-top:3px">
-                            Zoom/Pan:
-                            <input id="zoom-pan" type="radio" checked="True"/>
-                        </div>
-                        <div>
-                            Drag-select:
-                            <input id="drag-select" type="radio"/>
-                        </div>
-                        <div>
-                            Deselect: 
-                            <input id="de-select" type="radio"/>
-                        </div>
-                    </div>
-                    <div id='selection_options'>
-                        <button type="button"  id="hide_selection">Hide selections</button>
-                        <button type="button"  id="show_all_archs">Show all architectures</button> 
-                        <button type="button"  id="select_highlighted">Select highlighted</button>
-                        <button type="button"  id="select_complement">Select complement</button>
-                        <button type="button"  id="cancel_selection">Cancel all selections</button>
-                    </div>                    
-                </div>
-            </div>
         </div>
         <div class="row c1 r2">
             <div id="support_panel"> 
                 <ul class="tabs" data-persist="true">
                     <li><a id="tab1" href="#view1">Inspect Design</a></li>
                     <li><a id="tab2" href="#view2">Filter Setting</a></li>
-                    <li><a id="tab3" href="#view3">Feature Status</a></li>
+                    <li><a id="tab3" href="#view3">Feature Analysis</a></li>
                 </ul>
                 <div class="tabcontents">
                     <div id="view1"></div>
@@ -161,6 +122,7 @@ and open the template in the editor.
 <script src="js/context_menu.js" type="text/javascript"></script>
     
 <script src="js/experiment.js" type="text/javascript"></script>
+<script src="js/experiment_tutorial.js" type="text/javascript"></script>
 <script>
 
     let problem_name = "ClimateCentric";
@@ -208,7 +170,7 @@ and open the template in the editor.
     
     var feature_application = new FeatureApplication(data_mining, filter, label);    
 
-    PubSub.publish(LOAD_DATA, null);
+    // PubSub.publish(LOAD_DATA, null);
 
     function select_fuzzy_pareto_front(rank){
 
@@ -222,6 +184,11 @@ and open the template in the editor.
     }
 
     var experiment = new Experiment(problem, tradespace_plot, filter, data_mining, feature_application, label);
+
+    var tutorial = new ExperimentTutorial(problem, tradespace_plot, filter, data_mining, feature_application, label, experiment);
+
+    setTimeout(() => { PubSub.publish(EXPERIMENT_TUTORIAL_START, null);}, 700);
+    
 
 </script>
 

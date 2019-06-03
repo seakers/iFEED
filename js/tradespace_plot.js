@@ -20,7 +20,7 @@ class TradespacePlot{
 
         this.tradespace_plot_params = {
             "margin":{top: 20, right: 20, bottom: 30, left: 60},
-            "width": 960,
+            "width": 1213,
             "height": 540,
         };
 
@@ -63,6 +63,7 @@ class TradespacePlot{
                 this.num_total_points += 1;
             });
             this.drawPlot(this.xIndex, this.yIndex);
+            document.getElementById('tab1').click();
         });
 
         PubSub.subscribe(UPDATE_TRADESPACE_PLOT, (msg, data) => {
@@ -96,7 +97,7 @@ class TradespacePlot{
                 this.drawPoints(this.context, false);
                 this.num_selected_points = this.get_selected_architectures().length;
                 this.num_highlighted_points = this.get_highlighted_architectures().length;
-                this.num_total_points = this.num_selected_points + this.num_highlighted_points;
+                this.num_total_points = this.get_all_architectures().length;
                 d3.select("#num_of_selected_archs").text("" + this.num_selected_points);
                 d3.select("#num_of_archs").text("" + this.num_total_points);
                 PubSub.publish(SELECTION_UPDATED, this.get_selected_architectures());
@@ -752,13 +753,23 @@ class TradespacePlot{
             }); 
         }
         this.drawPoints(this.context, false);
-        // this.drawPoints(this.hiddenContext, true);
         this.num_selected_points = this.get_selected_architectures().length;
         this.num_highlighted_points = this.get_highlighted_architectures().length;
-        this.num_total_points = this.num_selected_points + this.num_highlighted_points;
+        this.num_total_points = this.get_all_architectures().length;
         d3.select("#num_of_selected_archs").text("" + this.num_selected_points);
         d3.select("#num_of_archs").text("" + this.num_total_points);
     }    
+
+
+    get_all_architectures(){
+        let out = [];
+        this.data.forEach(point => {
+            if (!point.hidden){
+                out.push(point);
+            }
+        });    
+        return out;    
+    }
 
     get_selected_architectures(){
         let out = [];
@@ -781,7 +792,6 @@ class TradespacePlot{
     }
 
     select_highlighted(){
-
         this.data.forEach( (point) => {
 
             if(point.highlighted){

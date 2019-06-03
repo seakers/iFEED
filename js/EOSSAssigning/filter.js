@@ -9,11 +9,11 @@ class EOSSAssigningFilter extends Filter{
                                {value:"paretoFront",text:"Pareto front"},
                                {value:"present",text:"Present",input:"singleInst",hints:"Designs that have the specified instrument are selected"},
                                {value:"absent",text:"Absent",input:"singleInst",hints:"Designs that do not have the specified instrument are selected"},
-                               {value:"inOrbit",text:"In orbit",input:"orbitAndMultipleInstInput",hints:"Designs that have the specified instruments inside the chosen orbit are selected"},
-                               {value:"notInOrbit",text:"Not in orbit",input:"orbitAndMultipleInstInput",hints:"Designs that do not have the specified instruments inside the chosen orbit are selected"},
+                               {value:"inOrbit",text:"InOrbit",input:"orbitAndMultipleInstInput",hints:"Designs that have the specified instruments inside the chosen orbit are selected"},
+                               {value:"notInOrbit",text:"NotInOrbit",input:"orbitAndMultipleInstInput",hints:"Designs that do not have the specified instruments inside the chosen orbit are selected"},
                                {value:"together",text:"Together",input:"multipleInstInput",hints:"Designs that have the specified instruments in any one orbit are chose"},
                                {value:"separate",text:"Separate",input:"multipleInstInput",hints:"Designs that do not have the specified instruments in the same orbit are chosen"},
-                               {value:"emptyOrbit",text:"Empty orbit",input:"orbitInput",hints:"Designs that have no instrument inside the specified orbit are chosen"},
+                               {value:"emptyOrbit",text:"EmptyOrbit",input:"orbitInput",hints:"Designs that have no instrument inside the specified orbit are chosen"},
                                {value:"numOrbits",text:"Number of orbit used",input:"numOrbits",hints:"Designs that have the specified number of non-empty orbits are chosen"},
                                {value:"numInstruments",text:"Number of instruments",input:"numInstruments",hints:"This highlights all the designs with the specified number of instruments. If you specify an orbit name, it will count all instruments in that orbit. If you can also specify an instrument name, and only those instruments will be counted across all orbits. If you leave both instruments and orbits blank, all instruments across all orbits will be counted."},
                                {value:"subsetOfInstruments",text:"Num of instruments in a subset",input:"subsetOfInstruments",hints:"The specified orbit should contain at least m number and at maximum M number of instruments from the specified instrument set. m is the first entry and M is the second entry in the second field"},
@@ -259,8 +259,9 @@ class EOSSAssigningFilter extends Filter{
 
         d3.select(".filter.hints.div")
             .append("div")
-            .html('<p>Valid orbit names: 1000, 2000, 3000, 4000, 5000</p>'
-                    +'Valid instrument names: A, B, C, D, E, F, G, H, I, J, K, L');      
+            .html('<p>Valid orbit names: LEO-600-polar, SSO-600-AM, SSO-600-DD, SSO-800-DD, SSO-800-PM</p>'
+                    +'<p>Valid instrument names: OCE_SPEC, AERO_POL, AERO_LID, HYP_ERB, CPR_RAD, VEG_INSAR, VEG_LID, '
+                            +'CHEM_UVSPEC, CHEM_SWIRSPEC, HYP_IMAG, HIRES_SOUND, SAR_ALTIM</p>');      
     }
     
     generate_filter_expression_from_input_field(){
@@ -406,8 +407,8 @@ class EOSSAssigningFilter extends Filter{
         filter_expression = "{" + filter_expression + "}";
 
         if(invalid_input){
+            alert("Invalid input argument");
             throw "Invalid input argument";
-            return "";
         }        
         return filter_expression;
     }

@@ -50,11 +50,14 @@ class Filter{
 
         this.presetFeatureTypes = presetFeatureTypes;
         this.label = labelingScheme;
+        this.data = null;
 
         this.initialize();
 
         PubSub.subscribe(APPLY_FEATURE_EXPRESSION, (msg, data) => {
-            this.apply_filter_expression(data);
+            if(this.data !== null){
+                this.apply_filter_expression(data);
+            }            
         });   
 
         PubSub.subscribe(DATA_PROCESSED, (msg, data) => {
@@ -68,7 +71,7 @@ class Filter{
         
         d3.select("#support_panel").select("#view2").select("g").remove();
 
-        var support_panel = d3.select("#support_panel").select("#view2").append("g");
+        let support_panel = d3.select("#support_panel").select("#view2").append("g");
         
         support_panel.append("div")
                 .attr("class","filter title div")
@@ -83,7 +86,7 @@ class Filter{
         support_panel.append('div')
                 .attr('class','filter buttons div');
         
-        var dropdown = d3.select(".filter.options.div")
+        let dropdown = d3.select(".filter.options.div")
                 .append("select")
                 .attr("class","filter options dropdown");
 
@@ -111,9 +114,10 @@ class Filter{
         d3.select(".filter.options.dropdown").on("change",function(d){
             let option = d3.select(this).node().value;            
             that.initialize_filter_input_field(option); 
-        });    
 
-        //ifeed.tradespace_plot.highlight_support_panel()
+            // EXPERIMENT 
+            PubSub.publish(EXPERIMENT_TUTORIAL_EVENT, "filter_select_" + option);
+        });    
     }
     
     get_preset_option(option){
@@ -140,7 +144,7 @@ class Filter{
     apply_filter(){
         let expression = this.generate_filter_expression_from_input_field();
 
-        if(expression.indexOf('paretoFront') != -1){
+        if(expression.indexOf('paretoFront') !== -1){
             this.apply_filter_expression(expression);
 
         }else{
@@ -148,6 +152,10 @@ class Filter{
         }
         
         document.getElementById('tab2').click();
+
+        // EXPERIMENT
+        PubSub.publish(EXPERIMENT_TUTORIAL_EVENT, "filter_applied");
+
         return true;
     }
 
@@ -165,9 +173,7 @@ class Filter{
             id_list = [];
 
         }else{
-
             let filtered_data = this.process_filter_expression(feature_expression, this.data);
-            
             id_list = this.get_data_ids(filtered_data);
 
             this.data.forEach((point) => {

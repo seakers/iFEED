@@ -1162,22 +1162,24 @@ class FeatureApplication{
                 d.temp = false;
             })  
             PubSub.publish(ADD_FEATURE_FROM_EXPRESSION, {expression:this.parse_tree(this.data), replaceEquivalentFeature:false});
+
+            // EXPERIMENT 
+            PubSub.publish(EXPERIMENT_TUTORIAL_EVENT, "feature_clicked");
         }
     }
     
     get_node_ids(source,IDList){
-
         if(!source){
             return [];
         }
 
-        var id = source.id;
+        let id = source.id;
         if(IDList.indexOf(id)==-1){
            IDList.push(id);
         }
-        var children = source.children;
+        let children = source.children;
         if(children){
-            for(var i=0;i<children.length;i++){
+            for(let i = 0; i < children.length; i++){
                 this.get_node_ids(children[i],IDList);
             }
         }

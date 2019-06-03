@@ -104,6 +104,16 @@ class DataMining{
                 this.initialize = function(){
                     d3.select("#support_panel").select("#view3").select("g").remove();
                 }
+
+            } else if(data === "tutorial-manual-generalization"){
+                this.allFeatures = [];
+                this.display_features([]);
+
+            } else if(data === "tutorial-automated-generalization"){
+                this.import_feature_data("experiment_tutorial_data", false, false);
+
+            } else if(data === "tutorial-interactive-generalization"){
+                this.import_feature_data("experiment_tutorial_data", false, false);
             }
         });  
 
@@ -473,8 +483,6 @@ class DataMining{
     } 
 
     display_features(features){
-
-        document.getElementById('tab3').click();
         
         // Remove previous plot
         d3.select("#view3").select("g").remove();
@@ -570,7 +578,6 @@ class DataMining{
                 }
             }
         }
-        document.getElementById('tab3').click();
             
         // Update the plot
         if(singleFeatureAdded){
@@ -670,6 +677,8 @@ class DataMining{
         if(this.allFeatures.length === 0 && featuresToBeAdded == null){
             return;
         }
+
+        document.getElementById('tab3').click();
 
         // Set variables
         let width = this.width;
@@ -1086,6 +1095,9 @@ class DataMining{
         this.feature_application.update_feature_application('update');
         // this.update(null, null, this.currentFeature);
         // this.generalize_feature();
+
+        // EXPERIMENT 
+        PubSub.publish(EXPERIMENT_TUTORIAL_EVENT, "feature_clicked");
     }
 
     feature_mouseover(d){
@@ -1122,15 +1134,15 @@ class DataMining{
             tooltip_location.y = -10 -tooltip_height;
         }
 
-        var svg = d3.select(".objects.feature_plot");
-        var tooltip = svg.append("g")
+        let svg = d3.select(".objects.feature_plot");
+        let tooltip = svg.append("g")
                         .attr("id","tooltip_g");
 
         tooltip.append("rect")
                     .attr("id","tooltip_rect")
                     .attr("transform", function(){
-                        var x = mouseLoc_x + tooltip_location.x;
-                        var y = mouseLoc_y + tooltip_location.y;
+                        let x = mouseLoc_x + tooltip_location.x;
+                        let y = mouseLoc_y + tooltip_location.y;
                         return "translate(" + x + "," + y + ")";
                      })
                     .attr("width",tooltip_width)
@@ -1138,7 +1150,7 @@ class DataMining{
                     .style("fill","#4B4B4B")
                     .style("opacity", 0.92);    
 
-        var fo = tooltip
+        let fo = tooltip
                         .append("foreignObject")
                         .attr('id','tooltip_foreignObject')
                         .attr("x",function(){
@@ -1153,7 +1165,7 @@ class DataMining{
                         })
                         .data([{id:id, expression:expression, metrics:metrics}]) 
                         .html(function(d){
-                            var output= "lift: " + round_num(d.metrics[1]) + 
+                            let output= "lift: " + round_num(d.metrics[1]) + 
                             "<br> Support: " + round_num(d.metrics[0]) + 
                             "<br> Confidence(F->S): " + round_num(d.metrics[2]) + 
                             "<br> Confidence(S->F): " + round_num(d.metrics[3]) +"";

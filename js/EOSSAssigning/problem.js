@@ -99,8 +99,8 @@ class EOSSAssigning extends Problem{
                 this.experimentMode = data;
                 this.display_instrument_options();
 
-                var emptyBitString = "";
-                for(var i = 0; i < 60; i++){
+                let emptyBitString = "";
+                for(let i = 0; i < 60; i++){
                     emptyBitString += "0";
                 }
                 this.display_arch_info(emptyBitString);
@@ -154,7 +154,7 @@ class EOSSAssigning extends Problem{
         let arch_info_display_outputs = support_panel.append('div')
                 .attr('id','arch_info_display_outputs');
 
-        var bitString = null;
+        let bitString = null;
         if(typeof data === "string"){
             bitString = data;
 
@@ -182,11 +182,11 @@ class EOSSAssigning extends Problem{
         
         let json_arch=[];
         for(let i = 0; i < this.orbit_num; i++){
-            var orbit = this.orbit_list[i];
-            var assigned = [];
+            let orbit = this.orbit_list[i];
+            let assigned = [];
             for(let j = 0; j < this.instrument_num; j++){
                 if(bitString[i * this.instrument_num + j] === '1'){
-                    var instrument = this.instrument_list[j];
+                    let instrument = this.instrument_list[j];
                     //Store the instrument names assigned to jth orbit
                     assigned.push(instrument);
                 }
@@ -195,11 +195,11 @@ class EOSSAssigning extends Problem{
             json_arch.push({"orbit":orbit,"children":assigned});
         }        
     
-        var norb = json_arch.length;
-        var maxNInst = 0;
-        var totalNInst = 0;
-        for (var i = 0; i < this.orbit_num; i++) {
-            var nInst = json_arch[i].children.length;
+        let norb = json_arch.length;
+        let maxNInst = 0;
+        let totalNInst = 0;
+        for (let i = 0; i < this.orbit_num; i++) {
+            let nInst = json_arch[i].children.length;
             totalNInst = totalNInst + nInst;
             if (nInst > maxNInst) {
                 maxNInst = nInst;
@@ -209,19 +209,19 @@ class EOSSAssigning extends Problem{
         d3.select("#support_panel").select("#view1")
                 .select("g").select("#arch_info_display_table_div").remove();
 
-        var supportPanel = d3.select("#support_panel").select("#view1").select("g");
+        let supportPanel = d3.select("#support_panel").select("#view1").select("g");
 
-        var table = supportPanel.append('div')
+        let table = supportPanel.append('div')
                                 .attr('id','arch_info_display_table_div')
                                 .append("table")
                                 .attr("id", "arch_info_display_table");
 
-        var columns = [];
+        let columns = [];
         //columns.push({columnName: "orbit"});
         columns.push({columnName: "Slots"});
         
-        for ( i = 0; i < maxNInst; i++) {
-            var tmp = i + 1;
+        for (let i = 0; i < maxNInst; i++) {
+            let tmp = i + 1;
             columns.push({columnName: "Item " + tmp});
         }
 
@@ -255,11 +255,11 @@ class EOSSAssigning extends Problem{
             })
             .selectAll('td')
             .data(function (row, i) {
-                var thisRow = [];
-                var orbitObj = {type: "orbit", content: json_arch[i].orbit};
+                let thisRow = [];
+                let orbitObj = {type: "orbit", content: json_arch[i].orbit};
                 thisRow.push(orbitObj);
-                for (var j = 0; j < json_arch[i].children.length; j++) {
-                    var instObj = {type: "instrument", content: json_arch[i].children[j], orbit: json_arch[i].orbit};
+                for (let j = 0; j < json_arch[i].children.length; j++) {
+                    let instObj = {type: "instrument", content: json_arch[i].children[j], orbit: json_arch[i].orbit};
                     thisRow.push(instObj);
                 }
                 return thisRow;
@@ -311,14 +311,14 @@ class EOSSAssigning extends Problem{
             items: ':not(.not_draggable)',
             start: function(){
                 $('.not_draggable', this).each(function(){
-                    var $this = $(this);
+                    let $this = $(this);
                     $this.data('pos', $this.index());
                 });
             },  
             connectWith: '.arch_info_display_cell_container',
             cursor: 'pointer',
             update: (ui) => {
-                var bitString_save = that.current_bitString;
+                let bitString_save = that.current_bitString;
                 that.current_bitString = that.update_current_architecture();
                 if(bitString_save !== that.current_bitString){
                     that.enable_evaluate_architecture();
@@ -328,16 +328,16 @@ class EOSSAssigning extends Problem{
         .droppable({
             accept: '.arch_info_display_cell.candidates',
             drop: function(event, ui) {
-                var bitString_save = that.current_bitString;
+                let bitString_save = that.current_bitString;
 
-                var instrNode = d3.select(ui.draggable.context);
-                var orbitNode = d3.select(this);
-                var instrName = instrNode.attr('name');
-                var orbitName = orbitNode.attr('name');           
+                let instrNode = d3.select(ui.draggable.context);
+                let orbitNode = d3.select(this);
+                let instrName = instrNode.attr('name');
+                let orbitName = orbitNode.attr('name');           
 
-                var Iindex = that.instrument_list.indexOf(instrName);
-                var OIndex = that.orbit_list.indexOf(orbitName);
-                var index = that.instrument_num*OIndex+Iindex;
+                let Iindex = that.instrument_list.indexOf(instrName);
+                let OIndex = that.orbit_list.indexOf(orbitName);
+                let index = that.instrument_num*OIndex+Iindex;
                                 
                 that.current_bitString = that.current_bitString.split('');
                 that.current_bitString[index] = '1';
@@ -354,7 +354,7 @@ class EOSSAssigning extends Problem{
     
     enable_evaluate_architecture(){
         let that = this;
-        var output_display_slot = d3.select('#arch_info_display_outputs');
+        let output_display_slot = d3.select('#arch_info_display_outputs');
 
         if(d3.select('#arch_info_display_outputs > p').node()){
             output_display_slot.selectAll('p').remove();
@@ -368,30 +368,30 @@ class EOSSAssigning extends Problem{
                             .attr('id','evaluate_architecture_button')
                             .text('Evaluate this design')
                             .on('click',(d) => {
-                                var inputs = that.string2BooleanArray(that.current_bitString);
+                                let inputs = that.string2BooleanArray(that.current_bitString);
                                 that.evaluate_architecture(inputs);
                             });
     }
     
     update_current_architecture(){
-        var indices = [];
-        var bitString = "";
+        let indices = [];
+        let bitString = "";
 
         let that = this;
         d3.selectAll('.arch_info_display_cell_container').nodes().forEach((d) => {                            
-            var orbitName = d3.select(d).attr('name');                    
-            var OIndex = that.orbit_list.indexOf(orbitName);
+            let orbitName = d3.select(d).attr('name');                    
+            let OIndex = that.orbit_list.indexOf(orbitName);
 
             d3.select(d).selectAll('.arch_info_display_cell.instrument').nodes().forEach((d) => {
-                var instrName = d3.select(d).attr('name');
-                var Iindex = that.instrument_list.indexOf(instrName);
-                var index = that.instrument_num*OIndex+Iindex;
+                let instrName = d3.select(d).attr('name');
+                let Iindex = that.instrument_list.indexOf(instrName);
+                let index = that.instrument_num*OIndex+Iindex;
                 indices.push(index);
             });
         });
 
-        for(var i = 0; i < this.orbit_num; i++){
-            for(var j = 0; j < this.instrument_num; j++){
+        for(let i = 0; i < this.orbit_num; i++){
+            for(let j = 0; j < this.instrument_num; j++){
                 if(indices.indexOf(i * this.instrument_num + j)==-1){
                     bitString = bitString + "0";
                 }else{
@@ -412,7 +412,7 @@ class EOSSAssigning extends Problem{
         container.style('width','500px')
                     .style('border-width','0px');
 
-        var instrOptions = container.insert("div", "#arch_info_display_outputs + *")
+        let instrOptions = container.insert("div", "#arch_info_display_outputs + *")
                                         .attr('id','instr_options_display');
         
         instrOptions.append('p')
@@ -421,15 +421,15 @@ class EOSSAssigning extends Problem{
                 .style('font-weight','bold')
                 .style('font-size','16px');
         
-        var table = instrOptions
+        let table = instrOptions
                 .append("table")
                 .attr("id", "instr_options_table");
 
-        var candidate_instruments = [];
-        for(var i = 0; i < Math.round(this.instrument_num / 2); i++){
-            var temp = [];
-            for(var j = 0; j < 2; j++){
-                var index = j * Math.round(this.instrument_num / 2) + i;
+        let candidate_instruments = [];
+        for(let i = 0; i < Math.round(this.instrument_num / 2); i++){
+            let temp = [];
+            for(let j = 0; j < 2; j++){
+                let index = j * Math.round(this.instrument_num / 2) + i;
                 if(index < this.instrument_num){
                     temp.push(this.instrument_list[index]);
                 }
@@ -481,7 +481,7 @@ class EOSSAssigning extends Problem{
         $('#instr_options_trash').droppable({
             accept: '.arch_info_display_cell.instrument',
             drop: function (event, ui) {
-                var node = d3.select(ui.draggable.context);
+                let node = d3.select(ui.draggable.context);
                 if(node.classed('candidates')){
                     return;
                 }else{
@@ -522,7 +522,7 @@ class EOSSAssigning extends Problem{
             async: false,
             success: function (data, textStatus, jqXHR)
             {
-                var critique = data;
+                let critique = data;
             },
             error: function (jqXHR, textStatus, errorThrown)
             {
@@ -542,9 +542,7 @@ class EOSSAssigning extends Problem{
             async: false,
             success: function (data, textStatus, jqXHR)
             {
-                var arch = that.preprocessing(data);    
-                console.log(arch);
-
+                let arch = that.preprocessing(data);    
                 PubSub.publish(INSPECT_ARCH, arch);
                 PubSub.publish(ADD_ARCHITECTURE, arch);
             },
