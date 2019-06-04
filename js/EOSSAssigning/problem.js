@@ -322,6 +322,9 @@ class EOSSAssigning extends Problem{
                 that.current_bitString = that.update_current_architecture();
                 if(bitString_save !== that.current_bitString){
                     that.enable_evaluate_architecture();
+
+                    // EXPERIMENT 
+                    PubSub.publish(EXPERIMENT_TUTORIAL_EVENT, "architecture_modified");
                 } 
             }
         })
@@ -347,6 +350,9 @@ class EOSSAssigning extends Problem{
                 if(bitString_save !== that.current_bitString){
                     that.enable_evaluate_architecture();
                     that.enable_modify_architecture();
+
+                    // EXPERIMENT 
+                    PubSub.publish(EXPERIMENT_TUTORIAL_EVENT, "instrument_assigned");
                 }
             }
         });        
@@ -545,6 +551,9 @@ class EOSSAssigning extends Problem{
                 let arch = that.preprocessing(data);    
                 PubSub.publish(INSPECT_ARCH, arch);
                 PubSub.publish(ADD_ARCHITECTURE, arch);
+
+                // EXPERIMENT 
+                PubSub.publish(EXPERIMENT_TUTORIAL_EVENT, "architecture_evaluated");
             },
             error: function (jqXHR, textStatus, errorThrown)
             {

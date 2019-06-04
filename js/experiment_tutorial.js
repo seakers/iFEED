@@ -19,11 +19,6 @@ class ExperimentTutorial{
         this.introjs_nextButton_callback = null;
         
         // Tutorial context setup
-        this.current_view = 5;
-        this.max_view = 16;
-        this.max_view_reached = 0;    
-
-
         this.current_step = null;  
         this.steps_to_skip = [];
 
@@ -78,7 +73,8 @@ class ExperimentTutorial{
             let d1 = 15 * 60 * 1000;
             let d2 = 20 * 60 * 1000;
             let a1 = function(){
-                alert("15 minutes passed! This is just a friendly reminder that there are total " + that.max_view + " pages in this tutorial.");
+                let diff = that.intro._introItems.length - that.intro._currentStep - 1;
+                alert("15 minutes passed! This is just a friendly reminder that there are " + diff + " more pages in this tutorial.");
                 d3.select("#timer")
                     .style("font-size","30px")
                     .style("width", "350px");
@@ -113,7 +109,7 @@ class ExperimentTutorial{
                         .setOption('showBullets', false);
         }else{
             this.intro.setOption('showButtons',true)
-                        .setOption('showBullets', true);
+                        .setOption('showBullets', false);
         }
         
         if(!classname){
@@ -158,10 +154,21 @@ class ExperimentTutorial{
                 $('.introjs-skipbutton').show();
 
                 d3.select('.introjs-skipbutton')
-                    .text("START EXPERIMENT")
+                    .text(() => {
+                        if(that.experiment.stage === "learning"){
+                            return "START EXPERIMENT";
+                        }else{
+                            return "START TASK";
+                        }
+                    })
                     .style('color','red')
                     .on("click", () => {
-                        that.start_experiment();
+                        if(that.experiment.stage === "learning"){
+                            that.start_experiment();
+                        }else{
+                            that.intro.exit();
+                            that.experiment.start_design_synthesis_task();
+                        }
                     });
             } 
         });
@@ -444,14 +451,46 @@ class ExperimentTutorial{
 
             objects = [
                         null, // 0
-                        null, // 1
+                        d3.select('.tradespace_plot.figure').node(), // 1
+                        null, // 2
+                        d3.select('#instr_options_display').node(), // 3
+                        d3.selectAll('#support_panel').node(), // 4
+                        d3.select('#content').node(), // 5
+                        d3.selectAll('#support_panel').node(), // 6
+                        d3.select('#evaluate_architecture_button').node(), // 7
+                        d3.select('.tradespace_plot.figure').node(), // 8
+                        undefined,
                     ];
             
             contents = [
 
-                "<p>In this step, we will test your ability to come up with new designs.</p>", // 0 
+                "<p>In this step, you are asked to come up with your own designs based on what you have learned "
+                +"during the learning session.</p>", // 0 
 
-                "<p>The scatter plot is now empty, </p>" // 1
+                "<p>The scatter plot is now empty, and the task here is to create as many architectures as possible "
+                +"that are close to the Pareto front (architectures having high science score and low cost)</p>"
+                +"<p>The architectures from the previous task are displayed faintly, "
+                +"and can be used as a reference for determining how good your designs are.</p>", // 1
+
+                "<p>Creating a new architecture can be done by assigning instruments to orbits through drag and drop.</p>", // 2
+
+                "<p>The candidate instruments are provided here. You can drag an instrument from here.</p>", // 3
+
+                "<p>The candidate orbits are provided here. You can drop the instrument to any of the orbit slots.", // 4
+
+                "<p>To continue, try assigning any instrument to an empty orbit.</p>", // 5
+
+                "<p>You can also modify an architecture by moving instruments from one orbit to another.</p>"
+                +"<p>(To continue, try moving an instrument from one orbit to another)</p>", // 6
+
+                "<p>After modifying the architecture, you can evaluate its science score and cost by clicking \"Evaluate this design\" button.</p>"
+                +"<p>(To continue, click \"Evaluate this design\" button)</p>", // 7
+
+                "<p>The newly evaluated architecture will be highlighted in red.</p>", // 8
+
+                "<p>Now you are ready to start the task. Again, try to create as many architectures as possible that are close "
+                +"to the Pareto front (architectures having high science score and low cost).</p>"
+                +"<p>15 minutes will be given for this task.</p>", // 9
 
                         ];
             
@@ -464,38 +503,14 @@ class ExperimentTutorial{
                 if(this._currentStep === 0){
                     document.getElementById('tab1').click();
 
-                } else if (this._currentStep === 1){
-                    document.getElementById('tab1').click();
-                    PubSub.publish(INSPECT_ARCH, that.problem.data[1039]);
-                
+                } else if (this._currentStep === 5){                
+                    that.start_tutorial_event_listener("instrument_assigned", this._currentStep);
+                    
                 } else if (this._currentStep === 6){
-                    document.getElementById('tab2').click();
-                    that.experiment.select_archs_using_ids(tutorial_selection);
+                    that.start_tutorial_event_listener("architecture_modified", this._currentStep);
 
                 } else if (this._currentStep === 7){
-                    document.getElementById('tab2').click();
-                    that.start_tutorial_event_listener("filter_select_present", this._currentStep);
-                    
-                } else if (this._currentStep === 9){
-                    document.getElementById('tab2').click();
-                    that.experiment.select_archs_using_ids(tutorial_selection);
-                    that.start_tutorial_event_listener("filter_applied", this._currentStep);
-                    
-                } else if (this._currentStep === 10){
-                    document.getElementById('tab2').click();
-
-                } else if (this._currentStep === 11){
-                    document.getElementById('tab2').click();
-                    that.start_tutorial_event_listener("filter_select_inOrbit", this._currentStep);
-                    
-                } else if (this._currentStep === 12){
-                    document.getElementById('tab2').click();
-                    that.experiment.select_archs_using_ids(tutorial_selection);
-                    that.start_tutorial_event_listener("filter_applied", this._currentStep);
-
-                } else if (this._currentStep === 13){
-                    document.getElementById('tab2').click();
-
+                    that.start_tutorial_event_listener("architecture_evaluated", this._currentStep);
                 } 
             }            
         }
@@ -514,7 +529,7 @@ class ExperimentTutorial{
         // Start the experiment after some delay
         setTimeout(() => {
             PubSub.publish(EXPERIMENT_START, null);
-        }, 1000); // How long do you want the delay to be (in milliseconds)? 
+        }, 2000); // How long do you want the delay to be (in milliseconds)? 
 
         //window.location.replace("https://www.selva-research.com/experiment/");
     }

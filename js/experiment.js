@@ -58,11 +58,12 @@ class Experiment{
         let d1 = 25 * 60 * 1000;
         let a1 = function(){
             that.highlight_timer();
-            alert("25 minutes seconds passed!");
-
+            alert("25 minutes seconds passed! You have 5 more mintues to finish the task.");
         };
+
         let d2 = 30 * 60 * 1000;
-        let a2 = ()=>{
+        let a2 = () => {
+            alert("End of the session");
             that.unhighlight_timer();
             that.end_learning_task();
         }
@@ -82,26 +83,31 @@ class Experiment{
     }
 
     end_learning_task(){
-        // alert("");
-        this.generateSignInMessage(this.start_design_synthesis_task);
+        let that = this;
+        // Save data
+
+        // Move onto the next stage
+        this.generateSignInMessage(() => {
+            that.load_design_synthesis_task();
+            setTimeout(() => { PubSub.publish(EXPERIMENT_TUTORIAL_START, null);}, 300);
+        });
     }
 
     start_design_synthesis_task(){
-
-
+        let that = this;
         this.clock.resetClock();
         this.clock.setTimer();
 
         // Set alert message given at the beginning of each task
         // Set stopwatch callback functions
-        let d1 = 25 * 60 * 1000;
+        let d1 = 12 * 60 * 1000;
         let a1 = function(){
-            alert("25 minutes seconds passed!");
+            alert("12 minutes seconds passed! You have 3 more mintues to finish the task.");
             that.highlight_timer();
         };
-        let d2 = 30 * 60 * 1000;
+        let d2 = 15 * 60 * 1000;
         let a2 = function(){
-            alert("30 minutes passed!");
+            alert("End of the session");
             that.unhighlight_timer();
         };
         
@@ -112,11 +118,8 @@ class Experiment{
         this.clock.setDuration(duration);
         this.clock.start();
 
-        // Select the target region
-        this.select_archs_using_ids(fuzzy_pareto_front_4);
-
         // Load treatment condition
-        this.load_treatment_condition();
+        this.load_design_synthesis_task();
     }
 
 
@@ -136,7 +139,7 @@ class Experiment{
             .style("width", "350px")
             .style("color","red"); 
     }
-    
+
     display_participant_id(){
         d3.select("#participant_id").remove();
         d3.select('#status_display')

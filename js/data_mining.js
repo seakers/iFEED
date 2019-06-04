@@ -1095,9 +1095,6 @@ class DataMining{
         this.feature_application.update_feature_application('update');
         // this.update(null, null, this.currentFeature);
         // this.generalize_feature();
-
-        // EXPERIMENT 
-        PubSub.publish(EXPERIMENT_TUTORIAL_EVENT, "feature_clicked");
     }
 
     feature_mouseover(d){
