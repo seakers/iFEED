@@ -35,15 +35,16 @@ class ContextMenu {
             'logic-if-then':[{'value':'addToConditional','text':'Add feature to conditional'},
                     {'value':'addToConsequent','text':'Add feature to consequent'},
                     {'value':'cancelAddNode','text':'Cancel adding new node'},
-                    {'value':'switchIfThen','text':'Switch conditional and consequent'}],
+                    {'value':'switchIfThen','text':'Switch conditional and consequent'},
+                    ],
 
             'leaf':[],
 
             'featType': [{'value':'toggle-col-exp','text':'Collapse/Expand'}],
             
             'default':[{'value':'addParent','text':'Add parent branch'},
-                        {'value':'addIfThen','text':'Add if-then statement'},
-                        {'value':'duplicate','text':'Duplicate'},
+                        // {'value':'addIfThen','text':'Add if-then statement'},
+                        // {'value':'duplicate','text':'Duplicate'},
                         {'value':'toggle-activation','text':'Activate/Deactivate'},
                         {'value':'delete','text':'Delete'}]
         };
@@ -122,7 +123,7 @@ class ContextMenu {
         
         // If the node is a logical connective, remove the 'addParent' and 'addIfThen' options. 
         // If the node is the root node, then keep the option 'addParent'
-        if(type === 'logic' && depth != 0){
+        if(type === 'logic' && depth !== 0){
             let index;
             for(let i = 0; i < items.length; i++){
                 if(items[i].value === 'addParent'){
@@ -134,26 +135,30 @@ class ContextMenu {
         } 
 
         if(type === 'logic'){
-            let index;
+            let index = null;
             for(let i = 0; i < items.length; i++){
                 if(items[i].value === 'addIfThen'){
                     index = i;
                     break;
                 }
             }
-            items.splice(index,1);
-        }  
+            if(index){
+               items.splice(index,1); 
+            }   
+        }
 
         if(parent){
             if(parent.type === "logic" && parent.name === "IF_THEN"){
-                let index;
+                let index = null;
                 for(let i = 0; i < items.length; i++){
                     if(items[i].value === 'addIfThen'){
                         index = i;
                         break;
                     }
                 }
-                items.splice(index,1);
+                if(index){
+                    items.splice(index,1);
+                }
             }
         }
         
@@ -162,26 +167,30 @@ class ContextMenu {
                 && parent.type === "logic" 
                 && parent.name === "IF_THEN"){
 
-                let index;
+                let index = null;
                 for(let i = 0; i < items.length; i++){
                     if(items[i].value === 'duplicate'){
                         index = i;
                         break;
                     }
                 }
-                items.splice(index,1);
+                if(index){
+                    items.splice(index,1);
+                }
             }   
         }
 
         if(deactivated){
-            let index;
+            let index = null;
             for(let i = 0; i < items.length; i++){
                 if(items[i].value === 'duplicate'){
                     index = i;
                     break;
                 }
             }
-            items.splice(index,1);
+            if(index){
+                items.splice(index,1);
+            }   
         }
 
  
@@ -231,9 +240,9 @@ class ContextMenu {
             .text(function(d){             
                 if(d.value === 'addChild'){
                     if(add){
-                        return 'Cancel Add Feature';
+                        return 'Cancel Add feature';
                     }else{
-                        return 'Add Feature';
+                        return 'Add feature';
                     }
                    
                 }else if(d.value === 'toggle-logic'){
@@ -343,6 +352,10 @@ class ContextMenu {
 
             switch(option) { // Logical connective node
                 case 'addChild':
+
+                    // EXPERIMENT 
+                    PubSub.publish(EXPERIMENT_TUTORIAL_EVENT, "contextmenu_add_feature");  
+
                     if(node.add){
                         node.add = false;
                     }else{
@@ -408,6 +421,9 @@ class ContextMenu {
         switch(option) {
 
             case 'addParent':
+
+                // EXPERIMENT 
+                PubSub.publish(EXPERIMENT_TUTORIAL_EVENT, "contextmenu_add_parent");  
 
                 if(parent){ 
                     // This is a leaf node because of the condition set up previously (logic nodes do not have option to add parent)
@@ -582,7 +598,7 @@ class ContextMenu {
         }    
 
         feature_application.update();   
-        PubSub.publish(ADD_FEATURE_FROM_EXPRESSION, {expression:feature_application.parse_tree(root), replaceEquivalentFeature:true});       
+        PubSub.publish(ADD_FEATURE_FROM_EXPRESSION, {expression:feature_application.parse_tree(root), replaceEquivalentFeature: true});       
     }
 
     display_ifThen_deactivation_message(){

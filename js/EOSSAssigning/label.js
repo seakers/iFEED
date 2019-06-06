@@ -314,7 +314,7 @@ class EOSSAssigningLabel extends Label{
             } else if (expression[i] === '}'){
                 save = false;
                 savedString = savedString + '}';
-                feature_expression = savedString;
+                let feature_expression = savedString;
                 output = output + '{' + this.pp_feature_single(feature_expression) + '}';
             } else {
                 if(save){
@@ -324,6 +324,115 @@ class EOSSAssigningLabel extends Label{
                 }
             }
         }
+        return output;
+    }
+
+    pp_feature_description_single(expression){
+    
+        let exp = expression;
+        if(exp[0] === "{"){
+            // Remove the outer curly bracket
+            exp = exp.substring(1, exp.length-1);
+        }
+        let featureName = exp.split("[")[0];
+
+        if(featureName === "paretoFront" || featureName === 'FeatureToBeAdded' 
+            || featureName === 'AND' || featureName === 'OR' 
+            || featureName === 'IF_THEN'){
+            return exp;
+
+        }else if(this.feature_names.indexOf(exp) !== -1){
+            return exp;
+        }
+
+        let featureArg = exp.split("[")[1];
+        featureArg = featureArg.substring(0, featureArg.length-1);
+
+        let orbits = featureArg.split(";")[0].split(",");
+        let instruments = featureArg.split(";")[1].split(",");
+        let numbers = featureArg.split(";")[2];
+
+        let orbitList = [];
+        let instrumentList = [];
+        for(let i = 0; i < orbits.length; i++){
+            if(orbits[i].length === 0){
+                continue;
+            }
+            orbitList.push(this.index2DisplayName(orbits[i], "orbit"));
+        }
+        for(let i = 0; i < instruments.length; i++){
+            if(instruments[i].length === 0){
+                continue;
+            }
+            instrumentList.push(this.index2DisplayName(instruments[i], "instrument"));
+        }
+        let pporbits = orbitList.join(", ");
+        let ppinstruments = instrumentList.join(", ");
+
+        let out = null;
+        if(featureName === "present"){
+            out = ppinstruments + " is used";
+
+        } else if(featureName === "absent"){
+            out = ppinstruments + " is not assigned to any orbit";
+
+        } else if(featureName === "inOrbit"){
+            if(instrumentList.length === 1){
+                out = ppinstruments + "is assigned to " + pporbits;
+            }else{
+                out = "{" + ppinstruments + "} are assigned to " + pporbits; 
+            }
+        } else if(featureName === "notInOrbit"){
+            if(instrumentList.length === 1){
+                out = ppinstruments + "is not assigned to " + pporbits;
+            }else{
+                out = "{" + ppinstruments + "} are not assigned to " + pporbits; 
+            }
+        } else if(featureName === "together"){
+            out = "{" + ppinstruments + "} are assigned together in one of the orbits"; 
+
+        } else if(featureName === "separate"){
+            out = "{" + ppinstruments + "} are never assigned together in one of the orbits"; 
+
+        } else if(featureName === "emptyOrbit"){
+            out = pporbits + " is empty"; 
+
+        } else if(featureName === "numOrbits"){
+            out = numbers + " orbits are used"; 
+            
+        }  
+
+        // "present","absent","inOrbit","notInOrbit","together",
+        // "togetherInOrbit","separate","emptyOrbit","numOrbits",
+        // "subsetOfInstruments", "absentExceptInOrbit", "notInOrbitExceptInstrument", "notInOrbitExceptOrbit"
+        return out;
+    }
+    
+    pp_feature_description(expression){
+        let output = '';
+        let save = false;
+        let savedString = '';
+
+        for(let i = 0; i < expression.length; i++){
+            if(expression[i] === '{'){
+                save = true;
+                savedString = '{';
+            } else if (expression[i] === '}'){
+                save = false;
+                savedString = savedString + '}';
+                let feature_expression = savedString;
+                output = output + this.pp_feature_description_single(feature_expression);
+            } else {
+                if(save){
+                    savedString = savedString + expression[i];
+                }else{
+                    output = output + expression[i];
+                }
+            }
+        }
+
+        output = output.replace(/&&/g, " AND ");
+        output = output.replace(/\|\|/g, " OR ");
         return output;
     }
 }

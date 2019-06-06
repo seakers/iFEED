@@ -13,10 +13,10 @@ class FeatureApplication{
                      "ifThen":"#20C16E",
                      "add":"#FF7979",
                      "deactivated":"#E3E3E3",
-                     "temp":"#C6F3B6"};
+                     "temp":"#CDCDCD"};
         
         this.stashed_root = null;
-        this.stashed_node_ids = null;
+        this.stashed_node_addChild = null;
 
         this.tree = null;
         this.data = null; 
@@ -57,6 +57,9 @@ class FeatureApplication{
 
         d3.select('#conjunctive_local_search').on('click', (d) => {
             this.data_mining.run();
+
+            // EXPERIMENT 
+            PubSub.publish(EXPERIMENT_TUTORIAL_EVENT, "local_search_conjunctive"); 
         }); 
        
         d3.select('#disjunctive_local_search').on('click',(d) => {
@@ -593,7 +596,6 @@ class FeatureApplication{
             d3.selectAll(".tempTreeLink").remove();  
 
             if(this.selectedNode){
-
                 let selectedNode = this.select_dataNode_by_id(this.selectedNode.id);
                 let draggingNode = this.select_dataNode_by_id(this.draggingNode.id);            
 
@@ -610,6 +612,12 @@ class FeatureApplication{
                     selectedNode.children = [];
                     selectedNode.children.push(draggingNode);
                 }
+
+                if(draggingNode.parent !== selectedNode){
+                    // EXPERIMENT 
+                    PubSub.publish(EXPERIMENT_TUTORIAL_EVENT, "node_drag_end"); 
+                }
+
             }else{
                 // No node selected (all nodes go back to the previous positions)
                 d3.selectAll('.nodeRange')
@@ -995,176 +1003,121 @@ class FeatureApplication{
     update_feature_application(option, expression){
         let that = this;
         
-        let get_node_to_add_features = function(d){
-            // Find the node to which to add new features
-            if(d.add){
-                return d;
-            }else{
-                return null;
-            }
-        }
+        if(option === "temp"){ // Mouseover on the feature plot
+            if(this.data){ // There already exists a feature tree
 
-        let direct_update = false;
-
-        if(option === 'direct-update'){ // Make the direct update to the feature application status
-            option = 'temp';
-            direct_update = true;
-        }
-           
-        if(option === 'temp'){
-            // Mouseover on the feature plot
-
-            let parentNode = null;
-            
-            if(this.data){
-                // There already exists a tree: Find the node to add new features and append children temporarily
-                parentNode = this.visit_nodes(this.data, get_node_to_add_features)
-
-                if(parentNode){
-                    // parentNode exists
-
-                    // Stash the currently existing node ID's
-                    this.stashed_node_ids = this.get_node_ids(this.data,[]);
-
-                    // Construct a subtree and append it as a child to the parent node
-                    let subtree = this.construct_tree(this, expression, parentNode.depth+1);
-                    
-                    if(!direct_update){
-                        this.visit_nodes(subtree,function(d){
-                            d.temp = true;
-                        })                        
-                    }
-
-                    // Add to the parent node
-                    if(parentNode.type === "logic" 
-                        && parentNode.name === "IF_THEN"){
-
-                        if(parentNode.addToConditional){
-                            if(parentNode.children.length == 2){
-                                parentNode.children.splice(0, 1, subtree); 
-                            }else{
-                                parentNode.children.splice(0, 0, subtree); 
-                            }
-                            subtree.parent = parentNode;
-
-                        }else if(parentNode.addToConsequent){
-                            if(parentNode.children.length == 2){
-                                parentNode.children.splice(1, 1, subtree); 
-                            }else{
-                                parentNode.children.push(subtree); 
-                            }
-                            subtree.parent = parentNode;
+                // Stash the current root 
+                this.stashed_root = this.construct_tree(this, this.parse_tree(this.data));  
+                this.visit_nodes(this.data, (d) => {
+                    if(d.add){ // Retain addChild option
+                        let index = null;
+                        if(d.parent){
+                            index = d.parent.children.indexOf(d);
                         }
-
-                        if(parentNode.children[0] != null && parentNode.children[1] != null){
-                            parentNode.deactivated = false;
-                            parentNode.children[0].deactivated = false;
-                            parentNode.children[1].deactivated = false;
-                        }
-                        parentNode.add = false;
-
-                    }else{
-                        parentNode.children.push(subtree); 
-                        subtree.parent = parentNode;
+                        that.stashed_node_addChild = {index: index, name: d.name, depth: d.depth};
                     }
-                    
-                    this.update();  
-                }else{ 
-                    // No parentNode
-
-                    // Stash the current root 
-                    this.stashed_root = this.construct_tree(this, this.parse_tree(this.data));  
-
-                    // Re-draw the whole tree
-                    this.draw_feature_application_tree(expression);
-                }
-
+                })
+                // Draw a new feature tree
+                this.draw_feature_application_tree(expression);
+                
             }else{
                 // There is no tree. Build a new one
-                this.stashed_node_ids = [];
                 this.stashed_root = {};
+                this.stashed_node_addChild = null;
                 this.draw_feature_application_tree(expression)
             }
-            
-            if(direct_update){ // Make a direct update to the feature application status; not temporary
-                // Remove the stashed information                
-                this.stashed_node_ids = null;
-                this.stashed_root = null;    
 
-                this.visit_nodes(this.data, (d) => {
-                    d.temp = false;
-                })
-                this.update();   
-                PubSub.publish(ADD_FEATURE_FROM_EXPRESSION, {expression:this.parse_tree(this.data), replaceEquivalentFeature:true});
-            }
-
-        }else if(option=='restore'){
+        }else if(option === "restore"){
             // Restore the stashed tree
 
             // If there is no stashed root
-            if(this.stashed_root != null && this.stashed_node_ids != null){ 
-
-                if(jQuery.isEmptyObject(this.stashed_root) && this.stashed_node_ids.length === 0){
+            if(this.stashed_root !== null){
+                if(jQuery.isEmptyObject(this.stashed_root)){
                     // There was no tree before
                     this.data = null;
+                }else{
+                    // The whole tree is stashed
+                    this.data = this.stashed_root;  
                 }
-
-            }else if(this.stashed_root != null){
-                
-                // The whole tree is stashed
-                this.data = this.stashed_root;  
-
-            }else if(this.stashed_node_ids != null){
-                // Tree has been modified by the temporary update
-                // Visit each node, and if stashed_node_id.indexOf(nodeID) === -1, remove the index        
-
-                let parentNode = null;
-                let indices = []; // Indices of the nodes to be removed from the parent node
-
-                this.visit_nodes(this.data, (d) => {  
-
-                    if(d.children){
-                        for(let i = 0; i < d.children.length; i++){
-                            if(this.stashed_node_ids.indexOf(d.children[i].id) === -1){
-                                parentNode = d;
-                                let index = d.children.indexOf(d.children[i]);
-                                indices.push(index);
-                            }
-                        }
-
-                        indices.reverse();
-                        for(let i = 0; i < indices.length; i++){
-                            parentNode.children.splice(indices[i],1);
-                        }
-                    }
-                });
-
-            }else{
-                // Both are null: No stashed information
-                // Do nothing
             }
 
             if(this.data){
-                this.visit_nodes(this.data,function(d){
-                    d.temp=false;
+                this.visit_nodes(this.data, (d) => {
+                    d.temp = false;
+
+                    if(that.stashed_node_addChild){
+                        let index = null;
+                        if(d.parent){
+                            index = d.parent.children.indexOf(d);
+                        }
+                        let name = d.name;
+                        let depth = d.depth;
+
+                        if(that.stashed_node_addChild.index === index 
+                            && that.stashed_node_addChild.name === name 
+                            && that.stashed_node_addChild.depth === depth){
+
+                            d.add = true;
+                        }
+                    }
                 })
             }
 
             this.update();
             this.stashed_root = null;
-            this.stashed_node_ids=null;
-
+            this.stashed_node_addChild = null;
 
         } else if(option === 'update'){
-            this.stashed_node_ids = null;
             this.stashed_root = null;
+            this.stashed_node_addChild = null;
+
             this.visit_nodes(this.data, (d) => {
                 d.temp = false;
             })  
-            PubSub.publish(ADD_FEATURE_FROM_EXPRESSION, {expression:this.parse_tree(this.data), replaceEquivalentFeature:false});
+
+            PubSub.publish(ADD_FEATURE_FROM_EXPRESSION, {expression:this.parse_tree(this.data), replaceEquivalentFeature: false});
 
             // EXPERIMENT 
             PubSub.publish(EXPERIMENT_TUTORIAL_EVENT, "feature_clicked");
+
+        } else if(option === 'direct-update'){ // Make a direct update to the feature application status
+
+            // Remove the stashed information                
+            this.stashed_root = null;    
+            this.stashed_node_addChild = null;
+
+            if(this.data){ // There already exists a feature tree
+
+                let get_node_to_add_features = (d) => {
+                    // Find the node to which to add new features
+                    if(d.add){
+                        return d;
+                    }else{
+                        return null;
+                    }
+                }
+                // Find the node to add new features and append children temporarily
+                let parentNode = this.visit_nodes(this.data, get_node_to_add_features)
+
+                if(parentNode){ // parentNode exists
+                    // Construct a subtree and append it as a child to the parent node
+                    let subtree = this.construct_tree(this, expression, parentNode.depth + 1);
+                    parentNode.children.push(subtree); 
+                    subtree.parent = parentNode;
+
+                } else {
+                    this.draw_feature_application_tree(expression)
+                }
+            }else{
+                // There is no tree. Build a new one
+                this.draw_feature_application_tree(expression)
+            }
+
+            this.visit_nodes(this.data, (d) => {
+                d.temp = false;
+            })
+            this.update();   
+            PubSub.publish(ADD_FEATURE_FROM_EXPRESSION, {expression:this.parse_tree(this.data), replaceEquivalentFeature:true});
         }
     }
     
@@ -1263,9 +1216,7 @@ class FeatureApplication{
 
         // Remove outer parenthesis
         let parentheses_removed = remove_outer_parentheses(e,d);
-
         e = parentheses_removed.expression;
-        d = +parentheses_removed.level;
 
         if(get_nested_parenthesis_depth(e) === 0){ // Given expression does not have a nested structure
 

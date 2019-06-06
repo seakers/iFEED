@@ -301,6 +301,9 @@ class EOSSAssigning extends Problem{
                 this.enable_modify_architecture();
             }
         }
+
+        // EXPERIMENT
+        PubSub.publish(EXPERIMENT_EVENT, {key:"design_viewed"});
     }
     
     enable_modify_architecture(){
@@ -554,6 +557,9 @@ class EOSSAssigning extends Problem{
 
                 // EXPERIMENT 
                 PubSub.publish(EXPERIMENT_TUTORIAL_EVENT, "architecture_evaluated");
+                
+                // EXPERIMENT
+                PubSub.publish(EXPERIMENT_EVENT, {key:"design_evaluated", data: arch});
             },
             error: function (jqXHR, textStatus, errorThrown)
             {

@@ -47,6 +47,7 @@ const ARCH_SELECTED = "arch_selected";
 // EXPERIMENT
 const EXPERIMENT_SET_MODE = "experiment_set_mode";
 const EXPERIMENT_START = "experiment_start";
+const EXPERIMENT_EVENT = "experiment_event";
 const EXPERIMENT_CONDITION_CHANGE = "experiment_condition_change";
 const EXPERIMENT_TUTORIAL_START = "experiment_tutorial_start";
 const EXPERIMENT_TUTORIAL_EVENT = "experiment_tutorial_event";

@@ -49,7 +49,6 @@ h1 {
   font-size: 17px;
 }
 
-
 .introjs_tooltip_small{
     font-size:  22px;
     max-width: 300px;
@@ -73,3 +72,17 @@ h1 {
     max-width: 900px;
     min-width: 900px;
 }
+
+/* Table CSS setting for tutorial */
+.tg  {border-collapse:collapse;border-spacing:0;}
+.tg td{font-family:Arial, sans-serif;font-size:17px;padding:10px 5px;border-style:solid;border-width:1px;overflow:hidden;word-break:normal;border-color:black;}
+.tg th{font-family:Arial, sans-serif;font-size:17px;font-weight:normal;padding:10px 5px;border-style:solid;border-width:1px;overflow:hidden;word-break:normal;border-color:black;}
+/* Candidate orbits */
+.tg .tg-llyw{background-color:#c0c0c0;border-color:inherit;text-align:left;vertical-align:top}
+.tg .tg-0pky{border-color:inherit;text-align:left;vertical-align:top}
+.tg .tg-0lax{text-align:left;vertical-align:top}
+/* Candidate instruments */
+.tg .tg-r87d{background-color:#c0c0c0;border-color:#000000;text-align:left}
+.tg .tg-s268{text-align:left}
+.tg .tg-0lax{text-align:left;vertical-align:top}
+

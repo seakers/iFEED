@@ -33,6 +33,9 @@ class DataMining{
 
         this.allFeatures = [];
         this.recentlyAddedFeatureIDs = [];
+
+        this.algorithmGeneratedFeatureIDs = []; // EXPERIMENT
+
         this.currentFeature = null;
         this.currentFeatureBlinkInterval = null;
         this.utopiaPoint = {id:-1, name:null, expression:null, metrics:null, x0:-1, y0:-1, x:-1, y:-1, utopiaPoint: true};
@@ -148,6 +151,7 @@ class DataMining{
         
         this.allFeatures = [];
         this.recentlyAddedFeatureIDs = [];
+        this.algorithmGeneratedFeatureIDs = []; // EXPERIMENT
         this.currentFeature = null;
         this.currentFeatureBlinkInterval=null;
         this.utopiaPoint = {id:-1, name:null, expression:null, metrics:null, x0:-1, y0:-1, x:-1, y:-1, utopiaPoint: true};
@@ -186,6 +190,8 @@ class DataMining{
             alert("Target solutions must be selected to run data mining!");
             return;
         }     
+
+        let extractedFeatures = null;
                 
         // If the feature application tree exists, run local search
         if(this.feature_application.data){
@@ -199,8 +205,6 @@ class DataMining{
                     selected_node=d;
                 }                        
             })            
-
-            let extractedFeatures = null;
             
             // Save the currently applied feature
             let base_feature = this.feature_application.parse_tree(this.feature_application.data, selected_node);
@@ -238,7 +242,6 @@ class DataMining{
             // Remove all highlights in the scatter plot (retain target solutions)
             PubSub.publish(APPLY_FEATURE_EXPRESSION, null);
 
-            let extractedFeatures = null;
             if(!this.run_ga){
                 extractedFeatures = this.get_driving_features(selected, non_selected, this.support_threshold, this.confidence_threshold, this.lift_threshold);
             }else{
@@ -515,10 +518,13 @@ class DataMining{
 
         // Initialize the location of each feature
         this.featureID = 1;
+        this.algorithmGeneratedFeatureIDs = []; // EXPERIMENT
         for (let i = 0; i < features.length; i++){
             features[i].x0 = -1;
             features[i].y0 = -1;
             features[i].id = this.featureID++;
+
+            this.algorithmGeneratedFeatureIDs.push(features[i].id); // EXPERIMENT
         }
         this.utopiaPoint = {id:-1, name:null, expression:null, metrics:null, x0:-1, y0:-1, x:-1, y:-1, utopiaPoint: true};
         this.update(features);
@@ -564,7 +570,6 @@ class DataMining{
 
             // Check if there exists a feature whose metrics match with the current feature's metrics
             let matchedFeature = find_equivalent_feature(thisFeature.metrics,[2,3]);  
-
             if(matchedFeature != null){
                 cursorFeatureID = matchedFeature.id;
             }
@@ -588,10 +593,12 @@ class DataMining{
                 cursorFeature.id = cursorFeatureID;
             }
             this.update(featuresToAdd[0], featuresToRemove, cursorFeature);
+
         }else{
             this.recentlyAddedFeatureIDs = [];
             for(let i = 0; i < featuresToAdd.length; i++){
                 this.recentlyAddedFeatureIDs.push(featuresToAdd[i].id);
+                this.algorithmGeneratedFeatureIDs.push(featuresToAdd[i].id); // EXPERIMENT
             }
             this.update(featuresToAdd, featuresToRemove, this.currentFeature);
         }
@@ -743,6 +750,7 @@ class DataMining{
                             }
                         }else{
                             addedFeature = featuresToBeAdded;
+                            featuresToBeAdded = null;
                         }
 
                         // Find the index of the feature to be removed
@@ -1093,11 +1101,23 @@ class DataMining{
     feature_click(d){
         this.currentFeature = d;
         this.feature_application.update_feature_application('update');
+
+        // EXPERIMENT 
+        if(this.recentlyAddedFeatureIDs.indexOf(d.id) !== -1){
+            PubSub.publish(EXPERIMENT_TUTORIAL_EVENT, "new_feature_clicked");
+        }
+
+        // EXPERIMENT
+        PubSub.publish(EXPERIMENT_EVENT, {key:"feature_viewed"});
+
         // this.update(null, null, this.currentFeature);
         // this.generalize_feature();
     }
 
     feature_mouseover(d){
+        
+        // EXPERIMENT 
+        PubSub.publish(EXPERIMENT_TUTORIAL_EVENT, "feature_mouse_hover");        
 
         let id = d.id; 
         let expression = d.expression;

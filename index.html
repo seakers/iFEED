@@ -1,10 +1,5 @@
 <!DOCTYPE html>
-<!--
-To change this license header, choose License Headers in Project Properties.
-To change this template file, choose Tools | Templates
-and open the template in the editor.
--->
-<html>
+<html lang="en">
 
 <head>
     <title>iFEED Web Application</title>
@@ -24,14 +19,16 @@ and open the template in the editor.
     <script src="js/lib/pubsub.js" type="text/javascript"></script>
     <script src="js/lib/iziToast.min.js" type="text/javascript"></script>
     <script src="js/lib/intro.js"></script>
+    <!-- <script src="js/lib/bootstrap.min.js"></script> -->
 
-    <link href="css/introjs.css" rel="stylesheet" type="text/css"/>
-    <link href="css/tabcontent.css" rel="stylesheet" type="text/css"/>
+    <!-- <link href="css/lib/bootstrap.min.css" rel="stylesheet" media="screen"> -->
+    <link href="css/lib/introjs.css" rel="stylesheet" type="text/css"/>
+    <link href="css/lib/tabcontent.css" rel="stylesheet" type="text/css"/>
     <link href="css/tradespace_plot.css" rel="stylesheet" type="text/css"/>
     <link href="css/filter.css" rel="stylesheet" type="text/css"/>
     <link href="css/data_mining.css" rel="stylesheet" type="text/css"/>
     <link href="css/feature_application.css" rel="stylesheet" type="text/css"/>
-    <link href="css/iziToast.min.css" rel="stylesheet" type="text/css">
+    <link href="css/lib/iziToast.min.css" rel="stylesheet" type="text/css">
 
     <link href="css/experiment.css" rel="stylesheet" type="text/css">
     <link href="css/experiment_tutorial.css" rel="stylesheet" type="text/css">
@@ -183,12 +180,70 @@ and open the template in the editor.
         tradespace_plot.toggle_selection_and_highlight();
     }
 
-    var experiment = new Experiment(problem, tradespace_plot, filter, data_mining, feature_application, label);
+    var experiment, tutorial;
 
-    var tutorial = new ExperimentTutorial(problem, tradespace_plot, filter, data_mining, feature_application, label, experiment);
+    let firstSignInCallback = function (instance, toast, button, event, inputs) {
+        let input = inputs[0].value;
+        let valid = false;
+        let treatmentCondition = null;
 
-    setTimeout(() => { PubSub.publish(EXPERIMENT_TUTORIAL_START, null);}, 700);
+        let passcode = "qkdgustmd";
+
+        if(input.indexOf(passcode) !== -1){
+            if(input.length === passcode.length + 1){
+                let treatmentConditionStr = input.substring(passcode.length);
+                if(!isNaN(treatmentConditionStr)){
+                    treatmentCondition = + treatmentConditionStr;
+                    if(treatmentCondition >= 0 && treatmentCondition <= 2){
+                        valid = true;
+                    }
+                }
+
+            }else if(input === passcode){
+                valid = true;
+                treatmentCondition = undefined;
+            }
+        }
+        
+        if(valid){
+            instance.hide({ transitionOut: 'fadeOut' }, toast, 'button');
+
+            experiment = new Experiment(problem, tradespace_plot, filter, data_mining, feature_application, label, treatmentCondition);
+
+            tutorial = new ExperimentTutorial(problem, tradespace_plot, filter, data_mining, feature_application, label, experiment);
+
+            setTimeout(() => { PubSub.publish(EXPERIMENT_TUTORIAL_START, null);}, 700);
+
+        }else{
+            iziToast.error({
+                title: 'Error',
+                message: "Invalid passcode",
+                position: 'topRight'
+            });
+        }
+    }
     
+    iziToast.question({
+        drag: false,
+        timeout: false,
+        close: false,
+        overlay: true,
+        displayMode: 0,
+        id: 'question',
+        color: 'blue',
+        progressBar: false,
+        title: "Type in a passcode",
+        message: "(Please ask the experimenter to provide the passcode)",
+        position: 'center',
+        inputs: [
+            ['<input type="text" style="width: 300px">', 'change', function (instance, toast, select, event) {}],
+        ],
+        buttons: [
+            ['<button id="iziToast_button_confirm" style="width: 80px; margin-left: 10px; margin-right: 10px; float: left;"><b>Confirm</b></button>', firstSignInCallback, false], // true to focus
+        ],
+    });
+
+
 
 </script>
 

@@ -54,18 +54,18 @@ class ExperimentTutorial{
             let treatmentConditionName = "";
             if(this.treatmentCondition === 0){
                 treatmentConditionName = "tutorial-manual-generalization";
-                this.steps_to_skip = [];
+                this.steps_to_skip = [21];
 
             }else if(this.treatmentCondition === 1){
                 treatmentConditionName = "tutorial-automated-generalization";
                 // Disable filter
                 d3.select("#tab2").text('-');
                 d3.select("#view2").selectAll('g').remove();
-                this.steps_to_skip = [];
+                this.steps_to_skip = [20];
 
             }else if(this.treatmentCondition === 2){
                 treatmentConditionName = "tutorial-interactive-generalization";
-                this.steps_to_skip = [];
+                this.steps_to_skip = [21];
 
             } 
             PubSub.publish(EXPERIMENT_SET_MODE, treatmentConditionName); 
@@ -106,10 +106,10 @@ class ExperimentTutorial{
         
         if(messages.length === 1){
             this.intro.setOption('showButtons',false)
-                        .setOption('showBullets', false);
+                        .setOption('showBullets', true);
         }else{
             this.intro.setOption('showButtons',true)
-                        .setOption('showBullets', false);
+                        .setOption('showBullets', true);
         }
         
         if(!classname){
@@ -211,166 +211,369 @@ class ExperimentTutorial{
         if(stage === 'learning' || typeof stage === 'undefined' || stage == null){
         
             objects = [
-                        null,
-                        d3.select('#timer').node(),
-                        d3.select('.tradespace_plot.figure').node(),
-                        null, // 3
-                        d3.select('.column.c1').node(),
-                        d3.selectAll('#support_panel').node(),
-                        null, // 6
-                        d3.select('.filter.options.dropdown').node(),
-                        d3.selectAll('#support_panel').node(), // 8
-                        null, // 9
-                        d3.select('.tradespace_plot.figure').node(), // 10
-                        d3.select('.column.c1').node(), // 11
-                        null, // 12
-                        null, // 13
-                        undefined, // 14
-                        null, // 15
-                        d3.select('.tradespace_plot.figure').node(), // 16
-                        null, // 17
-                        null, // 18
-                        null, // 19
-                        null, // 20
-                        d3.selectAll('#support_panel').node(), // 21
-                        null, // 22
-                        null, // 23
-                        d3.select('#content').node(), // 24
-                        d3.select('.column.c1').node(), // 25
-                        d3.select('.column.c2').node(), // 26
-                        d3.selectAll('#support_panel').node(), // 27
-                        null, // 28
-                        d3.select('.column.c2').node(), // 29
-                        undefined // 30
-                    ];
-            
-            contents = ["Now we will go over different parts of iFEED and explain how to use it.", 
+                null, // 0
+                d3.select('#timer').node(), // 1
+                undefined, // 2
+                d3.select('#support_panel').node(), // 3
+                null, // 4
+                null, // 5
+                d3.select('#support_panel').node(), // 6
+                undefined, // 7
+                d3.select('.tradespace_plot.figure').node(), // 8
+                null, // 9
+                d3.select('.column.c1').node(), // 10
+                d3.selectAll('#support_panel').node(), // 11
+                null, // 12
+                d3.select('.filter.options.dropdown').node(), // 13
+                d3.select('#support_panel').node(), // 14
+                null, // 15
+                d3.select('.tradespace_plot.figure').node(), // 16
+                d3.select('#support_panel').node(), // 17
+                null, // 18
+                d3.select('.tradespace_plot.figure').node(), // 19
+                undefined, // 20
+                undefined, // 21
+                undefined, // 22
+                d3.select('.tradespace_plot.figure').node(), // 23
+                null, // 24
+                null, // 25
+                null, // 26
+                null, // 27
+                d3.selectAll('#support_panel').node(), // 28
+                null, // 29
+                null, // 30
+                d3.select('#content').node(), // 31
+                d3.select('.tradespace_plot.figure').node(), // 32
+                d3.select('.column.c2').node(), // 33
+                d3.selectAll('#support_panel').node(), // 34
+                null, // 35
+                d3.select('#feature_application').node(), // 36
+                null, // 37
+                null, // 38
+                d3.select('.column.c1').node(), // 39
+                d3.select('#feature_application').node(), // 40
+                null, // 41
+                null, // 42
+                d3.selectAll('#support_panel').node(), // 43
+                d3.select('#feature_application').node(), // 44
+                null, // 45
+                null, // 46
+                d3.select('.column.c2').node(), // 47
+                d3.select('#feature_expression_panel').node(), // 48
+                d3.selectAll('#support_panel').node(), // 49
+                d3.select('#feature_application').node(), // 50
 
-                        "<p>The elapsed time is shown here. We expect this tutorial to take no more than 15 minutes.</p>"
-                        +"<p>During the actual task, the remaining time will be displayed here.</p>",
-                        
-                        "The main display is the scatter plot of different architectures of a satellite system. "
-                        +"Each dot corresponds to one architecture, and its location indicates the corresponding cost and the scientific benefit.", 
-                        
-                        "In the actual task, a group of dots will be highlighted in a light blue color. "
-                        +"These dots represent the target architectures that you need to investigate. "
-                        +"Your goal is to find patterns that are shared uniquely by these architectures.", // 3
-                           
-                        "If you hover the mouse over an architecture on the scatter plot, "
-                        +"the relevant information will be displayed on the \"Inspect Design\" tab.",
+                null, // 
+                undefined // 
+            ];
 
-                        "The displayed information contains the science benefit score and the cost, as well as a figure that shows "
-                        +"which set of instruments are assigned to each orbit.",
+            contents = [
 
-                        "The filter setting tab allows you to highlight a group of architectures that share the common feature that you define", // 6
+                // 0
+                "<p>In this experiment, you will use a web-based data analysis tool called iFEED. "
+                +"It is a program developed to help engineers solve complex system architecting problems. </p>"
+                +"<p>This tutorial will walk you through the capabilities of iFEED and explain how you can use them to analyze data.</p>"
+                +"<p>After this tutorial is finished, you will go through a series of tasks to analyze a given dataset. </p>", 
 
-                        "<p>To use the filter, you need to first select the filter type from a given list of available filters. "
-                        +"For example, try selecting the filter named \"Present\".</p>"
-                        +"<p>(Select the filter Present to continue)</p>", // 7
+                // 1
+                "<p>The elapsed time is shown here. We expect this tutorial to take no more than 15 minutes.</p>"
+                +"<p>For certain tasks during this experiment, time limit may be applied. "
+                +"In this case, the remaining time will be displayed here.</p>", 
 
-                        "The filter \"Present\" is used to selectively highlight designs that contain a specific instrument. "
-                        +"It takes in one instrument name as an argument, and selects all designs that use the specified instrument.", // 8
+                // 2
+                "<p>The task at hand deals with architecting a constellation of satellites for Earth observation.</p>"
+                +"<p>Each design consists of multiple satellites carrying different sensors "
+                +"working together to satisfy some measurement requirements related to climate monitoring.</p>",
 
-                        "<p>To apply the filter, you need to type in an argument to the input text field and click the 'Apply Filter' button. </p>"
-                        +"<p>Type in one of the instrument names, and apply the filter to continue.</p>", // 9
+                // 3
+                "<p>The diagram here shows how each design is defined. </p>"
+                +"<p>The architecture is defined by assgining a set of remote-sensing instruments "
+                +"(e.g. altimeter, radiometer, spectrometers, etc.) to spacecraft, "
+                +"which will fly in different orbits (determined by the altitude above the Earth, inclination with respect to the Equator, etc.).</p>",
 
-                        "<p>Take a look at the scatter plot, and note that some dots have turned pink or purple. "
-                        +"These dots are all the architectures that have the feature you just defined. In other words, these architectures "
-                        +"use the instrument that you specified. </p>"
-                        +"<p>The pink dots represent designs that have feature, but are not in the target region. "
-                        +"The purple dots represent designs that have the feature and are inside the target region (highlighted in blue)</p>. ",// 10
+                // 4
+                "<p>In the diagram, each row represents one spacecraft flying in the specified orbit. "
+                +"The columns represent what measurement instruments are onboard each of those spacecraft.</p>"
+                +"<p>In total, there are 5 candidate orbits, and 12 available measurement instruments. "
+                +"The following is the list of 5 candidate orbits considered in this problem.</p>"
+                +'<table class="tg">'
+                +'<tr><th class="tg-llyw">Candidate orbits</th><th class="tg-llyw">Description</th></tr>'
+                +'<tr><td class="tg-0pky">LEO-600-polar</td><td class="tg-0pky">LEO with polar inclination at 600km altitude</td></tr>'
+                +'<tr><td class="tg-0pky">SSO-600-AM<br></td><td class="tg-0pky">SSO with morning LTAN at 600km altitude</td></tr>'
+                +'<tr><td class="tg-0pky">SSO-600-DD</td><td class="tg-0pky">SSO with dawn-dusk LTAN at 600km altitude</td></tr>'
+                +'<tr><td class="tg-0lax">SSO-800-DD</td><td class="tg-0lax">SSO with dawn-dusk LTAN at 800km altitude</td></tr>'
+                +'<tr><td class="tg-0lax">SSO-800-PM</td><td class="tg-0lax">SSO with afternoon LTAN at 600km altitude</td></tr>'
+                +'</table>'
+                +"<p>(LEO = Low Earth Orbit, SSO = Sun-Synchronous Orbit, AM = morning, PM = afternoonm, DD = dawn-dusk, "
+                +"LTAN = Local Time of the Ascending Node)</p>",
 
-                        "Let\'s explore few more filters. Select another filter called \"InOrbit\" to continue.", // 11
+                // 5
+                "<p>The following is the list of 12 candidate instruments considered in this problem.</p>"
+                +'<table class="tg">'
+                +'<tr><th class="tg-r87d">Instrument</th><th class="tg-r87d">Description</th></tr>'
+                +'<tr><td class="tg-s268">OCE_SPEC</td><td class="tg-s268">Ocean color spectrometer</td></tr>'
+                +'<tr><td class="tg-s268">AERO_POL</td><td class="tg-s268">Aerosol polarimeter</td></tr>'
+                +'<tr><td class="tg-s268">AERO_LID</td><td class="tg-s268">Differential absorption lidar</td></tr>'
+                +'<tr><td class="tg-s268">HYP_ERB</td><td class="tg-s268">Short-wave / long-wave radiation budget</td></tr>'
+                +'<tr><td class="tg-0lax">CPR_RAD</td><td class="tg-0lax">Cloud and precipitation radar</td></tr>'
+                +'<tr><td class="tg-0lax">VEG_INSAR</td><td class="tg-0lax">Polarimetric L-band SAR</td></tr>'
+                +'<tr><td class="tg-0lax">VEG_LID</td><td class="tg-0lax">Vegetation/ice green lidar</td></tr>'
+                +'<tr><td class="tg-0lax">CHEM_UVSPEC</td><td class="tg-0lax">UV/VIS limb spectrometer</td></tr>'
+                +'<tr><td class="tg-0lax">CHEM_SWIRSPEC</td><td class="tg-0lax">SWIR nadir spectrometer</td></tr>'
+                +'<tr><td class="tg-0lax">HYP_IMAG</td><td class="tg-0lax">SWIR-TIR hyperspectral imager</td></tr>'
+                +'<tr><td class="tg-0lax">HIRES_SOUND</td><td class="tg-0lax">IR atmospheric sounder</td></tr>'
+                +'<tr><td class="tg-0lax">SAT_ALTIM</td><td class="tg-0lax">Wide-swath radar altimeter</td></tr>'
+                +'</table>'
+                +"<p>(SAR = Synthetic Aperture Radar, UV = Ultra Violet, VIS = VISible, SWIR = Short Wave InfraRed, "
+                +"TIR = Thermal InfraRed, IR = InfraRed)</p>",
 
-                        "<p>\"InOrbit\" is used to selectively highlight designs that assign a specific instrument(s) to a given orbit. </p>"
-                        +"<p>It takes in an orbit name and instrument name(s) as arguments. "
-                        +"If more than one instrument name is given, then it highlights all designs "
-                        +"that assign all those instruments into the specified orbit.</p>"
-                        +"<p>Type in an orbit name and multiple instrument names, and apply the filter to continue.</p>", // 12
+                // 6
+                "<p>Each design has corresponding science benefit score and cost. The science benefit score "
+                +"is a number that tells us how much value each design brings to the climate monitoring community. </p>"
+                +"<p>The cost is a measure of how much it is going to cost (in million dollars) to design, implement, launch and operate "
+                +"those systems.</p>"
+                +"<p>Naturally, low-cost and high-science designs are desirable. Note that, depending on how instruments are assigned "
+                +"to different orbits, the science score and the cost may vary significantly.</p>",
+        
+                // 7
+                "Now that we have covered the basic information about the problem, "
+                +"we will go over different parts of iFEED and explain how to use it to analyze the data.", 
 
-                        "Again, the dots in pink or purple highlight the designs that have the feature you just defined.", // 13
+                // 8
+                "The main display of iFEED is the scatter plot of different architectures of a satellite system. "
+                +"Each dot corresponds to one architecture, and its location indicates the corresponding cost and the scientific benefit.", 
+                
+                // 9
+                "In the actual task, a group of dots will be highlighted in a light blue color. "
+                +"These dots represent the target architectures that you need to investigate. "
+                +"Your goal is to find patterns that are shared uniquely by these architectures.", 
+                   
+                // 10
+                "If you hover the mouse over an architecture on the scatter plot, "
+                +"the relevant information will be displayed on the \"Inspect Design\" tab.", 
 
-                        "<p>So far, we have been using the term \"feature\" to refer to the description of a pattern that can be found "
-                        +"among the target designs (highlighted in blue). Below are some examples of what features might look like:</p>"
-                        +"<ul><li>OCE_SPEC is assigned to LEO-600-polar</li>"
-                        +"<li>AERO_LID and CHEM_UVSPEC are assigned together in the same orbit</li>"
-                        +"<li>Orbit SSO-800-PM is empty</li>"
-                        +"<li>HYP_ERB is assigned to either LEO-600-polar or SSO-600-AM</li>"
-                        +"</ul>"
-                        +"<p>Some of these features are better than others in explaining the target designs. "
-                        +"We use two different criteria to define the \"goodness\" of a feature.</p>", // 14
+                // 11
+                "The displayed information contains the science benefit score and the cost, as well as a figure that shows "
+                +"which set of instruments are assigned to each orbit.", 
 
-                        "<p>The first metric we use to define the \"goodness\" of a feature is called the coverage of a feature.</p>", // 15
+                // 12 Filter 
+                "The filter setting tab allows you to highlight a group of architectures that share the common feature that you define", 
 
-                        "<p>The architectures currently highlighted in pink and purple represent architectures that \"do not assign HYP_ERB to any orbit\". "
-                        +"Let\'s call this feature A.</p>" // 
-                        +"<p>Note that many of the target designs share feature A (as indicated by the large number of purple dots). "
-                        +"We say that this feature has a good coverage of target designs. Such good coverage is desired in a good feature.</p>", // 16
+                // 13 
+                "<p>To use a filter, you need to first select the filter type from a given list of available filters. "
+                +"For example, try selecting the filter named \"Present\".</p>"
+                +"<p>(Select the filter Present to continue)</p>", 
 
-                        "<p>However, feature A is not necessarily what we are looking for. It is too general, meaning that it also applies to "
-                        +"many of the non-target designs as well (as indicated by the large number of pink dots). "
-                        +"This leads us to the next criterion used to define a good feature.</p>", // 17 
-                        
-                        "<p>This time, the highlighted architectures have the feature "
-                        +"\"AERO_LID and HYP_ERB are never used, and SAR_ALTIM is assigned to at least one of the orbits\". "
-                        +"Let\'s call this feature B.</p>"
-                        +"<p>If you look closely, you will find that many of the pink dots have disappeared. "
-                        +"This is good becuase we wanted to find a feature that uniquely describes the target region "
-                        +"and does not cover the non-target region. </p>"
-                        +"<p>We say that feature B is specific to the target region, and this is the second criterion "
-                        +"that we require from a good feature.</p>", // 18
+                // 14
+                "The filter \"Present\" is used to selectively highlight designs that contain a specific instrument. "
+                +"It takes in one instrument name as an argument, and selects all designs that use the specified instrument.", 
 
-                        "<p>However, you may notice that many of the purple dots (target designs covered by the feature) have also disappeared. "
-                        +"Only a very small portion of the targets are in purple color now.</p>"
-                        +"<p>Therefore, feature B is too specific, meaning that it only accounts for a small number of targets. "
-                        +"Or you can say that the coverage of target designs have decreased. </p>", // 19
+                // 15
+                "<p>To apply the filter, you need to type in an argument to the input text field and click the 'Apply Filter' button. </p>"
+                +"<p>Type in one of the instrument names, and apply the filter to continue.</p>", 
 
-                        "<p>As you may have noticed, there are two conflicting criteria that we are seeking from a good feature: </p>"
-                        +"<ol><li>Coverage (The feature should cover a large area of the target region - maximize the number of purple dots)</li>"
-                        +"<li>Specificity (The feature should be specific enough, so that it does not cover the non-target region - minimize the number of pink dots)</li></ol>"
-                        +"<p>As we have seen in the previous example, there is a trade-off between these two conditions. </p>"
-                        +"<p>If you try to make a feature cover more targets, you might make it too general, and make it cover non-target designs as well (too many pink dots). </p>"
-                        +"<p>On the other hand, if you try to make a feature too specific, it may not cover many target designs (too few purple dots). "
-                        +"Therefore, the key is finding the right balance between those two criteria</p>", // 20
+                // 16
+                "<p>Take a look at the scatter plot, and note that some dots have turned pink or purple. "
+                +"These dots are all the architectures that have the feature you just defined. In other words, these architectures "
+                +"use the instrument [PLACEHOLDER]. </p>"
+                +"<p>The pink dots represent designs that have the feature, but are not in the target region. "
+                +"The purple dots represent designs that have the feature and are inside the target region (highlighted in blue)</p>. ",
 
-                        "<p>Feature Analysis tab provides a visualization that shows how much coverage and specificity different features have.</p>", // 21
+                // 17
+                "Let\'s explore one more filter. Select another filter called \"InOrbit\" to continue.", 
 
-                        "<p>In this plot, each feature is represented by a triangle.</p>"
-                        +"<p>The horizontal axis corresponds to the specificity, and the vertical axis corresponds to the coverage of a feature.</p>"
-                        +"<p>The color of a triangle represents how complex a feature is. Features that are blue are the most simplest, "
-                        +"and they get more complex as the color gets close to red.</p>", // 22
+                // 18
+                "<p>\"InOrbit\" is used to selectively highlight designs that assign a specific instrument(s) to a given orbit. </p>"
+                +"<p>It takes in an orbit name and instrument name(s) as arguments. "
+                +"If more than one instrument name is given, then it highlights all designs "
+                +"that assign all those instruments into the specified orbit.</p>"
+                +"<p>Type in an orbit name and multiple instrument names, and apply the filter to continue.</p>", 
 
-                        "<p>Again, a good feature must have both large specificity and large coverage.</p>", // 23
+                // 19
+                "Again, the dots in pink or purple highlight the designs that have the feature you just defined ([PLACEHOLDER1] is/are assigned to [PLACEHOLDER2])", 
 
-                        "<p>As you hover the mouse over each feature, you can notice two changes occurring in the interface.</p>", // 24
+                // 20 Feature intro
+                "<p>So far, we have been using the term \"feature\" to refer to the description of a pattern that can be found "
+                +"among the target designs (highlighted in blue). Below are some examples of what features might look like:</p>"
+                +"<ul><li>OCE_SPEC is assigned to LEO-600-polar</li>"
+                +"<li>AERO_LID and CHEM_UVSPEC are assigned together in the same orbit</li>"
+                +"<li>Orbit SSO-800-PM is empty</li>"
+                +"<li>HYP_ERB is assigned to either LEO-600-polar or SSO-600-AM</li>"
+                +"</ul>"
+                +"<p>Some of these features are better than others in explaining the target designs. "
+                +"We use two different criteria to define the \"goodness\" of a feature.</p>", 
 
-                        "<p>First, a group of dots on the scatter plot is highlighted in pink and purple color. </p>"
-                        +"<p>Again, pink and purple dots represent designs have the feature that you are currently inspecting "
-                        +"(purple is the overlap between pink and blue)</p>", // 25
+                // 21 Feature intro 2
+                "<p>Now, we will introduce the term \"feature\". Feature is the description of a pattern that can be found "
+                +"among the target designs (highlighted in blue). Below are some examples of what features might look like:</p>"
+                +"<ul><li>OCE_SPEC is assigned to LEO-600-polar</li>"
+                +"<li>AERO_LID and CHEM_UVSPEC are assigned together in the same orbit</li>"
+                +"<li>Orbit SSO-800-PM is empty</li>"
+                +"<li>HYP_ERB is assigned to either LEO-600-polar or SSO-600-AM</li>"
+                +"</ul>"
+                +"<p>Some of these features are better than others in explaining the target designs. "
+                +"We use two different criteria to define the \"goodness\" of a feature.</p>", 
 
-                        "<p>Second, a graphical representation of the feature will appear in the Feature Application panel.</p>"
-                        +"<p>The Feature Application panel shows the current feature that is applied.</p>", // 26
+                // 22
+                "<p>The first metric we use to define the \"goodness\" of a feature is called the coverage of a feature.</p>", 
 
-                        "<p>To add features to the Feature Application Panel, you have to click on one of the features shown on the Feature Analysis tab.</p>"
-                        +"<p> Hovering your mouse over the features will result in temporary change in the Feature Application Panel, "
-                        +"and by clicking you can fix the change.</p>"
-                        +"<p>(To continue, click on a feature to fix the feature in Feature Application Panel)</p>", // 27
+                // 23
+                "<p>The architectures currently highlighted in pink and purple represent architectures that \"do not assign HYP_ERB to any orbit\". "
+                +"Let\'s call this feature A.</p>" 
+                +"<p>Note that many of the target designs share feature A (as indicated by the large number of purple dots). "
+                +"We say that this feature has a good coverage of target designs. Such good coverage is desired in a good feature.</p>", 
 
-                        "Once a feature is added, you will see that one of the triangle is colored black and starts to blink. "
-                        +"It shows where the current feature is located.", // 28
+                // 24
+                "<p>However, feature A is not necessarily what we are looking for. It is too general, meaning that it also applies to "
+                +"many of the non-target designs as well (as indicated by the large number of pink dots). "
+                +"This leads us to the next criterion used to define a good feature.</p>", 
+                
+                // 25
+                "<p>This time, the highlighted architectures have the feature "
+                +"\"AERO_LID and HYP_ERB are never used, and SAR_ALTIM is assigned to at least one of the orbits\". "
+                +"Let\'s call this feature B.</p>"
+                +"<p>If you look closely, you will find that many of the pink dots have disappeared. "
+                +"This is good becuase we wanted to find a feature that uniquely describes the target region "
+                +"and does not cover the non-target region. </p>"
+                +"<p>We say that feature B is specific to the target region, and this is the second criterion "
+                +"that we require from a good feature.</p>", 
 
-                        "<p>In the graphical representation of a feature, there exist the following two different types of nodes: </p>"
-                        +"<ol><li>logical connectives (AND, OR)</li>"
-                        +"<li>individual conditions</li></ol>"
-                        +"<p>The logical connectives are used to specify how individual conditions should be combined logically.</p>", // 29
+                // 26
+                "<p>However, you may notice that many of the purple dots (target designs covered by the feature) have also disappeared. "
+                +"Only a very small portion of the targets are in purple color now.</p>"
+                +"<p>Therefore, feature B is too specific, meaning that it only accounts for a small number of targets. "
+                +"Or you can say that the coverage of target designs have decreased. </p>", 
 
-                        "<p>We just covered all the capabilities of iFEED, and now you are ready to start the experiment. "
-                        +"Before proceeding to the next step, please read the following directions carefully." // 30
+                // 27
+                "<p>As you may have noticed, there are two conflicting criteria that we are seeking from a good feature: </p>"
+                +"<ol><li>Coverage (The feature should cover a large area of the target region - maximize the number of purple dots)</li>"
+                +"<li>Specificity (The feature should be specific enough, so that it does not cover the non-target region - minimize the number of pink dots)</li></ol>"
+                +"<p>As we have seen in the previous example, there is a trade-off between these two conditions. </p>"
+                +"<p>If you try to make a feature cover more targets, you might make it too general, and make it cover non-target designs as well (too many pink dots). </p>"
+                +"<p>On the other hand, if you try to make a feature too specific, it may not cover many target designs (too few purple dots). "
+                +"Therefore, the key is finding the right balance between those two criteria</p>", 
 
-                        ];
+                // 28 Feature space plot
+                "<p>Feature Analysis tab provides a visualization that shows how much coverage and specificity different features have.</p>", 
+
+                // 29
+                "<p>In this plot, each feature is represented as a triangle.</p>"
+                +"<p>The horizontal axis corresponds to the specificity, and the vertical axis corresponds to the coverage of a feature.</p>"
+                +"<p>The color of a triangle represents how complex a feature is. Features that are blue are the most simplest, "
+                +"and they get more complex as the color gets close to red.</p>", 
+
+                // 30
+                "<p>Again, a good feature must have both large specificity and large coverage.</p>", 
+
+                // 31
+                "<p>As you hover the mouse over each feature, you can notice two changes occurring in the interface.</p>"
+                +"<p>(Try hovering the mouse over a feature before continuing)</p>", 
+
+                // 32
+                "<p>First, a group of dots on the scatter plot is highlighted in pink and purple color. </p>"
+                +"<p>Again, pink and purple dots represent designs have the feature that you are currently inspecting "
+                +"(purple is the overlap between pink and blue)</p>", 
+
+                // 33
+                "<p>Second, a graphical representation of the feature will appear in the Feature Application panel.</p>"
+                +"<p>The Feature Application panel shows the current feature that is applied.</p>", 
+
+                // 34
+                "<p>To add features to the Feature Application Panel, you have to click on one of the features shown on the Feature Analysis tab.</p>"
+                +"<p> Hovering your mouse over the features will result in temporary change in the Feature Application Panel, "
+                +"and by clicking you can fix the change.</p>"
+                +"<p>(To continue, click on a feature to fix the feature in Feature Application Panel)</p>", 
+
+                // 35
+                "Once a feature is clicked, you will see that a cursor appears. "
+                +"The cursor shows where the currently selected feature is located.", 
+
+                // 36
+                "<p>In the graphical representation of a feature, there exist two different types of nodes: </p>"
+                +"<ol><li>logical connectives (AND, OR)</li>"
+                +"<li>individual conditions</li></ol>"
+                +"<p>The logical connective nodes are colored blue, and they are used to specify how individual conditions "
+                +"should be combined logically.</p>"
+                +"<p>The current feature can be described in text as: \"[PLACEHOLDER]\"</p>", 
+
+                // 37
+                "<p>The feature graph not only acts as a visualization, but also as an interface for "
+                +"interactively modifying existing features or defining new ones.</p>",
+
+                // 38
+                "<p>You can move an individual node and place it under a different parent node using drag and drop. "
+                +"When you drag each node, temporary circles will appear around all other logical connective nodes. "
+                +"If you drop a node in one of those circles, the node will be added under that particular logical connective.</p>"
+                +"<p>To continue, try moving one node and placing it under a different parent node. </p>",
+
+                // 39
+                "<p>Note that, as you make changes in the feature graph, the main scatter plot and the feature analysis "
+                +"tab reflect the changes in real time.</p>",
+
+                // 40
+                "<p>You can view the options for various actions by right-clicking on each node. "
+                +"<p>There may be different set of options depending on which node it is. "
+                +"We will go over two of these options as examples. </p>", 
+
+                // 41
+                "<p>First, right-click on one of the logical connective nodes (AND or OR), and select \"Add feature\" option. "
+                +"(Select \"Add feature\" option to continue)</p>",
+
+                // 42
+                "<p>Note that the color of the logical connective node turned red. This indicates when you add a new feature, "
+                +"it will be added under this parent node.</p>",
+
+                // 43
+                "<p>To add a new feature, go to \"Filter Setting\" tab, and apply any filter (To continue, add a new "
+                +"feature by applying a filter).</p>",
+
+                // 44
+                "<p>Note that a new node is added to the selected logical connective node. </p>",
+
+                // 45
+                "<p>Let\'s try another option. Right-click on one of the condition nodes and select \"Add parent branch\" option. "
+                +"(Select \"Add parent branch\" option to continue)</p>",
+
+                // 46
+                "<p>This adds a new parent logical connective node to the selected node. This may be used to introduce a nested structure.</p>"
+                +"<p>Other possible actions include \"Deactivate\" and \"Delete\". These options are used to "
+                +"deactivate and to delete the current node (or branch), respectively. </p>",
+
+                // 47
+                "<p>While you can test different features by manually modifying the feature, there are also automatic helper functions "
+                +"that improve the currently selected feature. </p>",
+
+                // 48
+                "<p>Once a feature has been selected, you can click either \"Improve specificity\", or \"Improve coverage\" button to "
+                +"improve one of the metrics. </p>"
+                +"<p>\"Improve specificity\" button improves specificity by adding a new feature using AND (conjucntion), "
+                +"while \"Improve coverage\" improves coverage by adding a new feature using OR (disjunction). </p>"
+                +"<p>The current feature has good coverage and poor specificity. So, try clicking \"Improve specificity\" button.</p>",
+
+                // 49
+                "<p>Note that some crosses appeared in the plot. If there are features that improve the current feature, "
+                +"they will appear in the Feature plot as crosses.</p>"
+                +"<p>You can use these helper functions to improve coverage and specificity of a feature up to a certain level. </p>"
+                +"<p>To continue, click one of the newly tested features (crosses)</p>",
+                
+                // 50
+                "<p>If you compare this feature to the previous one, the node [PLACEHOLDER] has just been added. </p>"
+                +"<p>Since \"Improve specificity\" button was clicked, the node [PLACEHOLDER] was added under the logical connective AND. "
+                +"Similarly, \"Improve coverage\" may be used to improve the coverage of a feature by adding new nodes under OR. </p>",
+
+                // 51
+                "Generalization",
+                
+                // 
+                "<p>We just covered all the capabilities of iFEED, and now you are ready to start the experiment. "
+                +"Before proceeding to the next step, please read the following directions carefully." ,
+
+            ];
 
 
 
+
+ // contents = [];
 
                 // +'<p style="font-weight:bold; font-size:23px">  - In the actual task, you will be asked to answer 36 questions about three different datasets. </p>'
                 
@@ -394,56 +597,127 @@ class ExperimentTutorial{
 
                 if(this._currentStep === 1){
                     document.getElementById('tab1').click();
+                    PubSub.publish(INSPECT_ARCH, problem.data[1239]);
 
-                } else if(this._currentStep === 3){
-
-                } else if (this._currentStep === 4){
+                } else if (this._currentStep === 10){
                     document.getElementById('tab1').click();
                     PubSub.publish(INSPECT_ARCH, that.problem.data[1039]);
                 
-                } else if (this._currentStep === 6){
-                    document.getElementById('tab2').click();
-
-                } else if (this._currentStep === 7){
-                    document.getElementById('tab2').click();
-                    that.start_tutorial_event_listener("filter_select_present", this._currentStep);
-                    
-                } else if (this._currentStep === 9){
-                    document.getElementById('tab2').click();
-                    that.start_tutorial_event_listener("filter_applied", this._currentStep);
-                    
-                } else if (this._currentStep === 10){
-                    document.getElementById('tab2').click();
-
-                } else if (this._currentStep === 11){
-                    document.getElementById('tab2').click();
-                    that.start_tutorial_event_listener("filter_select_inOrbit", this._currentStep);
-                    
                 } else if (this._currentStep === 12){
                     document.getElementById('tab2').click();
-                    that.start_tutorial_event_listener("filter_applied", this._currentStep);
 
                 } else if (this._currentStep === 13){
                     document.getElementById('tab2').click();
-
+                    that.start_tutorial_event_listener("filter_select_present", this._currentStep);
+                    
+                } else if (this._currentStep === 15){
+                    document.getElementById('tab2').click();
+                    that.start_tutorial_event_listener("filter_applied", this._currentStep);
+                    
                 } else if (this._currentStep === 16){
-                    that.experiment.filter.apply_filter_expression(tutorial_feature_example_e);
+                    document.getElementById('tab2').click();
 
+                    let presentInstrumentName = d3.selectAll('.filter.inputs.div').select('#filter_input_1').select('input').node().value;
+                    that.intro._introItems[this._currentStep].intro = that.intro._introItems[this._currentStep].intro.replace("[PLACEHOLDER]", presentInstrumentName);
+
+                } else if (this._currentStep === 17){
+                    document.getElementById('tab2').click();
+                    that.start_tutorial_event_listener("filter_select_inOrbit", this._currentStep);
+                    
                 } else if (this._currentStep === 18){
-                    that.experiment.filter.apply_filter_expression(tutorial_feature_example_f);
+                    document.getElementById('tab2').click();
+                    that.start_tutorial_event_listener("filter_applied", this._currentStep);
 
-                } else if (this._currentStep === 21){
+                } else if (this._currentStep === 19){
+                    document.getElementById('tab2').click();
+                    let inOrbitOrbName = d3.selectAll('.filter.inputs.div').select('#filter_input_1').select('input').node().value;
+                    let inOrbitInstrName = d3.selectAll('.filter.inputs.div').select('#filter_input_2').select('input').node().value;
+                    that.intro._introItems[this._currentStep].intro = that.intro._introItems[this._currentStep].intro.replace("[PLACEHOLDER1]", inOrbitInstrName);
+                    that.intro._introItems[this._currentStep].intro = that.intro._introItems[this._currentStep].intro.replace("[PLACEHOLDER2]", inOrbitOrbName);
+
+                } else if (this._currentStep === 23){
+                    that.experiment.feature_application.update_feature_application("direct-update", tutorial_feature_example_e);
+
+                } else if (this._currentStep === 25){
+                    that.experiment.feature_application.update_feature_application("direct-update", tutorial_feature_example_f);
+
+                } else if (this._currentStep === 28){
                     PubSub.publish(APPLY_FEATURE_EXPRESSION, null);
                     that.experiment.feature_application.clear_feature_application();
 
-                } else if (this._currentStep === 26){
+                } else if (this._currentStep === 31){
+                    that.start_tutorial_event_listener("feature_mouse_hover", this._currentStep, null);
+
+                } else if (this._currentStep === 32){
                     that.experiment.feature_application.update_feature_application("direct-update", tutorial_feature_example_f);
                 
-                } else if (this._currentStep === 27){
+                } else if (this._currentStep === 34){
                     PubSub.publish(APPLY_FEATURE_EXPRESSION, null);
                     that.experiment.feature_application.clear_feature_application();
                     that.start_tutorial_event_listener("feature_clicked", this._currentStep);
+
+                } else if(this._currentStep === 36){
+                    document.getElementById('tab3').click();
+                    let expression = that.feature_application.parse_tree(that.feature_application.data);
+                    let ppExpression = that.label.pp_feature_description(expression);
+                    that.intro._introItems[this._currentStep].intro = that.intro._introItems[this._currentStep].intro.replace("[PLACEHOLDER]", ppExpression);
+                
+                } else if(this._currentStep === 38){
+                    document.getElementById('tab3').click();
+                    that.experiment.feature_application.update_feature_application("direct-update", tutorial_feature_example_d);
+                    that.start_tutorial_event_listener("node_drag_end", this._currentStep);
+                
+                } else if(this._currentStep === 41){
+                    document.getElementById('tab3').click();
+                    that.start_tutorial_event_listener("contextmenu_add_feature", this._currentStep);
+                
+                } else if(this._currentStep === 43){
+                    document.getElementById('tab2').click();
+                    that.start_tutorial_event_listener("filter_applied", this._currentStep);
+                
+                } else if(this._currentStep === 45){
+                    document.getElementById('tab2').click();
+                    that.start_tutorial_event_listener("contextmenu_add_parent", this._currentStep);
+                
+                } else if(this._currentStep === 47){
+                    document.getElementById('tab3').click();
+                    that.experiment.feature_application.clear_feature_application();
+                    that.experiment.feature_application.update_feature_application("direct-update", tutorial_feature_example_g);
+                    
+                } else if(this._currentStep === 48){
+                    document.getElementById('tab3').click();
+                    that.start_tutorial_event_listener("local_search_conjunctive", this._currentStep);
+
+                } else if(this._currentStep === 49){
+                    document.getElementById('tab3').click();
+                    that.start_tutorial_event_listener("new_feature_clicked", this._currentStep);
+
+                } else if(this._currentStep === 50){
+                    document.getElementById('tab3').click();
+
+                    let feature_application = that.experiment.feature_application;
+                    let previousFeature = feature_application.construct_tree(feature_application, tutorial_feature_example_g);
+                    let newFeature = feature_application.data;
+
+                    let addedBaseFeature = null;
+                    feature_application.visit_nodes(newFeature, (d1) => {
+                        let matchFound = false;
+                        feature_application.visit_nodes(previousFeature, (d2) => {
+                            if(d1.name === d2.name){
+                                matchFound = true;
+                                return;
+                            }
+                        })
+                        if(!matchFound){
+                            addedBaseFeature = d1;
+                        }
+                    })
+
+                    let ppExpression = that.experiment.label.pp_feature_single(addedBaseFeature.name);
+                    that.intro._introItems[this._currentStep].intro = that.intro._introItems[this._currentStep].intro.replace(/\[PLACEHOLDER\]/g, ppExpression);
                 } 
+ 
+
             }            
             
 
@@ -605,6 +879,8 @@ let tutorial_feature_example_d = "({separate[;3,5,11;]}&&{present[;11;]}&&({sepa
 let tutorial_feature_example_e = "{absent[;3;]}";
 
 let tutorial_feature_example_f = "({absent[;2;]}&&{absent[;3;]}&&{present[;11;]})";
+
+let tutorial_feature_example_g = "({separate[;2,4,8;]}&&({absent[;2;]}||{present[;11;]})&&({present[;11;]}||{absent[;3;]}))";
 
 let tutorial_selection = "3,6,8,12,13,14,15,17,19,20,25,26,27,37,38,42,46,47,50,51,53,55,58,60,61,64,68,72,76,77,81,88,91,93,94,95,96,100,101,102,104,106,108,111,118,119,120,121,122,123,125,128,129,130,135,139,143,144,148,149,153,165,167,168,169,173,175,176,177,179,186,189,191,194,196,199,200,217,219,221,223,224,225,227,229,230,231,232,234,237,239,240,248,249,250,255,258,261,266,268,273,280,282,287,288,289,298,303,312,313,322,324,325,332,337,339,341,342,349,352,353,354,359,360,363,365,366,368,369,370,372,373,375,379,381,382,384,387,388,397,402,408,409,420,423,425,439,442,444,461,473,476,490,504,506,510,514,519,523,527,532,540,546,561,571,575,594,600,601,604,611,612,621,622,624,625,628,629,632,639,645,652,654,658,667,678,686,687,688,692,699,703,704,707,718,720,725,727,728,733,736,740,741,742,744,746,751,761,762,769,770,774,778,781,786,790,793,800,801,805,810,812,813,815,816,823,825,832,835,840,846,856,861,862,865,872,877,886,889,891,896,899,905,910,911,912,917,929,933,939,943,945,950,952,960,965,967,975,977,978,986,1003,1005,1010,1018,1021,1024,1027,1029,1031,1032,1035,1036,1042,1045,1052,1053,1058,1059,1068,1070,1076,1077,1084,1085,1089,1094,1096,1113,1117,1119,1120,1121,1124,1137,1157,1158,1162,1163,1172,1177,1181,1182,1194,1195,1214,1224,1228,1242,1254,1262,1263";
 

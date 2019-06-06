@@ -2,7 +2,7 @@
         
 class Experiment{
 
-    constructor(problem, tradespace_plot, filter, data_mining, feature_application, label){
+    constructor(problem, tradespace_plot, filter, data_mining, feature_application, label, treatmentCondition){
         this.problem = problem;
         this.tradespace_plot = tradespace_plot;
         this.filter = filter;
@@ -24,21 +24,67 @@ class Experiment{
         this.stage = "learning";
 
         // Set treatment condition
-        let min = 0; 
-        let max = 3;  
-        let randomInt = Math.floor(Math.random() * (+max - +min)) + +min; 
-        this.treatmentCondition = randomInt;
+        if(typeof treatmentCondition === "undefined" || treatmentCondition === null){
+            let min = 0; 
+            let max = 3;  
+            let randomInt = Math.floor(Math.random() * (+max - +min)) + +min; 
+            this.treatmentCondition = randomInt;
+        }else{
+            this.treatmentCondition = treatmentCondition
+        }
 
         // Participant-specific info store
         this.participantID = this.generate_participant_id();
 
-        this.initialize();
+        this.initialize_measurements();
         this.display_participant_id();
 
         let that = this;
         PubSub.subscribe(EXPERIMENT_START, (msg, data) => {
             that.start_learning_task();
         });    
+
+        PubSub.subscribe(EXPERIMENT_EVENT, (msg, data) => { 
+            if(that.stage === "learning"){
+                if(data.key === "design_viewed"){
+                    that.counter_design_viewed++;
+
+                }else if(data.key === "feature_viewed"){
+                    that.counter_feature_viewed++;
+
+                }else if(data.key === "filter_applied"){
+                    that.counter_filter_used++;
+                }
+
+            }else if(that.stage === "design_synthesis"){
+                if(data.key === "design_viewed"){
+                    that.counter_design_viewed++;
+
+                } else if(data.key === "design_evaluated"){
+                    let arch = data.data;
+                    let archCopy = {id: arch.id, inputs: arch.inputs, outputs: arch.outputs};
+                    that.designs_evaluated.push(archCopy);
+                }
+
+            }
+        }); 
+    }
+
+    initialize_measurements(){  
+        this.initialize_learning_task_measurements();
+        this.initialize_design_synthesis_task_measurements();
+    }
+
+    initialize_learning_task_measurements(){
+        this.counter_design_viewed = 0;
+        this.counter_feature_viewed = 0;
+        this.counter_filter_used = 0;
+        this.features_tested = [];
+    }
+
+    initialize_design_synthesis_task_measurements(){
+        this.counter_design_viewed = 0;
+        this.designs_evaluated = [];
     }
 
     start_learning_task(){
@@ -51,6 +97,7 @@ class Experiment{
 
         // Reset features
         this.data_mining.initialize();
+        this.feature_application.clear_feature_application();
         PubSub.publish(INITIALIZE_FEATURE_APPLICATION, null);
 
         // Set alert message given at the beginning of each task
@@ -80,11 +127,48 @@ class Experiment{
 
         // Load treatment condition
         this.load_treatment_condition();
+
+        // Initialize measurements
+        this.initialize_learning_task_measurements();
     }
 
     end_learning_task(){
         let that = this;
-        // Save data
+
+        // Save data: 
+        //  - participantID
+        //  - treatmentCondition
+        //  - stage
+        //  - duration
+        //  - counter_design_viewed
+        //  - counter_feature_viewed
+        //  - counter_filter_used
+        //  - features_tested
+
+        this.clock.stop();
+        let durationInSeconds = this.clock.getTimeElapsed() / 1000;
+
+        this.features_tested = [];
+        let allFeatures = this.data_mining.allFeatures;
+        for(let i = 0; i < allFeatures.length; i++){
+            let feature = allFeatures[i];
+            if(this.data_mining.algorithmGeneratedFeatureIDs.indexOf(feature.id) === -1){
+                this.features_tested.push(feature);
+            }
+        }
+
+        let learning_task_data = {
+            "participantID": this.participantID,
+            "treatmentCondition": this.treatmentCondition,
+            "stage": this.stage,
+            "duration": durationInSeconds,
+            "counter_design_viewed": this.counter_design_viewed,
+            "counter_feature_viewed": this.counter_feature_viewed,
+            "counter_filter_used": this.counter_filter_used,
+            "features_tested": this.features_tested,
+        }
+        console.log(learning_task_data);
+        this.save_data(learning_task_data);
 
         // Move onto the next stage
         this.generateSignInMessage(() => {
@@ -109,6 +193,7 @@ class Experiment{
         let a2 = function(){
             alert("End of the session");
             that.unhighlight_timer();
+            that.end_design_synthesis_task();
         };
         
         // Set callback functions
@@ -120,11 +205,35 @@ class Experiment{
 
         // Load treatment condition
         this.load_design_synthesis_task();
+
+        // Initialize measurements
+        this.initialize_design_synthesis_task_measurements();
     }
 
+    end_design_synthesis_task(){
 
+        // Save data: 
+        //  - participantID
+        //  - treatmentCondition
+        //  - stage
+        //  - duration
+        //  - counter_design_viewed
+        //  - designs_evaluated
 
+        this.clock.stop();
+        let durationInSeconds = this.clock.getTimeElapsed() / 1000;
 
+        let design_synthesis_task_data = {
+            "participantID": this.participantID,
+            "treatmentCondition": this.treatmentCondition,
+            "stage": this.stage,
+            "duration": durationInSeconds,
+            "counter_design_viewed": this.counter_design_viewed,
+            "designs_evaluated": this.designs_evaluated,
+        }
+        console.log(design_synthesis_task_data);
+        this.save_data(design_synthesis_task_data);
+    }
 
     unhighlight_timer(){
         d3.select("#timer")
@@ -171,17 +280,6 @@ class Experiment{
         return out;
     }
 
-    initialize(){
-        this.counter_design_viewed = 0;
-        this.counter_feature_viewed = 0;
-        this.counter_new_design_evaluated = 0;
-        this.counter_design_local_search = 0;
-        this.counter_conjunctive_local_search = 0;
-        this.counter_disjunctive_local_search = 0;
-        this.counter_new_feature_tested = 0;
-        this.best_features_found = [];
-    }
-
     load_treatment_condition(){
         let treatmentConditionName = "";
         if(this.treatmentCondition === 0){
@@ -209,9 +307,10 @@ class Experiment{
         PubSub.publish(EXPERIMENT_SET_MODE, "design-synthesis");
     }
 
-
-
-
+    save_data(data){
+        let filename = this.participantID + "-" + this.stage + ".json";;        
+        this.saveTextAsFile(filename, JSON.stringify(data));
+    }
 
 
     // finish_all_task(){
@@ -267,62 +366,6 @@ class Experiment{
     // }
 
 
-    
-    record_answer(problem_type, problem_number){
-
-        // problem types: pretest, pretest_text, design, feature
-
-        // Record:
-        // 1. problemSet number (orbit, instrument order)
-        // 2. task_number (task order)
-        // 3. condition_number (DSE or FSE)
-        // 4. problem_number
-        // 5. answer
-        // 6. confidence
-        // 7. time
-
-        let answer = 0;
-        let confidence = null;
-
-        if(problem_type === "pretest_text"){
-            answer = d3.select(".experiment.answer.container").node().value;
-            problem_type = "pretest";
-
-        }else{
-            d3.selectAll(".experiment.answer.options").nodes()
-                .forEach( (d) => {
-                    if(d.checked){
-                        answer = + d.value;
-                    }
-                })
-
-            confidence = + d3.select(".experiment.answer.slider").node().value;
-        }
-
-        this.clock.stop();
-        let time = this.clock.timeElapsed / 1000;
-
-        let json = {
-            "variable_ordering": this.problemSet_number,
-            "task_number": this.task_number,
-            "condition_number": this.condition_number,
-            "problem_type": problem_type,
-            "problem_number": problem_number,
-            "answer": answer,
-            "confidence": confidence,
-            "time": time
-        }
-        this.answerData.push(json);
-
-        console.log(json);
-    }
-
-    save_answer(){
-        let path = "";
-        let filename = path + this.account_id + '_answer.json';
-        let inputText = JSON.stringify(this.answerData);
-        this.saveTextAsFile(filename, inputText)
-    }
 
 
 
@@ -334,7 +377,14 @@ class Experiment{
 
 
 
-    print_experiment_summary(){
+
+
+
+
+
+
+
+    _print_experiment_summary_OUTDATED(){
 
         // task_order, condition_order, account_id
         // orbitOrder, instrOrder
@@ -344,7 +394,9 @@ class Experiment{
 
         let printout = [];
 
-        let header = ['account_id','condition','task','design_viewed','feature_viewed','new_design_evaluated','design_local_search','conjunctive_local_search','disjunctive_local_search','new_feature_tested','best_features_found'];
+        let header = ['account_id','condition','task','design_viewed','feature_viewed',
+        'new_design_evaluated','design_local_search','conjunctive_local_search','disjunctive_local_search',
+        'new_feature_tested','best_features_found'];
 
         header = header.join(',');
         
@@ -357,8 +409,8 @@ class Experiment{
             let condition = that.condition_order[i];
             let task = that.task_order[i];
 
-            row=row.concat([that.account_id,condition,task]);
-            row=row.concat([that.store_design_viewed[i],
+            row = row.concat([that.account_id,condition,task]);
+            row = row.concat([that.store_design_viewed[i],
                            that.store_feature_viewed[i],
                            that.store_new_design_evaluated[i],
                             that.store_design_local_search[i],
@@ -368,7 +420,7 @@ class Experiment{
                             that.store_best_features_found[i]
                            ]);
 
-            row=row.join(",");
+            row = row.join(",");
             printout.push(row);
         }
 
@@ -401,29 +453,6 @@ class Experiment{
         }
         downloadLink.click();
     }
-
-    store_task_specific_information(){
-        this.store_design_viewed.push(this.counter_design_viewed);
-        this.store_feature_viewed.push(this.counter_feature_viewed);
-        this.store_new_design_evaluated.push(this.counter_new_design_evaluated);
-        this.store_design_local_search.push(this.counter_design_local_search);
-        this.store_conjunctive_local_search.push(this.counter_conjunctive_local_search);
-        this.store_disjunctive_local_search.push(this.counter_disjunctive_local_search);
-        this.store_new_feature_tested.push(this.counter_new_feature_tested);
-        this.store_best_features_found.push(JSON.stringify(this.best_features_found));        
-        
-        this.counter_design_viewed = 0;
-        this.counter_feature_viewed = 0;
-        this.counter_new_design_evaluated = 0;
-        this.counter_design_local_search = 0;
-        this.counter_conjunctive_local_search = 0;
-        this.counter_disjunctive_local_search = 0;
-        this.counter_new_feature_tested = 0;
-        this.best_features_found = [];             
-    }
-
-
-
     
     /**
      * Randomize array element order in-place.
@@ -438,16 +467,6 @@ class Experiment{
         }
         return array;
     }
-
-
-
-   
-
-
-
-
-
-
 
     generateSignInMessage(callback){
         let that = this;
@@ -468,7 +487,11 @@ class Experiment{
                 instance.hide({ transitionOut: 'fadeOut' }, toast, 'button');
 
             }else{
-                that.generateErrorMessage("Invalid passcode");
+                iziToast.error({
+                    title: 'Error',
+                    message: "Invalid passcode",
+                    position: 'topRight'
+                });
             }
         }
         
@@ -492,12 +515,6 @@ class Experiment{
             ],
         });
     }
-
-
-
-
-
-
 
     get_selected_arch_ids_string(){
         let list = this.get_selected_arch_ids_list();
