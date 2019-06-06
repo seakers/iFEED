@@ -803,7 +803,7 @@ class ExperimentTutorial{
         // Start the experiment after some delay
         setTimeout(() => {
             PubSub.publish(EXPERIMENT_START, null);
-        }, 2000); // How long do you want the delay to be (in milliseconds)? 
+        }, 4000); // How long do you want the delay to be (in milliseconds)? 
 
         //window.location.replace("https://www.selva-research.com/experiment/");
     }
