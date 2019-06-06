@@ -482,7 +482,7 @@ class Experiment{
         let submitCallback = function (instance, toast, button, event, inputs) {
 
             let input = inputs[0].value;
-            if(input === "qkdgustmd"){
+            if(input === "goseakers"){
                 callback();
                 instance.hide({ transitionOut: 'fadeOut' }, toast, 'button');
 
@@ -782,7 +782,7 @@ class Clock{
     }
 }
 
-let passcode = "qkdgustmd";
+let passcode = "goseakers";
 
 let fuzzy_pareto_front_4 = "15,41,43,44,52,75,118,134,211,268,305,323,335,458,505,526,533,535,537,576,598,601,606,618,619,622,678,699,700,"
 +"704,740,757,762,766,770,810,830,843,856,861,884,996,1071,1083,1086,1092,1095,1099,1101,1104,1106,1108,1109,1110,1112,1114,1115,1116,1119,"
