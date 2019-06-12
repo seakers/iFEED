@@ -22,7 +22,7 @@ class ExperimentTutorial{
         this.current_step = null;  
         this.steps_to_skip = [];
 
-        // Import the dataset
+        // Import the tutorial dataset
         problem.metadata.file_path = "EOSS_reduced_data.csv";
         PubSub.publish(LOAD_DATA, null);
 
@@ -38,7 +38,18 @@ class ExperimentTutorial{
     }
 
     skip_tutorial(){
-        this.start_experiment();
+        let that = this;
+        this.intro.exit();
+
+        // Load the data
+        this.problem.metadata.file_path = "ClimateCentric_050819.csv";
+        PubSub.publish(LOAD_DATA, null);
+
+        // Generate sign in message
+        that.experiment.generateSignInMessage(() => {
+            that.experiment.load_learning_task();
+            setTimeout(() => { PubSub.publish(EXPERIMENT_TUTORIAL_START, null);}, 300);
+        });
     }
 
     start_tutorial(){
@@ -47,29 +58,22 @@ class ExperimentTutorial{
         // Close all existing intro messages
         this.intro.exit();
 
-        if(this.experiment.stage === "learning"){
+        if(this.experiment.stage === "tutorial"){
             this.experiment.select_archs_using_ids(tutorial_selection);
 
-            // Load the experiment condition
-            let treatmentConditionName = "";
+            // Set steps to skip
             if(this.treatmentCondition === 0){
-                treatmentConditionName = "tutorial-manual-generalization";
                 this.steps_to_skip = [21];
-
             }else if(this.treatmentCondition === 1){
-                treatmentConditionName = "tutorial-automated-generalization";
-                // Disable filter
-                d3.select("#tab2").text('-');
-                d3.select("#view2").selectAll('g').remove();
                 this.steps_to_skip = [20];
-
             }else if(this.treatmentCondition === 2){
-                treatmentConditionName = "tutorial-interactive-generalization";
                 this.steps_to_skip = [21];
-
             } 
-            PubSub.publish(EXPERIMENT_SET_MODE, treatmentConditionName); 
 
+            // Load the treatment condition
+            this.experiment.load_treatment_condition(true);
+
+            // Set timer callback events
             let d1 = 15 * 60 * 1000;
             let d2 = 20 * 60 * 1000;
             let a1 = function(){
@@ -90,13 +94,11 @@ class ExperimentTutorial{
             this.experiment.clock.setDuration(duration);
             this.experiment.clock.start();
 
+        }else if(this.experiment.stage === "learning"){
+            this.experiment.clock.resetClock();
+
         }else if(this.experiment.stage === "design_synthesis"){
             this.experiment.clock.resetClock();
-            this.experiment.clock.start();
-
-            // // Load the data
-            // this.problem.metadata.file_path = "ClimateCentric_050819.csv";
-            // PubSub.publish(LOAD_DATA, null);
         }
 
         this.set_tutorial_content(this.experiment.stage);
@@ -105,8 +107,8 @@ class ExperimentTutorial{
     start_intro(objects, messages, classname, callback){
         
         if(messages.length === 1){
-            this.intro.setOption('showButtons',false)
-                        .setOption('showBullets', true);
+            this.intro.setOption('showButtons',true)
+                        .setOption('showBullets', false);
         }else{
             this.intro.setOption('showButtons',true)
                         .setOption('showBullets', true);
@@ -148,29 +150,65 @@ class ExperimentTutorial{
         let that = this;
 
         // Disable SKIP button until it reaches the last step
-        $('.introjs-skipbutton').hide();
+        if(messages.length > 1){
+            $('.introjs-skipbutton').hide();
+        }
         this.intro.onafterchange(function(){          
             if (this._introItems.length - 1 == this._currentStep || this._introItems.length == 1) {
-                $('.introjs-skipbutton').show();
+
+                if(that.experiment.stage !== "tutorial"){
+                    $('.introjs-skipbutton').show();
+                }
 
                 d3.select('.introjs-skipbutton')
                     .text(() => {
-                        if(that.experiment.stage === "learning"){
+                        if(that.experiment.stage === "tutorial"){
                             return "START EXPERIMENT";
+                        }else if(that.experiment.stage === "learning"){
+                            return "START DESIGN ANALYSIS TASK";
+                        }else if(that.experiment.stage === "design_synthesis"){
+                            return "START DESIGN SYNTHESIS TASK";
+                        }else if(that.experiment.stage === "learning_end"){
+                            return "LOAD PROBLEM SET";
                         }else{
-                            return "START TASK";
+                            return "DONE"
                         }
                     })
-                    .style('color','red')
-                    .on("click", () => {
-                        if(that.experiment.stage === "learning"){
-                            that.start_experiment();
-                        }else{
-                            that.intro.exit();
-                            that.experiment.start_design_synthesis_task();
-                        }
-                    });
+                    .style('color','red');
             } 
+        });
+
+        this.intro.oncomplete(function() {
+            if(that.experiment.stage === "tutorial"){ 
+
+                // Load the data
+                that.problem.metadata.file_path = "ClimateCentric_050819.csv";
+                PubSub.publish(LOAD_DATA, null);
+
+                // Generate sign in message
+                that.experiment.generateSignInMessage(() => {
+                    that.experiment.load_learning_task();
+                    setTimeout(() => { PubSub.publish(EXPERIMENT_TUTORIAL_START, null);}, 300);
+                });
+
+            }else if(that.experiment.stage === "learning"){
+                that.intro.exit();
+                that.experiment.start_learning_task();
+
+            }else if(that.experiment.stage === "learning_end"){
+                that.intro.exit();
+                window.open("https://cornell.qualtrics.com/jfe/form/SV_1Y9xdlpqH9gJSfz");
+
+                //Move onto the next stage
+                that.experiment.generateSignInMessage(() => {
+                    that.experiment.load_design_synthesis_task();
+                    setTimeout(() => { PubSub.publish(EXPERIMENT_TUTORIAL_START, null);}, 300);
+                });
+
+            }else if(that.experiment.stage === "design_synthesis"){
+                that.intro.exit();
+                that.experiment.start_design_synthesis_task();
+            }
         });
     }
 
@@ -208,7 +246,7 @@ class ExperimentTutorial{
         contents = [];
         classname = 'introjs_tooltip_large';
         
-        if(stage === 'learning' || typeof stage === 'undefined' || stage == null){
+        if(stage === 'tutorial' || typeof stage === 'undefined' || stage == null){
         
             objects = [
                 null, // 0
@@ -262,21 +300,19 @@ class ExperimentTutorial{
                 d3.select('#feature_expression_panel').node(), // 48
                 d3.selectAll('#support_panel').node(), // 49
                 d3.select('#feature_application').node(), // 50
-
-                null, // 
-                undefined // 
+                d3.select('.column.c2').node(), // 51
             ];
 
             contents = [
-
                 // 0
                 "<p>In this experiment, you will use a web-based data analysis tool called iFEED. "
                 +"It is a program developed to help engineers solve complex system architecting problems. </p>"
                 +"<p>This tutorial will walk you through the capabilities of iFEED and explain how you can use them to analyze data.</p>"
-                +"<p>After this tutorial is finished, you will go through a series of tasks to analyze a given dataset. </p>", 
+                +"<p>After this tutorial is finished, you will use the tool to analyze a given dataset. "
+                +"Then, you will be asked to answer a series of questions to test how much you have learned from analyzing the data. </p>", 
 
                 // 1
-                "<p>The elapsed time is shown here. We expect this tutorial to take no more than 15 minutes.</p>"
+                "<p>The elapsed time is shown here. We expect this tutorial to take no more than 20 minutes.</p>"
                 +"<p>For certain tasks during this experiment, time limit may be applied. "
                 +"In this case, the remaining time will be displayed here.</p>", 
 
@@ -287,15 +323,15 @@ class ExperimentTutorial{
 
                 // 3
                 "<p>The diagram here shows how each design is defined. </p>"
-                +"<p>The architecture is defined by assgining a set of remote-sensing instruments "
+                +"<p>The architecture is defined by assigning a set of remote-sensing instruments "
                 +"(e.g. altimeter, radiometer, spectrometers, etc.) to spacecraft, "
-                +"which will fly in different orbits (determined by the altitude above the Earth, inclination with respect to the Equator, etc.).</p>",
+                +"which will fly in different orbits (determined by the altitude above the Earth, inclination with respect to the Equator, etc.).</p>"
+                +"<p>In the diagram, each row represents one spacecraft flying in the specified orbit. "
+                +"The columns represent what measurement instruments are onboard each of those spacecraft.</p>",
 
                 // 4
-                "<p>In the diagram, each row represents one spacecraft flying in the specified orbit. "
-                +"The columns represent what measurement instruments are onboard each of those spacecraft.</p>"
-                +"<p>In total, there are 5 candidate orbits, and 12 available measurement instruments. "
-                +"The following is the list of 5 candidate orbits considered in this problem.</p>"
+                "<p>In total, there are 5 candidate orbits, and 12 candidate instruments that are considered in this problem. "
+                +"The following is the list of 5 candidate orbits.</p>"
                 +'<table class="tg">'
                 +'<tr><th class="tg-llyw">Candidate orbits</th><th class="tg-llyw">Description</th></tr>'
                 +'<tr><td class="tg-0pky">LEO-600-polar</td><td class="tg-0pky">LEO with polar inclination at 600km altitude</td></tr>'
@@ -336,18 +372,21 @@ class ExperimentTutorial{
                 +"to different orbits, the science score and the cost may vary significantly.</p>",
         
                 // 7
-                "Now that we have covered the basic information about the problem, "
-                +"we will go over different parts of iFEED and explain how to use it to analyze the data.", 
+                "<p>Now that we have covered the basic information about the problem, "
+                +"we will go over different parts of iFEED and explain how to use it to analyze the data.</p>"
+                +"<p>iFEED is a tool that supports the discovery of the key knowledge on what constitutes good designs.</p>", 
 
                 // 8
-                "The main display of iFEED is the scatter plot of different architectures of a satellite system. "
+                "The main display of iFEED is a scatter plot of different architectures of a satellite system. "
                 +"Each dot corresponds to one architecture, and its location indicates the corresponding cost and the scientific benefit.", 
                 
                 // 9
-                "In the actual task, a group of dots will be highlighted in a light blue color. "
-                +"These dots represent the target architectures that you need to investigate. "
-                +"Your goal is to find patterns that are shared uniquely by these architectures.", 
-                   
+                "<p>In a given task, a group of dots will be highlighted in a light blue color. "
+                +"These dots represent the target architectures that you need to investigate. </p>"
+                +"<p>The goal here is to find patterns that are shared uniquely by these architectures. </p>"
+                +"<p>Learning what constitutes good designs is useful, as you can learn more about the design problem and "
+                +"the model used to evaluate the architectures.</p>",
+   
                 // 10
                 "If you hover the mouse over an architecture on the scatter plot, "
                 +"the relevant information will be displayed on the \"Inspect Design\" tab.", 
@@ -440,9 +479,9 @@ class ExperimentTutorial{
 
                 // 26
                 "<p>However, you may notice that many of the purple dots (target designs covered by the feature) have also disappeared. "
-                +"Only a very small portion of the targets are in purple color now.</p>"
+                +"Only a small portion of the targets are in purple color now.</p>"
                 +"<p>Therefore, feature B is too specific, meaning that it only accounts for a small number of targets. "
-                +"Or you can say that the coverage of target designs have decreased. </p>", 
+                +"Or you can say that the coverage of target designs has decreased. </p>", 
 
                 // 27
                 "<p>As you may have noticed, there are two conflicting criteria that we are seeking from a good feature: </p>"
@@ -459,7 +498,7 @@ class ExperimentTutorial{
                 // 29
                 "<p>In this plot, each feature is represented as a triangle.</p>"
                 +"<p>The horizontal axis corresponds to the specificity, and the vertical axis corresponds to the coverage of a feature.</p>"
-                +"<p>The color of a triangle represents how complex a feature is. Features that are blue are the most simplest, "
+                +"<p>The color of a triangle represents how complex a feature is. Features that are blue are the simplest, "
                 +"and they get more complex as the color gets close to red.</p>", 
 
                 // 30
@@ -480,7 +519,7 @@ class ExperimentTutorial{
 
                 // 34
                 "<p>To add features to the Feature Application Panel, you have to click on one of the features shown on the Feature Analysis tab.</p>"
-                +"<p> Hovering your mouse over the features will result in temporary change in the Feature Application Panel, "
+                +"<p> Hovering your mouse over the features will result in a temporary change in the Feature Application Panel, "
                 +"and by clicking you can fix the change.</p>"
                 +"<p>(To continue, click on a feature to fix the feature in Feature Application Panel)</p>", 
 
@@ -502,7 +541,7 @@ class ExperimentTutorial{
 
                 // 38
                 "<p>You can move an individual node and place it under a different parent node using drag and drop. "
-                +"When you drag each node, temporary circles will appear around all other logical connective nodes. "
+                +"When you drag each node, temporary pink circles will appear around all other logical connective nodes. "
                 +"If you drop a node in one of those circles, the node will be added under that particular logical connective.</p>"
                 +"<p>To continue, try moving one node and placing it under a different parent node. </p>",
 
@@ -512,7 +551,7 @@ class ExperimentTutorial{
 
                 // 40
                 "<p>You can view the options for various actions by right-clicking on each node. "
-                +"<p>There may be different set of options depending on which node it is. "
+                +"<p>There may be different set of options depending on the type of each node. "
                 +"We will go over two of these options as examples. </p>", 
 
                 // 41
@@ -546,8 +585,8 @@ class ExperimentTutorial{
                 // 48
                 "<p>Once a feature has been selected, you can click either \"Improve specificity\", or \"Improve coverage\" button to "
                 +"improve one of the metrics. </p>"
-                +"<p>\"Improve specificity\" button improves specificity by adding a new feature using AND (conjucntion), "
-                +"while \"Improve coverage\" improves coverage by adding a new feature using OR (disjunction). </p>"
+                +"<p>\"Improve specificity\" button improves specificity by adding a new condition using AND (conjucntion), "
+                +"while \"Improve coverage\" improves coverage by adding a new condition using OR (disjunction). </p>"
                 +"<p>The current feature has good coverage and poor specificity. So, try clicking \"Improve specificity\" button.</p>",
 
                 // 49
@@ -557,36 +596,17 @@ class ExperimentTutorial{
                 +"<p>To continue, click one of the newly tested features (crosses)</p>",
                 
                 // 50
-                "<p>If you compare this feature to the previous one, the node [PLACEHOLDER] has just been added. </p>"
-                +"<p>Since \"Improve specificity\" button was clicked, the node [PLACEHOLDER] was added under the logical connective AND. "
-                +"Similarly, \"Improve coverage\" may be used to improve the coverage of a feature by adding new nodes under OR. </p>",
+                "<p>If you compare this feature to the previous one, the condition [PLACEHOLDER] has just been added. </p>"
+                +"<p>Since \"Improve specificity\" button was clicked, the condition [PLACEHOLDER] was added under the logical connective AND. "
+                +"Similarly, \"Improve coverage\" may be used to improve the coverage of a feature by adding new conditions under OR. </p>",
 
                 // 51
-                "Generalization",
-                
-                // 
-                "<p>We just covered all the capabilities of iFEED, and now you are ready to start the experiment. "
-                +"Before proceeding to the next step, please read the following directions carefully." ,
-
+                "<p>Another helper function that is available for use is generalizing the selected feature by clicking "
+                +"\"Generalize feature\" button.</p>"
+                +"<p>This button triggers a search for a more compact and general knowledge. It may help extracting information in a more "
+                +"useful form than what is represented in the current feature.</p>"
+                +"<p>To continue, click \"Generalize feature\" button</p>",
             ];
-
-
-
-
- // contents = [];
-
-                // +'<p style="font-weight:bold; font-size:23px">  - In the actual task, you will be asked to answer 36 questions about three different datasets. </p>'
-                
-                // +'<p style="font-weight:bold; font-size:23px"> - To answer each question, you will need to use iFEED to find good features shared by the target designs. '
-                // +'Only a subset of capabilities introduced in this tutorial may be available for you to use.</p>'
-                
-                // +'<p style="font-weight:bold; font-size:23px">  - Try to answer each question as accurately as possible, and at the same time, as quickly as possible. Both accuracy and answer time are equally important in this experiment.</p>'
-                        
-                // +'<p style="font-weight:bold; font-size:23px">  - We expect each question to take around 1~2 minutes to answer. If it takes more than that, you are probably overthinking it. If you are not sure about the answer, simply select the answer that you think is right given the information you have.</p>'
-
-                // +'<p>Now you are ready to start the experiment. You can move on to the experiment by clicking the button below. Good luck!</p>';
-            
-
 
             classname = 'introjs_tooltip_large';
                         
@@ -649,7 +669,7 @@ class ExperimentTutorial{
                     that.start_tutorial_event_listener("feature_mouse_hover", this._currentStep, null);
 
                 } else if (this._currentStep === 32){
-                    that.experiment.feature_application.update_feature_application("direct-update", tutorial_feature_example_f);
+                    that.experiment.feature_application.update_feature_application("temp", tutorial_feature_example_f);
                 
                 } else if (this._currentStep === 34){
                     PubSub.publish(APPLY_FEATURE_EXPRESSION, null);
@@ -715,12 +735,127 @@ class ExperimentTutorial{
 
                     let ppExpression = that.experiment.label.pp_feature_single(addedBaseFeature.name);
                     that.intro._introItems[this._currentStep].intro = that.intro._introItems[this._currentStep].intro.replace(/\[PLACEHOLDER\]/g, ppExpression);
-                } 
- 
+                
+                } else if(this._currentStep === 51){
+                    document.getElementById('tab3').click();
 
-            }            
+                    let listenerCallback = function(){
+                        that.intro.exit();
+                        setTimeout(function() {
+                            that.set_tutorial_content("tutorial_end");
+                        }, 3000);
+                        return;
+                    }
+
+                    that.start_tutorial_event_listener("generalization", this._currentStep, listenerCallback);
+                    that.experiment.feature_application.update_feature_application("direct-update", tutorial_feature_example_h);
+                }
+            }
+
+        } else if(stage === 'tutorial_end'){
+
+            objects = [
+                        document.getElementsByClassName("iziToast-capsule")[0], // 0
+                        null,
+                        null,
+                        undefined,
+                        undefined
+                    ];
             
+            contents = [
 
+                "<p>When the algorithm successfully finds a way to generalize the knowledge in the current feature, a popup message "
+                +"will appear as shown.</p>",
+
+                "<p>The suggestion here is to generalize the knowledge by replacing instruments AERO_LID and HYP_IMAG "
+                +"to the concept \"Instrument that is capable of taking measurements related to vegetation (e.g. type, structure, leaf are)\"</p>"
+                +"<p>This generalization can be made as both instruments take measurements such as leaf area index.</p>",
+
+                +"<p>You can either accept the suggestion or reject it, depending on whether you think the suggested generalization "
+                +"is useful or not. For now, click \"Accept\" to continue.</p>",
+
+                "<p>Generalization of knowledge may be helpful in finding useful knowledge that is otherwise very hard to extract.</p>",
+                
+                // 
+                "<p>We just covered all the capabilities of iFEED, and now you are ready to start the experiment. </p>"
+                +"<p>The first part of the experiment will be conducted on a separate window, which will be loaded automatically "
+                +"after clicking the next button below.</p>",
+
+                "<p>Participant ID: "+ that.experiment.participantID +"</p>" ,
+
+                ];
+                                    
+            callback = function(targetElement) {
+                that.enable_introjs_nextButton();
+                that.current_step = this._currentStep;
+
+                if(this._currentStep === 0){
+                    // Remove iziToast overlay layer
+                    d3.select('.iziToast-overlay.fadeIn').remove();
+
+                    // Get iziToast element
+                    let iziToastElement = document.querySelector('.iziToast-capsule');
+                    iziToastElement.parentNode.removeChild(iziToastElement);
+
+                    // Re-insert the iziToast element
+                    let body = document.querySelector('body');
+                    body.insertBefore(iziToastElement, body.childNodes[0]);
+                
+                } else if(this._currentStep === 2){
+                    that.start_tutorial_event_listener("generalization_accept", this._currentStep);
+
+                } else if(this._currentStep === 5){
+                    window.open("https://www.selva-research.com/ifeed-experiment-conceptmap/")
+                }
+            }  
+  
+        } else if(stage === 'learning'){
+
+            objects = [
+                        undefined, // 0
+                    ];
+            
+            contents = [
+
+                "<p>In this step, you are given 30 minutes to analyze a dataset which is generated from running a "
+                +"multi-objective optimization algorithm</p>"
+                +"<p>Your goal is to identify and record as many features as possible that are shared by the target designs.</p>" // 0
+                +"<p>Use the interactive concept graph provided in a separate window to record any interesting features that you find.</p>",
+
+                "<p>After the 30-minute learning session, you will be asked to answer a series of questions about "
+                +"the given design problem and the dataset.</p>"
+                +"<p>Your answer to these questions will be used as a measure of how much you have learned during the learning session.</p>"
+                +"<p>Few sample questions are provided in a separate window (will be loaded automatically when you click next)</p>",
+
+                "<p>As you answer the questions, you will only have access to the information you record in the interactive graph "
+                +"(separate window), and you will not be able to use iFEED.</p>"
+                +"<p>Therefore, try to record as much information as possible on the interactive graph.</p>",
+
+                "<p>The 30-minute learning session will begin now.</p>"
+                +"<p>If you have any question, please ask the experimenter before closing this window.</p>"
+
+                ];
+                                    
+            callback = function(targetElement) {
+                that.enable_introjs_nextButton();
+                that.current_step = this._currentStep;
+
+                if(this._currentStep === 2){
+                    window.open("https://cornell.qualtrics.com/jfe/form/SV_6gR0KArSoPVbfw1 ");
+                } 
+            }          
+
+        } else if(stage === 'learning_end'){
+            objects = [
+                        undefined, // 0
+                    ];
+            contents = [
+                "<p>This is the end of the data analysis session. </p>"
+                +"<p>Now you will be asked to answer a series of questions to test how much you have learned.</p>"
+                +"<p>Please copy the participant ID (<b>"+ that.experiment.participantID +"</b>) "
+                +"and paste it into the survey page, which will be loaded when you click the finish button below</p>",
+                ];
+                           
         } else if(stage === 'design_synthesis'){
 
             objects = [
@@ -790,22 +925,6 @@ class ExperimentTutorial{
         }
                 
         this.start_intro(objects, contents, classname, callback);
-    }
-
-    start_experiment(){
-        let that = this;
-        this.intro.exit();
-
-        // Load the data
-        this.problem.metadata.file_path = "ClimateCentric_050819.csv";
-        PubSub.publish(LOAD_DATA, null);
-
-        // Start the experiment after some delay
-        setTimeout(() => {
-            PubSub.publish(EXPERIMENT_START, null);
-        }, 4000); // How long do you want the delay to be (in milliseconds)? 
-
-        //window.location.replace("https://www.selva-research.com/experiment/");
     }
 
     disable_introjs_nextButton(){
@@ -881,6 +1000,8 @@ let tutorial_feature_example_e = "{absent[;3;]}";
 let tutorial_feature_example_f = "({absent[;2;]}&&{absent[;3;]}&&{present[;11;]})";
 
 let tutorial_feature_example_g = "({separate[;2,4,8;]}&&({absent[;2;]}||{present[;11;]})&&({present[;11;]}||{absent[;3;]}))";
+
+let tutorial_feature_example_h = "({absent[;3;]}&&({present[;11;]}||{notInOrbit[3;1,2,9;]}))";
 
 let tutorial_selection = "3,6,8,12,13,14,15,17,19,20,25,26,27,37,38,42,46,47,50,51,53,55,58,60,61,64,68,72,76,77,81,88,91,93,94,95,96,100,101,102,104,106,108,111,118,119,120,121,122,123,125,128,129,130,135,139,143,144,148,149,153,165,167,168,169,173,175,176,177,179,186,189,191,194,196,199,200,217,219,221,223,224,225,227,229,230,231,232,234,237,239,240,248,249,250,255,258,261,266,268,273,280,282,287,288,289,298,303,312,313,322,324,325,332,337,339,341,342,349,352,353,354,359,360,363,365,366,368,369,370,372,373,375,379,381,382,384,387,388,397,402,408,409,420,423,425,439,442,444,461,473,476,490,504,506,510,514,519,523,527,532,540,546,561,571,575,594,600,601,604,611,612,621,622,624,625,628,629,632,639,645,652,654,658,667,678,686,687,688,692,699,703,704,707,718,720,725,727,728,733,736,740,741,742,744,746,751,761,762,769,770,774,778,781,786,790,793,800,801,805,810,812,813,815,816,823,825,832,835,840,846,856,861,862,865,872,877,886,889,891,896,899,905,910,911,912,917,929,933,939,943,945,950,952,960,965,967,975,977,978,986,1003,1005,1010,1018,1021,1024,1027,1029,1031,1032,1035,1036,1042,1045,1052,1053,1058,1059,1068,1070,1076,1077,1084,1085,1089,1094,1096,1113,1117,1119,1120,1121,1124,1137,1157,1158,1162,1163,1172,1177,1181,1182,1194,1195,1214,1224,1228,1242,1254,1262,1263";
 

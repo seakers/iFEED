@@ -207,11 +207,8 @@
         
         if(valid){
             instance.hide({ transitionOut: 'fadeOut' }, toast, 'button');
-
             experiment = new Experiment(problem, tradespace_plot, filter, data_mining, feature_application, label, treatmentCondition);
-
             tutorial = new ExperimentTutorial(problem, tradespace_plot, filter, data_mining, feature_application, label, experiment);
-
             setTimeout(() => { PubSub.publish(EXPERIMENT_TUTORIAL_START, null);}, 1700);
 
         }else{
@@ -232,7 +229,7 @@
         id: 'question',
         color: 'blue',
         progressBar: false,
-        title: "Type in a passcode",
+        title: "Type in a passcode to start the experiment",
         message: "(Please ask the experimenter to provide the passcode)",
         position: 'center',
         inputs: [

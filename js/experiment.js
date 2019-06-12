@@ -21,7 +21,7 @@ class Experiment{
             alert("No action set up!");
         };
 
-        this.stage = "learning";
+        this.stage = "tutorial";
 
         // Set treatment condition
         if(typeof treatmentCondition === "undefined" || treatmentCondition === null){
@@ -39,11 +39,7 @@ class Experiment{
         this.initialize_measurements();
         this.display_participant_id();
 
-        let that = this;
-        PubSub.subscribe(EXPERIMENT_START, (msg, data) => {
-            that.start_learning_task();
-        });    
-
+        let that = this;  
         PubSub.subscribe(EXPERIMENT_EVENT, (msg, data) => { 
             if(that.stage === "learning"){
                 if(data.key === "design_viewed"){
@@ -87,18 +83,31 @@ class Experiment{
         this.designs_evaluated = [];
     }
 
-    start_learning_task(){
-        let that = this;
-
-        // Reset the clock
-        this.unhighlight_timer();
-        this.clock.resetClock();
-        this.clock.setTimer();
+    load_learning_task(){
+        this.stage = "learning";
 
         // Reset features
         this.data_mining.initialize();
         this.feature_application.clear_feature_application();
         PubSub.publish(INITIALIZE_FEATURE_APPLICATION, null);
+
+        // Select the target region
+        this.select_archs_using_ids(fuzzy_pareto_front_4);
+
+        // Load treatment condition
+        this.load_treatment_condition(false);
+    }
+
+    start_learning_task(){
+        let that = this;
+
+        // Initialize measurements
+        this.initialize_learning_task_measurements();
+
+        // Reset the clock
+        this.unhighlight_timer();
+        this.clock.resetClock();
+        this.clock.setTimer();
 
         // Set alert message given at the beginning of each task
         // Set stopwatch callback functions
@@ -121,15 +130,6 @@ class Experiment{
         this.clock.setCallback(callback);
         this.clock.setDuration(duration);
         this.clock.start();
-
-        // Select the target region
-        this.select_archs_using_ids(fuzzy_pareto_front_4);
-
-        // Load treatment condition
-        this.load_treatment_condition();
-
-        // Initialize measurements
-        this.initialize_learning_task_measurements();
     }
 
     end_learning_task(){
@@ -170,15 +170,27 @@ class Experiment{
         console.log(learning_task_data);
         this.save_data(learning_task_data);
 
-        // Move onto the next stage
-        this.generateSignInMessage(() => {
-            that.load_design_synthesis_task();
-            setTimeout(() => { PubSub.publish(EXPERIMENT_TUTORIAL_START, null);}, 300);
-        });
+        this.stage = "learning_end";
+        setTimeout(() => { PubSub.publish(EXPERIMENT_TUTORIAL_START, null);}, 300);
+    }
+
+    load_design_synthesis_task(){
+        this.stage = "design_synthesis";
+        d3.select("#tab2").text('-');
+        d3.select("#view2").selectAll('g').remove();
+        d3.select("#tab3").text('-');
+        d3.select("#view3").selectAll('g').remove();
+        PubSub.publish(EXPERIMENT_SET_MODE, this.stage);
     }
 
     start_design_synthesis_task(){
         let that = this;
+
+        // Initialize measurements
+        this.initialize_design_synthesis_task_measurements();
+
+       // Reset the clock
+        this.unhighlight_timer();
         this.clock.resetClock();
         this.clock.setTimer();
 
@@ -202,12 +214,6 @@ class Experiment{
         this.clock.setCallback(callback);
         this.clock.setDuration(duration);
         this.clock.start();
-
-        // Load treatment condition
-        this.load_design_synthesis_task();
-
-        // Initialize measurements
-        this.initialize_design_synthesis_task_measurements();
     }
 
     end_design_synthesis_task(){
@@ -233,6 +239,35 @@ class Experiment{
         }
         console.log(design_synthesis_task_data);
         this.save_data(design_synthesis_task_data);
+
+        // Remove the content
+        d3.select('body').selectAll('div').remove();
+
+        d3.select('body')
+            .append('div')
+            .attr('id','messageContainer')
+            .style('width','100%')
+            .style('margin-top','200px');
+
+        d3.select('#messageContainer')
+            .append('h1')
+            .text('Design Synthesis Task End')
+            .style("width","1200px")
+            .style("margin","auto")
+
+        d3.select('#messageContainer')
+            .append('h2')
+            .text("Now please go back to the survey page and finish the rest of the survey")
+            .style("width","1200px")
+            .style("margin","auto");
+
+        d3.select('#messageContainer')
+            .append('h2')
+            .text("Thank you for participating in our study")
+            .style("width","1200px")
+            .style("margin","auto");
+
+        return;
     }
 
     unhighlight_timer(){
@@ -280,93 +315,35 @@ class Experiment{
         return out;
     }
 
-    load_treatment_condition(){
-        let treatmentConditionName = "";
+    load_treatment_condition(isTutorial){
+        let treatmentConditionName = null;
+
         if(this.treatmentCondition === 0){
-            treatmentConditionName = "manual-generalization";
+            treatmentConditionName = "manual_generalization";
 
         }else if(this.treatmentCondition === 1){
-            treatmentConditionName = "automated-generalization";
+            treatmentConditionName = "automated_generalization";
             // Disable filter
             d3.select("#tab2").text('-');
             d3.select("#view2").selectAll('g').remove();
 
         }else if(this.treatmentCondition === 2){
-            treatmentConditionName = "interactive-generalization";
+            treatmentConditionName = "interactive_generalization";
 
         } 
+
+        if(isTutorial){
+            treatmentConditionName = "tutorial_" + treatmentConditionName;
+        }
         PubSub.publish(EXPERIMENT_SET_MODE, treatmentConditionName);  
     }
 
-    load_design_synthesis_task(){
-        d3.select("#tab2").text('-');
-        d3.select("#view2").selectAll('g').remove();
-        d3.select("#tab3").text('-');
-        d3.select("#view3").selectAll('g').remove();
-        this.stage = "design_synthesis";
-        PubSub.publish(EXPERIMENT_SET_MODE, "design-synthesis");
-    }
+
 
     save_data(data){
         let filename = this.participantID + "-" + this.stage + ".json";;        
         this.saveTextAsFile(filename, JSON.stringify(data));
     }
-
-
-    // finish_all_task(){
-
-    //     //store_task_specific_information();
-
-
-    //     // finished all tasks
-    //     this.clock.stop();
-
-    //     // Save all answer data
-    //     this.save_answer();
-
-    //     d3.select('body').selectAll('div').remove();
-    //     let key_number = this.participantID;
-
-    //     d3.select('body')
-    //         .append('div')
-    //         .style('width','100%')
-    //         .style('margin-top','120px');
-
-    //     d3.select("body")
-    //         .append("div")
-    //         .style("margin","auto")
-    //         .style("width","100%")
-    //         .append("img")
-    //         .attr("src", ()=>{
-    //             return "img/cornell_logo.png";
-    //         }); 
-
-    //     d3.select('body').select('img')
-    //             .style("width","200px")
-    //             .style('margin','40px')
-    //             .style('margin-left','70px');
-
-    //     d3.select('body')
-    //         .append('div')
-    //         .style('margin','auto')
-    //         .style('width','100%')
-    //         .append('h1')
-    //         .text('Session End').style("width","1200px").style("margin","auto");
-
-    //     d3.select('body').append('h2')
-    //         .text("IMPORTANT: Please copy the key number below and paste it into the survey page (link provided below).").style("width","1200px").style("margin","auto");
-    //     d3.select('body').append('h2')
-    //         .text("Key number: "+ key_number).style("width","1200px").style("margin","auto");
-    //     d3.select('body').append('h2')
-    //         .text("Now follow the link to do a survey: https://cornell.qualtrics.com/jfe/form/SV_6RR4hCbV57k7uhT").style("width","1200px").style("margin","auto");
-    //     d3.select('body').append('div').style("width","100%").style("height","30px"); 
-
-    //     //print_experiment_summary();
-    //     return;
-    // }
-
-
-
 
 
 
@@ -468,8 +445,11 @@ class Experiment{
         return array;
     }
 
-    generateSignInMessage(callback){
+    generateSignInMessage(callback, title, message){
         let that = this;
+        if(this.clock){
+            this.clock.stop();
+        }
 
         let textInput = '<input type="text" style="width: 300px">';
         let buttonStyle = "width: 80px;" 
@@ -477,8 +457,13 @@ class Experiment{
                         + "margin-right: 10px"
                         + "float: left;";
 
-        let title = "To continue, type in a passcode";
-        let message = "(Please ask the experimenter to provide the passcode)";
+        if(typeof title === "undefined"){
+            title = "To continue, type in a passcode";
+        }
+        if(typeof message === "undefined"){
+            message = "(Please ask the experimenter to provide the passcode)";
+        }
+
         let submitCallback = function (instance, toast, button, event, inputs) {
 
             let input = inputs[0].value;
@@ -672,8 +657,12 @@ class Clock{
     }
 
     stop(){
-        this.endTime = Date.parse(new Date());
-        this.timeElapsed = this.endTime - this.startTime;
+        if(this.endTime){
+            // pass
+        }else{
+            this.endTime = Date.parse(new Date());
+            this.timeElapsed = this.endTime - this.startTime;
+        }
         clearInterval(this.timeinterval);
     }  
 

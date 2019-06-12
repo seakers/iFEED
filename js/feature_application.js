@@ -68,6 +68,9 @@ class FeatureApplication{
 
         d3.select('#generalize_feature').on('click',(d) => {
             this.data_mining.generalize_feature();
+
+            // EXPERIMENT 
+            PubSub.publish(EXPERIMENT_TUTORIAL_EVENT, "generalization"); 
         }); 
 
 		PubSub.publish(FEATURE_APPLICATION_LOADED, this);
@@ -1549,6 +1552,21 @@ class FeatureApplication{
 
    		d3.select('#feature_expression').html("<p>"+expression+"</p>");
 	}
+
+    get_num_literal(node){
+        let counter = 0;
+        this.visit_nodes(node, (d) => {
+            if(d.type === "leaf"){
+                counter += 1;
+            }
+        });
+        return counter;
+    }
+
+    get_num_literal_from_expression(expression){
+        let root = this.construct_tree(this, expression);
+        return this.get_num_literal(root);
+    }
     
     clear_feature_application(){
         this.data = null;

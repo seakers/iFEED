@@ -95,7 +95,7 @@ class EOSSAssigning extends Problem{
 
         // EXPERIMENT
         PubSub.subscribe(EXPERIMENT_SET_MODE, (msg, data) => {
-            if(data === "design-synthesis"){
+            if(data === "design_synthesis"){
                 this.experimentMode = data;
                 this.display_instrument_options();
 
@@ -297,7 +297,7 @@ class EOSSAssigning extends Problem{
 
         // EXPERIMENT
         if(typeof this.experimentMode !== "undefined" && this.experimentMode !== null){
-            if(this.experimentMode === "design-synthesis"){
+            if(this.experimentMode === "design_synthesis"){
                 this.enable_modify_architecture();
             }
         }

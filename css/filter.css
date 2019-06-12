@@ -27,6 +27,7 @@
 .filter.hints.div{
     width:100%;
     float:left;
+    font-size: 20px;
     margin-top: 10px;
 }
 .filter.buttons.div{

@@ -87,7 +87,7 @@ class TradespacePlot{
 
         // EXPERIMENT
         PubSub.subscribe(EXPERIMENT_SET_MODE, (msg, data) => {
-            if(data === "design-synthesis"){
+            if(data === "design_synthesis"){
                 this.data.forEach( (point) => {
                     point.highlighted = false;
                     point.selected = false;

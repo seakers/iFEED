@@ -15,8 +15,8 @@ class EOSSAssigningFilter extends Filter{
                                {value:"separate",text:"Separate",input:"multipleInstInput",hints:"Designs that do not have the specified instruments in the same orbit are chosen"},
                                {value:"emptyOrbit",text:"EmptyOrbit",input:"orbitInput",hints:"Designs that have no instrument inside the specified orbit are chosen"},
                                {value:"numOrbits",text:"Number of orbit used",input:"numOrbits",hints:"Designs that have the specified number of non-empty orbits are chosen"},
-                               {value:"numInstruments",text:"Number of instruments",input:"numInstruments",hints:"This highlights all the designs with the specified number of instruments. If you specify an orbit name, it will count all instruments in that orbit. If you can also specify an instrument name, and only those instruments will be counted across all orbits. If you leave both instruments and orbits blank, all instruments across all orbits will be counted."},
-                               {value:"subsetOfInstruments",text:"Num of instruments in a subset",input:"subsetOfInstruments",hints:"The specified orbit should contain at least m number and at maximum M number of instruments from the specified instrument set. m is the first entry and M is the second entry in the second field"},
+                               // {value:"numInstruments",text:"Number of instruments",input:"numInstruments",hints:"This highlights all the designs with the specified number of instruments. If you specify an orbit name, it will count all instruments in that orbit. If you can also specify an instrument name, and only those instruments will be counted across all orbits. If you leave both instruments and orbits blank, all instruments across all orbits will be counted."},
+                               // {value:"subsetOfInstruments",text:"Num of instruments in a subset",input:"subsetOfInstruments",hints:"The specified orbit should contain at least m number and at maximum M number of instruments from the specified instrument set. m is the first entry and M is the second entry in the second field"},
                                {value:"absentExceptInOrbit",text:"absentExceptInOrbit",input:"orbitAndInstInput",hints:""},
                                {value:"notInOrbitExceptInstrument",text:"notInOrbitExceptInstrument",input:"orbitAndMultipleInstInput",hints:""},
                                {value:"notInOrbitExceptOrbit",text:"notInOrbitExceptOrbit",input:"multipleOrbitAndInstInput",hints:""},
@@ -136,11 +136,13 @@ class EOSSAssigningFilter extends Filter{
         
         d3.selectAll('.filter.inputs.div').selectAll('div').remove();
         d3.selectAll('.filter.hints.div').selectAll('div').remove();
+
+        let hints = "";
         
-        if (option==="not_selected"){
+        if (option === "not_selected"){
             return;
             
-        }else if(option=="paretoFront"){
+        }else if(option === "paretoFront"){
             
             d3.select('.filter.inputs.div')
                 .append("div")
@@ -151,8 +153,9 @@ class EOSSAssigningFilter extends Filter{
                 .attr("type","text");
             
         }else{
-            
-            var inputType = this.get_preset_option(option).inputType;
+            let presetFilter = this.get_preset_option(option);
+            let inputType = presetFilter.inputType;
+            hints = presetFilter.hints;
             
             var filter_inputs = d3.select('.filter.inputs.div');
             
@@ -257,11 +260,17 @@ class EOSSAssigningFilter extends Filter{
             }
         }
 
+        if(hints !== "" && hints !== null && typeof hints !== "undefined"){
+            d3.select(".filter.hints.div")
+                .append("div")
+                .html("<p>Filter explanation: " + hints + " </p>");  
+        }
+
         d3.select(".filter.hints.div")
             .append("div")
             .html('<p>Valid orbit names: LEO-600-polar, SSO-600-AM, SSO-600-DD, SSO-800-DD, SSO-800-PM</p>'
                     +'<p>Valid instrument names: OCE_SPEC, AERO_POL, AERO_LID, HYP_ERB, CPR_RAD, VEG_INSAR, VEG_LID, '
-                            +'CHEM_UVSPEC, CHEM_SWIRSPEC, HYP_IMAG, HIRES_SOUND, SAR_ALTIM</p>');      
+                            +'CHEM_UVSPEC, CHEM_SWIRSPEC, HYP_IMAG, HIRES_SOUND, SAR_ALTIM</p>');   
     }
     
     generate_filter_expression_from_input_field(){
