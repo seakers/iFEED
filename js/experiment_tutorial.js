@@ -114,7 +114,7 @@ class ExperimentTutorial{
                         .setOption('showBullets', false);
         }else{
             this.intro.setOption('showButtons',true)
-                        .setOption('showBullets', true);
+                        .setOption('showBullets', false);
         }
         
         if(!classname){
@@ -182,7 +182,7 @@ class ExperimentTutorial{
         });
 
         this.intro.oncomplete(function() {
-            if(that.experiment.stage === "tutorial"){ 
+            if(stage === "tutorial_end"){ 
 
                 // Load the data
                 that.problem.metadata.file_path = "ClimateCentric_050819.csv";
@@ -194,11 +194,11 @@ class ExperimentTutorial{
                     setTimeout(() => { PubSub.publish(EXPERIMENT_TUTORIAL_START, null);}, 300);
                 });
 
-            }else if(that.experiment.stage === "learning"){
+            }else if(stage === "learning"){
                 that.intro.exit();
                 that.experiment.start_learning_task();
 
-            }else if(that.experiment.stage === "learning_end"){
+            }else if(stage === "learning_end"){
                 that.intro.exit();
                 window.open("https://cornell.qualtrics.com/jfe/form/SV_1Y9xdlpqH9gJSfz");
 
@@ -208,7 +208,7 @@ class ExperimentTutorial{
                     setTimeout(() => { PubSub.publish(EXPERIMENT_TUTORIAL_START, null);}, 300);
                 });
 
-            }else if(that.experiment.stage === "design_synthesis"){
+            }else if(stage === "design_synthesis"){
                 that.intro.exit();
                 that.experiment.start_design_synthesis_task();
             }
@@ -927,7 +927,7 @@ class ExperimentTutorial{
             }            
         }
                 
-        this.start_intro(objects, contents, classname, callback);
+        this.start_intro(objects, contents, classname, callback, stage);
     }
 
     disable_introjs_nextButton(){
