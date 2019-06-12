@@ -104,7 +104,10 @@ class ExperimentTutorial{
         this.set_tutorial_content(this.experiment.stage);
     }
 
-    start_intro(objects, messages, classname, callback){
+    start_intro(objects, messages, classname, callback, stage){
+        if(typeof stage === "undefined" || stage == null){
+            stage = this.experiment.stage;
+        }
         
         if(messages.length === 1){
             this.intro.setOption('showButtons',true)
@@ -156,19 +159,19 @@ class ExperimentTutorial{
         this.intro.onafterchange(function(){          
             if (this._introItems.length - 1 == this._currentStep || this._introItems.length == 1) {
 
-                if(that.experiment.stage !== "tutorial"){
+                if(stage !== "tutorial"){
                     $('.introjs-skipbutton').show();
                 }
 
                 d3.select('.introjs-skipbutton')
                     .text(() => {
-                        if(that.experiment.stage === "tutorial"){
-                            return "START EXPERIMENT";
-                        }else if(that.experiment.stage === "learning"){
+                        if(stage === "tutorial_end"){
+                            return "DONE";
+                        }else if(stage === "learning"){
                             return "START DESIGN ANALYSIS TASK";
-                        }else if(that.experiment.stage === "design_synthesis"){
+                        }else if(stage === "design_synthesis"){
                             return "START DESIGN SYNTHESIS TASK";
-                        }else if(that.experiment.stage === "learning_end"){
+                        }else if(stage === "learning_end"){
                             return "LOAD PROBLEM SET";
                         }else{
                             return "DONE"
