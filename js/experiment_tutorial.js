@@ -771,7 +771,7 @@ class ExperimentTutorial{
                 +"to the concept \"Instrument that is capable of taking measurements related to vegetation (e.g. type, structure, leaf are)\"</p>"
                 +"<p>This generalization can be made as both instruments take measurements such as leaf area index.</p>",
 
-                +"<p>You can either accept the suggestion or reject it, depending on whether you think the suggested generalization "
+                "<p>You can either accept the suggestion or reject it, depending on whether you think the suggested generalization "
                 +"is useful or not. For now, click \"Accept\" to continue.</p>",
 
                 "<p>Generalization of knowledge may be helpful in finding useful knowledge that is otherwise very hard to extract.</p>",
