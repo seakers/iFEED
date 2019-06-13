@@ -193,7 +193,7 @@ class ExperimentTutorial{
                 // Generate sign in message
                 that.experiment.generateSignInMessage(() => {
                     that.experiment.load_learning_task();
-                    setTimeout(() => { PubSub.publish(EXPERIMENT_TUTORIAL_START, null);}, 300);
+                    setTimeout(() => { PubSub.publish(EXPERIMENT_TUTORIAL_START, null);}, 1000);
                 });
 
             }else if(stage === "learning"){

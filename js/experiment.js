@@ -84,6 +84,7 @@ class Experiment{
     }
 
     load_learning_task(){
+        let that = this;
         this.stage = "learning";
 
         // Reset features
@@ -95,7 +96,9 @@ class Experiment{
         this.select_archs_using_ids(fuzzy_pareto_front_4);
 
         // Load treatment condition
-        this.load_treatment_condition(false);
+        setTimeout(function() {
+            that.load_treatment_condition(false);
+        }, 1500)
     }
 
     start_learning_task(){
