@@ -1804,7 +1804,7 @@ class DataMining{
 
         // EXPERIMENT 
         setTimeout(function() {
-            PubSub.publish(EXPERIMENT_TUTORIAL_EVENT, "generalization"); 
+            PubSub.publish(EXPERIMENT_TUTORIAL_EVENT, "generalization_suggestion"); 
         }, 1000);
 
         // EXPERIMENT
@@ -1821,19 +1821,19 @@ class DataMining{
         let buttonsStyle = "width: 150px;"+
                         "float: left;";
 
-
         iziToast.show({
             theme: 'dark',
             icon: 'icon-person',
             title: 'Would you like to make the following generalization?: ',
             titleSize: 22,
+            close: false,
             message: message,
             messageSize: 18,
             messageLineHeight: 30,
             position: 'topCenter', // bottomRight, bottomLeft, topRight, topLeft, topCenter, bottomCenter
             progressBarColor: 'rgb(0, 255, 184)',
             buttons: [
-                ['<button style="'+ buttonsStyle +'"> Accept </button>', function (instance, toast) {
+                ['<button style="'+ buttonsStyle +'"><b style="opacity: 1.0">Accept</b></button>', function (instance, toast) {
                     that.add_new_features(generalizedFeature, true);
                     that.feature_application.update_feature_application('direct-update', generalizedFeature.expression);
 
@@ -1850,7 +1850,7 @@ class DataMining{
                     }, toast, 'buttonName');
 
                 }, true], // true to focus
-                ['<button style=' + buttonsStyle + '> Reject </button>', function (instance, toast) {
+                ['<button style=' + buttonsStyle + '><b style="opacity: 1.0">Reject</b></button>', function (instance, toast) {
 
                     // EXPERIMENT
                     if(that.tutorial_in_progress){

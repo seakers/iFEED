@@ -19,8 +19,10 @@ class ExperimentTutorial{
         this.introjs_nextButton_callback = null;
         
         // Tutorial context setup
-        this.current_step = null;  
+        this.current_step = null; 
+        this.max_visited_step = -1;
         this.steps_to_skip = [];
+        this.event_subscription = null;
 
         // Import the tutorial dataset
         problem.metadata.file_path = "EOSS_reduced_data.csv";
@@ -111,10 +113,10 @@ class ExperimentTutorial{
         
         if(messages.length === 1){
             this.intro.setOption('showButtons',true)
-                        .setOption('showBullets', false);
+                        .setOption('showBullets', true);
         }else{
             this.intro.setOption('showButtons',true)
-                        .setOption('showBullets', false);
+                        .setOption('showBullets', true);
         }
         
         if(!classname){
@@ -224,8 +226,17 @@ class ExperimentTutorial{
             }
         }
 
-        this.disable_introjs_nextButton();
-        PubSub.subscribe(EXPERIMENT_TUTORIAL_EVENT, (msg, data) => {
+        if(this.max_visited_step > targetStep){
+            this.enable_introjs_nextButton();
+        }else{
+            this.disable_introjs_nextButton();
+        }
+
+        if(this.event_subscription){
+            PubSub.unsubscribe(this.event_subscription);
+        }
+
+        this.event_subscription = PubSub.subscribe(EXPERIMENT_TUTORIAL_EVENT, function(msg, data){
             if(eventKeyword === data){
                 if(that.current_step === targetStep){
                     that.enable_introjs_nextButton();
@@ -244,6 +255,9 @@ class ExperimentTutorial{
         callback = function(){
             return undefined;
         };
+
+        // Initialize the list of visitied steps
+        this.max_visited_step = -1;
 
         objects = [];
         contents = [];
@@ -573,7 +587,7 @@ class ExperimentTutorial{
                 "<p>Note that a new node is added to the selected logical connective node. </p>",
 
                 // 45
-                "<p>Let\'s try another option. Right-click on one of the condition nodes and select \"Add parent branch\" option. "
+                "<p>Let\'s try another option. Right-click on one of the condition nodes (leaf nodes) and select \"Add parent branch\" option. "
                 +"(Select \"Add parent branch\" option to continue)</p>",
 
                 // 46
@@ -618,6 +632,10 @@ class ExperimentTutorial{
                 that.current_step = this._currentStep;
                 that.set_introjs_moveButtonCallback(this._currentStep);
 
+                if(that.max_visited_step < this._currentStep){
+                    that.max_visited_step = this._currentStep;
+                }
+
                 if(this._currentStep === 1){
                     document.getElementById('tab1').click();
                     PubSub.publish(INSPECT_ARCH, problem.data[1239]);
@@ -639,7 +657,6 @@ class ExperimentTutorial{
                     
                 } else if (this._currentStep === 16){
                     document.getElementById('tab2').click();
-
                     let presentInstrumentName = d3.selectAll('.filter.inputs.div').select('#filter_input_1').select('input').node().value;
                     that.intro._introItems[this._currentStep].intro = that.intro._introItems[this._currentStep].intro.replace("[PLACEHOLDER]", presentInstrumentName);
 
@@ -742,25 +759,25 @@ class ExperimentTutorial{
                 } else if(this._currentStep === 51){
                     document.getElementById('tab3').click();
 
-                    let listenerCallback = function(){
+                    let listenerCallback = () => {
                         that.intro.exit();
                         setTimeout(function() {
                             that.set_tutorial_content("tutorial_end");
-                        }, 3000);
+                        }, 1500);
                         return;
                     }
 
-                    that.start_tutorial_event_listener("generalization", this._currentStep, listenerCallback);
+                    that.start_tutorial_event_listener("generalization_suggestion", this._currentStep, listenerCallback);
                     that.experiment.feature_application.update_feature_application("direct-update", tutorial_feature_example_h);
                 }
             }
 
         } else if(stage === 'tutorial_end'){
-
             objects = [
                         document.getElementsByClassName("iziToast-capsule")[0], // 0
                         null,
                         null,
+                        d3.select('#feature_application_panel').node(),
                         undefined,
                         undefined
                     ];
@@ -777,7 +794,8 @@ class ExperimentTutorial{
                 "<p>You can either accept the suggestion or reject it, depending on whether you think the suggested generalization "
                 +"is useful or not. For now, click \"Accept\" to continue.</p>",
 
-                "<p>Generalization of knowledge may be helpful in finding useful knowledge that is otherwise very hard to extract.</p>",
+                "<p>Note that a new node with generalized variable is added to the current feature. </p>"
+                +"<p>Generalization of knowledge may be helpful in finding useful knowledge that is otherwise very hard to identify.</p>",
                 
                 // 
                 "<p>We just covered all the capabilities of iFEED, and now you are ready to start the experiment. </p>"
@@ -792,6 +810,10 @@ class ExperimentTutorial{
                 that.enable_introjs_nextButton();
                 that.current_step = this._currentStep;
 
+                if(that.max_visited_step < this._currentStep){
+                    that.max_visited_step = this._currentStep;
+                }
+
                 if(this._currentStep === 0){
                     // Remove iziToast overlay layer
                     d3.select('.iziToast-overlay.fadeIn').remove();
@@ -803,9 +825,22 @@ class ExperimentTutorial{
                     // Re-insert the iziToast element
                     let body = document.querySelector('body');
                     body.insertBefore(iziToastElement, body.childNodes[0]);
+
+                    let buttons = d3.selectAll(".iziToast-buttons-child.revealIn");
+                    for(let i = 0; i < buttons.nodes().length; i++){
+                        buttons.nodes()[i].disabled = true;
+                        buttons.select('b').style("opacity", "0.2");
+
+                    }
                 
                 } else if(this._currentStep === 2){
                     that.start_tutorial_event_listener("generalization_accept", this._currentStep);
+
+                    let buttons = d3.selectAll(".iziToast-buttons-child.revealIn");
+                    for(let i = 0; i < buttons.nodes().length; i++){
+                        buttons.nodes()[i].disabled = false;
+                        buttons.select('b').style("opacity", "1.0");
+                    }
 
                 } else if(this._currentStep === 5){
                     window.open("https://www.selva-research.com/ifeed-experiment-conceptmap/")
@@ -842,6 +877,10 @@ class ExperimentTutorial{
             callback = function(targetElement) {
                 that.enable_introjs_nextButton();
                 that.current_step = this._currentStep;
+
+                if(that.max_visited_step < this._currentStep){
+                    that.max_visited_step = this._currentStep;
+                }
 
                 if(this._currentStep === 2){
                     window.open("https://cornell.qualtrics.com/jfe/form/SV_6gR0KArSoPVbfw1 ");
@@ -911,6 +950,10 @@ class ExperimentTutorial{
             callback = function(targetElement) {
                 that.enable_introjs_nextButton();
                 that.current_step = this._currentStep;
+
+                if(that.max_visited_step < this._currentStep){
+                    that.max_visited_step = this._currentStep;
+                }
 
                 if(this._currentStep === 0){
                     document.getElementById('tab1').click();
