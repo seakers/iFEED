@@ -39,6 +39,10 @@ class EOSSAssigningFilter extends Filter{
             this.set_application_functions();
         });
 
+        PubSub.subscribe(COPY_FEATURE_EXPRESSION_TO_FILTER_INPUT, (msg, data) => {
+            this.copy_feature_expression_to_filter_input(data);
+        });
+
         PubSub.subscribe(PROBLEM_CONCEPT_HIERARCHY_LOADED, (msg, data) => {
             this.orbit_extended_list = data["params"]["rightSet"];
             this.instrument_extended_list = data["params"]["leftSet"];
@@ -137,7 +141,70 @@ class EOSSAssigningFilter extends Filter{
         }
     }
 
+    add_orbit_select() {
+        d3.select('.filterInputDiv.orbitInput').append('select')
+            .attr('class','orbitSelect')
+            .selectAll('option')
+            .data(this.orbitInputOptions)
+            .enter()
+            .append('option')              
+            .attr("value", (d) => {
+                return d;
+            })
+            .text((d) => {
+                return d;
+            }); 
+    };
+
+    add_instrument_select() { 
+        d3.select('.filterInputDiv.instrumentInput')
+            .append('select')
+            .attr('class','instrumentSelect')
+            .selectAll('option')
+            .data(this.instrumentInputOptions)
+            .enter()
+            .append('option')              
+            .attr("value", (d) => {
+                return d;
+            })
+            .text((d) => {
+                return d;
+            });
+    };
+
+    delete_instrument_select() { 
+        let numInstrumentSelects = d3.selectAll('.instrumentSelect').nodes().length;
+        d3.selectAll('.instrumentSelect').nodes().forEach((d, i) => {
+            if(d.value === "select" && i < numInstrumentSelects - 1){
+                d3.select(d).remove();
+            } 
+        });
+    };
+
+    instrument_select_callback() {
+        let that = this;
+        let instrumentSelects = d3.selectAll('.instrumentSelect').nodes();
+
+        let allSelected = true;
+        for(let i = 0; i < instrumentSelects.length; i++){
+            if(instrumentSelects[i].value === "select"){
+                allSelected = false;
+            }
+        }
+
+        if(allSelected){
+            this.add_instrument_select();
+            d3.selectAll('.instrumentSelect').on("change", ()=>{
+                that.instrument_select_callback();
+            });
+
+        }else if(!allSelected){
+            this.delete_instrument_select();
+        }
+    }
+
     initialize_filter_input_field(option){
+        let that = this;
         d3.selectAll('.filter.inputs.div').selectAll('div').remove();
         d3.selectAll('.filter.hints.div').selectAll('div').remove();
 
@@ -145,65 +212,6 @@ class EOSSAssigningFilter extends Filter{
         let instrument_select_input = null;
         let orbit_select_input = null;
         let number_input = null
-
-        let add_orbit_select = () => {
-            orbit_select_input.append('select')
-                .attr('class','orbitSelect')
-                .selectAll('option')
-                .data(this.orbitInputOptions)
-                .enter()
-                .append('option')              
-                .attr("value", (d) => {
-                    return d;
-                })
-                .text((d) => {
-                    return d;
-                }); 
-        };
-
-        let add_instrument_select = () => { 
-            instrument_select_input
-                .append('select')
-                .attr('class','instrumentSelect')
-                .selectAll('option')
-                .data(this.instrumentInputOptions)
-                .enter()
-                .append('option')              
-                .attr("value", (d) => {
-                    return d;
-                })
-                .text((d) => {
-                    return d;
-                });
-        };
-
-        let delete_instrument_select = () => { 
-            let numInstrumentSelects = d3.selectAll('.instrumentSelect').nodes().length;
-            d3.selectAll('.instrumentSelect').nodes().forEach((d, i) => {
-                if(d.value === "select" && i < numInstrumentSelects - 1){
-                    d3.select(d).remove();
-                } 
-            });
-        };
-
-        let instrument_select_callback = () => {
-            let instrumentSelects = d3.selectAll('.instrumentSelect').nodes();
-
-            let allSelected = true;
-            for(let i = 0; i < instrumentSelects.length; i++){
-                if(instrumentSelects[i].value === "select"){
-                    allSelected = false;
-                }
-            }
-
-            if(instrumentSelects.length < 3 && allSelected){
-                add_instrument_select();
-                d3.selectAll('.instrumentSelect').on("change", instrument_select_callback);
-
-            }else if(!allSelected){
-                delete_instrument_select();
-            }
-        }
 
         let hints = "";
         
@@ -230,7 +238,7 @@ class EOSSAssigningFilter extends Filter{
                                                         .attr('class','filterInputDiv instrumentInput');
                     
                     instrument_select_input.text("Select a single instrument: ");
-                    add_instrument_select();
+                    this.add_instrument_select();
                     break;
                     
                 case "orbitAndMultipleInstInput":
@@ -238,15 +246,17 @@ class EOSSAssigningFilter extends Filter{
                                                         .attr('class','filterInputDiv orbitInput');
                     
                     orbit_select_input.text("Select an orbit: ");
-                    add_orbit_select();
+                    this.add_orbit_select();
 
                     instrument_select_input = filter_input_div.append('div')
                                                         .attr('class','filterInputDiv instrumentInput');
                     
-                    instrument_select_input.text("Select instruments (minimum 1, and maximum 3): ");
-                    add_instrument_select();
+                    instrument_select_input.text("Select instruments: ");
+                    this.add_instrument_select();
 
-                    d3.selectAll('.instrumentSelect').on("change", instrument_select_callback);
+                    d3.selectAll('.instrumentSelect').on("change", function(){
+                         that.instrument_select_callback();
+                    });
                     break;
 
                 case "orbitAndInstInput":
@@ -254,13 +264,13 @@ class EOSSAssigningFilter extends Filter{
                                                         .attr('class','filterInputDiv orbitInput');
                     
                     orbit_select_input.text("Select an orbit: ");
-                    add_orbit_select();
+                    this.add_orbit_select();
 
                     instrument_select_input = filter_input_div.append('div')
                                                         .attr('class','filterInputDiv instrumentInput');
                     
-                    instrument_select_input.text("Select instrument");
-                    add_instrument_select();
+                    instrument_select_input.text("Select an instrument: ");
+                    this.add_instrument_select();
                     break;
 
                 case "multipleOrbitAndInstInput":
@@ -272,7 +282,7 @@ class EOSSAssigningFilter extends Filter{
                                                         .attr('class','filterInputDiv orbitInput');
                     
                     orbit_select_input.text("Select an orbit: ");
-                    add_orbit_select();
+                    this.add_orbit_select();
                     break;
                     
                 case "numOrbits":
@@ -289,13 +299,13 @@ class EOSSAssigningFilter extends Filter{
                                                         .attr('class','filterInputDiv orbitInput');
                     
                     orbit_select_input.text("Select orbit (may not be selected): ");
-                    add_orbit_select();
+                    this.add_orbit_select();
 
                     instrument_select_input = filter_input_div.append('div')
                                                         .attr('class','filterInputDiv instrumentInput');
                     
-                    instrument_select_input.text("Select instrument (may not be selected)");
-                    add_instrument_select();
+                    instrument_select_input.text("Select an instrument (may not be selected)");
+                    this.add_instrument_select();
 
                     number_input = filter_input_div.append('div')
                                                     .attr('class','filterInputDiv numInput')
@@ -321,9 +331,11 @@ class EOSSAssigningFilter extends Filter{
                     instrument_select_input = filter_input_div.append('div')
                                                         .attr('class','filterInputDiv instrumentInput');
                     
-                    instrument_select_input.text("Select instruments (minimum 1, and maximum 3): ");
-                    add_instrument_select();
-                    d3.selectAll('.instrumentSelect').on("change", instrument_select_callback);
+                    instrument_select_input.text("Select instruments: ");
+                    this.add_instrument_select();
+                    d3.selectAll('.instrumentSelect').on("change", function(){
+                        that.instrument_select_callback();
+                    });
                     break;
                     
                 default:
@@ -346,19 +358,19 @@ class EOSSAssigningFilter extends Filter{
         let instrumentInputs = [];
         let numberInputs = [];
 
-        d3.select('.orbitInput').selectAll('select').nodes().forEach((d) => {
+        d3.select('.filterInputDiv.orbitInput').selectAll('select').nodes().forEach((d) => {
             if(d.value !== "select"){
                 orbitInputs.push(d.value);
             }
         });
 
-        d3.select('.instrumentInput').selectAll('select').nodes().forEach((d) => {
+        d3.select('.filterInputDiv.instrumentInput').selectAll('select').nodes().forEach((d) => {
             if(d.value !== "select"){
                 instrumentInputs.push(d.value);
             }
         });
 
-        d3.select('.numInput').selectAll('input').nodes().forEach((d) => {
+        d3.select('.filterInputDiv.numInput').selectAll('input').nodes().forEach((d) => {
             numberInputs.push(+d.value);
         });
 
@@ -460,6 +472,80 @@ class EOSSAssigningFilter extends Filter{
         return filter_expression;
     }
     
+    copy_feature_expression_to_filter_input(expression){
+        expression = remove_outer_parentheses(expression);
+        
+        // Preset filter: {presetName[orbits;instruments;numbers]}   
+        expression = expression.substring(1,expression.length-1);
+        
+        let type = expression.split("[")[0];
+        let found = false;
+        for (let i = 0; i < this.presetFeatureTypes.length; i++){
+            let featureType = this.presetFeatureTypes[i];
+            if (featureType.keyword === type){
+                found = true;
+                break;
+            }
+        }
+        if(found){
+            this.initialize_filter_input_field(type);
+        }else{
+            throw "Exception: Matching filter not found!";
+        }
+
+        let argString = expression.substring(0, expression.length - 1).split("[")[1];
+        let args = argString.split(";");
+
+        let orbitInputs = [];
+        let instrumentInputs = [];
+        let numberInputs = [];
+
+        for(let i = 0; i < args.length; i++){
+            let argsOfTheSameType = args[i];
+            let indivArgs = argsOfTheSameType.split(",");
+
+            for(let j = 0; j < indivArgs.length; j++){
+                if(indivArgs[j] === "" || typeof indivArgs === "undefined"){
+                    continue;
+                } 
+
+                if(i === 0){
+                    orbitInputs.push(this.label.index2DisplayName(indivArgs[j], "orbit"));
+                }else if(i === 1){
+                    instrumentInputs.push(this.label.index2DisplayName(indivArgs[j], "instrument"));
+                }else{
+                    numberInputs.push(+indivArgs[j]);
+                }
+            }
+        }
+
+        if(d3.select(".filter.options.dropdown").node() === null){
+            return;
+        }else{
+            d3.select(".filter.options.dropdown").node().value = type;
+        }
+
+        for(let i = 0; i < orbitInputs.length; i++){
+            if(i !== 0){
+                this.add_orbit_select();
+            }
+            d3.select('.filterInputDiv.orbitInput').selectAll('select').nodes()[i].value = orbitInputs[i];
+        }  
+
+        for(let i = 0; i < instrumentInputs.length; i++){
+            if(i !== 0){
+                this.add_instrument_select();
+            }
+            d3.select('.filterInputDiv.instrumentInput').selectAll('select').nodes()[i].value = instrumentInputs[i];
+        } 
+
+        if(numberInputs.length !== 0){
+            d3.select('.filterInputDiv.numInput').select('input').node().value = numberInputs[0];
+        }
+
+        document.getElementById('tab2').click();
+    }
+
     /*
         Compares the preset filter to a single architecture
         @param expression: A filter expression string
@@ -467,7 +553,6 @@ class EOSSAssigningFilter extends Filter{
         @return: A boolean indicating whether the input architecture passes the filter
     */
     check_preset_feature_single_sample(input_expression, data){
-
         let out = false;
         let matched = false;
         let expression = remove_outer_parentheses(input_expression);
@@ -544,7 +629,6 @@ class EOSSAssigningFilter extends Filter{
             return out;
         }
     }
-
 
     define_filter_functions(){
         let that = this;
@@ -1231,6 +1315,7 @@ class EOSSAssigningFilter extends Filter{
 
     }
 }
+
 
 
 

@@ -38,15 +38,17 @@ class ContextMenu {
                     {'value':'switchIfThen','text':'Switch conditional and consequent'},
                     ],
 
-            'leaf':[],
+            'leaf':[{'value': 'copyToFilter', 'text': 'Copy to filter setting'}],
 
             'featType': [{'value':'toggle-col-exp','text':'Collapse/Expand'}],
             
-            'default':[{'value':'addParent','text':'Add parent branch'},
+            'default':[
+                        {'value':'addParent','text':'Add parent branch'},
                         // {'value':'addIfThen','text':'Add if-then statement'},
                         // {'value':'duplicate','text':'Duplicate'},
                         {'value':'toggle-activation','text':'Activate/Deactivate'},
-                        {'value':'delete','text':'Delete'}]
+                        {'value':'delete','text':'Delete'}
+                    ]
         };
 
         this.contextMenuSize = {
@@ -98,7 +100,6 @@ class ContextMenu {
         items = items.concat(this.contextItems['default']);
         
         let x,y;
-
         if(coord[0] >= 240){
             x = coord[0] - 105;
         } else{
@@ -332,6 +333,8 @@ class ContextMenu {
     
     ContextMenuAction(context, option){
 
+        let skip_feature_update = false;
+
         let feature_application = this.feature_application;
         let root = feature_application.data;
         
@@ -411,6 +414,11 @@ class ContextMenu {
             }
         }else{
             switch(option) { // Leaf node
+                case 'copyToFilter':
+                    PubSub.publish(COPY_FEATURE_EXPRESSION_TO_FILTER_INPUT, node.name); 
+                    skip_feature_update = true;
+                    break;
+
                 default:
                     break;
             }
@@ -596,6 +604,10 @@ class ContextMenu {
             default:
                 break;
         }    
+
+        if(skip_feature_update){
+            return;
+        }
 
         feature_application.update();   
         PubSub.publish(ADD_FEATURE_FROM_EXPRESSION, {expression:feature_application.parse_tree(root), replaceEquivalentFeature: true});       

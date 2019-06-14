@@ -189,6 +189,8 @@ class Filter{
         return id_list;
     }
 
+    copy_feature_expression_to_filter_input(expression){}
+
     /*
         Compares the preset filter to a single architecture
         @param expression: A filter expression string
