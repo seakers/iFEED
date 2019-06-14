@@ -68,9 +68,6 @@ class FeatureApplication{
 
         d3.select('#generalize_feature').on('click',(d) => {
             this.data_mining.generalize_feature();
-
-            // EXPERIMENT 
-            PubSub.publish(EXPERIMENT_TUTORIAL_EVENT, "generalization"); 
         }); 
 
 		PubSub.publish(FEATURE_APPLICATION_LOADED, this);

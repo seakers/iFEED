@@ -130,7 +130,7 @@ class Filter{
     }
 
     get_number_of_inputs(){
-        return d3.selectAll('.filter.inputs.div').selectAll('input').length;
+        return d3.selectAll('.filterInputDiv').nodes().length;
     }    
     
     initialize_filter_input_field(option){

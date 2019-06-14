@@ -117,7 +117,7 @@ class Experiment{
         let d1 = 25 * 60 * 1000;
         let a1 = function(){
             that.highlight_timer();
-            alert("25 minutes seconds passed! You have 5 more mintues to finish the task.");
+            alert("25 minutes passed! You have 5 more mintues to finish the task.");
         };
 
         let d2 = 30 * 60 * 1000;

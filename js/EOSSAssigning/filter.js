@@ -30,6 +30,11 @@ class EOSSAssigningFilter extends Filter{
 
         super(presetFeatures, labelingScheme);
 
+        this.instrumentInputOptions = JSON.parse(JSON.stringify(this.label.instrument_relabeled));
+        this.instrumentInputOptions.unshift('select');
+        this.orbitInputOptions = JSON.parse(JSON.stringify(this.label.orbit_relabeled));
+        this.orbitInputOptions.unshift('select');
+
         PubSub.subscribe(DATA_PROCESSED, (msg, data) => {
             this.set_application_functions();
         });
@@ -133,9 +138,72 @@ class EOSSAssigningFilter extends Filter{
     }
 
     initialize_filter_input_field(option){
-        
         d3.selectAll('.filter.inputs.div').selectAll('div').remove();
         d3.selectAll('.filter.hints.div').selectAll('div').remove();
+
+        let filter_input_div = d3.select('.filter.inputs.div');
+        let instrument_select_input = null;
+        let orbit_select_input = null;
+        let number_input = null
+
+        let add_orbit_select = () => {
+            orbit_select_input.append('select')
+                .attr('class','orbitSelect')
+                .selectAll('option')
+                .data(this.orbitInputOptions)
+                .enter()
+                .append('option')              
+                .attr("value", (d) => {
+                    return d;
+                })
+                .text((d) => {
+                    return d;
+                }); 
+        };
+
+        let add_instrument_select = () => { 
+            instrument_select_input
+                .append('select')
+                .attr('class','instrumentSelect')
+                .selectAll('option')
+                .data(this.instrumentInputOptions)
+                .enter()
+                .append('option')              
+                .attr("value", (d) => {
+                    return d;
+                })
+                .text((d) => {
+                    return d;
+                });
+        };
+
+        let delete_instrument_select = () => { 
+            let numInstrumentSelects = d3.selectAll('.instrumentSelect').nodes().length;
+            d3.selectAll('.instrumentSelect').nodes().forEach((d, i) => {
+                if(d.value === "select" && i < numInstrumentSelects - 1){
+                    d3.select(d).remove();
+                } 
+            });
+        };
+
+        let instrument_select_callback = () => {
+            let instrumentSelects = d3.selectAll('.instrumentSelect').nodes();
+
+            let allSelected = true;
+            for(let i = 0; i < instrumentSelects.length; i++){
+                if(instrumentSelects[i].value === "select"){
+                    allSelected = false;
+                }
+            }
+
+            if(instrumentSelects.length < 3 && allSelected){
+                add_instrument_select();
+                d3.selectAll('.instrumentSelect').on("change", instrument_select_callback);
+
+            }else if(!allSelected){
+                delete_instrument_select();
+            }
+        }
 
         let hints = "";
         
@@ -143,116 +211,119 @@ class EOSSAssigningFilter extends Filter{
             return;
             
         }else if(option === "paretoFront"){
-            
-            d3.select('.filter.inputs.div')
-                .append("div")
-                .attr("id","filter_input_1")
-                .attr('class','filter inputs text')
-                .text("Input Pareto Ranking (Integer number between 0-15): ")
-                .append("input")
-                .attr("type","text");
+            number_input = filter_input_div.append('div')
+                                            .attr('class','filterInputDiv numInput')
+
+            number_input.text("Input Pareto Ranking (Integer number between 0-15): ");
+            number_input.append("input")
+                        .attr("type","number");
             
         }else{
             let presetFilter = this.get_preset_option(option);
             let inputType = presetFilter.inputType;
             hints = presetFilter.hints;
             
-            var filter_inputs = d3.select('.filter.inputs.div');
-            
-            var filter_input_1 = filter_inputs.append('div')
-                                                .attr('id','filter_input_1')
-                                                .attr('class','filter inputs text');
-            
-            var filter_input_2 = filter_inputs.append('div')
-                                                .attr('id','filter_input_2')
-                                                .attr('class','filter inputs text');
-            
-            var filter_input_3 = filter_inputs.append('div')
-                                                .attr('id','filter_input_3')
-                                                .attr('class','filter inputs text');
-            
             switch(inputType) {
                     
                 case "singleInst":
-                    filter_input_1.text("Input single instrument name: ");
-                    filter_input_1.append("input")
-                                .attr("type","text");
+                    instrument_select_input = filter_input_div.append('div')
+                                                        .attr('class','filterInputDiv instrumentInput');
+                    
+                    instrument_select_input.text("Select a single instrument: ");
+                    add_instrument_select();
                     break;
                     
                 case "orbitAndMultipleInstInput":
-                    filter_input_1.text("Input orbit name: ");
-                    filter_input_1.append("input")
-                                .attr("type","text");
+                    orbit_select_input = filter_input_div.append('div')
+                                                        .attr('class','filterInputDiv orbitInput');
                     
-                    filter_input_2.text("Input instrument names (minimum 1, and maximum 3) separated by comma: ");
-                    filter_input_2.append("input")
-                                .attr("type","text");
+                    orbit_select_input.text("Select an orbit: ");
+                    add_orbit_select();
+
+                    instrument_select_input = filter_input_div.append('div')
+                                                        .attr('class','filterInputDiv instrumentInput');
+                    
+                    instrument_select_input.text("Select instruments (minimum 1, and maximum 3): ");
+                    add_instrument_select();
+
+                    d3.selectAll('.instrumentSelect').on("change", instrument_select_callback);
                     break;
 
                 case "orbitAndInstInput":
-                    filter_input_1.text("Input orbit name: ");
-                    filter_input_1.append("input")
-                                .attr("type","text");
+                    orbit_select_input = filter_input_div.append('div')
+                                                        .attr('class','filterInputDiv orbitInput');
                     
-                    filter_input_2.text("Input instrument name: ");
-                    filter_input_2.append("input")
-                                .attr("type","text");
+                    orbit_select_input.text("Select an orbit: ");
+                    add_orbit_select();
+
+                    instrument_select_input = filter_input_div.append('div')
+                                                        .attr('class','filterInputDiv instrumentInput');
+                    
+                    instrument_select_input.text("Select instrument");
+                    add_instrument_select();
                     break;
 
                 case "multipleOrbitAndInstInput":
-                    filter_input_1.text("Input multiple orbit names: ");
-                    filter_input_1.append("input")
-                                .attr("type","text");
-                    
-                    filter_input_2.text("Input instrument name: ");
-                    filter_input_2.append("input")
-                                .attr("type","text");
+                    // Not implemented
                     break;
                     
                 case "orbitInput":
-                    filter_input_1.text("Input orbit name: ");
-                    filter_input_1.append("input")
-                                .attr("type","text");
+                    orbit_select_input = filter_input_div.append('div')
+                                                        .attr('class','filterInputDiv orbitInput');
+                    
+                    orbit_select_input.text("Select an orbit: ");
+                    add_orbit_select();
                     break;
                     
                 case "numOrbits":
-                    filter_input_1.text("Input number of orbits");
-                    filter_input_1.append("input")
-                                .attr("type","text");
+                    number_input = filter_input_div.append('div')
+                                                    .attr('class','filterInputDiv numInput')
+
+                    number_input.text("Input number of orbits (minimum 1, and maximum 5)");
+                    number_input.append("input")
+                                .attr("type","number");
                     break;
                 
                 case "numInstruments":
-                    filter_input_1.text("Input an orbit name (Could be N/A): ");
-                    filter_input_1.append("input")
-                                .attr("type","text")
-                                .attr("value","N/A");    
-                    filter_input_2.text("Input instrument name (Could be N/A): ");
-                    filter_input_2.append("input")
-                                .attr("type","text")
-                                .attr("value","N/A");
-                    filter_input_3.text("Input a number of instrument used (should be greater than or equal to 0): ");
-                    filter_input_3.append("input")
-                                .attr("type","text")
-                                .attr("value","N/A");
+                    orbit_select_input = filter_input_div.append('div')
+                                                        .attr('class','filterInputDiv orbitInput');
+                    
+                    orbit_select_input.text("Select orbit (may not be selected): ");
+                    add_orbit_select();
+
+                    instrument_select_input = filter_input_div.append('div')
+                                                        .attr('class','filterInputDiv instrumentInput');
+                    
+                    instrument_select_input.text("Select instrument (may not be selected)");
+                    add_instrument_select();
+
+                    number_input = filter_input_div.append('div')
+                                                    .attr('class','filterInputDiv numInput')
+                    number_input.text("Input a number of instrument used (should be greater than or equal to 0): ");
+                    number_input.append("input")
+                                .attr("type","number");
                     break;
                 
                 case "subsetOfInstruments":
-                    filter_input_1.text("Input orbit name: ");
-                    filter_input_1.append("input")
-                                .attr("type","text");    
-                    filter_input_2.text("Input the min and the max (optional) number of instruments in the subset, separated by comma: ");
-                    filter_input_2.append("input")
-                                .attr("type","text");
-                    filter_input_3.text("Input a set of instrument names, separated by comma: ");
-                    filter_input_3.append("input")
-                                .attr("type","text");
+                    // filter_input_1.text("Input orbit name: ");
+                    // filter_input_1.append("input")
+                    //             .attr("type","text");    
+                    // filter_input_2.text("Input the min and the max (optional) number of instruments in the subset, separated by comma: ");
+                    // filter_input_2.append("input")
+                    //             .attr("type","text");
+                    // filter_input_3.text("Input a set of instrument names, separated by comma: ");
+                    // filter_input_3.append("input")
+                    //             .attr("type","text");
                     break;
                     
                     
                 case "multipleInstInput":
-                    filter_input_1.text("Input instrument names (2 or 3) separated by comma:");
-                    filter_input_1.append("input")
-                        .attr("type","text");
+                    instrument_select_input = filter_input_div.append('div')
+                                                        .attr('class','filterInputDiv instrumentInput');
+                    
+                    instrument_select_input.text("Select instruments (minimum 1, and maximum 3): ");
+                    add_instrument_select();
+                    d3.selectAll('.instrumentSelect').on("change", instrument_select_callback);
                     break;
                     
                 default:
@@ -265,149 +336,116 @@ class EOSSAssigningFilter extends Filter{
                 .append("div")
                 .html("<p>Filter explanation: " + hints + " </p>");  
         }
-
-        d3.select(".filter.hints.div")
-            .append("div")
-            .html('<p>Valid orbit names: LEO-600-polar, SSO-600-AM, SSO-600-DD, SSO-800-DD, SSO-800-PM</p>'
-                    +'<p>Valid instrument names: OCE_SPEC, AERO_POL, AERO_LID, HYP_ERB, CPR_RAD, VEG_INSAR, VEG_LID, '
-                            +'CHEM_UVSPEC, CHEM_SWIRSPEC, HYP_IMAG, HIRES_SOUND, SAR_ALTIM</p>');   
     }
     
     generate_filter_expression_from_input_field(){
-
         let invalid_input = false;
         let filter_expression = "";
-        let matchedArchIDs = [];
+        let filterType = d3.select(".filter.options.dropdown").node().value;
+        let orbitInputs = [];
+        let instrumentInputs = [];
+        let numberInputs = [];
 
-        let dropdown = d3.select(".filter.options.dropdown").node().value;
-        let numInputs = this.get_number_of_inputs();
-        
-        let input_textbox = [];
-        let input_select = [];
-        let inputDiv =  d3.selectAll('.filter.inputs.div').selectAll('div').nodes();
-
-        inputDiv.forEach(function(d, i){
-            
-            let textboxObj = d3.select(d).select('input').node();
-            let selectObj = d3.select(d).select('select').node();
-
-            if(textboxObj != null){
-                // Remove all white spaces
-                let input = textboxObj.value.replace(/\s+/g, "");
-                input_textbox.push(input);
-            }else{
-                // If textbox is empty, put in an empty string
-                input_textbox.push("");
-            }
-
-            if(selectObj != null){
-                input_select.push(selectObj.value);
-            }else{
-                input_select.push(null);
+        d3.select('.orbitInput').selectAll('select').nodes().forEach((d) => {
+            if(d.value !== "select"){
+                orbitInputs.push(d.value);
             }
         });
 
-        // Example of an filter expression: {presetName[orbits;instruments;numbers]} 
-        let option = dropdown;
-        
-        if(option === "present" || option === "absent" || option === "together" || option === "separate"){
-            
-            let instrument = input_textbox[0];
-            let inst_relabel = this.label.displayName2Index(instrument,"instrument");
-            if(inst_relabel==null){
-                invalid_input=true;
+        d3.select('.instrumentInput').selectAll('select').nodes().forEach((d) => {
+            if(d.value !== "select"){
+                instrumentInputs.push(d.value);
             }
-            filter_expression = option + "[;" + inst_relabel + ";]";
-            
-        }else if(option === "inOrbit" || option === "notInOrbit" || 
-            option === "absentExceptInOrbit" || option === "notInOrbitExceptInstrument" || option === "notInOrbitExceptOrbit"){
-            
-            let orbit = input_textbox[0].trim();
-            let instrument = input_textbox[1];
-            
-            let orb_relabel = this.label.displayName2Index(orbit,"orbit");
-            let inst_relabel = this.label.displayName2Index(instrument,"instrument");
-            if(inst_relabel==null || orb_relabel==null){
-                invalid_input=true;
-            }            
-            
-            filter_expression = option + "["+ orb_relabel + ";" + inst_relabel + ";]";
+        });
 
-        }else if(option === "emptyOrbit"){
+        d3.select('.numInput').selectAll('input').nodes().forEach((d) => {
+            numberInputs.push(+d.value);
+        });
+
+
+        let instrumentNameString = null;
+        let orbitNameString = null;
+        let numInputString = null;
+
+        let instrumentNameRelabeled = [];
+        for(let i = 0; i < instrumentInputs.length; i++){
+            instrumentNameRelabeled.push(this.label.displayName2Index(instrumentInputs[i], "instrument"));
+        }
+        instrumentNameString = instrumentNameRelabeled.join(",");
+
+        let orbitNameRelabeled = [];
+        for(let i = 0; i < orbitInputs.length; i++){
+            orbitNameRelabeled.push(this.label.displayName2Index(orbitInputs[i], "orbit"));
+        }
+        orbitNameString = orbitNameRelabeled.join(",");
+        numInputString = numberInputs.join(",");
+
+        // Example of an filter expression: {presetName[orbits;instruments;numbers]} 
+        if(filterType === "present" || filterType === "absent" || filterType === "together" || filterType === "separate"){
+
+            if(instrumentInputs.length === 0){
+                invalid_input = true;
+            }
+            filter_expression = filterType + "[;" + instrumentNameString + ";]";
             
-            let orbit = input_textbox[0].trim();
+        }else if(filterType === "inOrbit" || filterType === "notInOrbit" || 
+            filterType === "absentExceptInOrbit" || filterType === "notInOrbitExceptInstrument" || filterType === "notInOrbitExceptOrbit"){
             
-            let orb_relabel = this.label.displayName2Index(orbit,"orbit");
-            if(orb_relabel==null){
-                invalid_input=true;
+            if(orbitInputs.length === 0 || instrumentInputs.length === 0){
+                invalid_input = true;
+            }
+            filter_expression = filterType + "["+ orbitNameString + ";" + instrumentNameString + ";]";
+
+        }else if(filterType === "emptyOrbit"){
+                        
+            if(orbitInputs.length === 0){
+                invalid_input = true;
             }         
+            filter_expression = filterType + "[" + orbitNameString + ";;]";
             
-            filter_expression = option + "[" + orb_relabel + ";;]";
+        }else if(filterType=="numOrbits"){
+            if(numberInputs.length === 0){
+                invalid_input = true;
+            }     
+            filter_expression = filterType + "[;;" + numInputString + "]";
             
-        }else if(option=="numOrbits"){
+        }else if(filterType=="subsetOfInstruments"){
+                        
+            if(orbitInputs.length === 0 || instrumentInputs.length === 0){
+                invalid_input = true;
+            }                             
+            filter_expression = filterType + "["+ orbitNameString + ";" + instrumentNameString + ";" + numInputString + "]";
             
-            let number = input_textbox[0].trim();
-            filter_expression = option + "[;;" + number + "]";
-            
-        }else if(option=="subsetOfInstruments"){
-            
-            let orbit = input_textbox[0].trim();
-            let instrument = input_textbox[2];
-            
-            let orb_relabel = this.label.displayName2Index(orbit,"orbit");
-            let inst_relabel = this.label.displayName2Index(instrument,"instrument");
-            if(inst_relabel==null || orb_relabel==null){
-                invalid_input=true;
-            }                    
-            
-            let numbers = input_textbox[1].trim().replace(/\s+/g, "");
-            filter_expression = option + "["+ orb_relabel + ";" + inst_relabel + ";"+ numbers+"]";
-            
-        }else if(option=="numInstruments"){
-            
-            let orbit = input_textbox[0];
-            let instrument = input_textbox[1];
-            let number = input_textbox[2];
-
+        }else if(filterType=="numInstruments"){
             let orbitEmpty = false; 
             let instrumentEmpty = false;
 
             // There are 3 possibilities
-            if(orbit=="N/A" || orbit.length==0){
+            if(orbitInputs.length === 0){
                 orbitEmpty=true;
             }
-            if(instrument=="N/A" || instrument.length==0){
+            if(instrumentInputs.length === 0){
                 instrumentEmpty = true;
             }
 
             if(orbitEmpty && instrumentEmpty){
                 // Count all instruments across all orbits
-                filter_expression=option + "[;;" + number + "]";
+                filter_expression = filterType + "[;;" + numInputString + "]";
 
             }else if(orbitEmpty){
-                // Count the number of specified instrument
-                
-                let inst_relabel = this.label.displayName2Index(instrument,"instrument");
-                if(inst_relabel==null){
-                    invalid_input=true;
-                }                
-                filter_expression=option + "[;" + inst_relabel + ";" + number + "]";
+                // Count the number of specified instrument   
+                filter_expression = filterType + "[;" + instrumentNameString + ";" + numInputString + "]";
                 
             }else if(instrumentEmpty){
-                // Count the number of instruments in an orbit
-                orbit = orbit.trim();
-                
-                let orb_relabel = this.label.displayName2Index(orbit,"orbit");
-                if(orb_relabel==null){
-                    invalid_input=true;
-                }                   
-                filter_expression=option + "[" + orb_relabel + ";;" + number + "]";
+                // Count the number of instruments in an orbit                            
+                filter_expression = filterType + "[" + orbitNameString + ";;" + numInputString + "]";
             }
             
         } else if(dropdown === "paretoFront"){
-
-            let input = d3.selectAll('.filter.inputs.div').select('div').select('input').node().value
-            filter_expression = "paretoFront["+input+"]";
+            if(numberInputs.length === 0){
+                invalid_input = true;
+            }  
+            filter_expression = "paretoFront["+ numInputString +"]";
             
         }else{// not selected
             return "";
