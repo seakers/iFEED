@@ -33,7 +33,12 @@ const GENERALIZE_FEATURE = "generalize_feature";
 
 const REMOVE_FEATURE_CURSOR = "remove_feature_cursor";
 
-const COPY_FEATURE_EXPRESSION_TO_FILTER_INPUT = "copy_feature_expression_to_filter_input";
+const SET_FEATURE_MODIFICATION_MODE = "set_feature_modification_mode";
+const CANCEL_FEATURE_MODIFICATION_MODE = "cancel_feature_modification_mode";
+
+
+
+
 
 
 const DRAW_VENN_DIAGRAM = "draw_venn_diagram";

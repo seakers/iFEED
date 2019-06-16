@@ -52,12 +52,19 @@ class Filter{
         this.label = labelingScheme;
         this.data = null;
 
+        this.stashedBaseFeature = null;
+        this.stashedRoot = null;
+
         this.initialize();
 
         PubSub.subscribe(APPLY_FEATURE_EXPRESSION, (msg, data) => {
             if(this.data !== null){
                 this.apply_filter_expression(data);
-            }            
+            }
+
+            if(data !== this.stashedRoot){
+                d3.select('#replace_base_feature_button').remove();
+            }
         });   
 
         PubSub.subscribe(DATA_PROCESSED, (msg, data) => {

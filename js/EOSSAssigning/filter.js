@@ -10,7 +10,7 @@ class EOSSAssigningFilter extends Filter{
                                {value:"present",text:"Present",input:"singleInst",hints:"Selects designs that use [INSTRUMENT]"},
                                {value:"absent",text:"Absent",input:"singleInst",hints:"Selects designs that do NOT use [INSTRUMENT]"},
                                {value:"inOrbit",text:"InOrbit",input:"orbitAndMultipleInstInput",hints:"Selects designs that assign {[INSTRUMENT]} to [ORBIT]"},
-                               {value:"notInOrbit",text:"NotInOrbit",input:"orbitAndMultipleInstInput",hints:"Selects designs that do NOT assign [INSTRUMENT] to [ORBIT]"},
+                               {value:"notInOrbit",text:"NotInOrbit",input:"orbitAndMultipleInstInput",hints:"Selects designs that do NOT assign {[INSTRUMENT]} to [ORBIT]"},
                                {value:"together",text:"Together",input:"multipleInstInput",hints:"Selects designs that assign {[INSTRUMENT]} in the same orbit"},
                                {value:"separate",text:"Separate",input:"multipleInstInput",hints:"Selects designs that never assign {[INSTRUMENT]} to the same orbit"},
                                {value:"emptyOrbit",text:"EmptyOrbit",input:"orbitInput",hints:"Selects designs whose orbit [ORBIT] is empty"},
@@ -39,8 +39,53 @@ class EOSSAssigningFilter extends Filter{
             this.set_application_functions();
         });
 
-        PubSub.subscribe(COPY_FEATURE_EXPRESSION_TO_FILTER_INPUT, (msg, data) => {
-            this.copy_feature_expression_to_filter_input(data);
+        let that = this;
+        PubSub.subscribe(SET_FEATURE_MODIFICATION_MODE, (msg, data) => {
+            // data = {root: null, node: null};
+            this.stashedRoot = data.root;
+            this.stashedBaseFeature = data.node;
+
+            // Change the text of the apply filter button
+            d3.select(".filter.title.div").select("p")
+                .style("color", "red")
+                .style("font-size", "23px")
+                .text("Feature modification mode");
+
+            d3.select('#apply_filter_button')
+                .text('Modify the selected condition')
+                .style('color','red');
+            this._apply_filter = this.apply_filter;
+
+            // Reset the callback function for the apply filter button
+            this.apply_filter = () => {
+                let tempData = {root: that.stashedRoot, 
+                                node_to_be_replaced: that.stashedBaseFeature, 
+                                new_node: that.generate_filter_expression_from_input_field()};
+
+                PubSub.publish(CANCEL_FEATURE_MODIFICATION_MODE, tempData);
+            }
+
+            // Copy the feature expression to filter input
+            this.copy_feature_expression_to_filter_input(this.stashedBaseFeature);
+        });
+
+        PubSub.subscribe(CANCEL_FEATURE_MODIFICATION_MODE, (msg, data) => {
+           // data = {root: null, node_to_be_replaced: null, new_node: null};
+
+            // Reset to the original setting
+            d3.select(".filter.title.div").select("p")
+                .style("color", "black")
+                .style("font-size", "18px")
+                .text("Filter Setting");
+
+            d3.select('#apply_filter_button')
+                .text('Apply Filter')
+                .style('color','black');
+
+            if(this._apply_filter){
+                this.apply_filter = this._apply_filter;
+                this._apply_filter = null;    
+            }
         });
 
         PubSub.subscribe(PROBLEM_CONCEPT_HIERARCHY_LOADED, (msg, data) => {
@@ -190,8 +235,9 @@ class EOSSAssigningFilter extends Filter{
 
     instrument_select_callback() {
         let that = this;
-        let instrumentSelects = d3.selectAll('.instrumentSelect').nodes();
+        this.input_modification_callback();
 
+        let instrumentSelects = d3.selectAll('.instrumentSelect').nodes();
         let allSelected = true;
         for(let i = 0; i < instrumentSelects.length; i++){
             if(instrumentSelects[i].value === "select"){
@@ -201,7 +247,6 @@ class EOSSAssigningFilter extends Filter{
         if(allSelected){
             this.add_instrument_select();
             d3.selectAll('.instrumentSelect').on("change", ()=>{
-                that.input_modification_callback();
                 that.instrument_select_callback();
             });
 
@@ -248,9 +293,7 @@ class EOSSAssigningFilter extends Filter{
         let enableApplyButton = ()=>{
              d3.select("#apply_filter_button").node().disabled = false;
         }
-
-        disableApplyButton();
-
+        
         if (option === "not_selected"){
             return;
             
@@ -342,7 +385,6 @@ class EOSSAssigningFilter extends Filter{
                     }
 
                     d3.selectAll('.instrumentSelect').on("change", function(){
-                        that.input_modification_callback();
                         that.instrument_select_callback();
                     });
                     break;
@@ -529,7 +571,6 @@ class EOSSAssigningFilter extends Filter{
                     }
 
                     d3.selectAll('.instrumentSelect').on("change", function(){
-                        that.input_modification_callback();
                         that.instrument_select_callback();
                     });
                     break;
@@ -544,6 +585,11 @@ class EOSSAssigningFilter extends Filter{
                 .append("div")
                 .html(helpText);  
         }
+
+        // Disable apply button by default
+        disableApplyButton();
+
+
     }
     
     generate_filter_expression_from_input_field(){
@@ -669,20 +715,24 @@ class EOSSAssigningFilter extends Filter{
     }
     
     copy_feature_expression_to_filter_input(expression){
+        let that = this;
         expression = remove_outer_parentheses(expression);
         
         // Preset filter: {presetName[orbits;instruments;numbers]}   
         expression = expression.substring(1,expression.length-1);
         
         let type = expression.split("[")[0];
+        let inputType = null;
         let found = false;
         for (let i = 0; i < this.presetFeatureTypes.length; i++){
             let featureType = this.presetFeatureTypes[i];
             if (featureType.keyword === type){
                 found = true;
+                inputType = featureType.inputType;
                 break;
             }
         }
+
         if(found){
             this.initialize_filter_input_field(type);
         }else{
@@ -717,7 +767,7 @@ class EOSSAssigningFilter extends Filter{
 
         if(d3.select(".filter.options.dropdown").node() === null){
             return;
-        }else{
+        } else {
             d3.select(".filter.options.dropdown").node().value = type;
         }
 
@@ -729,16 +779,28 @@ class EOSSAssigningFilter extends Filter{
         }  
 
         for(let i = 0; i < instrumentInputs.length; i++){
-            if(i !== 0){
+            if(i === 0){
+                if(inputType === "orbitAndMultipleInstInput" || inputType === "multipleInstInput"){
+                    this.add_instrument_select();
+                }
+            }else{
                 this.add_instrument_select();
             }
             d3.select('.filterInputDiv.instrumentInput').selectAll('select').nodes()[i].value = instrumentInputs[i];
-        } 
+        }
+
+        if(inputType === "orbitAndMultipleInstInput" || inputType === "multipleInstInput"){
+            d3.selectAll('.instrumentSelect').on("change", function(){
+                that.instrument_select_callback();
+            });
+            this.instrument_option_set_constraint();
+        }
 
         if(numberInputs.length !== 0){
             d3.select('.filterInputDiv.numInput').select('input').node().value = numberInputs[0];
         }
 
+        d3.select("#apply_filter_button").node().disabled = false;
         document.getElementById('tab2').click();
     }
 
@@ -848,8 +910,7 @@ class EOSSAssigningFilter extends Filter{
                         break;
                     }
                 }
-            }
-            else {
+            } else {
                 for(let i = 0; i < this.norb; i++){
                     if(inputs[this.ninstr * i + instrument] === true){
                         out = true;

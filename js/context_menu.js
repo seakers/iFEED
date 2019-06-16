@@ -28,7 +28,6 @@ class ContextMenu {
         };      
         
         this.contextItems = {
-            
             'logic':[{'value':'addChild','text':'Add feature'},
                      {'value':'toggle-logic','text':'Change to X'}],
 
@@ -38,11 +37,15 @@ class ContextMenu {
                     {'value':'switchIfThen','text':'Switch conditional and consequent'},
                     ],
 
-            'leaf':[{'value': 'copyToFilter', 'text': 'Copy to filter setting'}],
+            'leaf':[
+                    {'value': 'modifyBaseFeature', 'text': 'toggle feature modification mode'},
+                    
+                    ],
 
             'featType': [{'value':'toggle-col-exp','text':'Collapse/Expand'}],
             
             'default':[
+                        {'value': 'applyFeatureBranch', 'text': 'Apply this feature'},
                         {'value':'addParent','text':'Add parent branch'},
                         // {'value':'addIfThen','text':'Add if-then statement'},
                         // {'value':'duplicate','text':'Duplicate'},
@@ -264,6 +267,12 @@ class ContextMenu {
                     }else{
                         return 'Expand';
                     }
+                }else if(d.value === 'modifyBaseFeature'){
+                    if(!that.feature_application.featureModificationModeOn){
+                        return 'Modify this feature';
+                    }else{
+                        return 'Cancel modifying this feature';
+                    }
                 }else{
                     return d.text; 
                 }
@@ -332,7 +341,7 @@ class ContextMenu {
     }
     
     ContextMenuAction(context, option){
-
+        let that = this;
         let skip_feature_update = false;
 
         let feature_application = this.feature_application;
@@ -350,6 +359,10 @@ class ContextMenu {
         // 'logic':[addChild, toggle-logic],     
         // 'leaf':[],
         // 'default':[addParent,duplicate,toggle-activation,delete]
+
+        feature_application.visit_nodes(root, function(d){
+            d.highlighted = false;
+        });
 
         if(node.type === 'logic'){
 
@@ -414,8 +427,28 @@ class ContextMenu {
             }
         }else{
             switch(option) { // Leaf node
-                case 'copyToFilter':
-                    PubSub.publish(COPY_FEATURE_EXPRESSION_TO_FILTER_INPUT, node.name); 
+
+                case 'modifyBaseFeature':
+                    if(that.feature_application.featureModificationModeOn){
+                        PubSub.publish(CANCEL_FEATURE_MODIFICATION_MODE, {root: null, node_to_be_replaced: null, new_node: null});
+
+                    }else{
+                        visit_nodes(root, function(d){
+                            d.highlighted = false;
+                        });
+
+                        // Highlight the parent node and the node being modified
+                        node.highlighted = true;
+                        if(node.parent){
+                            node.parent.highlighted = true;
+                        }
+                        
+                        // Update the feature tree
+                        feature_application.update(); 
+
+                        // Send information to the filter
+                        PubSub.publish(SET_FEATURE_MODIFICATION_MODE, {root: feature_application.parse_tree(root), node: node.name}); 
+                    }
                     skip_feature_update = true;
                     break;
 
@@ -427,6 +460,11 @@ class ContextMenu {
 
         // Default options
         switch(option) {
+            case 'applyFeatureBranch':
+                    let branch = feature_application.parse_tree(node);
+                    feature_application.update_feature_application('direct-update', branch);
+                    skip_feature_update = true;
+                    break;
 
             case 'addParent':
 

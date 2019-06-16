@@ -12,6 +12,7 @@ class FeatureApplication{
                      "logic":"#2383FF",
                      "ifThen":"#20C16E",
                      "add":"#FF7979",
+                     "highlighted": "#FF7979",
                      "deactivated":"#E3E3E3",
                      "temp":"#CDCDCD"};
         
@@ -32,6 +33,7 @@ class FeatureApplication{
         this.selectedNode = null;
         this.dragStarted = false;
         this.contextMenu = null;  
+        this.featureModificationModeOn = false;
         
 	   	this.dragListener = d3.drag()
 	        .on('start', (d) => { this.dragStart(d); })
@@ -48,8 +50,46 @@ class FeatureApplication{
 
         PubSub.subscribe(UPDATE_FEATURE_APPLICATION, (msg, data) => {
             this.update_feature_application(data.option, data.expression);
-        });       
-   
+        });   
+
+        PubSub.subscribe(SET_FEATURE_MODIFICATION_MODE, (msg, data) => {
+            this.featureModificationModeOn = true;
+        });
+
+        PubSub.subscribe(CANCEL_FEATURE_MODIFICATION_MODE, (msg, data) => {
+            let rootExpression = data.root;
+            let nodeToBeReplaced = data.node_to_be_replaced;
+            let newNode = data.new_node;
+
+            if(rootExpression && nodeToBeReplaced && newNode){
+                let success = false;
+
+                let that = this;
+                this.visit_nodes(this.data, (d) => {
+                    if(d.name === nodeToBeReplaced){
+                        success = true;
+                        let index = d.parent.children.indexOf(d);
+                        let _newNode = that.construct_node(that, d.depth, d.type, newNode, null, d.parent);
+                        d.parent.children.splice(index, 1, _newNode);
+                        return;
+                    }
+                });
+
+                if(!success){
+                    throw "Node not found: " + data;
+                }else{
+                    this.update_feature_application("direct-update", this.parse_tree(this.data));
+                }
+            }
+
+            this.featureModificationModeOn = false;
+            this.visit_nodes(this.data, function(d){
+                d.highlighted = false;
+            });
+            this.update();
+            PubSub.publish(ADD_FEATURE_FROM_EXPRESSION, {expression:this.parse_tree(this.data), replaceEquivalentFeature: true});
+        });   
+
         // Remove all features
         d3.select('#clear_all_features').on('click', (d) => { 
             this.clear_feature_application(); 
@@ -163,6 +203,11 @@ class FeatureApplication{
             d3.selectAll('.treeLink').remove();
             this.i = 0;
             PubSub.publish(APPLY_FEATURE_EXPRESSION, null);
+            return;
+        }
+
+        if(this.featureModificationModeOn){
+            PubSub.publish(CANCEL_FEATURE_MODIFICATION_MODE, {root: null, node_to_be_replaced: null, new_node: null});
             return;
         }    
 
@@ -292,6 +337,9 @@ class FeatureApplication{
                 }else if(d.data.temp){
                     return that.color.temp;
 
+                }else if(d.data.highlighted){
+                    return that.color.highlighted;
+
                 }else{
                     if(d.data.type === "logic"){
                         if(d.data.add){
@@ -326,6 +374,8 @@ class FeatureApplication{
             .style("fill",function(d){
                 if(d.data.type === "logic" && d.data.add){
                     return that.color.add;
+                }else if(d.data.highlighted){
+                    return that.color.highlighted;
                 }else{
                     return "black";
                 }
@@ -435,6 +485,8 @@ class FeatureApplication{
                     return that.color.deactivated;
                 }else if(d.data.temp){
                     return that.color.temp; 
+                }else if(d.data.highlighted){
+                    return that.color.highlighted;
                 }else{
                     return that.color.default;
                 }
@@ -628,7 +680,6 @@ class FeatureApplication{
             }
 
             this.update();
-            
             PubSub.publish(ADD_FEATURE_FROM_EXPRESSION, {expression:this.parse_tree(this.data), replaceEquivalentFeature:true});
 
             this.dragStarted = false;

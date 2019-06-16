@@ -6,10 +6,9 @@ function remove_outer_parentheses(expression, outer_level){
     var new_expression = expression;
     var out = {expression:new_expression, level:outer_level};
     
-    if(expression===null){
+    if(expression === null){
        return '';
-    }
-	else if(expression[0]!="(" || expression[expression.length-1]!=")"){
+    }else if(expression[0] !== "(" || expression[expression.length-1] !== ")"){
 		// Return if the expression does not start with "(" or ")".
 	}else{
 		var leng = expression.length;
