@@ -64,6 +64,21 @@ class Experiment{
 
             }
         }); 
+
+        this.remove_unncessary_filters();
+    }
+
+    remove_unncessary_filters(){
+        let filtersToBeRemoved = ["paretoFront", "absentExceptInOrbit", "notInOrbitExceptInstrument", "notInOrbitExceptOrbit"];
+
+        d3.select('.filter.options.dropdown')
+            .selectAll('option')
+            .nodes()
+            .forEach((d)=>{
+                if(filtersToBeRemoved.indexOf(d.value) !== -1){
+                    d3.select(d).remove();
+                }
+            });
     }
 
     initialize_measurements(){  

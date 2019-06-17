@@ -1127,7 +1127,6 @@ class DataMining{
     }
 
     feature_mouseover(d){
-        
         // EXPERIMENT 
         PubSub.publish(EXPERIMENT_TUTORIAL_EVENT, "feature_mouse_hover");    
 

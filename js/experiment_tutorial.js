@@ -117,10 +117,10 @@ class ExperimentTutorial{
         
         if(messages.length === 1){
             this.intro.setOption('showButtons',true)
-                        .setOption('showBullets', false);
+                        .setOption('showBullets', true);
         }else{
             this.intro.setOption('showButtons',true)
-                        .setOption('showBullets', false);
+                        .setOption('showBullets', true);
         }
         
         if(!classname){
@@ -317,11 +317,14 @@ class ExperimentTutorial{
                 d3.select('#feature_application').node(), // 44
                 null, // 45
                 null, // 46
-                d3.select('.column.c2').node(), // 47
-                d3.select('#feature_expression_panel').node(), // 48
-                d3.selectAll('#support_panel').node(), // 49
-                d3.select('#feature_application').node(), // 50
+                d3.selectAll('#support_panel').node(), // 47
+                d3.select('.column.c2').node(), // 48
+                null, // 49
+                d3.select('#feature_expression_panel').node(), // 50
                 d3.select('.column.c2').node(), // 51
+                d3.selectAll('#support_panel').node(), // 52
+                d3.select('#feature_application').node(), // 53
+                d3.select('.column.c2').node(), // 54
             ];
 
             contents = [
@@ -445,7 +448,7 @@ class ExperimentTutorial{
                 // 18
                 "<p>\"InOrbit\" is used to selectively highlight designs that assign a specific instrument(s) to a given orbit. </p>"
                 +"<p>It takes in one orbit and one or more instruments as arguments. "
-                +"If more than one instrument name is given, then it highlights all designs "
+                +"If more than one instrument are given, then it highlights all designs "
                 +"that assign all those instruments into the specified orbit.</p>"
                 +"<p>To continue, select an orbit and more than one instruments as arguments, and click 'Apply Filter' button.</p>", 
 
@@ -576,52 +579,67 @@ class ExperimentTutorial{
                 +"We will go over two of these options as examples. </p>", 
 
                 // 41
-                "<p>First, right-click on one of the leaf nodes, and select \"Add feature\" option. "
-                +"(Select \"Add feature\" option to continue)</p>",
+                "<p>First, right-click on one of the logical connective nodes (AND or OR), and select \"Add child node here\" option. "
+                +"(To continue, select \"Add child node here\" option)</p>",
 
                 // 42
-                "<p>Note that the color of the logical connective node turned red. This indicates when you add a new feature, "
+                "<p>Note that the color of the logical connective node turned red. This indicates when you add a condition, "
                 +"it will be added under this parent node.</p>",
 
                 // 43
-                "<p>To add a new feature, go to \"Filter Setting\" tab, and apply any filter (To continue, add a new "
-                +"feature by applying a filter).</p>",
+                "<p>Note that the title (highlighted in red) changed to \"Feature addition mode\". This indicates that when you apply a filter, "
+                +"it will be added as a condition under the selected logical connective node. </p>"
+                +"<p>To add a new condition, simply define a filter and click the button \"Add new condition\".</p>"
+                +"<p>(To continue, define a new filter by clicking \"Add new condition\" button)</p>",
 
                 // 44
                 "<p>Note that a new node is added to the selected logical connective node. </p>",
 
                 // 45
-                "<p>Let\'s try another option. Right-click on one of the condition nodes (leaf nodes) and select \"Add parent branch\" option. "
-                +"(Select \"Add parent branch\" option to continue)</p>",
+                "<p>Let\'s try another option. Right-click on one of the leaf nodes and select \"Modify this feature\" option. "
+                +"(Select \"Modify this feature\" option to continue)</p>",
 
                 // 46
-                "<p>This adds a new parent logical connective node to the selected node. This may be used to introduce a nested structure.</p>"
-                +"<p>Other possible actions include \"Deactivate\" and \"Delete\". These options are used to "
-                +"deactivate and to delete the current node (or branch), respectively. </p>",
+                "<p>Similarly as before, the color of the node and its connection to the parent node changed to red. "
+                +"This indicates that when you test a new condition, it will replace the current node.</p>",
 
-                // 47
+                //47
+                "<p>Again, the title text (highlighted in red) indicates that you are currently in \"Feature modification mode\". "
+                +"<p>This time, the arguments of the selected condition have been copied to the filter setting tab. This "
+                +"makes it easier to make modifications to the currently selected condition.</p>"
+                +"<p>(To continue, try making a slight change to the current condition and apply it by clicking \"Modify the condition\" button)</p>",
+
+                // 48
+                "<p>The node that was selected have been replaced by the new condition.</p>",
+
+                // 49
+                "<p>Other possible actions that can be applied to the node of a feature tree include \"Deactivate\" and \"Delete\". "
+                +"These options are used to deactivate and to delete the current node (or branch), respectively. </p>"
+                +"<p>You can try different options in later tasks, as you use analyze the data.</p>",
+
+                // 50
                 "<p>While you can test different features by manually modifying the feature, there are also automatic helper functions "
                 +"that improve the currently selected feature. </p>",
 
-                // 48
+                // 51
                 "<p>Once a feature has been selected, you can click either \"Improve specificity\", or \"Improve coverage\" button to "
                 +"improve one of the metrics. </p>"
                 +"<p>\"Improve specificity\" button improves specificity by adding a new condition using AND (conjucntion), "
                 +"while \"Improve coverage\" improves coverage by adding a new condition using OR (disjunction). </p>"
                 +"<p>The current feature has good coverage and poor specificity. So, try clicking \"Improve specificity\" button.</p>",
 
-                // 49
+                // 52
                 "<p>Note that some crosses appeared in the plot. If there are features that improve the current feature, "
                 +"they will appear in the Feature plot as crosses.</p>"
                 +"<p>You can use these helper functions to improve coverage and specificity of a feature up to a certain level. </p>"
                 +"<p>To continue, click one of the newly tested features (crosses)</p>",
                 
-                // 50
+                // 53
                 "<p>If you compare this feature to the previous one, the condition [PLACEHOLDER] has just been added. </p>"
                 +"<p>Since \"Improve specificity\" button was clicked, the condition [PLACEHOLDER] was added under the logical connective AND. "
                 +"Similarly, \"Improve coverage\" may be used to improve the coverage of a feature by adding new conditions under OR. </p>",
 
-                // 51
+                // 54
                 "<p>Another helper function that is available for use is generalizing the selected feature by clicking "
                 +"\"Generalize feature\" button.</p>"
                 +"<p>This button triggers a search for a more compact and general knowledge. It may help extracting information in a more "
@@ -726,33 +744,50 @@ class ExperimentTutorial{
                     document.getElementById('tab3').click();
                     that.experiment.feature_application.update_feature_application("direct-update", tutorial_feature_example_d);
                     that.start_tutorial_event_listener("node_drag_end", this._currentStep);
+
+                } else if(this._currentStep === 40){
+                    document.getElementById('tab3').click();
+                    that.experiment.feature_application.update_feature_application("direct-update", tutorial_feature_example_d);
                 
                 } else if(this._currentStep === 41){
                     document.getElementById('tab3').click();
+                    that.experiment.feature_application.update_feature_application("direct-update", tutorial_feature_example_d);
                     that.start_tutorial_event_listener("contextmenu_add_feature", this._currentStep);
                 
                 } else if(this._currentStep === 43){
                     document.getElementById('tab2').click();
-                    that.start_tutorial_event_listener("filter_applied", this._currentStep);
+                    that.start_tutorial_event_listener("filter_modification", this._currentStep);
                 
                 } else if(this._currentStep === 45){
                     document.getElementById('tab2').click();
-                    that.start_tutorial_event_listener("contextmenu_add_parent", this._currentStep);
+                    that.start_tutorial_event_listener("contextmenu_modify_feature", this._currentStep);
                 
                 } else if(this._currentStep === 47){
+                    document.getElementById('tab2').click();
+                    that.start_tutorial_event_listener("contextmenu_modify_feature", this._currentStep);
+                
+                } else if(this._currentStep === 48){
+                    document.getElementById('tab2').click();
+                    let experiment_stashed_node_before = that.label.pp_feature_description(that.feature_application.experiment_stashed_node_before);
+                    let experiment_stashed_node_after = that.label.pp_feature_description(that.feature_application.experiment_stashed_node_after);
+                    let keywords = [experiment_stashed_node_before, experiment_stashed_node_after];
+                    let placeholders = ["[PLACEHOLDER1]", "[PLACEHOLDER2]"];
+                    that.fill_in_keyword_placeholder(this._currentStep, keywords, placeholders);
+
+                } else if(this._currentStep === 50){
                     document.getElementById('tab3').click();
                     that.experiment.feature_application.clear_feature_application();
                     that.experiment.feature_application.update_feature_application("direct-update", tutorial_feature_example_g);
                     
-                } else if(this._currentStep === 48){
+                } else if(this._currentStep === 51){
                     document.getElementById('tab3').click();
                     that.start_tutorial_event_listener("local_search_conjunctive", this._currentStep);
 
-                } else if(this._currentStep === 49){
+                } else if(this._currentStep === 52){
                     document.getElementById('tab3').click();
                     that.start_tutorial_event_listener("new_feature_clicked", this._currentStep);
 
-                } else if(this._currentStep === 50){
+                } else if(this._currentStep === 53){
                     document.getElementById('tab3').click();
                     let feature_application = that.experiment.feature_application;
                     let previousFeature = feature_application.construct_tree(feature_application, tutorial_feature_example_g);
@@ -777,7 +812,7 @@ class ExperimentTutorial{
                     let placeholders = ["[PLACEHOLDER]", "[PLACEHOLDER]"];
                     that.fill_in_keyword_placeholder(this._currentStep, keywords, placeholders);
                 
-                } else if(this._currentStep === 51){
+                } else if(this._currentStep === 54){
                     document.getElementById('tab3').click();
 
                     let listenerCallback = () => {

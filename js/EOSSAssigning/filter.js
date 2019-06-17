@@ -40,6 +40,11 @@ class EOSSAssigningFilter extends Filter{
         });
 
         let that = this;
+        PubSub.subscribe(COPY_BASE_FEATURE_TO_FILTER, (msg, data) => {
+            // Copy the feature expression to filter input
+            this.copy_feature_expression_to_filter_input(data);
+        });
+
         PubSub.subscribe(SET_FEATURE_MODIFICATION_MODE, (msg, data) => {
             // data = {
             //     root: feature_expression_string, 
@@ -93,6 +98,9 @@ class EOSSAssigningFilter extends Filter{
                                 new_node: that.generate_filter_expression_from_input_field()};
 
                 PubSub.publish(END_FEATURE_MODIFICATION_MODE, tempData);
+
+                // EXPERIMENT
+                PubSub.publish(EXPERIMENT_TUTORIAL_EVENT, "filter_modification");
             }
 
             if(addition){

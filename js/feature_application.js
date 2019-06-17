@@ -1103,7 +1103,7 @@ class FeatureApplication{
                     this.data = this.stashed_root;  
                 }
                 this.stashed_root = null;
-                this.update({add_to_feature_space_plot: true, replace_equivalent_feature: false});
+                this.update({add_to_feature_space_plot: false, replace_equivalent_feature: false});
             }
             
         } else if(option === 'update'){

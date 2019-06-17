@@ -38,7 +38,7 @@ class ContextMenu {
 
             'leaf':[
                     {'value': 'modifyBaseFeature', 'text': 'toggle feature modification mode'},
-                    
+                    {'value': 'copyToFilter', 'text': 'Copy this to filter setting'}
                     ],
 
             'featType': [{'value':'toggle-col-exp','text':'Collapse/Expand'}],
@@ -505,6 +505,16 @@ class ContextMenu {
                         PubSub.publish(SET_FEATURE_MODIFICATION_MODE, data); 
                     }
                     updateOption.add_to_feature_space_plot = false;
+
+
+                    // EXPERIMENT 
+                    PubSub.publish(EXPERIMENT_TUTORIAL_EVENT, "contextmenu_modify_feature");  
+                    break;
+
+                case 'copyToFilter':
+                    // Send information to the filter
+                    PubSub.publish(COPY_BASE_FEATURE_TO_FILTER, node.name); 
+                    updateOption.add_to_feature_space_plot = false;
                     break;
 
                 default:
@@ -520,9 +530,6 @@ class ContextMenu {
                     break;
 
             case 'addParent':
-
-                // EXPERIMENT 
-                PubSub.publish(EXPERIMENT_TUTORIAL_EVENT, "contextmenu_add_parent");  
 
                 if(parent){ 
                     // This is a leaf node because of the condition set up previously (logic nodes do not have option to add parent)

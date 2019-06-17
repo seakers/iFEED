@@ -33,6 +33,7 @@ const GENERALIZE_FEATURE = "generalize_feature";
 
 const REMOVE_FEATURE_CURSOR = "remove_feature_cursor";
 
+const COPY_BASE_FEATURE_TO_FILTER = "copy_base_feature_to_filter";
 const SET_FEATURE_MODIFICATION_MODE = "set_feature_modification_mode";
 const END_FEATURE_MODIFICATION_MODE = "end_feature_modification_mode";
 
