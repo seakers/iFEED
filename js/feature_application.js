@@ -17,8 +17,6 @@ class FeatureApplication{
                      "temp":"#CDCDCD"};
         
         this.stashed_root = null;
-        this.stashed_node_addChild = null;
-
         this.tree = null;
         this.data = null; 
         this.root = null;
@@ -56,38 +54,61 @@ class FeatureApplication{
             this.featureModificationModeOn = true;
         });
 
-        PubSub.subscribe(CANCEL_FEATURE_MODIFICATION_MODE, (msg, data) => {
-            let rootExpression = data.root;
-            let nodeToBeReplaced = data.node_to_be_replaced;
-            let newNode = data.new_node;
-
-            if(rootExpression && nodeToBeReplaced && newNode){
-                let success = false;
+        PubSub.subscribe(END_FEATURE_MODIFICATION_MODE, (msg, data) => {
+            if(data){
+                let rootExpression = data.root;
+                let parentNodeEpxression = data.parent_node;
+                let nodeToBeReplaced = data.node_to_be_replaced;
+                let newNodeExpression = data.new_node;
+                let modificationSuccess = false;
 
                 let that = this;
-                this.visit_nodes(this.data, (d) => {
-                    if(d.name === nodeToBeReplaced){
-                        success = true;
-                        let index = d.parent.children.indexOf(d);
-                        let _newNode = that.construct_node(that, d.depth, d.type, newNode, null, d.parent);
-                        d.parent.children.splice(index, 1, _newNode);
-                        return;
+                if(nodeToBeReplaced){
+                    // Replacing an existing base feature
+                    let isSingleBaseFeature = false;
+                    this.visit_nodes(this.data, (d) => {
+                        if(d.name === nodeToBeReplaced){
+                            modificationSuccess = true;
+                            if(d.parent){
+                                let index = d.parent.children.indexOf(d);
+                                let _newNode = that.construct_node(that, d.depth, d.type, newNodeExpression, null, d.parent);
+                                d.parent.children.splice(index, 1, _newNode);
+                            }else{
+                                singleBaseFeature = true;
+                            }
+                            return;
+                        }
+                    });
+                    if(isSingleBaseFeature){
+                        this.data = that.construct_node(that, this.data.depth, this.data.type, newNodeExpression, null, this.data.parent);
                     }
-                });
 
-                if(!success){
-                    throw "Node not found: " + data;
+                }else{
+                    // Adding a new base feature
+                    this.visit_nodes(this.data, (d) => {
+                        if(that.parse_tree(d) === parentNodeEpxression){
+                            modificationSuccess = true;
+                            let _newNode = that.construct_node(that, d.depth + 1, "leaf", newNodeExpression, null, d);
+                            d.children.push(_newNode);
+                            return;
+                        }
+                    });
+                }
+
+                if(!modificationSuccess){
+                    throw "Target node not found";
                 }else{
                     this.update_feature_application("direct-update", this.parse_tree(this.data));
                 }
-            }
+                this.featureModificationModeOn = false;
 
-            this.featureModificationModeOn = false;
-            this.visit_nodes(this.data, function(d){
-                d.highlighted = false;
-            });
-            this.update();
-            PubSub.publish(ADD_FEATURE_FROM_EXPRESSION, {expression:this.parse_tree(this.data), replaceEquivalentFeature: true});
+            } else { // End the mode without taking any action
+                this.visit_nodes(this.data, function(d){
+                    d.highlighted = false;
+                });
+                this.featureModificationModeOn = false;
+                this.update();
+            }            
         });   
 
         // Remove all features
@@ -113,8 +134,7 @@ class FeatureApplication{
 		PubSub.publish(FEATURE_APPLICATION_LOADED, this);
     }
     
-    draw_feature_application_tree(expression){
-
+    draw_feature_application_tree(expression, updateOption){   
         let margin = this.margin;
         let width = this.width;
         let height = this.height;
@@ -133,15 +153,17 @@ class FeatureApplication{
         this.i = 0;
         this.data = this.construct_tree(this, expression);  
         
-        this.visit_nodes(this.data, (d) => {
-            d.temp = true;
-        });
-
-        this.update();  
+        if(updateOption){
+            if(updateOption.is_temporary){
+                this.visit_nodes(this.data, (d) => {
+                    d.temp = true;
+                }); 
+            }
+        }
+        this.update(updateOption);  
     }
 
     sort_feature_types(root){
-
         if(root == null){
             return;
         }
@@ -193,11 +215,13 @@ class FeatureApplication{
         }
     }
 
-    update(featureMargin){
+    update(option){
+        let that = this;  
 
         // Check the tree structure and make sure that it is correct
         this.check_tree_structure();
-                
+        
+        // If there is no feature tree, return
         if(this.data === null){
             d3.selectAll('.treeNode').remove();
             d3.selectAll('.treeLink').remove();
@@ -206,26 +230,19 @@ class FeatureApplication{
             return;
         }
 
+        // Apply the feature expression
+        PubSub.publish(APPLY_FEATURE_EXPRESSION, {expression: this.parse_tree(this.data), option: option});
+
         if(this.featureModificationModeOn){
-            PubSub.publish(CANCEL_FEATURE_MODIFICATION_MODE, {root: null, node_to_be_replaced: null, new_node: null});
+            PubSub.publish(END_FEATURE_MODIFICATION_MODE, null);
             return;
         }    
-
-        if(!featureMargin){
-            featureMargin = 170;
-        }
-
-        let that = this;   
-                
-        // Apply the feature expression
-        PubSub.publish(APPLY_FEATURE_EXPRESSION, this.parse_tree(this.data));
         
         let duration = d3.event && d3.event.altKey ? 5000 : 600;
         let margin = this.margin;
 
+        // Set root node
         let root = d3.hierarchy(this.data, function(d) { return d.children; }); 
-
-        // Root node
         root.x0 = that.height / 2;
         root.y0 = 0; 
 
@@ -258,7 +275,7 @@ class FeatureApplication{
             }else if(d.depth === 1){
                 d.y = 150;
             }else{
-                d.y = d.depth * featureMargin;
+                d.y = d.depth * 170;
             }
         });
 
@@ -486,7 +503,14 @@ class FeatureApplication{
                 }else if(d.data.temp){
                     return that.color.temp; 
                 }else if(d.data.highlighted){
-                    return that.color.highlighted;
+                    if(!d.data.parent){
+                        return that.color.highlighted;
+                    } else {
+                        if(d.data.parent.highlighted){
+                            return that.color.highlighted;
+                        }
+                    }
+                    return that.color.default;
                 }else{
                     return that.color.default;
                 }
@@ -679,8 +703,8 @@ class FeatureApplication{
                     .attr('r',40);
             }
 
-            this.update();
-            PubSub.publish(ADD_FEATURE_FROM_EXPRESSION, {expression:this.parse_tree(this.data), replaceEquivalentFeature:true});
+            let updateOption = {add_to_feature_space_plot: true, replace_equivalent_feature: true};
+            this.update(updateOption);
 
             this.dragStarted = false;
             this.draggingNode = null;
@@ -1056,32 +1080,20 @@ class FeatureApplication{
         
         if(option === "temp"){ // Mouseover on the feature plot
             if(this.data){ // There already exists a feature tree
-
                 // Stash the current root 
                 this.stashed_root = this.construct_tree(this, this.parse_tree(this.data));  
-                this.visit_nodes(this.data, (d) => {
-                    if(d.add){ // Retain addChild option
-                        let index = null;
-                        if(d.parent){
-                            index = d.parent.children.indexOf(d);
-                        }
-                        that.stashed_node_addChild = {index: index, name: d.name, depth: d.depth};
-                    }
-                })
+
                 // Draw a new feature tree
-                this.draw_feature_application_tree(expression);
+                this.draw_feature_application_tree(expression, {is_temporary: true});
                 
             }else{
                 // There is no tree. Build a new one
-                this.stashed_root = {};
-                this.stashed_node_addChild = null;
-                this.draw_feature_application_tree(expression)
+                this.stashed_root = null;
+                this.draw_feature_application_tree(expression, {is_temporary: true});
             }
 
-        }else if(option === "restore"){
-            // Restore the stashed tree
+        }else if(option === "restore"){ // Restore the stashed tree
 
-            // If there is no stashed root
             if(this.stashed_root !== null){
                 if(jQuery.isEmptyObject(this.stashed_root)){
                     // There was no tree before
@@ -1090,85 +1102,25 @@ class FeatureApplication{
                     // The whole tree is stashed
                     this.data = this.stashed_root;  
                 }
+                this.stashed_root = null;
+                this.update({add_to_feature_space_plot: true, replace_equivalent_feature: false});
             }
-
-            if(this.data){
-                this.visit_nodes(this.data, (d) => {
-                    d.temp = false;
-
-                    if(that.stashed_node_addChild){
-                        let index = null;
-                        if(d.parent){
-                            index = d.parent.children.indexOf(d);
-                        }
-                        let name = d.name;
-                        let depth = d.depth;
-
-                        if(that.stashed_node_addChild.index === index 
-                            && that.stashed_node_addChild.name === name 
-                            && that.stashed_node_addChild.depth === depth){
-
-                            d.add = true;
-                        }
-                    }
-                })
-            }
-
-            this.update();
-            this.stashed_root = null;
-            this.stashed_node_addChild = null;
-
+            
         } else if(option === 'update'){
             this.stashed_root = null;
-            this.stashed_node_addChild = null;
-
             this.visit_nodes(this.data, (d) => {
                 d.temp = false;
             })  
-
-            PubSub.publish(ADD_FEATURE_FROM_EXPRESSION, {expression:this.parse_tree(this.data), replaceEquivalentFeature: false});
+            this.update({add_to_feature_space_plot: true, replace_equivalent_feature: false});
 
             // EXPERIMENT 
             PubSub.publish(EXPERIMENT_TUTORIAL_EVENT, "feature_clicked");
 
         } else if(option === 'direct-update'){ // Make a direct update to the feature application status
-
             // Remove the stashed information                
             this.stashed_root = null;    
-            this.stashed_node_addChild = null;
-
-            if(this.data){ // There already exists a feature tree
-
-                let get_node_to_add_features = (d) => {
-                    // Find the node to which to add new features
-                    if(d.add){
-                        return d;
-                    }else{
-                        return null;
-                    }
-                }
-                // Find the node to add new features and append children temporarily
-                let parentNode = this.visit_nodes(this.data, get_node_to_add_features)
-
-                if(parentNode){ // parentNode exists
-                    // Construct a subtree and append it as a child to the parent node
-                    let subtree = this.construct_tree(this, expression, parentNode.depth + 1);
-                    parentNode.children.push(subtree); 
-                    subtree.parent = parentNode;
-
-                } else {
-                    this.draw_feature_application_tree(expression)
-                }
-            }else{
-                // There is no tree. Build a new one
-                this.draw_feature_application_tree(expression)
-            }
-
-            this.visit_nodes(this.data, (d) => {
-                d.temp = false;
-            })
-            this.update();   
-            PubSub.publish(ADD_FEATURE_FROM_EXPRESSION, {expression:this.parse_tree(this.data), replaceEquivalentFeature:true});
+            let updateOption = {is_temporary: false, add_to_feature_space_plot: true, replace_equivalent_feature: true};
+            this.draw_feature_application_tree(expression, updateOption);
         }
     }
     
@@ -1668,7 +1620,6 @@ class FeatureApplication{
             async: false,
             success: function (data, textStatus, jqXHR)
             {
-                console.log(data);
                 CNF_expression = data;
                 that.update_feature_application("direct-update", CNF_expression);
             },
@@ -1693,7 +1644,6 @@ class FeatureApplication{
             async: false,
             success: function (data, textStatus, jqXHR)
             {
-                console.log(data);
                 simplified_feature = data;
                 that.update_feature_application("direct-update", simplified_feature);
             },
@@ -1717,7 +1667,6 @@ class FeatureApplication{
             async: false,
             success: function (data, textStatus, jqXHR)
             {
-                console.log(data);
                 DNF_expression = data;
                 that.update_feature_application("direct-update", DNF_expression);
             },
@@ -1742,7 +1691,6 @@ class FeatureApplication{
             async: false,
             success: function (data, textStatus, jqXHR)
             {
-                console.log(data);
                 complexity = data;
             },
             error: function (jqXHR, textStatus, errorThrown)
@@ -1767,7 +1715,6 @@ class FeatureApplication{
             async: false,
             success: function (data, textStatus, jqXHR)
             {
-                console.log(data);
                 let typicality = data;
             },
             error: function (jqXHR, textStatus, errorThrown)

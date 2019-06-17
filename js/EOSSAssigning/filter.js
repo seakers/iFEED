@@ -41,38 +41,73 @@ class EOSSAssigningFilter extends Filter{
 
         let that = this;
         PubSub.subscribe(SET_FEATURE_MODIFICATION_MODE, (msg, data) => {
-            // data = {root: null, node: null};
-            this.stashedRoot = data.root;
-            this.stashedBaseFeature = data.node;
+            // data = {
+            //     root: feature_expression_string, 
+            //     parent: feature_expression_string, 
+            //     node: feature_expression_string, 
+            //     addition: true_or_false
+            // };
+
+            let rootExpression = data.root;
+            let parentExpression = data.parent;
+            let nodeExpression = data.node;
+            let addition = data.addition;
 
             // Change the text of the apply filter button
+            d3.select("#tab2")
+                .text(() => {
+                    if(addition){
+                        return "Feature Addition";
+                    }else{
+                        return "Feature Modification";
+                    }
+                });
+
             d3.select(".filter.title.div").select("p")
                 .style("color", "red")
                 .style("font-size", "23px")
-                .text("Feature modification mode");
+                .text(() => {
+                    if(addition){
+                        return "Feature addition mode";
+                    }else{
+                        return "Feature modification mode";
+                    }
+                });
 
             d3.select('#apply_filter_button')
-                .text('Modify the selected condition')
-                .style('color','red');
+                .style('color','red')
+                .text(() => {
+                    if(addition){
+                        return "Add new condition";
+                    }else{
+                        return "Modify the condition";
+                    }
+                });
             this._apply_filter = this.apply_filter;
 
             // Reset the callback function for the apply filter button
             this.apply_filter = () => {
-                let tempData = {root: that.stashedRoot, 
-                                node_to_be_replaced: that.stashedBaseFeature, 
+                let tempData = {root: rootExpression, 
+                                parent_node: parentExpression,
+                                node_to_be_replaced: nodeExpression, 
                                 new_node: that.generate_filter_expression_from_input_field()};
 
-                PubSub.publish(CANCEL_FEATURE_MODIFICATION_MODE, tempData);
+                PubSub.publish(END_FEATURE_MODIFICATION_MODE, tempData);
             }
 
-            // Copy the feature expression to filter input
-            this.copy_feature_expression_to_filter_input(this.stashedBaseFeature);
+            if(addition){
+                document.getElementById('tab2').click();
+            }else{
+                // Copy the feature expression to filter input
+                this.copy_feature_expression_to_filter_input(nodeExpression);
+            }
         });
 
-        PubSub.subscribe(CANCEL_FEATURE_MODIFICATION_MODE, (msg, data) => {
-           // data = {root: null, node_to_be_replaced: null, new_node: null};
-
+        PubSub.subscribe(END_FEATURE_MODIFICATION_MODE, (msg, data) => {
             // Reset to the original setting
+            d3.select("#tab2")
+                .text("Filter Setting");
+
             d3.select(".filter.title.div").select("p")
                 .style("color", "black")
                 .style("font-size", "18px")

@@ -24,6 +24,10 @@ class ExperimentTutorial{
         this.steps_to_skip = [];
         this.event_subscription = null;
 
+        this.stashed_stepIndex = null;
+        this.stashed_keywords = null;
+        this.stashed_placeholders = null;
+
         // Import the tutorial dataset
         problem.metadata.file_path = "EOSS_reduced_data.csv";
         PubSub.publish(LOAD_DATA, null);
@@ -422,31 +426,31 @@ class ExperimentTutorial{
 
                 // 14
                 "The filter \"Present\" is used to selectively highlight designs that contain a specific instrument. "
-                +"It takes in one instrument name as an argument, and selects all designs that use the specified instrument.", 
+                +"It takes in one instrument as an argument, and selects all designs that use the specified instrument.", 
 
                 // 15
-                "<p>To apply the filter, you need to type in an argument to the input text field and click the 'Apply Filter' button. </p>"
-                +"<p>Type in one of the instrument names, and apply the filter to continue.</p>", 
+                "<p>To apply the filter, you need to select an instrument and click the 'Apply Filter' button. </p>"
+                +"<p>To continue, select an instrument and apply the filter.</p>", 
 
                 // 16
                 "<p>Take a look at the scatter plot, and note that some dots have turned pink or purple. "
                 +"These dots are all the architectures that have the feature you just defined. In other words, these architectures "
                 +"use the instrument [PLACEHOLDER]. </p>"
                 +"<p>The pink dots represent designs that have the feature, but are not in the target region. "
-                +"The purple dots represent designs that have the feature and are inside the target region (highlighted in blue)</p>. ",
+                +"The purple dots represent designs that have the feature and are inside the target region (highlighted in blue). </p>",
 
                 // 17
                 "Let\'s explore one more filter. Select another filter called \"InOrbit\" to continue.", 
 
                 // 18
                 "<p>\"InOrbit\" is used to selectively highlight designs that assign a specific instrument(s) to a given orbit. </p>"
-                +"<p>It takes in an orbit name and instrument name(s) as arguments. "
+                +"<p>It takes in one orbit and one or more instruments as arguments. "
                 +"If more than one instrument name is given, then it highlights all designs "
                 +"that assign all those instruments into the specified orbit.</p>"
-                +"<p>Type in an orbit name and multiple instrument names, and apply the filter to continue.</p>", 
+                +"<p>To continue, select an orbit and more than one instruments as arguments, and click 'Apply Filter' button.</p>", 
 
                 // 19
-                "Again, the dots in pink or purple highlight the designs that have the feature you just defined ([PLACEHOLDER1] is/are assigned to [PLACEHOLDER2])", 
+                "Again, the dots in pink or purple highlight the designs that have the feature you just defined: \"[PLACEHOLDER2] is/are assigned to [PLACEHOLDER1]\"", 
 
                 // 20 Feature intro
                 "<p>So far, we have been using the term \"feature\" to refer to the description of a pattern that can be found "
@@ -486,7 +490,7 @@ class ExperimentTutorial{
                 
                 // 25
                 "<p>This time, the highlighted architectures have the feature "
-                +"\"AERO_LID and HYP_ERB are never used, and SAR_ALTIM is assigned to at least one of the orbits\". "
+                +"\"AERO_LID and HYP_ERB are never used, and SAR_ALTIM is assigned to at least one of the orbits.\" "
                 +"Let\'s call this feature B.</p>"
                 +"<p>If you look closely, you will find that many of the pink dots have disappeared. "
                 +"This is good becuase we wanted to find a feature that uniquely describes the target region "
@@ -507,7 +511,7 @@ class ExperimentTutorial{
                 +"<p>As we have seen in the previous example, there is a trade-off between these two conditions. </p>"
                 +"<p>If you try to make a feature cover more targets, you might make it too general, and make it cover non-target designs as well (too many pink dots). </p>"
                 +"<p>On the other hand, if you try to make a feature too specific, it may not cover many target designs (too few purple dots). "
-                +"Therefore, the key is finding the right balance between those two criteria</p>", 
+                +"Therefore, the key is finding the right balance between those two criteria. </p>", 
 
                 // 28 Feature space plot
                 "<p>Feature Analysis tab provides a visualization that shows how much coverage and specificity different features have.</p>", 
@@ -572,7 +576,7 @@ class ExperimentTutorial{
                 +"We will go over two of these options as examples. </p>", 
 
                 // 41
-                "<p>First, right-click on one of the logical connective nodes (AND or OR), and select \"Add feature\" option. "
+                "<p>First, right-click on one of the leaf nodes, and select \"Add feature\" option. "
                 +"(Select \"Add feature\" option to continue)</p>",
 
                 // 42
@@ -629,6 +633,7 @@ class ExperimentTutorial{
                         
             callback = function(targetElement) {
                 that.enable_introjs_nextButton();
+                that.restore_keyword_placeholder();
                 that.current_step = this._currentStep;
                 that.set_introjs_moveButtonCallback(this._currentStep);
 
@@ -643,7 +648,10 @@ class ExperimentTutorial{
                 } else if (this._currentStep === 10){
                     document.getElementById('tab1').click();
                     PubSub.publish(INSPECT_ARCH, that.problem.data[1039]);
-                
+
+                } else if (this._currentStep === 11){
+                    document.getElementById('tab1').click();
+
                 } else if (this._currentStep === 12){
                     document.getElementById('tab2').click();
 
@@ -657,8 +665,9 @@ class ExperimentTutorial{
                     
                 } else if (this._currentStep === 16){
                     document.getElementById('tab2').click();
-                    let presentInstrumentName = d3.selectAll('.filter.inputs.div').select('#filter_input_1').select('input').node().value;
-                    that.intro._introItems[this._currentStep].intro = that.intro._introItems[this._currentStep].intro.replace("[PLACEHOLDER]", presentInstrumentName);
+                    let keywords = [d3.select('.filterInputDiv.instrumentInput').select('select').node().value];
+                    let placeholders = ["[PLACEHOLDER]"];
+                    that.fill_in_keyword_placeholder(this._currentStep, keywords, placeholders);
 
                 } else if (this._currentStep === 17){
                     document.getElementById('tab2').click();
@@ -670,10 +679,19 @@ class ExperimentTutorial{
 
                 } else if (this._currentStep === 19){
                     document.getElementById('tab2').click();
-                    let inOrbitOrbName = d3.selectAll('.filter.inputs.div').select('#filter_input_1').select('input').node().value;
-                    let inOrbitInstrName = d3.selectAll('.filter.inputs.div').select('#filter_input_2').select('input').node().value;
-                    that.intro._introItems[this._currentStep].intro = that.intro._introItems[this._currentStep].intro.replace("[PLACEHOLDER1]", inOrbitInstrName);
-                    that.intro._introItems[this._currentStep].intro = that.intro._introItems[this._currentStep].intro.replace("[PLACEHOLDER2]", inOrbitOrbName);
+
+                    let orbit = d3.select('.filterInputDiv.orbitInput').select('select').node().value;
+                    let instruments = [];
+                    let instrumentSelects = d3.selectAll('.filterInputDiv.instrumentInput').selectAll('select').nodes();
+                    for(let i = 0; i < instrumentSelects.length; i++){
+                        if(instrumentSelects[i].value !== "select"){
+                            instruments.push(instrumentSelects[i].value);
+                        }
+                    }
+                    let instrumentKeyword = "{" + instruments.join(", ") + "}";
+                    let keywords = [orbit, instrumentKeyword];
+                    let placeholders = ["[PLACEHOLDER1]", "[PLACEHOLDER2]"];
+                    that.fill_in_keyword_placeholder(this._currentStep, keywords, placeholders);
 
                 } else if (this._currentStep === 23){
                     that.experiment.feature_application.update_feature_application("direct-update", tutorial_feature_example_e);
@@ -700,8 +718,10 @@ class ExperimentTutorial{
                     document.getElementById('tab3').click();
                     let expression = that.feature_application.parse_tree(that.feature_application.data);
                     let ppExpression = that.label.pp_feature_description(expression);
-                    that.intro._introItems[this._currentStep].intro = that.intro._introItems[this._currentStep].intro.replace("[PLACEHOLDER]", ppExpression);
-                
+                    let keywords = [ppExpression];
+                    let placeholders = ["[PLACEHOLDER]"];
+                    that.fill_in_keyword_placeholder(this._currentStep, keywords, placeholders);
+
                 } else if(this._currentStep === 38){
                     document.getElementById('tab3').click();
                     that.experiment.feature_application.update_feature_application("direct-update", tutorial_feature_example_d);
@@ -734,7 +754,6 @@ class ExperimentTutorial{
 
                 } else if(this._currentStep === 50){
                     document.getElementById('tab3').click();
-
                     let feature_application = that.experiment.feature_application;
                     let previousFeature = feature_application.construct_tree(feature_application, tutorial_feature_example_g);
                     let newFeature = feature_application.data;
@@ -752,9 +771,11 @@ class ExperimentTutorial{
                             addedBaseFeature = d1;
                         }
                     })
-
                     let ppExpression = that.experiment.label.pp_feature_single(addedBaseFeature.name);
-                    that.intro._introItems[this._currentStep].intro = that.intro._introItems[this._currentStep].intro.replace(/\[PLACEHOLDER\]/g, ppExpression);
+
+                    let keywords = [ppExpression, ppExpression];
+                    let placeholders = ["[PLACEHOLDER]", "[PLACEHOLDER]"];
+                    that.fill_in_keyword_placeholder(this._currentStep, keywords, placeholders);
                 
                 } else if(this._currentStep === 51){
                     document.getElementById('tab3').click();
@@ -971,6 +992,26 @@ class ExperimentTutorial{
         }
                 
         this.start_intro(objects, contents, classname, callback, stage);
+    }
+
+    fill_in_keyword_placeholder(stepIndex, keywords, placeholders){
+        this.stashed_stepIndex = stepIndex;
+        this.stashed_keywords = keywords;
+        this.stashed_placeholders = placeholders;
+        for(let i = 0; i < keywords.length; i++){
+            this.intro._introItems[stepIndex].intro = this.intro._introItems[stepIndex].intro.replace(placeholders[i], keywords[i]);
+        }
+    }
+
+    restore_keyword_placeholder(){
+        if(this.stashed_stepIndex){
+            for(let i = 0; i < this.stashed_keywords.length; i++){
+                this.intro._introItems[this.stashed_stepIndex].intro = this.intro._introItems[this.stashed_stepIndex].intro.replace(this.stashed_keywords[i], this.stashed_placeholders[i]);
+            }
+            this.stashed_stepIndex = null;
+            this.stashed_keywords = null;
+            this.stashed_placeholders = null;
+        }
     }
 
     disable_introjs_nextButton(){

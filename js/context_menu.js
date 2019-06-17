@@ -4,7 +4,6 @@
 class ContextMenu {
     
     constructor(feature_application){
-
         this.feature_application = feature_application;
         this.root = feature_application.data;
     
@@ -28,7 +27,7 @@ class ContextMenu {
         };      
         
         this.contextItems = {
-            'logic':[{'value':'addChild','text':'Add feature'},
+            'logic':[{'value':'addChild','text':'Add child node here'},
                      {'value':'toggle-logic','text':'Change to X'}],
 
             'logic-if-then':[{'value':'addToConditional','text':'Add feature to conditional'},
@@ -84,14 +83,36 @@ class ContextMenu {
         let type = context.type;
         let logic = context.name;
         let depth = context.depth;    
-        let add = context.add;
         let deactivated = context.deactivated;
 
-        let hasChildren;
+        let hasChildren = null;
         if(context.children){
             hasChildren = context.children.length !== 0;
         }else{
             hasChildren = false;
+        }
+
+        let isBeingModified = false;
+        if(this.feature_application.featureModificationModeOn){
+            if(type === "leaf"){
+                if(context.highlighted){
+                    isBeingModified = true;
+                }
+            }else if(type === "logic"){
+                if(context.highlighted){
+                    let childNodeHighlighted = false;
+                    for(let i = 0; i < context.children.length; i++){
+                        if(context.children[i].highlighted){
+                            // Child node is being modified, not the current node
+                            childNodeHighlighted = true;
+                            break;
+                        }
+                    }
+                    if(!childNodeHighlighted){
+                        isBeingModified = true;
+                    }
+                }
+            }
         }
 
         let items = [];
@@ -221,7 +242,6 @@ class ContextMenu {
             .styles({'cursor': 'pointer'});
 
         let that = this;
-
         d3.selectAll('.menu-entry')
             .on('mouseover', function(d){ 
                 d3.select(this).select('rect').styles(that.style.rect.mouseover) })
@@ -243,12 +263,11 @@ class ContextMenu {
             .append('text')
             .text(function(d){             
                 if(d.value === 'addChild'){
-                    if(add){
-                        return 'Cancel Add feature';
+                    if(isBeingModified){
+                        return 'Cancel adding child node';
                     }else{
-                        return 'Add feature';
+                        return 'Add child node here';
                     }
-                   
                 }else if(d.value === 'toggle-logic'){
                     if(logic === 'AND'){
                         return 'Change to OR';
@@ -268,10 +287,10 @@ class ContextMenu {
                         return 'Expand';
                     }
                 }else if(d.value === 'modifyBaseFeature'){
-                    if(!that.feature_application.featureModificationModeOn){
-                        return 'Modify this feature';
-                    }else{
+                    if(isBeingModified){
                         return 'Cancel modifying this feature';
+                    }else{
+                        return 'Modify this feature';
                     }
                 }else{
                     return d.text; 
@@ -292,7 +311,6 @@ class ContextMenu {
     
     // Automatically set width, height, and margin;
     scaleItems(context, items) {
-        
         let type = context.type;
         let logic = context.name;
         let depth = context.depth;
@@ -342,7 +360,6 @@ class ContextMenu {
     
     ContextMenuAction(context, option){
         let that = this;
-        let skip_feature_update = false;
 
         let feature_application = this.feature_application;
         let root = feature_application.data;
@@ -353,36 +370,69 @@ class ContextMenu {
         let parse_tree = feature_application.parse_tree;
 
         let node = context;
+        let type = node.type;
         let nodeID = node.id;
         let parent = node.parent;
 
-        // 'logic':[addChild, toggle-logic],     
-        // 'leaf':[],
-        // 'default':[addParent,duplicate,toggle-activation,delete]
+        let isBeingModified = false;
+        if(feature_application.featureModificationModeOn){
+            if(type === "leaf"){
+                if(node.highlighted){
+                    isBeingModified = true;
+                }
+            }else if(type === "logic"){
+                if(node.highlighted){
+                    let childNodeHighlighted = false;
+                    for(let i = 0; i < node.children.length; i++){
+                        if(node.children[i].highlighted){
+                            // Child node is being modified, not the current node
+                            childNodeHighlighted = true;
+                            break;
+                        }
+                    }
+                    if(!childNodeHighlighted){
+                        isBeingModified = true;
+                    }
+                }
+            }
+        }
 
         feature_application.visit_nodes(root, function(d){
             d.highlighted = false;
         });
 
+        let updateOption = {add_to_feature_space_plot: true, replace_equivalent_feature: true};
+
         if(node.type === 'logic'){
 
             switch(option) { // Logical connective node
                 case 'addChild':
+                    if(isBeingModified){ // Cancel adding child node to the current logical connective node
+                        PubSub.publish(END_FEATURE_MODIFICATION_MODE, null);
+
+                    }else{
+                        feature_application.featureModificationModeOn = false;
+                        visit_nodes(root, function(d){
+                            d.highlighted = false;
+                        });
+
+                        // Highlight the current node
+                        node.highlighted = true;
+
+                        let data = {
+                            root: feature_application.parse_tree(root), 
+                            parent: feature_application.parse_tree(node),
+                            node: null,
+                            addition: true    
+                        }
+
+                        // Send information to the filter
+                        PubSub.publish(SET_FEATURE_MODIFICATION_MODE, data); 
+                    }
+                    updateOption.add_to_feature_space_plot = false;
 
                     // EXPERIMENT 
-                    PubSub.publish(EXPERIMENT_TUTORIAL_EVENT, "contextmenu_add_feature");  
-
-                    if(node.add){
-                        node.add = false;
-                    }else{
-                        visit_nodes(feature_application.data, (d) => {
-                            if(d.id === nodeID){
-                                d.add = true;
-                            }else{
-                                d.add = false;
-                            }
-                        });
-                    }
+                    PubSub.publish(EXPERIMENT_TUTORIAL_EVENT, "contextmenu_add_feature");
                     break;
 
                 case 'toggle-logic':
@@ -429,10 +479,11 @@ class ContextMenu {
             switch(option) { // Leaf node
 
                 case 'modifyBaseFeature':
-                    if(that.feature_application.featureModificationModeOn){
-                        PubSub.publish(CANCEL_FEATURE_MODIFICATION_MODE, {root: null, node_to_be_replaced: null, new_node: null});
+                    if(isBeingModified){ // 
+                        PubSub.publish(END_FEATURE_MODIFICATION_MODE, null);
 
                     }else{
+                        feature_application.featureModificationModeOn = false;
                         visit_nodes(root, function(d){
                             d.highlighted = false;
                         });
@@ -442,28 +493,30 @@ class ContextMenu {
                         if(node.parent){
                             node.parent.highlighted = true;
                         }
-                        
-                        // Update the feature tree
-                        feature_application.update(); 
+
+                        let data = {
+                            root: feature_application.parse_tree(root), 
+                            parent: feature_application.parse_tree(node),
+                            node: node.name,
+                            addition: false    
+                        }
 
                         // Send information to the filter
-                        PubSub.publish(SET_FEATURE_MODIFICATION_MODE, {root: feature_application.parse_tree(root), node: node.name}); 
+                        PubSub.publish(SET_FEATURE_MODIFICATION_MODE, data); 
                     }
-                    skip_feature_update = true;
+                    updateOption.add_to_feature_space_plot = false;
                     break;
 
                 default:
                     break;
             }
-
         }
 
         // Default options
         switch(option) {
             case 'applyFeatureBranch':
-                    let branch = feature_application.parse_tree(node);
-                    feature_application.update_feature_application('direct-update', branch);
-                    skip_feature_update = true;
+                    feature_application.update_feature_application('direct-update', feature_application.parse_tree(node));
+                    updateOption = null;
                     break;
 
             case 'addParent':
@@ -496,6 +549,8 @@ class ContextMenu {
                     }
                     feature_application.data = construct_node(feature_application, 0, "logic", logic, [node], null);
                 }
+
+                updateOption.add_to_feature_space_plot = false;
                 break;
 
             case 'addIfThen':
@@ -643,12 +698,11 @@ class ContextMenu {
                 break;
         }    
 
-        if(skip_feature_update){
+        if(!updateOption){
             return;
-        }
-
-        feature_application.update();   
-        PubSub.publish(ADD_FEATURE_FROM_EXPRESSION, {expression:feature_application.parse_tree(root), replaceEquivalentFeature: true});       
+        } else {
+            feature_application.update(updateOption);   
+        }        
     }
 
     display_ifThen_deactivation_message(){

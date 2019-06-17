@@ -690,7 +690,6 @@ class DataMining{
         if(this.allFeatures.length === 0 && featuresToBeAdded == null){
             return;
         }
-
         document.getElementById('tab3').click();
 
         // Set variables
@@ -1125,9 +1124,6 @@ class DataMining{
 
         // EXPERIMENT
         PubSub.publish(EXPERIMENT_EVENT, {key:"feature_viewed"});
-
-        // this.update(null, null, this.currentFeature);
-        // this.generalize_feature();
     }
 
     feature_mouseover(d){
@@ -1230,8 +1226,6 @@ class DataMining{
     }
 
     feature_mouseout(d){
-        let id = d.id;
-
         // Remove the tooltip
         d3.selectAll("#tooltip_g").remove();
 
@@ -1430,7 +1424,6 @@ class DataMining{
             async: false,
             success: function (data, textStatus, jqXHR)
             {
-                console.log("Clustering finished");
                 cluster_result = data;
             },
             error: function (jqXHR, textStatus, errorThrown)

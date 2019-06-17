@@ -51,19 +51,26 @@ class Filter{
         this.presetFeatureTypes = presetFeatureTypes;
         this.label = labelingScheme;
         this.data = null;
-
-        this.stashedBaseFeature = null;
-        this.stashedRoot = null;
-
         this.initialize();
 
         PubSub.subscribe(APPLY_FEATURE_EXPRESSION, (msg, data) => {
-            if(this.data !== null){
-                this.apply_filter_expression(data);
-            }
 
-            if(data !== this.stashedRoot){
-                d3.select('#replace_base_feature_button').remove();
+            if(this.data !== null){
+                let expression = null;
+                if(data){
+                    expression = data.expression;
+                    if(data.option){
+                        let replaceEquivalentFeature = false;
+                        if(data.option.replace_equivalent_feature){
+                            replaceEquivalentFeature = true;
+                        }
+
+                        if(data.option.add_to_feature_space_plot){
+                            PubSub.publish(ADD_FEATURE_FROM_EXPRESSION, {expression: expression, replaceEquivalentFeature: replaceEquivalentFeature});
+                        }
+                    }   
+                }
+                this.apply_filter_expression(expression);
             }
         });   
 

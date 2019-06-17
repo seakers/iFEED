@@ -34,7 +34,7 @@ const GENERALIZE_FEATURE = "generalize_feature";
 const REMOVE_FEATURE_CURSOR = "remove_feature_cursor";
 
 const SET_FEATURE_MODIFICATION_MODE = "set_feature_modification_mode";
-const CANCEL_FEATURE_MODIFICATION_MODE = "cancel_feature_modification_mode";
+const END_FEATURE_MODIFICATION_MODE = "end_feature_modification_mode";
 
 
 
