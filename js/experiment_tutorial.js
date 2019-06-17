@@ -69,7 +69,7 @@ class ExperimentTutorial{
 
             // Set steps to skip
             if(this.treatmentCondition === 0){
-                this.steps_to_skip = [21];
+                this.steps_to_skip = [21, 50, 51, 52, 53, 54];
             }else if(this.treatmentCondition === 1){
                 this.steps_to_skip = [20];
             }else if(this.treatmentCondition === 2){
@@ -165,7 +165,9 @@ class ExperimentTutorial{
         this.intro.onafterchange(function(){          
             if (this._introItems.length - 1 == this._currentStep || this._introItems.length == 1) {
 
-                if(stage !== "tutorial"){
+                if(stage === "tutorial" && that.experiment.treatmentCondition !== 2){
+                    $('.introjs-skipbutton').show();
+                } else if (stage !== "tutorial"){
                     $('.introjs-skipbutton').show();
                 }
 
@@ -174,7 +176,7 @@ class ExperimentTutorial{
                         if(stage === "tutorial_end"){
                             return "DONE";
                         }else if(stage === "learning"){
-                            return "START DESIGN ANALYSIS TASK";
+                            return "LOAD PROBLEM SET";
                         }else if(stage === "design_synthesis"){
                             return "START DESIGN SYNTHESIS TASK";
                         }else if(stage === "learning_end"){
@@ -188,7 +190,21 @@ class ExperimentTutorial{
         });
 
         this.intro.oncomplete(function() {
-            if(stage === "tutorial_end"){ 
+
+            if(stage === "tutorial"){
+                if(that.experiment.treatmentCondition === 0 || that.experiment.treatmentCondition === 1){
+                    // Load the data
+                    that.problem.metadata.file_path = "ClimateCentric_050819.csv";
+                    PubSub.publish(LOAD_DATA, null);
+
+                    // Generate sign in message
+                    that.experiment.generateSignInMessage(() => {
+                        that.experiment.load_learning_task();
+                        setTimeout(() => { PubSub.publish(EXPERIMENT_TUTORIAL_START, null);}, 1000);
+                    });
+                }
+
+            } else if(stage === "tutorial_end"){ 
 
                 // Load the data
                 that.problem.metadata.file_path = "ClimateCentric_050819.csv";
@@ -325,6 +341,8 @@ class ExperimentTutorial{
                 d3.selectAll('#support_panel').node(), // 52
                 d3.select('#feature_application').node(), // 53
                 d3.select('.column.c2').node(), // 54
+                undefined, // 55
+                undefined, // 56
             ];
 
             contents = [
@@ -613,8 +631,8 @@ class ExperimentTutorial{
                 "<p>The node that was selected have been replaced by the new condition.</p>",
 
                 // 49
-                "<p>Other possible actions that can be applied to the node of a feature tree include \"Deactivate\" and \"Delete\". "
-                +"These options are used to deactivate and to delete the current node (or branch), respectively. </p>"
+                "<p>Other possible actions that can be applied to the node of a feature tree include \"Add parent branch\", \"Deactivate\" and \"Delete\". "
+                +"These options are used to add a parent node, deactivate the current node, and to delete the node, respectively. </p>"
                 +"<p>You can try different options in later tasks, as you use analyze the data.</p>",
 
                 // 50
@@ -645,6 +663,15 @@ class ExperimentTutorial{
                 +"<p>This button triggers a search for a more compact and general knowledge. It may help extracting information in a more "
                 +"useful form than what is represented in the current feature.</p>"
                 +"<p>To continue, click \"Generalize feature\" button</p>",
+
+                // 55
+                "<p>We just covered all the capabilities of iFEED, and now you are ready to start the experiment. </p>"
+                +"<p>The first part of the experiment will be conducted on a separate window, which will be loaded automatically "
+                +"after clicking the next button below.</p>",
+
+                // 56
+                "<p>Participant ID: "+ that.experiment.participantID +"</p>" ,
+
             ];
 
             classname = 'introjs_tooltip_large';
@@ -734,6 +761,7 @@ class ExperimentTutorial{
 
                 } else if(this._currentStep === 36){
                     document.getElementById('tab3').click();
+                    that.experiment.feature_application.update_feature_application("direct-update", tutorial_feature_example_f);
                     let expression = that.feature_application.parse_tree(that.feature_application.data);
                     let ppExpression = that.label.pp_feature_description(expression);
                     let keywords = [ppExpression];
@@ -751,6 +779,7 @@ class ExperimentTutorial{
                 
                 } else if(this._currentStep === 41){
                     document.getElementById('tab3').click();
+                    that.filter.initialize();
                     that.experiment.feature_application.update_feature_application("direct-update", tutorial_feature_example_d);
                     that.start_tutorial_event_listener("contextmenu_add_feature", this._currentStep);
                 
@@ -764,15 +793,10 @@ class ExperimentTutorial{
                 
                 } else if(this._currentStep === 47){
                     document.getElementById('tab2').click();
-                    that.start_tutorial_event_listener("contextmenu_modify_feature", this._currentStep);
+                    that.start_tutorial_event_listener("filter_modification", this._currentStep);
                 
                 } else if(this._currentStep === 48){
                     document.getElementById('tab2').click();
-                    let experiment_stashed_node_before = that.label.pp_feature_description(that.feature_application.experiment_stashed_node_before);
-                    let experiment_stashed_node_after = that.label.pp_feature_description(that.feature_application.experiment_stashed_node_after);
-                    let keywords = [experiment_stashed_node_before, experiment_stashed_node_after];
-                    let placeholders = ["[PLACEHOLDER1]", "[PLACEHOLDER2]"];
-                    that.fill_in_keyword_placeholder(this._currentStep, keywords, placeholders);
 
                 } else if(this._currentStep === 50){
                     document.getElementById('tab3').click();
@@ -825,6 +849,9 @@ class ExperimentTutorial{
 
                     that.start_tutorial_event_listener("generalization_suggestion", this._currentStep, listenerCallback);
                     that.experiment.feature_application.update_feature_application("direct-update", tutorial_feature_example_h);
+                
+                } else if(this._currentStep === 56){
+                    window.open("https://www.selva-research.com/ifeed-experiment-conceptmap/")
                 }
             }
 
@@ -840,24 +867,29 @@ class ExperimentTutorial{
             
             contents = [
 
+                // 0
                 "<p>When the algorithm successfully finds a way to generalize the knowledge in the current feature, a popup message "
                 +"will appear as shown.</p>",
 
+                // 1
                 "<p>The suggestion here is to generalize the knowledge by replacing instruments AERO_LID and HYP_IMAG "
                 +"to the concept \"Instrument that is capable of taking measurements related to vegetation (e.g. type, structure, leaf are)\"</p>"
                 +"<p>This generalization can be made as both instruments take measurements such as leaf area index.</p>",
 
+                // 2
                 "<p>You can either accept the suggestion or reject it, depending on whether you think the suggested generalization "
                 +"is useful or not. For now, click \"Accept\" to continue.</p>",
 
+                // 3
                 "<p>Note that a new node with generalized variable is added to the current feature. </p>"
                 +"<p>Generalization of knowledge may be helpful in finding useful knowledge that is otherwise very hard to identify.</p>",
                 
-                // 
+                // 4
                 "<p>We just covered all the capabilities of iFEED, and now you are ready to start the experiment. </p>"
                 +"<p>The first part of the experiment will be conducted on a separate window, which will be loaded automatically "
                 +"after clicking the next button below.</p>",
 
+                // 5
                 "<p>Participant ID: "+ that.experiment.participantID +"</p>" ,
 
                 ];

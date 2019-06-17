@@ -103,6 +103,7 @@ class Experiment{
         this.stage = "learning";
 
         // Reset features
+        this.filter.initialize();
         this.data_mining.initialize();
         this.feature_application.clear_feature_application();
         PubSub.publish(INITIALIZE_FEATURE_APPLICATION, null);
@@ -338,12 +339,20 @@ class Experiment{
 
         if(this.treatmentCondition === 0){
             treatmentConditionName = "manual_generalization";
+            d3.select('#conjunctive_local_search').remove();
+            d3.select('#disjunctive_local_search').remove();
+            d3.select('#generalize_feature').remove();
 
         }else if(this.treatmentCondition === 1){
             treatmentConditionName = "automated_generalization";
             // Disable filter
             d3.select("#tab2").text('-');
             d3.select("#view2").selectAll('g').remove();
+
+            
+            d3.select('#conjunctive_local_search').remove();
+            d3.select('#disjunctive_local_search').remove();
+            d3.select('#generalize_feature').remove();
 
         }else if(this.treatmentCondition === 2){
             treatmentConditionName = "interactive_generalization";
