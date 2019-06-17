@@ -132,6 +132,17 @@ class Filter{
             // EXPERIMENT 
             PubSub.publish(EXPERIMENT_TUTORIAL_EVENT, "filter_select_" + option);
         });    
+
+        // EXPERIMENT
+        let filtersToBeRemoved = ["paretoFront", "absentExceptInOrbit", "notInOrbitExceptInstrument", "notInOrbitExceptOrbit"];
+        d3.select('.filter.options.dropdown')
+            .selectAll('option')
+            .nodes()
+            .forEach((d)=>{
+                if(filtersToBeRemoved.indexOf(d.value) !== -1){
+                    d3.select(d).remove();
+                }
+            });
     }
     
     get_preset_option(option){

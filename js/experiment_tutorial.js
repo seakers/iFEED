@@ -69,11 +69,12 @@ class ExperimentTutorial{
 
             // Set steps to skip
             if(this.treatmentCondition === 0){
-                this.steps_to_skip = [21, 50, 51, 52, 53, 54];
+                this.steps_to_skip = [21, 24, 51, 52, 53, 54, 55];
             }else if(this.treatmentCondition === 1){
-                this.steps_to_skip = [20];
+                this.steps_to_skip = [12, 13, 14, 15, 16, 17, 18, 19, 20, 23, 38, 39, 
+                                        40, 41, 42, 43, 44, 45, 46, 47, 48, 49, 50, 51, 52, 53, 54, 55];
             }else if(this.treatmentCondition === 2){
-                this.steps_to_skip = [21];
+                this.steps_to_skip = [21, 24];
             } 
 
             // Load the treatment condition
@@ -194,7 +195,7 @@ class ExperimentTutorial{
             if(stage === "tutorial"){
                 if(that.experiment.treatmentCondition === 0 || that.experiment.treatmentCondition === 1){
                     that.experiment.clock.stop();
-                    
+
                     // Load the data
                     that.problem.metadata.file_path = "ClimateCentric_050819.csv";
                     PubSub.publish(LOAD_DATA, null);
@@ -313,39 +314,40 @@ class ExperimentTutorial{
                 undefined, // 21
                 undefined, // 22
                 d3.select('.tradespace_plot.figure').node(), // 23
-                null, // 24
+                d3.select('.tradespace_plot.figure').node(), // 24
                 null, // 25
                 null, // 26
                 null, // 27
-                d3.selectAll('#support_panel').node(), // 28
-                null, // 29
+                null, // 28
+                d3.selectAll('#support_panel').node(), // 29
                 null, // 30
-                d3.select('#content').node(), // 31
-                d3.select('.tradespace_plot.figure').node(), // 32
-                d3.select('.column.c2').node(), // 33
-                d3.selectAll('#support_panel').node(), // 34
-                null, // 35
-                d3.select('#feature_application').node(), // 36
-                null, // 37
+                null, // 31
+                d3.select('#content').node(), // 32
+                d3.select('.tradespace_plot.figure').node(), // 33
+                d3.select('.column.c2').node(), // 34
+                d3.selectAll('#support_panel').node(), // 35
+                null, // 36
+                d3.select('#feature_application').node(), // 37
                 null, // 38
-                d3.select('.column.c1').node(), // 39
-                d3.select('#feature_application').node(), // 40
-                null, // 41
+                null, // 39
+                d3.select('.column.c1').node(), // 40
+                d3.select('#feature_application').node(), // 41
                 null, // 42
-                d3.selectAll('#support_panel').node(), // 43
-                d3.select('#feature_application').node(), // 44
-                null, // 45
+                null, // 43
+                d3.selectAll('#support_panel').node(), // 44
+                d3.select('#feature_application').node(), // 45
                 null, // 46
-                d3.selectAll('#support_panel').node(), // 47
-                d3.select('.column.c2').node(), // 48
-                null, // 49
-                d3.select('#feature_expression_panel').node(), // 50
-                d3.select('.column.c2').node(), // 51
-                d3.selectAll('#support_panel').node(), // 52
-                d3.select('#feature_application').node(), // 53
-                d3.select('.column.c2').node(), // 54
-                undefined, // 55
+                null, // 47
+                d3.selectAll('#support_panel').node(), // 48
+                d3.select('.column.c2').node(), // 49
+                null, // 50
+                d3.select('#feature_expression_panel').node(), // 51
+                d3.select('.column.c2').node(), // 52
+                d3.selectAll('#support_panel').node(), // 53
+                d3.select('#feature_application').node(), // 54
+                d3.select('.column.c2').node(), // 55
                 undefined, // 56
+                undefined, // 57
             ];
 
             contents = [
@@ -508,11 +510,19 @@ class ExperimentTutorial{
                 +"We say that this feature has a good coverage of target designs. Such good coverage is desired in a good feature.</p>", 
 
                 // 24
+                "<p>The architectures currently highlighted in pink and purple represent architectures that \"do not assign HYP_ERB to any orbit\". "
+                +"Let\'s call this feature A.</p>" 
+                +"<p>The pink dots represent designs that have the feature, but are not in the target region. "
+                +"The purple dots represent designs that have the feature and are inside the target region (highlighted in blue). </p>"
+                +"<p>Note that many of the target designs share feature A (as indicated by the large number of purple dots). "
+                +"We say that this feature has a good coverage of target designs. Such good coverage is desired in a good feature.</p>", 
+
+                // 25
                 "<p>However, feature A is not necessarily what we are looking for. It is too general, meaning that it also applies to "
                 +"many of the non-target designs as well (as indicated by the large number of pink dots). "
                 +"This leads us to the next criterion used to define a good feature.</p>", 
                 
-                // 25
+                // 26
                 "<p>This time, the highlighted architectures have the feature "
                 +"\"AERO_LID and HYP_ERB are never used, and SAR_ALTIM is assigned to at least one of the orbits.\" "
                 +"Let\'s call this feature B.</p>"
@@ -522,13 +532,13 @@ class ExperimentTutorial{
                 +"<p>We say that feature B is specific to the target region, and this is the second criterion "
                 +"that we require from a good feature.</p>", 
 
-                // 26
+                // 27
                 "<p>However, you may notice that many of the purple dots (target designs covered by the feature) have also disappeared. "
                 +"Only a small portion of the targets are in purple color now.</p>"
                 +"<p>Therefore, feature B is too specific, meaning that it only accounts for a small number of targets. "
                 +"Or you can say that the coverage of target designs has decreased. </p>", 
 
-                // 27
+                // 28
                 "<p>As you may have noticed, there are two conflicting criteria that we are seeking from a good feature: </p>"
                 +"<ol><li>Coverage (The feature should cover a large area of the target region - maximize the number of purple dots)</li>"
                 +"<li>Specificity (The feature should be specific enough, so that it does not cover the non-target region - minimize the number of pink dots)</li></ol>"
@@ -537,42 +547,42 @@ class ExperimentTutorial{
                 +"<p>On the other hand, if you try to make a feature too specific, it may not cover many target designs (too few purple dots). "
                 +"Therefore, the key is finding the right balance between those two criteria. </p>", 
 
-                // 28 Feature space plot
+                // 29 Feature space plot
                 "<p>Feature Analysis tab provides a visualization that shows how much coverage and specificity different features have.</p>", 
 
-                // 29
+                // 30
                 "<p>In this plot, each feature is represented as a triangle.</p>"
                 +"<p>The horizontal axis corresponds to the specificity, and the vertical axis corresponds to the coverage of a feature.</p>"
                 +"<p>The color of a triangle represents how complex a feature is. Features that are blue are the simplest, "
                 +"and they get more complex as the color gets close to red.</p>", 
 
-                // 30
+                // 31
                 "<p>Again, a good feature must have both large specificity and large coverage.</p>", 
 
-                // 31
+                // 32
                 "<p>As you hover the mouse over each feature, you can notice two changes occurring in the interface.</p>"
                 +"<p>(Try hovering the mouse over a feature before continuing)</p>", 
 
-                // 32
+                // 33
                 "<p>First, a group of dots on the scatter plot is highlighted in pink and purple color. </p>"
                 +"<p>Again, pink and purple dots represent designs have the feature that you are currently inspecting "
                 +"(purple is the overlap between pink and blue)</p>", 
 
-                // 33
+                // 34
                 "<p>Second, a graphical representation of the feature will appear in the Feature Application panel.</p>"
                 +"<p>The Feature Application panel shows the current feature that is applied.</p>", 
 
-                // 34
+                // 35
                 "<p>To add features to the Feature Application Panel, you have to click on one of the features shown on the Feature Analysis tab.</p>"
                 +"<p> Hovering your mouse over the features will result in a temporary change in the Feature Application Panel, "
                 +"and by clicking you can fix the change.</p>"
                 +"<p>(To continue, click on a feature to fix the feature in Feature Application Panel)</p>", 
 
-                // 35
+                // 36
                 "Once a feature is clicked, you will see that a cursor appears. "
                 +"The cursor shows where the currently selected feature is located.", 
 
-                // 36
+                // 37
                 "<p>In the graphical representation of a feature, there exist two different types of nodes: </p>"
                 +"<ol><li>logical connectives (AND, OR)</li>"
                 +"<li>individual conditions</li></ol>"
@@ -580,99 +590,99 @@ class ExperimentTutorial{
                 +"should be combined logically.</p>"
                 +"<p>The current feature can be described in text as: \"[PLACEHOLDER]\"</p>", 
 
-                // 37
+                // 38 Feature tree interaction
                 "<p>The feature graph not only acts as a visualization, but also as an interface for "
                 +"interactively modifying existing features or defining new ones.</p>",
 
-                // 38
+                // 39
                 "<p>You can move an individual node and place it under a different parent node using drag and drop. "
                 +"When you drag each node, temporary pink circles will appear around all other logical connective nodes. "
                 +"If you drop a node in one of those circles, the node will be added under that particular logical connective.</p>"
                 +"<p>To continue, try moving one node and placing it under a different parent node. </p>",
 
-                // 39
+                // 40
                 "<p>Note that, as you make changes in the feature graph, the main scatter plot and the feature analysis "
                 +"tab reflect the changes in real time.</p>",
 
-                // 40
+                // 41
                 "<p>You can view the options for various actions by right-clicking on each node. "
                 +"<p>There may be different set of options depending on the type of each node. "
                 +"We will go over two of these options as examples. </p>", 
 
-                // 41
+                // 42
                 "<p>First, right-click on one of the logical connective nodes (AND or OR), and select \"Add child node here\" option. "
                 +"(To continue, select \"Add child node here\" option)</p>",
 
-                // 42
+                // 43
                 "<p>Note that the color of the logical connective node turned red. This indicates when you add a condition, "
                 +"it will be added under this parent node.</p>",
 
-                // 43
+                // 44
                 "<p>Note that the title (highlighted in red) changed to \"Feature addition mode\". This indicates that when you apply a filter, "
                 +"it will be added as a condition under the selected logical connective node. </p>"
                 +"<p>To add a new condition, simply define a filter and click the button \"Add new condition\".</p>"
                 +"<p>(To continue, define a new filter by clicking \"Add new condition\" button)</p>",
 
-                // 44
+                // 45
                 "<p>Note that a new node is added to the selected logical connective node. </p>",
 
-                // 45
+                // 46
                 "<p>Let\'s try another option. Right-click on one of the leaf nodes and select \"Modify this feature\" option. "
                 +"(Select \"Modify this feature\" option to continue)</p>",
 
-                // 46
+                // 47
                 "<p>Similarly as before, the color of the node and its connection to the parent node changed to red. "
                 +"This indicates that when you test a new condition, it will replace the current node.</p>",
 
-                //47
+                //48
                 "<p>Again, the title text (highlighted in red) indicates that you are currently in \"Feature modification mode\". "
                 +"<p>This time, the arguments of the selected condition have been copied to the filter setting tab. This "
                 +"makes it easier to make modifications to the currently selected condition.</p>"
                 +"<p>(To continue, try making a slight change to the current condition and apply it by clicking \"Modify the condition\" button)</p>",
 
-                // 48
+                // 49
                 "<p>The selected node has been replaced by the new condition.</p>",
 
-                // 49
+                // 50
                 "<p>Other possible actions that can be applied to the node of a feature tree include \"Add parent branch\", \"Deactivate\" and \"Delete\". "
                 +"These options are used to add a parent node, deactivate the current node, and to delete the node, respectively. </p>"
                 +"<p>You can try different options in later tasks, as you use analyze the data.</p>",
 
-                // 50
+                // 51 Local Search and Generalization
                 "<p>While you can test different features by manually modifying the feature, there are also automatic helper functions "
                 +"that improve the currently selected feature. </p>",
 
-                // 51
+                // 52
                 "<p>Once a feature has been selected, you can click either \"Improve specificity\", or \"Improve coverage\" button to "
                 +"improve one of the metrics. </p>"
                 +"<p>\"Improve specificity\" button improves specificity by adding a new condition using AND (conjucntion), "
                 +"while \"Improve coverage\" improves coverage by adding a new condition using OR (disjunction). </p>"
                 +"<p>The current feature has good coverage and poor specificity. So, try clicking \"Improve specificity\" button.</p>",
 
-                // 52
+                // 53
                 "<p>Note that some crosses appeared in the plot. If there are features that improve the current feature, "
                 +"they will appear in the Feature plot as crosses.</p>"
                 +"<p>You can use these helper functions to improve coverage and specificity of a feature up to a certain level. </p>"
                 +"<p>To continue, click one of the newly tested features (crosses)</p>",
                 
-                // 53
+                // 54
                 "<p>If you compare this feature to the previous one, the condition [PLACEHOLDER] has just been added. </p>"
                 +"<p>Since \"Improve specificity\" button was clicked, the condition [PLACEHOLDER] was added under the logical connective AND. "
                 +"Similarly, \"Improve coverage\" may be used to improve the coverage of a feature by adding new conditions under OR. </p>",
 
-                // 54
+                // 55
                 "<p>Another helper function that is available for use is generalizing the selected feature by clicking "
                 +"\"Generalize feature\" button.</p>"
                 +"<p>This button triggers a search for a more compact and general knowledge. It may help extracting information in a more "
                 +"useful form than what is represented in the current feature.</p>"
                 +"<p>To continue, click \"Generalize feature\" button</p>",
 
-                // 55
+                // 56
                 "<p>We just covered all the capabilities of iFEED, and now you are ready to start the experiment. </p>"
                 +"<p>The first part of the experiment will be conducted on a separate window, which will be loaded automatically "
                 +"after clicking the next button below.</p>",
 
-                // 56
+                // 57
                 "<p>Participant ID: "+ that.experiment.participantID +"</p>" ,
 
             ];
@@ -744,25 +754,25 @@ class ExperimentTutorial{
                 } else if (this._currentStep === 23){
                     that.experiment.feature_application.update_feature_application("direct-update", tutorial_feature_example_e);
 
-                } else if (this._currentStep === 25){
+                } else if (this._currentStep === 26){
                     that.experiment.feature_application.update_feature_application("direct-update", tutorial_feature_example_f);
 
-                } else if (this._currentStep === 28){
+                } else if (this._currentStep === 29){
                     PubSub.publish(APPLY_FEATURE_EXPRESSION, null);
                     that.experiment.feature_application.clear_feature_application();
 
-                } else if (this._currentStep === 31){
+                } else if (this._currentStep === 32){
                     that.start_tutorial_event_listener("feature_mouse_hover", this._currentStep, null);
 
-                } else if (this._currentStep === 32){
+                } else if (this._currentStep === 33){
                     that.experiment.feature_application.update_feature_application("temp", tutorial_feature_example_f);
                 
-                } else if (this._currentStep === 34){
+                } else if (this._currentStep === 35){
                     PubSub.publish(APPLY_FEATURE_EXPRESSION, null);
                     that.experiment.feature_application.clear_feature_application();
                     that.start_tutorial_event_listener("feature_clicked", this._currentStep);
 
-                } else if(this._currentStep === 36){
+                } else if(this._currentStep === 37){
                     document.getElementById('tab3').click();
                     that.experiment.feature_application.update_feature_application("direct-update", tutorial_feature_example_f);
                     let expression = that.feature_application.parse_tree(that.feature_application.data);
@@ -771,50 +781,50 @@ class ExperimentTutorial{
                     let placeholders = ["[PLACEHOLDER]"];
                     that.fill_in_keyword_placeholder(this._currentStep, keywords, placeholders);
 
-                } else if(this._currentStep === 38){
+                } else if(this._currentStep === 39){
                     document.getElementById('tab3').click();
                     that.experiment.feature_application.update_feature_application("direct-update", tutorial_feature_example_d);
                     that.start_tutorial_event_listener("node_drag_end", this._currentStep);
 
-                } else if(this._currentStep === 40){
+                } else if(this._currentStep === 41){
                     document.getElementById('tab3').click();
                     that.experiment.feature_application.update_feature_application("direct-update", tutorial_feature_example_d);
                 
-                } else if(this._currentStep === 41){
+                } else if(this._currentStep === 42){
                     document.getElementById('tab3').click();
                     that.filter.initialize();
                     that.experiment.feature_application.update_feature_application("direct-update", tutorial_feature_example_d);
                     that.start_tutorial_event_listener("contextmenu_add_feature", this._currentStep);
                 
-                } else if(this._currentStep === 43){
+                } else if(this._currentStep === 44){
                     document.getElementById('tab2').click();
                     that.start_tutorial_event_listener("filter_modification", this._currentStep);
                 
-                } else if(this._currentStep === 45){
+                } else if(this._currentStep === 46){
                     document.getElementById('tab2').click();
                     that.start_tutorial_event_listener("contextmenu_modify_feature", this._currentStep);
                 
-                } else if(this._currentStep === 47){
+                } else if(this._currentStep === 48){
                     document.getElementById('tab2').click();
                     that.start_tutorial_event_listener("filter_modification", this._currentStep);
                 
-                } else if(this._currentStep === 48){
+                } else if(this._currentStep === 49){
                     document.getElementById('tab2').click();
 
-                } else if(this._currentStep === 50){
+                } else if(this._currentStep === 51){
                     document.getElementById('tab3').click();
                     that.experiment.feature_application.clear_feature_application();
                     that.experiment.feature_application.update_feature_application("direct-update", tutorial_feature_example_g);
                     
-                } else if(this._currentStep === 51){
+                } else if(this._currentStep === 52){
                     document.getElementById('tab3').click();
                     that.start_tutorial_event_listener("local_search_conjunctive", this._currentStep);
 
-                } else if(this._currentStep === 52){
+                } else if(this._currentStep === 53){
                     document.getElementById('tab3').click();
                     that.start_tutorial_event_listener("new_feature_clicked", this._currentStep);
 
-                } else if(this._currentStep === 53){
+                } else if(this._currentStep === 54){
                     document.getElementById('tab3').click();
                     let feature_application = that.experiment.feature_application;
                     let previousFeature = feature_application.construct_tree(feature_application, tutorial_feature_example_g);
@@ -839,7 +849,7 @@ class ExperimentTutorial{
                     let placeholders = ["[PLACEHOLDER]", "[PLACEHOLDER]"];
                     that.fill_in_keyword_placeholder(this._currentStep, keywords, placeholders);
                 
-                } else if(this._currentStep === 54){
+                } else if(this._currentStep === 55){
                     document.getElementById('tab3').click();
 
                     let listenerCallback = () => {
@@ -853,7 +863,7 @@ class ExperimentTutorial{
                     that.start_tutorial_event_listener("generalization_suggestion", this._currentStep, listenerCallback);
                     that.experiment.feature_application.update_feature_application("direct-update", tutorial_feature_example_h);
                 
-                } else if(this._currentStep === 56){
+                } else if(this._currentStep === 57){
                     window.open("https://www.selva-research.com/ifeed-experiment-conceptmap/")
                 }
             }
