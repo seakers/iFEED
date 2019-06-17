@@ -117,10 +117,10 @@ class ExperimentTutorial{
         
         if(messages.length === 1){
             this.intro.setOption('showButtons',true)
-                        .setOption('showBullets', true);
+                        .setOption('showBullets', false);
         }else{
             this.intro.setOption('showButtons',true)
-                        .setOption('showBullets', true);
+                        .setOption('showBullets', false);
         }
         
         if(!classname){
@@ -180,7 +180,7 @@ class ExperimentTutorial{
                         }else if(stage === "design_synthesis"){
                             return "START DESIGN SYNTHESIS TASK";
                         }else if(stage === "learning_end"){
-                            return "LOAD PROBLEM SET";
+                            return "START LEARNING TASK";
                         }else{
                             return "DONE"
                         }
@@ -193,6 +193,8 @@ class ExperimentTutorial{
 
             if(stage === "tutorial"){
                 if(that.experiment.treatmentCondition === 0 || that.experiment.treatmentCondition === 1){
+                    that.experiment.clock.stop();
+                    
                     // Load the data
                     that.problem.metadata.file_path = "ClimateCentric_050819.csv";
                     PubSub.publish(LOAD_DATA, null);
@@ -205,6 +207,7 @@ class ExperimentTutorial{
                 }
 
             } else if(stage === "tutorial_end"){ 
+                that.experiment.clock.stop();
 
                 // Load the data
                 that.problem.metadata.file_path = "ClimateCentric_050819.csv";
@@ -628,7 +631,7 @@ class ExperimentTutorial{
                 +"<p>(To continue, try making a slight change to the current condition and apply it by clicking \"Modify the condition\" button)</p>",
 
                 // 48
-                "<p>The node that was selected have been replaced by the new condition.</p>",
+                "<p>The selected node has been replaced by the new condition.</p>",
 
                 // 49
                 "<p>Other possible actions that can be applied to the node of a feature tree include \"Add parent branch\", \"Deactivate\" and \"Delete\". "
