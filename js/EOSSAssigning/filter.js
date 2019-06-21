@@ -15,7 +15,11 @@ class EOSSAssigningFilter extends Filter{
                                {value:"separate",text:"Separate",input:"multipleInstInput",hints:"Selects designs that never assign {[INSTRUMENT]} to the same orbit"},
                                {value:"emptyOrbit",text:"EmptyOrbit",input:"orbitInput",hints:"Selects designs whose orbit [ORBIT] is empty"},
                                {value:"numOrbits",text:"Number of orbit used",input:"numOrbits",hints:"Selects designs that assign instruments to [NUMBER] orbits"},
-                               // {value:"numInstruments",text:"Number of instruments",input:"numInstruments",hints:"This highlights all the designs with the specified number of instruments. If you specify an orbit name, it will count all instruments in that orbit. If you can also specify an instrument name, and only those instruments will be counted across all orbits. If you leave both instruments and orbits blank, all instruments across all orbits will be counted."},
+                               {value:"numInstruments",text:"Number of instruments",input:"numInstruments",hints:"Selects all the designs with the specified "
+                               +"number of instruments. If you specify an orbit, it will count all instruments in that orbit. "
+                               +"If you specify an instrument name, and only those instruments will be counted across all orbits. "
+                               +"If you do not select either instruments or orbits, all instruments across all orbits will be counted."},
+
                                // {value:"subsetOfInstruments",text:"Num of instruments in a subset",input:"subsetOfInstruments",hints:"The specified orbit should contain at least m number and at maximum M number of instruments from the specified instrument set. m is the first entry and M is the second entry in the second field"},
                                {value:"absentExceptInOrbit",text:"absentExceptInOrbit",input:"orbitAndInstInput",hints:""},
                                {value:"notInOrbitExceptInstrument",text:"notInOrbitExceptInstrument",input:"orbitAndMultipleInstInput",hints:""},
@@ -176,9 +180,17 @@ class EOSSAssigningFilter extends Filter{
                     this.instance_index_map[class_type][class_index] = instance_indices;
                 }
             }
+            this.reset_variable_options();
         });
 
         this.define_filter_functions();
+    }
+
+    reset_variable_options(){
+        this.instrumentInputOptions = JSON.parse(JSON.stringify(this.label.instrument_relabeled));
+        this.instrumentInputOptions.unshift('select');
+        this.orbitInputOptions = JSON.parse(JSON.stringify(this.label.orbit_relabeled));
+        this.orbitInputOptions.unshift('select');
     }
 
     set_application_functions(){
@@ -300,10 +312,13 @@ class EOSSAssigningFilter extends Filter{
     }
 
     instrument_option_set_constraint(){
+        let that = this;
         let selectedInstruments = [];
         d3.selectAll('.instrumentSelect').nodes().forEach((d) => {
             if(selectedInstruments.indexOf(d.value) === -1 && d.value !== "select"){
-                selectedInstruments.push(d.value);
+                if(that.label.instrument_list.indexOf(d.value) !== -1){
+                    selectedInstruments.push(d.value);
+                }
             }
         });
 
@@ -549,19 +564,19 @@ class EOSSAssigningFilter extends Filter{
                         }
 
                         let num = d3.select('.filterInputDiv.numInput').select('input').node().value;
-                        if(num && !num.trim()){
+                        if(num === ""){
                             num = "[NUMBER]";
                         }
 
                         let newHelpText =  "";
-                        if(!orb && !instr){
+                        if(orb === null && instr === null){
                             newHelpText = "Selects designs that use total " + num + " instruments";
                             enableApplyButton();
-                        }else if(!orb){
-                            newHelpText = "Selects designs that assign " + num + " instruments to " + orb;
+                        }else if(orb === null){
+                            newHelpText = "Selects designs that use " + num + " of " + instr + " instruments"; 
                             enableApplyButton();
-                        }else if(!instr){
-                            newHelpText = "Selects designs that assign " + instr + " in " + num + " orbits"; 
+                        }else if(instr === null){
+                            newHelpText = "Selects designs that assign " + num + " instruments to " + orb;
                             enableApplyButton();
                         }else{
                             newHelpText = "(Orbit and instrument cannot both be selected!)";

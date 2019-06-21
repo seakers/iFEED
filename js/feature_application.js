@@ -74,7 +74,7 @@ class FeatureApplication{
                                 let _newNode = that.construct_node(that, d.depth, d.type, newNodeExpression, null, d.parent);
                                 d.parent.children.splice(index, 1, _newNode);
                             }else{
-                                singleBaseFeature = true;
+                                isSingleBaseFeature = true;
                             }
                             return;
                         }
@@ -140,8 +140,6 @@ class FeatureApplication{
                 this.experiment_condition = "automated_generalization";
             }
         });  
-
-
     }
     
     draw_feature_application_tree(expression, updateOption){   
@@ -162,6 +160,13 @@ class FeatureApplication{
 
         this.i = 0;
         this.data = this.construct_tree(this, expression);  
+
+        if(this.data.type === "leaf"){
+            let root = this.construct_node(this, 0, "logic", "AND", [this.data], null);
+            this.data.depth = 1;
+            this.data.parent = root;
+            this.data = root;
+        }
         
         if(updateOption){
             if(updateOption.is_temporary){

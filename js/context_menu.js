@@ -45,7 +45,7 @@ class ContextMenu {
             
             'default':[
                         {'value': 'applyFeatureBranch', 'text': 'Apply this feature'},
-                        {'value':'addParent','text':'Add parent branch'},
+                        {'value':'addParent','text':'Add parent node'},
                         // {'value':'addIfThen','text':'Add if-then statement'},
                         // {'value':'duplicate','text':'Duplicate'},
                         {'value':'toggle-activation','text':'Activate/Deactivate'},

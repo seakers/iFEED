@@ -40,7 +40,6 @@ class EOSSAssigningLabel extends Label{
         });
 
         PubSub.subscribe(PROBLEM_CONCEPT_HIERARCHY_LOADED, (msg, data) => {
-
             this.orbit_extended_list = data["params"]["rightSet"];
             this.instrument_extended_list = data["params"]["leftSet"];
 
@@ -51,7 +50,6 @@ class EOSSAssigningLabel extends Label{
             for(let i = this.instrument_relabeled.length; i < this.instrument_extended_list.length; i++){
                 this.instrument_relabeled.push(this.instrument_extended_list[i]);
             }
-
             PubSub.publish(LABELING_SCHEME_LOADED, this);
         });
     }

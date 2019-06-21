@@ -170,6 +170,8 @@ class DataMining{
         PubSub.publish(INITIALIZE_FEATURE_APPLICATION, null);
         this.featureID = 1;
     }
+
+
     
     async run(option){
 
@@ -1512,7 +1514,7 @@ class DataMining{
         });    
     }
 
-    set_problem_parameters(){
+    set_problem_parameters(callback){
         $.ajax({
             url: "/api/data-mining/set-problem-parameters",
             type: "POST",
@@ -1522,7 +1524,10 @@ class DataMining{
                   },
             async: false,
             success: function (data, textStatus, jqXHR)
-            {
+            {      
+                if(callback){
+                    callback();
+                }
             },
             error: function (jqXHR, textStatus, errorThrown)
             {
@@ -1557,7 +1562,7 @@ class DataMining{
             url: "/api/data-mining/get-problem-parameters",
             type: "POST",
             data: {
-                    problem: this.metadata.problem,  // ClimateCentric, GNC, etc
+                    problem: that.metadata.problem,  // ClimateCentric, GNC, etc
                   },
             async: false,
             success: function (data, textStatus, jqXHR)
@@ -1577,7 +1582,6 @@ class DataMining{
     }
 
     get_problem_concept_hierarchy(){
-        
         let that = this;
         let instance_map = null;
         let superclass_map = null;
@@ -1585,8 +1589,8 @@ class DataMining{
             url: "/api/data-mining/get-problem-concept-hierarchy",
             type: "POST",
             data: {
-                    problem: this.metadata.problem,  // ClimateCentric, GNC, etc
-                    params: JSON.stringify(this.metadata.problem_specific_params),
+                    problem: that.metadata.problem,  // ClimateCentric, GNC, etc
+                    params: JSON.stringify(that.metadata.problem_specific_params),
                   },
             async: false,
             success: function (data, textStatus, jqXHR)
