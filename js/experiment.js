@@ -26,7 +26,7 @@ class Experiment{
         // Set treatment condition
         if(typeof treatmentCondition === "undefined" || treatmentCondition === null){
             let min = 0; 
-            let max = 3;  
+            let max = 4;  
             let randomInt = Math.floor(Math.random() * (+max - +min)) + +min; 
             this.treatmentCondition = randomInt;
         }else{
@@ -84,6 +84,7 @@ class Experiment{
     initialize_measurements(){  
         this.initialize_learning_task_measurements();
         this.initialize_design_synthesis_task_measurements();
+        this.initialize_feature_synthesis_task_measurements();
     }
 
     initialize_learning_task_measurements(){
@@ -96,6 +97,12 @@ class Experiment{
     initialize_design_synthesis_task_measurements(){
         this.counter_design_viewed = 0;
         this.designs_evaluated = [];
+    }
+
+    initialize_feature_synthesis_task_measurements(){
+        this.counter_feature_viewed = 0;
+        this.counter_filter_used = 0;
+        this.features_tested = [];
     }
 
     load_learning_task(){
@@ -133,7 +140,7 @@ class Experiment{
         let d1 = 25 * 60 * 1000;
         let a1 = function(){
             that.highlight_timer();
-            alert("25 minutes passed! You have 5 more mintues to finish the task.");
+            alert("25 minutes passed! You have 5 more minutes to finish the task.");
         };
 
         let d2 = 30 * 60 * 1000;
@@ -193,12 +200,109 @@ class Experiment{
         setTimeout(() => { PubSub.publish(EXPERIMENT_TUTORIAL_START, null);}, 300);
     }
 
+    load_feature_synthesis_task(){
+        this.stage = "feature_synthesis";
+        d3.select("#tab1").text('-');
+        d3.select("#view1").selectAll('g').remove();
+
+        d3.select("#tab2").text('Filter Setting');
+        this.filter.initialize();
+
+        d3.select("#tab3").text('Feature Analysis');
+        this.data_mining.initialize();
+
+        d3.select('#conjunctive_local_search').remove();
+        d3.select('#disjunctive_local_search').remove();
+        d3.select('#generalize_feature').remove();
+
+        this.select_archs_using_ids(fuzzy_pareto_front_4);
+
+        PubSub.publish(EXPERIMENT_SET_MODE, this.stage);
+    }
+
+    start_feature_synthesis_task(){
+        let that = this;
+
+        this.filter.initialize();
+        this.data_mining.display_features([]);
+
+        // Initialize measurements
+        this.initialize_feature_synthesis_task_measurements();
+
+       // Reset the clock
+        this.unhighlight_timer();
+        this.clock.resetClock();
+        this.clock.setTimer();
+
+        // Set alert message given at the beginning of each task
+        // Set stopwatch callback functions
+        let d1 = 5 * 60 * 1000;
+        let a1 = function(){
+            alert("5 minutes passed! You have 2 more minutes to finish the task.");
+            that.highlight_timer();
+        };
+        let d2 = 7 * 60 * 1000;
+        let a2 = function(){
+            alert("End of the session");
+            that.unhighlight_timer();
+            that.end_design_synthesis_task();
+        };
+        
+        // Set callback functions
+        let callback = [a1, a2];
+        let duration = [d1, d2];
+        this.clock.setCallback(callback);
+        this.clock.setDuration(duration);
+        this.clock.start();
+    }
+
+    end_feature_synthesis_task(){
+        let that = this;
+
+        // Save data: 
+        //  - participantID
+        //  - treatmentCondition
+        //  - stage
+        //  - duration
+        //  - counter_feature_viewed
+        //  - counter_filter_used
+        //  - features_tested
+
+        this.clock.stop();
+        let durationInSeconds = this.clock.getTimeElapsed() / 1000;
+
+        let feature_synthesis_task_data = {
+            "participantID": this.participantID,
+            "treatmentCondition": this.treatmentCondition,
+            "stage": this.stage,
+            "duration": durationInSeconds,
+            "counter_feature_viewed": this.counter_feature_viewed,
+            "counter_filter_used": this.counter_filter_used,
+            "features_tested": this.features_tested,
+        }
+
+        console.log(feature_synthesis_task_data);
+        this.save_data(feature_synthesis_task_data);
+
+        this.stage = "design_synthesis";
+        this.generateSignInMessage(() => {
+            that.load_design_synthesis_task();
+            setTimeout(() => { PubSub.publish(EXPERIMENT_TUTORIAL_START, null);}, 300);
+        });
+        return;
+    }
+
     load_design_synthesis_task(){
         this.stage = "design_synthesis";
+        d3.select("#tab1").text('Inspect Design');
+        this.tradespace_plot.initialize();
+
         d3.select("#tab2").text('-');
         d3.select("#view2").selectAll('g').remove();
+
         d3.select("#tab3").text('-');
         d3.select("#view3").selectAll('g').remove();
+
         PubSub.publish(EXPERIMENT_SET_MODE, this.stage);
     }
 
@@ -215,12 +319,12 @@ class Experiment{
 
         // Set alert message given at the beginning of each task
         // Set stopwatch callback functions
-        let d1 = 12 * 60 * 1000;
+        let d1 = 5 * 60 * 1000;
         let a1 = function(){
-            alert("12 minutes seconds passed! You have 3 more mintues to finish the task.");
+            alert("5 minutes passed! You have 2 more minutes to finish the task.");
             that.highlight_timer();
         };
-        let d2 = 15 * 60 * 1000;
+        let d2 = 7 * 60 * 1000;
         let a2 = function(){
             alert("End of the session");
             that.unhighlight_timer();
@@ -343,29 +447,39 @@ class Experiment{
             d3.select('#disjunctive_local_search').remove();
             d3.select('#generalize_feature').remove();
 
-        }else if(this.treatmentCondition === 1){
+        } else if (this.treatmentCondition === 1){
             treatmentConditionName = "automated_generalization";
             // Disable filter
             d3.select("#tab2").text('-');
             d3.select("#view2").selectAll('g').remove();
 
-            
             d3.select('#conjunctive_local_search').remove();
             d3.select('#disjunctive_local_search').remove();
             d3.select('#generalize_feature').remove();
 
-        }else if(this.treatmentCondition === 2){
+        } else if (this.treatmentCondition === 2){
             treatmentConditionName = "interactive_generalization";
 
-        } 
+        } else if(this.treatmentCondition === 3){
+            treatmentConditionName = "design_inspection_only";
+            d3.select('#conjunctive_local_search').remove();
+            d3.select('#disjunctive_local_search').remove();
+            d3.select('#generalize_feature').remove();
+
+            // Disable filter
+            d3.select("#tab2").text('-');
+            d3.select("#view2").selectAll('g').remove();
+
+            // Disable feature analysis tab
+            d3.select("#tab3").text('-');
+            d3.select("#view3").selectAll('g').remove();
+        }
 
         if(isTutorial){
             treatmentConditionName = "tutorial_" + treatmentConditionName;
         }
         PubSub.publish(EXPERIMENT_SET_MODE, treatmentConditionName);  
     }
-
-
 
     save_data(data){
         let filename = this.participantID + "-" + this.stage + ".json";;        

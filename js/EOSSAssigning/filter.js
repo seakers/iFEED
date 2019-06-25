@@ -105,6 +105,9 @@ class EOSSAssigningFilter extends Filter{
 
                 // EXPERIMENT
                 PubSub.publish(EXPERIMENT_TUTORIAL_EVENT, "filter_modification");
+
+                // EXPERIMENT
+                PubSub.publish(EXPERIMENT_EVENT, "filter_applied");
             }
 
             if(addition){
@@ -997,8 +1000,7 @@ class EOSSAssigningFilter extends Filter{
                         break;
                     }
                 }
-            }
-            else {
+            } else {
                 for(let i = 0; i < this.norb; i++){
                     if(inputs[this.ninstr * i + instrument] === true){
                         out = false;
@@ -1027,9 +1029,7 @@ class EOSSAssigningFilter extends Filter{
                         break;
                     }
                 }
-            }
-            else{
-
+            } else {
                 let ground_items = [];
                 let class_instances = [];
                 for(let i = 0; i < instruments.length; i++){
@@ -1085,7 +1085,7 @@ class EOSSAssigningFilter extends Filter{
                         }
                     }
 
-                }else{
+                } else {
                     out = true;
                     for(let j = 0; j < instruments.length; j++){
                         let instrument = instruments[j];

@@ -136,9 +136,7 @@ class FeatureApplication{
         // EXPERIMENT
         this.experiment_condition = null;
         PubSub.subscribe(EXPERIMENT_SET_MODE, (msg, data) => {
-            if(data === "automated_generalization"){
-                this.experiment_condition = "automated_generalization";
-            }
+            this.experiment_condition = data;
         });  
     }
     

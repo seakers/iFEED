@@ -110,6 +110,9 @@ class DataMining{
                 this.initialize = function(){
                     d3.select("#support_panel").select("#view3").select("g").remove();
                 }
+            } else if(data === "feature_synthesis"){
+                this.allFeatures = [];
+                this.display_features([]);
 
             } else if(data === "tutorial_manual_generalization"){
                 this.allFeatures = [];
@@ -1052,10 +1055,9 @@ class DataMining{
         get_utopia_point().attr('d',d3.symbol().type(d3.symbolStar).size(120));        
 
         d3.selectAll('.dot.feature_plot').filter((d) => {
-                if (d.id === this.utopiaPoint.id) {
+                if (d.utopiaPoint) {
                     return false;
-                }
-                else {
+                } else {
                     return true;
                 }
             })
@@ -1131,7 +1133,6 @@ class DataMining{
     feature_mouseover(d){
         // EXPERIMENT 
         PubSub.publish(EXPERIMENT_TUTORIAL_EVENT, "feature_mouse_hover");    
-
         let id = d.id; 
         let expression = d.expression;
         let metrics = d.metrics;
@@ -1536,7 +1537,7 @@ class DataMining{
         });    
     }
 
-    set_problem_generalized_concepts(){
+    set_problem_generalized_concepts(callback){
         $.ajax({
             url: "/api/data-mining/set-problem-generalized-concepts",
             type: "POST",
@@ -1547,7 +1548,9 @@ class DataMining{
             async: false,
             success: function (data, textStatus, jqXHR)
             {
-                console.log(data);
+                if(callback){
+                    callback();
+                }
             },
             error: function (jqXHR, textStatus, errorThrown)
             {
@@ -1753,12 +1756,21 @@ class DataMining{
                     if(that.metadata.problem === "ClimateCentric"){
 
                         // Params loaded from a file
-                        let problem_specific_params = data["params"];
+                        that.metadata.problem_specific_params.instrument_extended_list = data["params"]["rightSet"];
+                        that.metadata.problem_specific_params.orbit_extended_list = data["params"]["leftSet"];
 
-                        // Concept hierarchy info obtained from the vassar server
-                        let concept_hierarchy = that.get_problem_concept_hierarchy();
-                        concept_hierarchy["params"] = problem_specific_params;
-                        PubSub.publish(PROBLEM_CONCEPT_HIERARCHY_LOADED, concept_hierarchy);
+                        let callback2 = () => {
+                            // Concept hierarchy info obtained from the vassar server
+                            let concept_hierarchy = that.get_problem_concept_hierarchy();
+                            concept_hierarchy["params"] = data["params"];
+                            PubSub.publish(PROBLEM_CONCEPT_HIERARCHY_LOADED, concept_hierarchy);
+                        };
+
+                        let callback1 = () => {
+                            that.set_problem_generalized_concepts(callback2); 
+                        };
+
+                        that.set_problem_parameters(callback1);
                     }  
                 }
             },

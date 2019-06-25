@@ -89,13 +89,18 @@ class EOSSAssigning extends Problem{
         PubSub.publish(DESIGN_PROBLEM_LOADED, this);
 
         PubSub.subscribe(PROBLEM_CONCEPT_HIERARCHY_LOADED, (msg, data) => {
-            this.metadata.problem_specific_params["orbit_extended_list"] = data["params"]["orbit_list"];
-            this.metadata.problem_specific_params["instrument_extended_list"] = data["params"]["instrument_list"];
+            this.metadata.problem_specific_params["orbit_extended_list"] = data["params"]["rightSet"];
+            this.metadata.problem_specific_params["instrument_extended_list"] = data["params"]["leftSet"];
         });
 
         // EXPERIMENT
         PubSub.subscribe(EXPERIMENT_SET_MODE, (msg, data) => {
             if(data === "design_synthesis"){
+                if(this._display_arch_info){
+                    this.display_arch_info = this._display_arch_info;
+                    this._display_arch_info = null;
+                }
+
                 this.experimentMode = data;
                 this.display_instrument_options();
 
@@ -110,7 +115,13 @@ class EOSSAssigning extends Problem{
                     .append("p")
                     .text("Drag instruments to empty orbit slots to build and evaluate new designs")
                     .style('font-size','20px');
+            
+            }else if(data === "feature_synthesis"){
+                this.experimentMode = data;
+                this._display_arch_info = this.display_arch_info;
+                this.display_arch_info = () => {};
             }
+
         });  
     }
     
