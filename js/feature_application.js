@@ -2,19 +2,19 @@
 class FeatureApplication{
 
     constructor(DataMiningScheme, filteringScheme, labelingScheme){
-
         this.filter = filteringScheme;
         this.label = labelingScheme;
         this.data_mining = DataMiningScheme;
         this.metadata = null;
         
-        this.color = {"default":"#616161",
+        this.color = {"default":"#4C4C4C",
                      "logic":"#2383FF",
                      "ifThen":"#20C16E",
-                     "add":"#FF7979",
-                     "highlighted": "#FF7979",
+                     "add":"#FF7400",
+                     "highlighted": "#FF7400",
                      "deactivated":"#E3E3E3",
-                     "temp":"#CDCDCD"};
+                     "temp":"#BEBEBE",
+                     "unsatisfied": "#FF5C5C"};
         
         this.stashed_root = null;
         this.tree = null;
@@ -43,7 +43,12 @@ class FeatureApplication{
         }); 
     
         PubSub.subscribe(INITIALIZE_FEATURE_APPLICATION, (msg, data) => {
-            this.clear_feature_application()
+            this.clear_feature_application();
+        });  
+
+        PubSub.subscribe(INSPECT_ARCH, (msg, data) => {
+            // Update the color of the feature application tree
+            this.update_base_feature_satisfaction(data);
         });   
 
         PubSub.subscribe(UPDATE_FEATURE_APPLICATION, (msg, data) => {
@@ -251,7 +256,7 @@ class FeatureApplication{
             return;
         }    
         
-        let duration = d3.event && d3.event.altKey ? 5000 : 600;
+        let duration = d3.event && d3.event.altKey ? 6000 : 400;
         let margin = this.margin;
 
         // Set root node
@@ -334,7 +339,7 @@ class FeatureApplication{
             .attr('class','nodeRange')
             .attr('r',40)
             .attr('opacity',0)
-            .style('fill','red');
+            .style('fill', '#2383FF');
 
         // Set up mouseover and mouseout events for nodeRange circles
         d3.selectAll('.nodeRange')
@@ -360,29 +365,8 @@ class FeatureApplication{
         
         nodeUpdate.select("circle")
             .attr("r", 9.5)
-            .style("fill", function(d) { 
-                if(d.data.deactivated){
-                    return that.color.deactivated;
-
-                }else if(d.data.temp){
-                    return that.color.temp;
-
-                }else if(d.data.highlighted){
-                    return that.color.highlighted;
-
-                }else{
-                    if(d.data.type === "logic"){
-                        if(d.data.add){
-                            return that.color.add;
-                        }else if(d.data.name === "IF_THEN"){
-                            return that.color.ifThen;
-                        }else {
-                            return that.color.logic;
-                        }
-                    }else{
-                        return that.color.default;
-                    }
-                }
+            .style("fill", (d) => { 
+                return this.get_node_color(d);
              });
 
         nodeUpdate.select("text")
@@ -401,14 +385,8 @@ class FeatureApplication{
                     return that.label.pp_feature_single(d.data.name);
                 }
             })
-            .style("fill",function(d){
-                if(d.data.type === "logic" && d.data.add){
-                    return that.color.add;
-                }else if(d.data.highlighted){
-                    return that.color.highlighted;
-                }else{
-                    return "black";
-                }
+            .style("fill",(d) => {
+                return this.get_node_color(d);
             })
             .style("font-size",23)
             .style("fill-opacity", 1);  
@@ -613,6 +591,10 @@ class FeatureApplication{
                 }
                 this.contextMenu.showMenu(d.data, mouse_pos);
             });
+    }
+
+    update_base_feature_satisfaction(){
+        // To be implemented
     }
         
     dragStart(d){
@@ -1767,4 +1749,33 @@ class FeatureApplication{
         }
     }
 
+    get_node_color(node){
+        if(node.data.deactivated){
+            return this.color.deactivated;
+
+        }else if(node.data.temp){
+            return this.color.temp;
+
+        } else if(node.data.unsatisfied){
+            return this.color.unsatisfied;
+
+        }else if(node.data.highlighted){
+            return this.color.highlighted;
+
+        }else{
+            if(node.data.type === "logic"){
+                if(node.data.add){
+                    return this.color.add;
+
+                }else if(node.data.name === "IF_THEN"){
+                    return this.color.ifThen;
+
+                }else {
+                    return this.color.logic;
+                }
+            }else{
+                return this.color.default;
+            }
+        }
+    }
 }

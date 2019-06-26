@@ -153,6 +153,9 @@ class EOSSAssigning extends Problem{
     }
 
     display_arch_info(data) {
+        if(data === null || typeof data === "undefined"){
+            return;
+        }
 
         // Remove previously-added content
         d3.select('#view1').selectAll('g').remove();

@@ -222,7 +222,7 @@ class Filter{
 
         @return: A boolean indicating whether the input architecture passes the filter
     */
-    check_preset_feature_single_sample(input_expression,data){
+    check_preset_feature_single_sample(input_expression, data){
         // To be implemented 
     }
     

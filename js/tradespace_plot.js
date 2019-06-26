@@ -499,6 +499,8 @@ class TradespacePlot{
             // In case nothing is selected just revert everything back to normal
             this.lastHoveredArch = null;
             changesHappened = true;
+
+            PubSub.publish(INSPECT_ARCH, null);
         }
 
         // Only redraw if there have been changes

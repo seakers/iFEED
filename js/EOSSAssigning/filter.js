@@ -73,7 +73,7 @@ class EOSSAssigningFilter extends Filter{
                 });
 
             d3.select(".filter.title.div").select("p")
-                .style("color", "red")
+                .style("color", "#FF5C5C")
                 .style("font-size", "23px")
                 .text(() => {
                     if(addition){
@@ -84,7 +84,7 @@ class EOSSAssigningFilter extends Filter{
                 });
 
             d3.select('#apply_filter_button')
-                .style('color','red')
+                .style('color', '#FF5C5C')
                 .text(() => {
                     if(addition){
                         return "Add new condition";
