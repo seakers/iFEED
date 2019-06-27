@@ -14,6 +14,8 @@ class FeatureApplication{
                      "highlighted": "#FF7400",
                      "deactivated":"#E3E3E3",
                      "temp":"#BEBEBE",
+                     "tempUnmatched": "#BE5C5C",
+                     "tempMatched": "#5CBE66",
                      "unsatisfied": "#FF5C5C"};
         
         this.stashed_root = null;
@@ -176,6 +178,10 @@ class FeatureApplication{
                 this.visit_nodes(this.data, (d) => {
                     d.temp = true;
                 }); 
+
+                if(this.stashed_root){
+                    this.get_node_matches_between_features(this.data, this.stashed_root);
+                }
             }
         }
         this.update(updateOption);  
@@ -717,7 +723,6 @@ class FeatureApplication{
     }
 
     adjust_vertical_location(){
-
         let that = this;
 
         function get_nodes_given_depth(depth, includeLeafNodesOnly){
@@ -1045,9 +1050,32 @@ class FeatureApplication{
         this.sort_feature_types(this.data);   
     }
 
+    get_node_matches_between_features(testRoot, stashedRoot){
+        let that = this;
+
+        if(testRoot.name !== stashedRoot.name || testRoot.type !== "logic"){
+            // Return if the logical connective types are different
+            return;
+        }
+
+        for(let i = 0; i < testRoot.children.length; i++){
+            let nodeExpression = that.parse_tree(testRoot.children[i]);
+            let foundMatch = false;
+            for(let j = 0; j < stashedRoot.children.length; j++){
+                if(nodeExpression === that.parse_tree(stashedRoot.children[j])){
+                    foundMatch = true;
+                    break;
+                }
+            }
+            if(foundMatch){
+                testRoot.children[i].matched = true;
+            }else{
+                testRoot.children[i].matched = false;
+            }
+        }
+    }
  
     visit_nodes(source, func, reverse){
-
         if(source === null){
             return;
         }
@@ -1154,7 +1182,6 @@ class FeatureApplication{
     }
     
     remove_descendants(nodeID){
-
         let descendantNodesID = [nodeID];
         let parentNode = this.select_treeNode_by_id(nodeID).node().__data__.parent;
 
@@ -1760,7 +1787,15 @@ class FeatureApplication{
             return this.color.deactivated;
 
         }else if(node.data.temp){
-            return this.color.temp;
+            if(typeof node.data.matched === "undefined" || node.data.matched === null){
+                return this.color.temp;
+            }else{
+                if(node.data.matched){
+                    return this.color.tempMatched;
+                }else{
+                    return this.color.tempUnmatched;
+                }
+            }
 
         } else if(node.data.unsatisfied){
             return this.color.unsatisfied;
