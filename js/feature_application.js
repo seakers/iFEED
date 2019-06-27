@@ -1109,6 +1109,12 @@ class FeatureApplication{
                 }
                 this.stashed_root = null;
                 this.update({add_to_feature_space_plot: false, replace_equivalent_feature: false});
+            
+            } else {
+                if(this.data.temp){
+                    this.data = null;
+                    this.update(); 
+                }
             }
             
         } else if(option === 'update'){

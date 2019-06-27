@@ -3,6 +3,28 @@
     float:left;
 }
 
+.feature_complexity_range_filter.container{
+    float: left;
+    width: 200px;
+    height: 250px;
+    margin-left: 20px;
+    margin-top: 20px;
+    padding: 20px;
+    background-color: #EAEAEA;
+}
+
+.feature_complexity_range_filter.minRange{
+    margin-bottom: 20px;
+}
+
+.feature_complexity_range_filter.minRange > select{
+    margin-left: 10px;
+}
+
+.feature_complexity_range_filter.maxRange > select{
+    margin-left: 10px;
+}
+
 .feature_plot.venn_diagram{
     float:left;
     background-color:#E7E7E7;
