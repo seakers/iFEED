@@ -32,8 +32,9 @@ class DataMining{
         this.transform = null;
 
         this.allFeatures = [];
-        this.complexityRangeFilteredFeatures = null;
         this.recentlyAddedFeatureIDs = [];
+
+        this.complexityFilterThresholds = null;
 
         this.algorithmGeneratedFeatureIDs = []; // EXPERIMENT
 
@@ -512,11 +513,11 @@ class DataMining{
                 .attr('class', 'feature_complexity_range_filter minRange')
                 .text('Min complexity: ')
                 .append('select');
-
         feature_complexity_range_filter.append('div')
                 .attr('class', 'feature_complexity_range_filter maxRange')        
                 .text('Max complexity: ')
                 .append('select');
+        this.complexityFilterThresholds = null;
 
         // Create plot div's
         let feature_plot = tab.append('div')
@@ -830,16 +831,9 @@ class DataMining{
         }
 
         // Calculate complexity
-        for(let i = 0; i < this.allFeatures.length; i++){
-            let thisFeature = this.allFeatures[i];
-            if(typeof thisFeature.complexity === "undefined" || thisFeature.complexity === -1){
-                thisFeature.complexity = this.feature_application.get_num_literal_from_expression(thisFeature.name);
-            }
-        }
-        if(currentFeature){
-            currentFeature.complexity = this.feature_application.get_num_literal_from_expression(currentFeature.name);
-        }
-
+       this.compute_complexity(this.allFeatures);
+       this.compute_complexity(currentFeature);
+        
         // Get the list of features to plot
         let featuresToPlot = [];
         for(let i = 0; i < this.allFeatures.length; i++){
@@ -893,8 +887,6 @@ class DataMining{
                 if(thisFeature.complexity > maxComplexity) maxComplexity = thisFeature.complexity;
             }
 
-            this.update_feature_complexity_range_filter(Math.min.apply(null, complexities), Math.max.apply(null, complexities));
-
             let max_conf1 = Math.max.apply(null, conf1s);
             let max_conf2 = Math.max.apply(null, conf2s);
             let max_conf = Math.max(max_conf1, max_conf2);
@@ -917,6 +909,8 @@ class DataMining{
                         return that.colorScaleRainbow(that.colorInterpolateRainbow(d.complexity)); 
                     })
             }
+
+            this.update_feature_complexity_range_filter(Math.min.apply(null, complexities), Math.max.apply(null, complexities));
         }
 
         if(featuresToPlot.length !== 0 && featuresToPlot.length !== 1){
@@ -1036,22 +1030,16 @@ class DataMining{
                 .style('font-size','15px');
         }
 
-        if(this.complexityRangeFilteredFeatures){
+        if(this.complexityFilterThresholds){
             let filteredList = [];
             for(let i = 0; i < featuresToPlot.length; i++){
-                if(this.complexityRangeFilteredFeatures.indexOf(featuresToPlot[i]) !== -1){
+                let minThreshold = this.complexityFilterThresholds[0];
+                let maxThreshold = this.complexityFilterThresholds[1];
+                if(featuresToPlot[i].complexity >= minThreshold && featuresToPlot[i].complexity <= maxThreshold){
                     filteredList.push(featuresToPlot[i]);
-
                 } else if(featuresToPlot[i].utopiaPoint){
                     filteredList.push(featuresToPlot[i]);
-
-                } else if(featuresToPlot[i].cursor){
-                    let min = +d3.select('.feature_complexity_range_filter.minRange').select('select').node().value;
-                    let max = +d3.select('.feature_complexity_range_filter.maxRange').select('select').node().value;
-                    if(featuresToPlot[i].complexity >= min && featuresToPlot[i].complexity <= max){
-                        filteredList.push(featuresToPlot[i]);
-                    }
-                }
+                } 
             }
             featuresToPlot = filteredList;
         }
@@ -1285,16 +1273,6 @@ class DataMining{
     update_feature_complexity_range_filter(min, max){
         let that = this;
 
-        let filter_features_by_complexity = (minInput, maxInput) => {
-            let out = [];
-            for(let i = 0; i < that.allFeatures.length; i++){
-                if(that.allFeatures[i].complexity >= minInput && that.allFeatures[i].complexity <= maxInput){
-                    out.push(that.allFeatures[i]);
-                }
-            }
-            return out;
-        }
-
         let options = [];
         for(let i = 0; i < max - min + 1; i++){
             options.push(min + i);
@@ -1306,10 +1284,11 @@ class DataMining{
         d3.select('.feature_complexity_range_filter.minRange')
             .select('select')
             .on("change", () => {
-                let minInput = d3.select('.feature_complexity_range_filter.minRange').select('select').node().value;
-                let maxInput = d3.select('.feature_complexity_range_filter.maxRange').select('select').node().value;
-                that.complexityRangeFilteredFeatures = filter_features_by_complexity(minInput, maxInput);
+                let minThreshold = d3.select('.feature_complexity_range_filter.minRange').select('select').node().value;
+                let maxThreshold = d3.select('.feature_complexity_range_filter.maxRange').select('select').node().value;
+                that.complexityFilterThresholds = [minThreshold, maxThreshold];
                 d3.selectAll('.feature_plot.dot').remove();
+                PubSub.publish(INITIALIZE_FEATURE_APPLICATION, null);
                 that.update();
             })
             .selectAll('option')
@@ -1340,10 +1319,11 @@ class DataMining{
         d3.select('.feature_complexity_range_filter.maxRange')
             .select('select')
             .on("change", () => {
-                let minInput = d3.select('.feature_complexity_range_filter.minRange').select('select').node().value;
-                let maxInput = d3.select('.feature_complexity_range_filter.maxRange').select('select').node().value;
-                that.complexityRangeFilteredFeatures = filter_features_by_complexity(minInput, maxInput);
+                let minThreshold = d3.select('.feature_complexity_range_filter.minRange').select('select').node().value;
+                let maxThreshold = d3.select('.feature_complexity_range_filter.maxRange').select('select').node().value;
+                that.complexityFilterThresholds = [minThreshold, maxThreshold];
                 d3.selectAll('.feature_plot.dot').remove();
+                PubSub.publish(INITIALIZE_FEATURE_APPLICATION, null);
                 that.update();
             })
             .selectAll('option')
@@ -1529,7 +1509,6 @@ class DataMining{
     }
 
     highlight_clustering_result(param){
-
         if(!param){
             param = 3;
         }
@@ -1612,6 +1591,24 @@ class DataMining{
         });
 
         PubSub.publish(UPDATE_TRADESPACE_PLOT, true);
+    }
+
+    compute_complexity(inputFeatures, recalculateAll){
+        if(!inputFeatures){
+            return;
+        }
+
+        if(!Array.isArray(inputFeatures)){
+            inputFeatures = [inputFeatures];
+        }
+
+        for(let i = 0; i < inputFeatures.length; i++){
+            let thisFeature = inputFeatures[i];
+
+            if(recalculateAll || typeof thisFeature.complexity === "undefined" || thisFeature.complexity === -1){
+                thisFeature.complexity = this.feature_application.get_num_literal_from_expression(thisFeature.name);
+            }
+        }
     }
 
     compute_algebraic_complexity_of_features(startInd, endInd){
