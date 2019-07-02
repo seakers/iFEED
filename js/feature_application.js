@@ -1134,6 +1134,12 @@ class FeatureApplication{
                 }else{
                     // The whole tree is stashed
                     this.data = this.stashed_root;  
+                    if(this.data.type === "leaf"){
+                        let root = this.construct_node(this, 0, "logic", "AND", [this.data], null);
+                        this.data.depth = 1;
+                        this.data.parent = root;
+                        this.data = root;
+                    }
                 }
                 this.stashed_root = null;
                 this.update({add_to_feature_space_plot: false, replace_equivalent_feature: false});

@@ -59,3 +59,7 @@
 .filterInputDiv > select {
     margin-left: 10px;
 }
+
+.filterInputDiv.numInput > input {
+    margin-left: 10px;
+}

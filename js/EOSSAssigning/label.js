@@ -240,55 +240,63 @@ class EOSSAssigningLabel extends Label{
     }
     
     pp_feature_single(expression){
-    
         let exp = expression;
-        if(exp[0]==="{"){
-            exp = exp.substring(1,exp.length-1);
-        }
-        let featureName = exp.split("[")[0];
-
-        if(featureName==="paretoFront" || featureName==='FeatureToBeAdded' 
-            || featureName==='AND' || featureName==='OR' 
-            || featureName === 'IF_THEN'){
-            return exp;
-
-        }else if(this.feature_names.indexOf(exp) !== -1){
-            return exp;
+        if(exp[0] === "{" && exp[exp.length - 1] === "}"){
+            exp = exp.substring(1, exp.length - 1);
         }
 
-        if(featureName[0] === '~'){
-            featureName = 'NOT '+ featureName.substring(1);
-        }
+        let numComponents = exp.split("[").length - 1;
+        let names = [];
+        let argSetString = [];
 
-        let featureArg = exp.split("[")[1];
-        featureArg = featureArg.substring(0, featureArg.length-1);
-
-        let orbits = featureArg.split(";")[0].split(",");
-        let instruments = featureArg.split(";")[1].split(",");
-        let numbers = featureArg.split(";")[2];
-
-        let pporbits="";
-        let ppinstruments="";
-        for(let i = 0; i < orbits.length; i++){
-            if(orbits[i].length===0){
-                continue;
+        if(numComponents === 0){
+            let name = exp;
+            if(name === "paretoFront" || name === 'FeatureToBeAdded' 
+            || name === 'AND' || name === 'OR' 
+            || name === 'IF_THEN'){
+                return exp;
             }
-            if(i>0){pporbits = pporbits + ",";}
-            pporbits = pporbits + this.index2DisplayName(orbits[i], "orbit");
-        }
-        for(let i = 0; i < instruments.length; i++){
-            if(instruments[i].length===0){
-                continue;
+        } else {
+            for(let i = 0; i < numComponents; i++){
+                let component = exp.split("]")[i];
+                names.push(component.split("[")[0]);
+                argSetString.push(component.split("[")[1]);
             }
-            if(i > 0){
-                ppinstruments = ppinstruments + ", ";
+
+            let combinedFeatureName = names.join("_");
+            if(combinedFeatureName[0] === '~'){
+                combinedFeatureName = 'NOT '+ combinedFeatureName.substring(1);
             }
-            ppinstruments = ppinstruments + this.index2DisplayName(instruments[i], "instrument");
         }
 
-        let ppexpression = this.featureActualName2DisplayName(featureName) + "[" + pporbits + ";  " + ppinstruments + ";  " + numbers + "]";
-        
-        return ppexpression;
+        let ppExpression = [];
+        for(let i = 0; i < numComponents; i++){
+            let name = names[i];
+            let componentArgs = argSetString[i];
+            let orbits = componentArgs.split(";")[0].split(",");
+            let instruments = componentArgs.split(";")[1].split(",");
+            let numbers = componentArgs.split(";")[2];
+
+            let pporbits = [];
+            let ppinstruments = [];
+            for(let j = 0; j < orbits.length; j++){
+                if(orbits[j].length === 0){
+                    continue;
+                }else{
+                    pporbits.push(this.index2DisplayName(orbits[j], "orbit"));
+                }
+            }
+            for(let j = 0; j < instruments.length; j++){
+                if(instruments[j].length===0){
+                    continue;
+                }else{
+                    ppinstruments.push(this.index2DisplayName(instruments[j], "instrument"));
+                }
+            }
+            let ppComponent = this.featureActualName2DisplayName(name) + "[" + pporbits.join(", ") + ";  " + ppinstruments.join(", ") + ";  " + numbers + "]";
+            ppExpression.push(ppComponent)
+        }
+        return ppExpression.join(" ");
     }
     
     pp_feature(expression){

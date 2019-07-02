@@ -176,10 +176,7 @@ class DataMining{
         this.featureID = 1;
     }
 
-
-    
     async run(option){
-
         this.set_problem_parameters();
 
         // Store the id's of all samples
@@ -463,7 +460,7 @@ class DataMining{
                 let tempFeatures = [];
                 for(let i = 0; i < extractedFeatures.length; i++){
                     let thisFeature = extractedFeatures[i];
-                    if(precision - thisFeature.metrics[2] > 0.005 || recall - thisFeature.metrics[3] > 0.01){
+                    if(precision - thisFeature.metrics[2] > 0.01 || recall - thisFeature.metrics[3] > 0.01){
                         continue;
                     }else{
                         tempFeatures.push(thisFeature);
@@ -474,19 +471,20 @@ class DataMining{
                     return;
                 }    
 
-                // Get the feature with the lowest distance to the utopia point
-                let lowestDistance = 99;  
+                // Get the feature with the shortest distance to the utopia point
+                let shortestDistance = 99;  
                 let bestFeature = null;
                 for (let i = 0; i < tempFeatures.length; i++){
                     let precision = tempFeatures[i].metrics[2];
                     let recall = tempFeatures[i].metrics[3];
                     let dist = 1 - Math.sqrt(Math.pow(1 - precision, 2) + Math.pow(1 - recall, 2));
-                    if(dist < lowestDistance){
-                        lowestDistance = dist;
+                    if(dist < shortestDistance){
+                        shortestDistance = dist;
                         bestFeature = tempFeatures[i];
                     }
+
+                    //console.log("specificity: " + precision + ", coverage: " + recall + ": "+ tempFeatures[i].name);
                 }
-                
                 let description = that.relabel_generalization_description(bestFeature.description);
 
                 that.show_generalization_suggestion(description, bestFeature);
@@ -1979,6 +1977,8 @@ class DataMining{
                     that.add_new_features(generalizedFeature, true);
                     that.feature_application.update_feature_application('direct-update', generalizedFeature.expression);
 
+                    console.log(generalizedFeature.expression);
+
                     // EXPERIMENT
                     if(that.tutorial_in_progress){
                         PubSub.publish(EXPERIMENT_TUTORIAL_EVENT, "generalization_accept"); 
@@ -2015,7 +2015,12 @@ class DataMining{
         //         console.info('closedBy: ' + closedBy); // tells if it was closed by 'drag' or 'button'
         //     }
         });
+    }
 
+    import_generalized_variable_list(){
+        this.set_problem_parameters(()=>{
+            this.get_problem_parameters();
+        });
     }
 }
 
