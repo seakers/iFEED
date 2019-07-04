@@ -12,12 +12,14 @@ class EOSSAssigningFilter extends Filter{
                                 {value:"together",text:"Together",input:"multipleInstInput",hints:"Selects designs that assign {[INSTRUMENT]} in the same orbit"},
                                 {value:"separate",text:"Separate",input:"multipleInstInput",hints:"Selects designs that never assign {[INSTRUMENT]} to the same orbit"},
                                 {value:"emptyOrbit",text:"EmptyOrbit",input:"orbitInput",hints:"Selects designs whose orbit [ORBIT] is empty"},
-                                {value:"numOrbits",text:"Number of orbit used",input:"numOrbits",hints:"Selects designs that assign instruments to [NUMBER] orbits"},
+                                {value:"numOrbits",text:"# of orbit used",input:"numOrbits",hints:"Selects designs that assign instruments to [NUMBER] orbits"},
                                 
-                                {value:"numInstruments",text:"Number of instruments",input:"numInstruments",hints:"Selects all the designs with the specified "
-                                +"number of instruments. If you specify an orbit, it will count all instruments in that orbit. "
-                                +"If you specify an instrument name, and only those instruments will be counted across all orbits. "
-                                +"If you do not select either instruments or orbits, all instruments across all orbits will be counted."},
+                                {value:"numInstruments",text:"# of instruments",input:"numInstruments",hints:"Selects all the designs with the specified "
+                                +"number of instruments. If you specify an instrument name, only those instruments will be counted across all orbits. "},
+
+                                {value:"numInstrumentsInOrbit",text:"# of instruments in each orbit",input:"numInstrumentsInOrbit",hints:"Selects all the designs with the specified "
+                                +"number of instruments in each orbit. If you specify an orbit, only those orbits will be considered. "
+                                +"If you specify an instrument name, and only those instruments will be counted in each orbit. "},
                                
                                 {value:"absent_except",text:"Absent + Exception",input:"absent_except", hints:"Selects designs that use [INSTRUMENT], with an exception"},
                                 {value:"emptyOrbit_except",text:"EmptyOrbit + Exception",input:"emptyOrbit_except", hints:"Selects designs whose orbit [ORBIT] is empty, with an exception"},
@@ -234,6 +236,8 @@ class EOSSAssigningFilter extends Filter{
                     return that.numOrbits;
                 case "numInstruments":
                     return that.numInstruments;
+                case "numInstrumentsInOrbit":
+                    return that.numInstrumentsInOrbit;
                 case "absent_except":
                     return that.absentExcept;
                 case "emptyOrbit_except":
@@ -699,6 +703,115 @@ class EOSSAssigningFilter extends Filter{
                     break;
                 
                 case "numInstruments":
+                    instrument_select_input = filter_input_div.append('div')
+                                                        .attr('class','filterInputDiv instrumentInput');
+                    instrument_select_input.text("Select an instrument (may not be selected)");
+                    this.add_instrument_select();
+                    d3.selectAll('.instrumentSelect').on("change", function(){
+                        that.instrument_select_callback();
+                    });
+
+                    number_input = filter_input_div.append('div')
+                                                    .attr('class','filterInputDiv numInput')
+                    number_input.text("Input the number of instrument used (fill in both fields to indicate the lower bound and the upper bound): ");
+                    number_input.append("input")
+                                .attr("type","number")
+                                .attr("id","numInputLB")
+                                .style("width","80px")
+                                .on("change", function(){that.input_modification_callback();});
+
+                    number_input.append("input")
+                                .attr("type","number")
+                                .attr("id","numInputUB")
+                                .style("width","80px")
+                                .on("change", function(){that.input_modification_callback();});
+
+                    d3.select('.filterInputDiv.numInput').select('#numInputLB').node().value = 1;
+
+                    this.input_modification_callback = () => {
+                        disableApplyButton();
+
+                        let instrumentText = null;
+                        let instruments = [];
+                        let instrSelects = d3.select('.filterInputDiv.instrumentInput').selectAll('select').nodes();
+                        for(let i = 0; i < instrSelects.length; i++){
+                            let instrName = instrSelects[i].value;
+                            if(that.invalid_options.indexOf(instrName) === -1){
+                                instruments.push(instrName);
+                            }
+                        }
+                        if(instruments.length === 1){
+                            instrumentText = instruments[0];
+                        }else{
+                            instrumentText = "{" + instruments.join(", ") + "}";
+                        }
+
+                        let numberInputs = d3.select('.filterInputDiv.numInput').selectAll('input').nodes();
+                        let lb = null;
+                        let ub = null;
+                        if(numberInputs[0].value !== ""){
+                            lb = +numberInputs[0].value;
+                        }
+                        if(numberInputs[1].value !== ""){
+                            ub = +numberInputs[1].value;
+                        }
+
+                        let numText = null;
+                        let isRange = false;
+                        if(lb === null && ub === null){
+                            numText = "[NUMBER]";
+                        }else if(lb && ub === null){
+                            numText = "" + lb;
+                        }else if(ub && lb === null){
+                            numText = "" + ub;
+                        }else{
+                            if(lb === ub){
+                                numText = "" + ub;
+                            }else{
+                                isRange = true;
+                                numText = "minimum " + lb + " and maximum " + ub;
+                            }
+                        }
+
+                        let newHelpText =  null;
+                        if(isRange){
+                            if(lb > ub){
+                                newHelpText = "INVALID INPUT: the lower bound must be smaller than the upper bound.";
+                            }
+                        }
+
+                        if(!newHelpText){
+                            newHelpText =  "Filter explanation: selects designs that use ";
+                            if(instruments.length === 0){
+                                if(numText === "1"){
+                                    newHelpText = newHelpText + " a single instrument across all orbits.";
+                                }else{
+                                    newHelpText = newHelpText + numText + " instruments across all orbits.";
+                                }
+                                enableApplyButton();
+                            } else {
+                                if(instruments.length === 1){
+                                    if(numText === "1"){
+                                        newHelpText = newHelpText + "one of the instrument " + instrumentText + " across all orbits.";
+                                    }else{
+                                        newHelpText = newHelpText + numText + " of the instrument " + instrumentText + " across all orbits.";
+                                    }
+                                }else{
+                                    if(numText === "1"){
+                                        newHelpText = newHelpText + "one instrument out of the set " + instrumentText + " across all orbits.";
+                                    }else{
+                                        newHelpText = newHelpText + numText + " instruments out of the set " + instrumentText + " across all orbits.";
+                                    } 
+                                }
+                                enableApplyButton();
+                            }
+                        }
+                        newHelpText = "<p>" + newHelpText + "</p>";
+                        d3.select(".filter.hints.div").select('div').html(newHelpText);
+                    }
+                    break;
+
+                case "numInstrumentsInOrbit":
                     orbit_select_input = filter_input_div.append('div')
                                                         .attr('class','filterInputDiv orbitInput');
                     
@@ -793,23 +906,23 @@ class EOSSAssigningFilter extends Filter{
                                 newHelpText =  "Filter explanation: selects designs that use ";
                                 if(instruments.length === 0){
                                     if(numText === "1"){
-                                        newHelpText = newHelpText + " a single instrument.";
+                                        newHelpText = newHelpText + " a single instrument in each orbit.";
                                     }else{
-                                        newHelpText = newHelpText + numText + " instruments";
+                                        newHelpText = newHelpText + numText + " instruments in each orbit.";
                                     }
                                     enableApplyButton();
                                 } else {
                                     if(instruments.length === 1){
                                         if(numText === "1"){
-                                            newHelpText = newHelpText + "one of the instrument " + instrumentText;
+                                            newHelpText = newHelpText + "one of " + instrumentText + " in each orbit.";
                                         }else{
-                                            newHelpText = newHelpText + numText + " of the instrument " + instrumentText;
+                                            newHelpText = newHelpText + numText + " of " + instrumentText + " in each orbit.";
                                         }
                                     }else{
                                         if(numText === "1"){
-                                            newHelpText = newHelpText + "one instrument out of the set " + instrumentText;
+                                            newHelpText = newHelpText + "one instrument out of the set " + instrumentText + " in each orbit.";
                                         }else{
-                                            newHelpText = newHelpText + numText + " instruments out of the set " + instrumentText;
+                                            newHelpText = newHelpText + numText + " instruments out of the set " + instrumentText + " in each orbit.";
                                         } 
                                     }
                                     enableApplyButton();
@@ -818,23 +931,23 @@ class EOSSAssigningFilter extends Filter{
                                 newHelpText =  "Filter explanation: selects designs that assign ";
                                 if(instruments.length === 0){
                                     if(numText === "1"){
-                                        newHelpText = newHelpText + "one instrument in " + orb;
+                                        newHelpText = newHelpText + "one instrument in " + orb + ".";
                                     }else{
-                                        newHelpText = newHelpText + numText + " instruments in " + orb;
+                                        newHelpText = newHelpText + numText + " instruments in " + orb + ".";
                                     } 
                                     enableApplyButton();
                                 } else {
                                     if(instruments.length === 1){
                                         if(numText === "1"){
-                                            newHelpText = newHelpText + "one of the instrument " + instrumentText + " in " + orb;
+                                            newHelpText = newHelpText + "one of the instrument " + instrumentText + " in " + orb + ".";
                                         }else{
-                                            newHelpText = newHelpText + numText + " of the instrument " + instrumentText + " in " + orb;
+                                            newHelpText = newHelpText + numText + " of the instrument " + instrumentText + " in " + orb + ".";
                                         }         
                                     }else{
                                         if(numText === "1"){
-                                            newHelpText = newHelpText + "one instrument out of the set " + instrumentText + " in " + orb;
+                                            newHelpText = newHelpText + "one instrument out of the set " + instrumentText + " in " + orb + ".";
                                         }else{
-                                            newHelpText = newHelpText + numText + " instruments out of the set " + instrumentText + " in " + orb;
+                                            newHelpText = newHelpText + numText + " instruments out of the set " + instrumentText + " in " + orb + ".";
                                         }     
                                     }
                                     enableApplyButton();
@@ -1407,7 +1520,17 @@ class EOSSAssigningFilter extends Filter{
             }     
             filter_expression = filterType + "[;;" + numInputString + "]";
             
-        }else if(filterType=="numInstruments"){
+        }else if(filterType === "numInstruments"){
+            if(instrumentInputs.length === 0){
+                // Count all instruments across all orbits
+                filter_expression = filterType + "[;;" + numInputString + "]";
+
+            }else {
+                // Count the number of specified instrument   
+                filter_expression = filterType + "[;" + instrumentNameString + ";" + numInputString + "]";
+            }
+
+        }else if(filterType === "numInstrumentsInOrbit"){
             let orbitEmpty = false; 
             let instrumentEmpty = false;
 
@@ -1596,6 +1719,7 @@ class EOSSAssigningFilter extends Filter{
                 if(inputType === "orbitAndMultipleInstInput" 
                     || inputType === "multipleInstInput" 
                     || inputType === "numInstruments"
+                    || inputType === "numInstrumentsInOrbit"
                     || inputType === "notInOrbit_except"
                     || inputType === "separate_except"){
 
@@ -1610,6 +1734,7 @@ class EOSSAssigningFilter extends Filter{
         if(inputType === "orbitAndMultipleInstInput" 
             || inputType === "multipleInstInput"
             || inputType === "numInstruments" 
+            || inputType === "numInstrumentsInOrbit"
             || inputType === "notInOrbit_except"
             || inputType === "separate_except"){
 
@@ -2426,7 +2551,7 @@ class EOSSAssigningFilter extends Filter{
             let instruments = args[1];
             let out = true;
 
-            let instantiated_args = JSON.parse(JSON.stringify(args);
+            let instantiated_args = JSON.parse(JSON.stringify(args));
             let ground_items = [];
             let class_instances = [];
             for(let i = 0; i < instruments.length; i++){
@@ -2554,6 +2679,83 @@ class EOSSAssigningFilter extends Filter{
         this.numInstruments = (args, inputs) => {
             validInputCheck(args);
 
+            let instruments = args[1];
+
+            let instrumentEmpty = false;
+            if(instruments.length === 1){
+                if(instruments[0] === -1){
+                    instrumentEmpty = true;
+                }
+            }
+
+            let nBounds = [];
+            if(args[2].length === 2){
+                nBounds.push( + args[2][0] );
+                nBounds.push( + args[2][1] );
+            }else{
+                nBounds.push( + args[2][0]);
+                nBounds.push( + args[2][0]);
+            }
+            let out = false;
+            let count = 0;
+
+            if(instrumentEmpty){
+                for(let o = 0; o < this.norb; o++){
+                    for(let i = 0; i < this.ninstr; i++){
+                        if(inputs[o * this.ninstr + i] === true){
+                            count++;
+                        }   
+                    }
+                }
+            }else{
+
+                let alreadyCounted = [];
+
+                for(let i = 0; i < instruments.length; i++){
+                    let instr = instruments[i];
+
+                    if(instr >= this.ninstr){ // High-level class
+                        let instance_list = this.instance_index_map["instrument"][instr];
+                        for(let j = 0; j < instance_list.length; j++){
+                            let tempInstr = instance_list[j];
+
+                            if(alreadyCounted.indexOf(tempInstr) === -1){
+                                alreadyCounted.push(tempInstr);
+                            }else{
+                                continue;
+                            }
+
+                            for(let o = 0; o < this.norb; o++){
+                                if(inputs[o * this.ninstr + tempInstr] === true){
+                                    count++;
+                                }
+                            }
+                        }
+                    }else{ 
+                        if(alreadyCounted.indexOf(instr) === -1){
+                            alreadyCounted.push(instr);
+                        }else{
+                            continue;
+                        }
+
+                        for(let o = 0; o < this.norb; o++){
+                            if(inputs[o * this.ninstr + instr] === true){
+                                count++;
+                            }
+                        }
+                    }
+                }
+            }
+
+            if(count >= nBounds[0] && count <= nBounds[1]){
+                out = true;
+            }
+            return out;
+        }  
+
+        this.numInstrumentsInOrbit = (args, inputs) => {
+            validInputCheck(args);
+
             let orbit = args[0][0];
             let instruments = args[1];
 
@@ -2576,47 +2778,73 @@ class EOSSAssigningFilter extends Filter{
                 nBounds.push( + args[2][0]);
                 nBounds.push( + args[2][0]);
             }
-            let out = false;
-            let count = 0;
 
+            let out = true;
             if(orbitEmpty){
-                if(instrumentEmpty){
+                if(instrumentEmpty){ // Count the number of instruments for each orbit
                     for(let o = 0; o < this.norb; o++){
+                        let count = 0;
                         for(let i = 0; i < this.ninstr; i++){
                             if(inputs[o * this.ninstr + i] === true){
                                 count++;
                             }   
                         }
+                        if(count < nBounds[0] || count > nBounds[1]){
+                            out = false;
+                            break;
+                        }
                     }
                 }else{
-                    for(let i = 0; i < instruments.length; i++){
-                        let instr = instruments[i];
+                    for(let o = 0; o < this.norb; o++){
+                        let count = 0;
+                        let alreadyCounted = [];
+                        for(let i = 0; i < instruments.length; i++){
+                            let instr = instruments[i];
 
-                        if(instr >= this.ninstr){ // High-level class
-                            let instance_list = this.instance_index_map["instrument"][instr];
-                            for(let i = 0; i < instance_list.length; i++){
-                                let tempInstr = instance_list[i];
-                                for(let o = 0; o < this.norb; o++){
+                            if(instr >= this.ninstr){ // High-level class
+                                let instance_list = this.instance_index_map["instrument"][instr];
+                                for(let j = 0; j < instance_list.length; j++){
+                                    let tempInstr = instance_list[j];
+
+                                    if(alreadyCounted.indexOf(tempInstr) === -1){
+                                        alreadyCounted.push(tempInstr);
+                                    }else{
+                                        continue;
+                                    }
+
                                     if(inputs[o * this.ninstr + tempInstr] === true){
                                         count++;
                                     }
                                 }
-                            }
-                        }else{ 
-                            for(let o = 0; o < this.norb; o++){
+                                
+                            }else{ 
+
+                                if(alreadyCounted.indexOf(instr) === -1){
+                                    alreadyCounted.push(instr);
+                                }else{
+                                    continue;
+                                }
+
                                 if(inputs[o * this.ninstr + instr] === true){
                                     count++;
-                                }
+                                } 
                             }
+                        }
+
+                        if(count < nBounds[0] || count > nBounds[1]){
+                            out = false;
+                            break;
                         }
                     }
                 }
-            }else{
 
+            }else{
                 if(orbit >= this.norb){ // High-level class
                     let orbit_instance_list = this.instance_index_map["orbit"][orbit];
-                    for(let i = 0; i < orbit_instance_list.length; i++){
-                        let tempOrb = orbit_instance_list[i];
+
+                    for(let o = 0; o < orbit_instance_list.length; o++){
+                        let tempOrb = orbit_instance_list[o];
+                        let count = 0;
 
                         if(instrumentEmpty){
                             for(let i = 0; i < this.ninstr; i++){
@@ -2625,61 +2853,97 @@ class EOSSAssigningFilter extends Filter{
                                 }
                             }
                         }else{
+
+                            let alreadyCounted = [];
                             for(let i = 0; i < instruments.length; i++){
                                 let instr = instruments[i];
 
                                 if(instr >= this.ninstr){ // High-level class
                                     let instr_instance_list = this.instance_index_map["instrument"][instr];
-                                    for(let i = 0; i < instr_instance_list.length; i++){
-                                        let tempInstr = instr_instance_list[i];
+                                    for(let j = 0; j < instr_instance_list.length; j++){
+                                        let tempInstr = instr_instance_list[j];
+
+                                        if(alreadyCounted.indexOf(tempInstr) === -1){
+                                            alreadyCounted.push(tempInstr);
+                                        }else{
+                                            continue;
+                                        }
+
                                         if(inputs[tempOrb * this.ninstr + tempInstr] === true){
                                             count++;
                                         }
                                     }
-                                }else{ 
+                                }else{
+
+                                    if(alreadyCounted.indexOf(instr) === -1){
+                                        alreadyCounted.push(instr);
+                                    }else{
+                                        continue;
+                                    }
+
                                     if(inputs[tempOrb * this.ninstr + instr] === true){
                                         count++;
                                     }
                                 }
                             }
                         }
+
+                        if(count < nBounds[0] || count > nBounds[1]){
+                            out = false;
+                            break;
+                        }
                     }
+
                 }else{ 
+                    let count = 0;
                     if(instrumentEmpty){
                         for(let i = 0; i < this.ninstr; i++){
                             if(inputs[orbit * this.ninstr + i] === true){
                                 count++;
                             }
                         }
+
                     }else{
+
+                        let alreadyCounted = [];
                         for(let i = 0; i < instruments.length; i++){
                             let instr = instruments[i];
 
                             if(instr >= this.ninstr){ // High-level class
                                 let instr_instance_list = this.instance_index_map["instrument"][instr];
-                                for(let i = 0; i < instr_instance_list.length; i++){
-                                    let tempInstr = instr_instance_list[i];
+                                for(let j = 0; j < instr_instance_list.length; j++){
+                                    let tempInstr = instr_instance_list[j];
+
+                                    if(alreadyCounted.indexOf(tempInstr) === -1){
+                                        alreadyCounted.push(tempInstr);
+                                    }else{
+                                        continue;
+                                    }
+
                                     if(inputs[orbit * this.ninstr + tempInstr] === true){
                                         count++;
                                     }
                                 }
                             }else{ 
+                                if(alreadyCounted.indexOf(instr) === -1){
+                                    alreadyCounted.push(instr);
+                                }else{
+                                    continue;
+                                }
+
                                 if(inputs[orbit * this.ninstr + instr] === true){
                                     count++;
                                 }
                             }
                         }
                     }
+                    if(count < nBounds[0] || count > nBounds[1]){
+                        out = false;
+                    }
                 }
-            }
-
-            if(count >= nBounds[0] && count <= nBounds[1]){
-                out = true;
             }
             return out;
         }  
-
-
 
     }
 }
