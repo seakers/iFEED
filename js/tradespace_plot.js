@@ -1,9 +1,8 @@
 
 
 class TradespacePlot{
-    
+
     constructor(xIndex, yIndex){
-        
         if(xIndex != null){
             this.xIndex = xIndex;
         }else{
@@ -20,7 +19,7 @@ class TradespacePlot{
 
         this.tradespace_plot_params = {
             "margin":{top: 20, right: 20, bottom: 30, left: 60},
-            "width": 1213,
+            "width": 960,
             "height": 540,
         };
 
@@ -84,25 +83,6 @@ class TradespacePlot{
             this.update(resetColor);
             this.drawPlot(this.xIndex, this.yIndex);
         }); 
-
-        // EXPERIMENT
-        PubSub.subscribe(EXPERIMENT_SET_MODE, (msg, data) => {
-            if(data === "design_synthesis"){
-                this.data.forEach( (point) => {
-                    point.highlighted = false;
-                    point.selected = false;
-                    point.hidden = true;
-                    this.setPointColor(point);
-                }); 
-                this.drawPoints(this.context, false);
-                this.num_selected_points = this.get_selected_architectures().length;
-                this.num_highlighted_points = this.get_highlighted_architectures().length;
-                this.num_total_points = this.get_all_architectures().length;
-                d3.select("#num_of_selected_archs").text("" + this.num_selected_points);
-                d3.select("#num_of_archs").text("" + this.num_total_points);
-                PubSub.publish(SELECTION_UPDATED, this.get_selected_architectures());
-            }
-        });   
     }
 
     reset_tradespace_plot() {

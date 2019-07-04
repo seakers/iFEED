@@ -36,8 +36,6 @@ class DataMining{
 
         this.complexityFilterThresholds = null;
 
-        this.algorithmGeneratedFeatureIDs = []; // EXPERIMENT
-
         this.currentFeature = null;
         this.currentFeatureBlinkInterval = null;
         this.utopiaPoint = {id:-1, name:null, expression:null, metrics:null, x0:-1, y0:-1, x:-1, y:-1, utopiaPoint: true};
@@ -93,45 +91,6 @@ class DataMining{
         PubSub.subscribe(FEATURE_APPLICATION_LOADED, (msg, data) => {
             this.feature_application = data;
         });  
-
-        // EXPERIMENT
-        PubSub.subscribe(EXPERIMENT_SET_MODE, (msg, data) => {
-            this.tutorial_in_progress = false;
-
-            if(data === "manual_generalization"){
-                this.allFeatures = [];
-                this.display_features([]);
-
-            } else if(data === "automated_generalization"){
-                this.import_feature_data("6655_AOSMOEA_GP", true, true);
-
-            } else if(data === "interactive_generalization"){
-                this.import_feature_data("6655_epsilonMOEA_ruleset", true, false);
-                // this.run();
-            
-            } else if(data === "design_synthesis"){
-                this.initialize = function(){
-                    d3.select("#support_panel").select("#view3").select("g").remove();
-                }
-            } else if(data === "feature_synthesis"){
-                this.allFeatures = [];
-                this.display_features([]);
-
-            } else if(data === "tutorial_manual_generalization"){
-                this.allFeatures = [];
-                this.display_features([]);
-                this.tutorial_in_progress = true;
-
-            } else if(data === "tutorial_automated_generalization"){
-                this.import_feature_data("experiment_tutorial_data", false, false);
-                this.tutorial_in_progress = true;
-
-            } else if(data === "tutorial_interactive_generalization"){
-                this.import_feature_data("experiment_tutorial_data", false, false);
-                this.tutorial_in_progress = true;
-            }
-        });  
-
         this.initialize();        
     }
 
@@ -163,7 +122,6 @@ class DataMining{
         
         this.allFeatures = [];
         this.recentlyAddedFeatureIDs = [];
-        this.algorithmGeneratedFeatureIDs = []; // EXPERIMENT
         this.currentFeature = null;
         this.currentFeatureBlinkInterval=null;
         this.utopiaPoint = {id:-1, name:null, expression:null, metrics:null, x0:-1, y0:-1, x:-1, y:-1, utopiaPoint: true};
@@ -544,13 +502,10 @@ class DataMining{
 
         // Initialize the location of each feature
         this.featureID = 1;
-        this.algorithmGeneratedFeatureIDs = []; // EXPERIMENT
         for (let i = 0; i < features.length; i++){
             features[i].x0 = -1;
             features[i].y0 = -1;
             features[i].id = this.featureID++;
-
-            this.algorithmGeneratedFeatureIDs.push(features[i].id); // EXPERIMENT
         }
         this.utopiaPoint = {id:-1, name:null, expression:null, metrics:null, x0:-1, y0:-1, x:-1, y:-1, utopiaPoint: true};
         this.update(features);
@@ -624,7 +579,6 @@ class DataMining{
             this.recentlyAddedFeatureIDs = [];
             for(let i = 0; i < featuresToAdd.length; i++){
                 this.recentlyAddedFeatureIDs.push(featuresToAdd[i].id);
-                this.algorithmGeneratedFeatureIDs.push(featuresToAdd[i].id); // EXPERIMENT
             }
             this.update(featuresToAdd, featuresToRemove, this.currentFeature);
         }
@@ -1154,19 +1108,9 @@ class DataMining{
     feature_click(d){
         this.currentFeature = d;
         this.feature_application.update_feature_application('update');
-
-        // EXPERIMENT 
-        if(this.recentlyAddedFeatureIDs.indexOf(d.id) !== -1){
-            PubSub.publish(EXPERIMENT_TUTORIAL_EVENT, "new_feature_clicked");
-        }
-
-        // EXPERIMENT
-        PubSub.publish(EXPERIMENT_EVENT, {key:"feature_viewed"});
     }
 
     feature_mouseover(d){
-        // EXPERIMENT 
-        PubSub.publish(EXPERIMENT_TUTORIAL_EVENT, "feature_mouse_hover");    
         let id = d.id; 
         let expression = d.expression;
         let metrics = d.metrics;
@@ -1182,12 +1126,8 @@ class DataMining{
         let mouseLoc_y = d3.mouse(d3.select(".objects.feature_plot").node())[1];
 
         let tooltip_location = {x:0,y:0};
-
-        // EXPERIMENT
-        let tooltip_width = 170;
-        let tooltip_height = 75;
-        // let tooltip_width = 250;
-        // let tooltip_height = 120;
+        let tooltip_width = 250;
+        let tooltip_height = 120;
 
         let h_threshold = (width + margin.left + margin.right)*0.5;
         let v_threshold = (height + margin.top + margin.bottom)*0.55;
@@ -1239,7 +1179,6 @@ class DataMining{
                             // "<br> Confidence(F->S): " + round_num(d.metrics[2]) + 
                             // "<br> Confidence(S->F): " + round_num(d.metrics[3]) +"";
 
-                            // EXPERIMENT
                             let output= "Specificity: " + round_num(d.metrics[2]) + 
                             "<br> Coverage: " + round_num(d.metrics[3]) + "";
                             return output;
@@ -1942,17 +1881,7 @@ class DataMining{
 
     show_generalization_suggestion(message, generalizedFeature){
         let that = this;
-
-        // EXPERIMENT 
-        setTimeout(function() {
-            PubSub.publish(EXPERIMENT_TUTORIAL_EVENT, "generalization_suggestion"); 
-        }, 1000);
-
-        // EXPERIMENT
         let timeout = 20000;
-        if(that.tutorial_in_progress){
-            timeout = 10000000;
-        }
 
         if(message.indexOf("\n")){
             message = message.replace("\n","</p><p>")
@@ -1978,11 +1907,6 @@ class DataMining{
                     that.add_new_features(generalizedFeature, true);
                     that.feature_application.update_feature_application('direct-update', generalizedFeature.expression);
 
-                    // EXPERIMENT
-                    if(that.tutorial_in_progress){
-                        PubSub.publish(EXPERIMENT_TUTORIAL_EVENT, "generalization_accept"); 
-                    }
-
                     instance.hide({
                         transitionOut: 'fadeOutUp',
                         onClosing: function(instance, toast, closedBy){
@@ -1992,12 +1916,6 @@ class DataMining{
 
                 }, true], // true to focus
                 ['<button style=' + buttonsStyle + '><b style="opacity: 1.0">Reject</b></button>', function (instance, toast) {
-
-                    // EXPERIMENT
-                    if(that.tutorial_in_progress){
-                        return;
-                    }
-
                     instance.hide({
                         transitionOut: 'fadeOutUp',
                         onClosing: function(instance, toast, closedBy){

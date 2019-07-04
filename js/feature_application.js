@@ -125,9 +125,6 @@ class FeatureApplication{
 
         d3.select('#conjunctive_local_search').on('click', (d) => {
             this.data_mining.run();
-
-            // EXPERIMENT 
-            PubSub.publish(EXPERIMENT_TUTORIAL_EVENT, "local_search_conjunctive"); 
         }); 
        
         d3.select('#disjunctive_local_search').on('click',(d) => {
@@ -139,12 +136,6 @@ class FeatureApplication{
         }); 
 
 		PubSub.publish(FEATURE_APPLICATION_LOADED, this);
-
-        // EXPERIMENT
-        this.experiment_condition = null;
-        PubSub.subscribe(EXPERIMENT_SET_MODE, (msg, data) => {
-            this.experiment_condition = data;
-        });  
     }
     
     draw_feature_application_tree(expression, updateOption){   
@@ -585,12 +576,6 @@ class FeatureApplication{
 
         d3.selectAll('.treeNode')
             .on('contextmenu', (d) => { 
-
-                // EXPERIMENT
-                if(that.experiment_condition === "automated_generalization"){
-                    return;
-                }
-
                 d3.event.preventDefault();
                 let context = d.type;
                 let mouse_pos = d3.mouse(d3.select("#feature_application_panel").select('svg').select('g').node());
@@ -608,11 +593,6 @@ class FeatureApplication{
     }
         
     dragStart(d){
-        // EXPERIMENT
-        if(this.experiment_condition === "automated_generalization"){
-            return;
-        }
-
         // Dragging disabled in the root node
         if(d.depth === 0) { 
         	return;
@@ -702,11 +682,6 @@ class FeatureApplication{
                 } else {
                     selectedNode.children = [];
                     selectedNode.children.push(draggingNode);
-                }
-
-                if(draggingNode.parent !== selectedNode){
-                    // EXPERIMENT 
-                    PubSub.publish(EXPERIMENT_TUTORIAL_EVENT, "node_drag_end"); 
                 }
 
             }else{
@@ -1161,9 +1136,6 @@ class FeatureApplication{
                 d.temp = false;
             })  
             this.update({add_to_feature_space_plot: true, replace_equivalent_feature: false});
-
-            // EXPERIMENT 
-            PubSub.publish(EXPERIMENT_TUTORIAL_EVENT, "feature_clicked");
 
         } else if(option === 'direct-update'){ // Make a direct update to the feature application status
             // Remove the stashed information                

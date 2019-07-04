@@ -38,10 +38,6 @@ const SET_FEATURE_MODIFICATION_MODE = "set_feature_modification_mode";
 const END_FEATURE_MODIFICATION_MODE = "end_feature_modification_mode";
 
 
-
-
-
-
 const DRAW_VENN_DIAGRAM = "draw_venn_diagram";
 const CANCEL_ADD_FEATURE = "cancel_add_feature";
 const ADD_ARCHITECTURE = "add_architecture";
@@ -50,13 +46,6 @@ const VIEW_ARCHITECTURE = "view_architecture";
 const HIGHLIGHT_SUPPORT_PANEL = "highlight_support_panel";
 const ARCH_SELECTED = "arch_selected";
 
-
-// EXPERIMENT
-const EXPERIMENT_SET_MODE = "experiment_set_mode";
-const EXPERIMENT_EVENT = "experiment_event";
-const EXPERIMENT_CONDITION_CHANGE = "experiment_condition_change";
-const EXPERIMENT_TUTORIAL_START = "experiment_tutorial_start";
-const EXPERIMENT_TUTORIAL_EVENT = "experiment_tutorial_event";
 
 
 class Architecture{

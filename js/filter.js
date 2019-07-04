@@ -128,21 +128,7 @@ class Filter{
         d3.select(".filter.options.dropdown").on("change",function(d){
             let option = d3.select(this).node().value;            
             that.initialize_filter_input_field(option); 
-
-            // EXPERIMENT 
-            PubSub.publish(EXPERIMENT_TUTORIAL_EVENT, "filter_select_" + option);
         });    
-
-        // EXPERIMENT
-        let filtersToBeRemoved = ["paretoFront"];
-        d3.select('.filter.options.dropdown')
-            .selectAll('option')
-            .nodes()
-            .forEach((d)=>{
-                if(filtersToBeRemoved.indexOf(d.value) !== -1){
-                    d3.select(d).remove();
-                }
-            });
     }
     
     get_preset_option(option){
@@ -177,13 +163,6 @@ class Filter{
         }
         
         document.getElementById('tab2').click();
-
-        // EXPERIMENT
-        PubSub.publish(EXPERIMENT_TUTORIAL_EVENT, "filter_applied");
-
-        // EXPERIMENT
-        PubSub.publish(EXPERIMENT_EVENT, "filter_applied");
-
         return true;
     }
 
@@ -204,11 +183,24 @@ class Filter{
             let filtered_data = this.process_filter_expression(feature_expression, this.data);
             id_list = this.get_data_ids(filtered_data);
 
-            this.data.forEach((point) => {
-                if(id_list.indexOf(point.id) != -1){
-                    point.highlighted = true;
-                }
-            });
+            if(feature_expression.indexOf("paretoFront") !== -1){
+                let selected_archs = [];
+                this.data.forEach((point) => {
+                    if(id_list.indexOf(point.id) !== -1){
+                        point.selected = true;
+                        selected_archs.push(point);
+                    }
+                });
+                PubSub.publish(SELECTION_UPDATED, selected_archs);
+
+            }else{
+                this.data.forEach((point) => {
+                    if(id_list.indexOf(point.id) != -1){
+                        point.highlighted = true;
+                    }
+                });
+            }
+
         }
         PubSub.publish(UPDATE_TRADESPACE_PLOT, true);
         return id_list;

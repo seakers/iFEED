@@ -91,38 +91,7 @@ class EOSSAssigning extends Problem{
         PubSub.subscribe(PROBLEM_CONCEPT_HIERARCHY_LOADED, (msg, data) => {
             this.metadata.problem_specific_params["orbit_extended_list"] = data["params"]["rightSet"];
             this.metadata.problem_specific_params["instrument_extended_list"] = data["params"]["leftSet"];
-        });
-
-        // EXPERIMENT
-        PubSub.subscribe(EXPERIMENT_SET_MODE, (msg, data) => {
-            if(data === "design_synthesis"){
-                if(this._display_arch_info){
-                    this.display_arch_info = this._display_arch_info;
-                    this._display_arch_info = null;
-                }
-
-                this.experimentMode = data;
-                this.display_instrument_options();
-
-                let emptyBitString = "";
-                for(let i = 0; i < 60; i++){
-                    emptyBitString += "0";
-                }
-                this.display_arch_info(emptyBitString);
-
-                // Display the current architecture info
-                d3.select('#arch_info_display_outputs')
-                    .append("p")
-                    .text("Drag instruments to empty orbit slots to build and evaluate new designs")
-                    .style('font-size','20px');
-            
-            }else if(data === "feature_synthesis"){
-                this.experimentMode = data;
-                this._display_arch_info = this.display_arch_info;
-                this.display_arch_info = () => {};
-            }
-
-        });  
+        }); 
     }
     
     booleanArray2String(boolArray) {
@@ -307,17 +276,6 @@ class EOSSAssigning extends Problem{
               }
               return that.label.actualName2DisplayName(d.content,"instrument");
             });
-
-
-        // EXPERIMENT
-        if(typeof this.experimentMode !== "undefined" && this.experimentMode !== null){
-            if(this.experimentMode === "design_synthesis"){
-                this.enable_modify_architecture();
-            }
-        }
-
-        // EXPERIMENT
-        PubSub.publish(EXPERIMENT_EVENT, {key:"design_viewed"});
     }
     
     enable_modify_architecture(){
@@ -339,9 +297,6 @@ class EOSSAssigning extends Problem{
                 that.current_bitString = that.update_current_architecture();
                 if(bitString_save !== that.current_bitString){
                     that.enable_evaluate_architecture();
-
-                    // EXPERIMENT 
-                    PubSub.publish(EXPERIMENT_TUTORIAL_EVENT, "architecture_modified");
                 } 
             }
         })
@@ -367,9 +322,6 @@ class EOSSAssigning extends Problem{
                 if(bitString_save !== that.current_bitString){
                     that.enable_evaluate_architecture();
                     that.enable_modify_architecture();
-
-                    // EXPERIMENT 
-                    PubSub.publish(EXPERIMENT_TUTORIAL_EVENT, "instrument_assigned");
                 }
             }
         });        
@@ -568,12 +520,6 @@ class EOSSAssigning extends Problem{
                 let arch = that.preprocessing(data);    
                 PubSub.publish(INSPECT_ARCH, arch);
                 PubSub.publish(ADD_ARCHITECTURE, arch);
-
-                // EXPERIMENT 
-                PubSub.publish(EXPERIMENT_TUTORIAL_EVENT, "architecture_evaluated");
-                
-                // EXPERIMENT
-                PubSub.publish(EXPERIMENT_EVENT, {key:"design_evaluated", data: arch});
             },
             error: function (jqXHR, textStatus, errorThrown)
             {

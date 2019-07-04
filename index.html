@@ -30,9 +30,6 @@
     <link href="css/feature_application.css" rel="stylesheet" type="text/css"/>
     <link href="css/lib/iziToast.min.css" rel="stylesheet" type="text/css">
 
-    <link href="css/experiment.css" rel="stylesheet" type="text/css">
-    <link href="css/experiment_tutorial.css" rel="stylesheet" type="text/css">
-
 </head>
 
 <body>
@@ -52,6 +49,42 @@
     <div class='column c1'>
         <div class='row c1 r1'>
             <div class='tradespace_plot figure'></div>
+            <div class='tradespace_plot options'>
+                <div>     
+                    <div id="plot_options">
+                        <div>
+                            X axis:
+                            <select id="x-axis-select"/>
+                        </div>
+                        <div>
+                            Y axis:
+                            <select id="y-axis-select"/>
+                        </div>
+                    </div>               
+                    <div id='interaction_modes'>
+                        <div>Mouse Selection</div>
+                        <div style="margin-top:3px">
+                            Zoom/Pan:
+                            <input id="zoom-pan" type="radio" checked="True"/>
+                        </div>
+                        <div>
+                            Drag-select:
+                            <input id="drag-select" type="radio"/>
+                        </div>
+                        <div>
+                            Deselect: 
+                            <input id="de-select" type="radio"/>
+                        </div>
+                    </div>
+                    <div id='selection_options'>
+                        <button type="button"  id="hide_selection">Hide selections</button>
+                        <button type="button"  id="show_all_archs">Show all architectures</button> 
+                        <button type="button"  id="select_highlighted">Select highlighted</button>
+                        <button type="button"  id="select_complement">Select complement</button>
+                        <button type="button"  id="cancel_selection">Cancel all selections</button>
+                    </div>                    
+                </div>
+            </div>
         </div>
         <div class="row c1 r2">
             <div id="support_panel"> 
@@ -118,9 +151,6 @@
 <script src="js/EOSSPartitioningAndAssigning/label.js" type="text/javascript"></script>
 <script src="js/EOSSPartitioningAndAssigning/filter.js" type="text/javascript"></script>
     
-<script src="js/experiment.js" type="text/javascript"></script>
-<script src="js/experiment_tutorial.js" type="text/javascript"></script>
-<script src="js/experiment_tutorial_content.js" type="text/javascript"></script>
 <script>
 
     let problem_name = "ClimateCentric";
@@ -172,13 +202,12 @@
         data_mining = new DataMining(filter, label);
         feature_application = new FeatureApplication(data_mining, filter, label);   
     }
- 
 
     PubSub.publish(LOAD_DATA, null);
 
     function select_fuzzy_pareto_front(rank){
 
-        problem.calculate_pareto_ranking([],20);
+        problem.calculate_pareto_ranking([], 15);
     
         let exp = "{paretoFront["+ rank +"]}";
 
@@ -186,69 +215,6 @@
 
         tradespace_plot.toggle_selection_and_highlight();
     }
-
-    // var experiment = new Experiment(problem, tradespace_plot, filter, data_mining, feature_application, label, 2);
-
-
-    // var experiment, tutorial;
-
-    // let firstSignInCallback = function (instance, toast, button, event, inputs) {
-    //     let input = inputs[0].value;
-    //     let valid = false;
-    //     let treatmentCondition = null;
-
-    //     let passcode = "goseakers";
-
-    //     if(input.indexOf(passcode) !== -1){
-    //         if(input.length === passcode.length + 1){
-    //             let treatmentConditionStr = input.substring(passcode.length);
-    //             if(!isNaN(treatmentConditionStr)){
-    //                 treatmentCondition = + treatmentConditionStr;
-    //                 if(treatmentCondition >= 0 && treatmentCondition <= 3){
-    //                     valid = true;
-    //                 }
-    //             }
-
-    //         }else if(input === passcode){
-    //             valid = true;
-    //             treatmentCondition = undefined;
-    //         }
-    //     }
-        
-    //     if(valid){
-    //         instance.hide({ transitionOut: 'fadeOut' }, toast, 'button');
-    //         experiment = new Experiment(problem, tradespace_plot, filter, data_mining, feature_application, label, treatmentCondition);
-    //         tutorial = new ExperimentTutorial(problem, tradespace_plot, filter, data_mining, feature_application, label, experiment);
-    //         setTimeout(() => { PubSub.publish(EXPERIMENT_TUTORIAL_START, null);}, 1700);
-
-    //     }else{
-    //         iziToast.error({
-    //             title: 'Error',
-    //             message: "Invalid passcode",
-    //             position: 'topRight'
-    //         });
-    //     }
-    // }
-    
-    // iziToast.question({
-    //     drag: false,
-    //     timeout: false,
-    //     close: false,
-    //     overlay: true,
-    //     displayMode: 0,
-    //     id: 'question',
-    //     color: 'blue',
-    //     progressBar: false,
-    //     title: "Type in a passcode to start the experiment",
-    //     message: "(Please ask the experimenter to provide the passcode)",
-    //     position: 'center',
-    //     inputs: [
-    //         ['<input type="text" style="width: 300px">', 'change', function (instance, toast, select, event) {}],
-    //     ],
-    //     buttons: [
-    //         ['<button id="iziToast_button_confirm" style="width: 80px; margin-left: 10px; margin-right: 10px; float: left;"><b>Confirm</b></button>', firstSignInCallback, false], // true to focus
-    //     ],
-    // });
 
 </script>
 

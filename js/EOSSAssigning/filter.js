@@ -109,12 +109,6 @@ class EOSSAssigningFilter extends Filter{
                                 new_node: that.generate_filter_expression_from_input_field()};
 
                 PubSub.publish(END_FEATURE_MODIFICATION_MODE, tempData);
-
-                // EXPERIMENT
-                PubSub.publish(EXPERIMENT_TUTORIAL_EVENT, "filter_modification");
-
-                // EXPERIMENT
-                PubSub.publish(EXPERIMENT_EVENT, "filter_applied");
             }
 
             if(addition){
@@ -252,7 +246,7 @@ class EOSSAssigningFilter extends Filter{
             }
         }
         for (let i = 0; i < this.presetFeatureTypes.length; i++){
-            if(this.presetFeatureTypes[i].keyword === "paretoFront" || this.presetFeatureTypes[i].keyword === "not_selected"){
+            if(this.presetFeatureTypes[i].keyword === "not_selected"){
                 continue;
             }            
             this.presetFeatureTypes[i].setApply(match_function(this.presetFeatureTypes[i].keyword));
@@ -1800,7 +1794,6 @@ class EOSSAssigningFilter extends Filter{
         let inputs = data.inputs;
 
         if(combinedName.indexOf("paretoFront") != -1){
-
             if(data.pareto_ranking || data.pareto_ranking === 0){
                 let rank = data.pareto_ranking;
                 let arg = + expression.substring(0,expression.length-1).split("[")[1];

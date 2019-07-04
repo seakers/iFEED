@@ -430,9 +430,6 @@ class ContextMenu {
                         PubSub.publish(SET_FEATURE_MODIFICATION_MODE, data); 
                     }
                     updateOption.add_to_feature_space_plot = false;
-
-                    // EXPERIMENT 
-                    PubSub.publish(EXPERIMENT_TUTORIAL_EVENT, "contextmenu_add_feature");
                     break;
 
                 case 'toggle-logic':
@@ -505,10 +502,6 @@ class ContextMenu {
                         PubSub.publish(SET_FEATURE_MODIFICATION_MODE, data); 
                     }
                     updateOption.add_to_feature_space_plot = false;
-
-
-                    // EXPERIMENT 
-                    PubSub.publish(EXPERIMENT_TUTORIAL_EVENT, "contextmenu_modify_feature");  
                     break;
 
                 case 'copyToFilter':
