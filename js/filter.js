@@ -134,7 +134,7 @@ class Filter{
         });    
 
         // EXPERIMENT
-        let filtersToBeRemoved = ["paretoFront", "absentExceptInOrbit", "notInOrbitExceptInstrument", "notInOrbitExceptOrbit"];
+        let filtersToBeRemoved = ["paretoFront"];
         d3.select('.filter.options.dropdown')
             .selectAll('option')
             .nodes()

@@ -82,6 +82,7 @@ class DataMining{
 
         PubSub.subscribe(DESIGN_PROBLEM_LOADED, (msg, data) => {
             this.metadata = data.metadata;
+            this.import_generalized_variable_list();
         }); 
 
         PubSub.subscribe(SELECTION_UPDATED, (msg, data) => {
@@ -460,11 +461,11 @@ class DataMining{
                 let tempFeatures = [];
                 for(let i = 0; i < extractedFeatures.length; i++){
                     let thisFeature = extractedFeatures[i];
-                    if(precision - thisFeature.metrics[2] > 0.01 || recall - thisFeature.metrics[3] > 0.01){
-                        continue;
-                    }else{
+                    // if(precision - thisFeature.metrics[2] > 0.01 || recall - thisFeature.metrics[3] > 0.01){
+                    //     continue;
+                    // }else{
                         tempFeatures.push(thisFeature);
-                    }
+                    // }
                 }
 
                 if(tempFeatures.length === 0){
@@ -1976,8 +1977,6 @@ class DataMining{
                 ['<button style="'+ buttonsStyle +'"><b style="opacity: 1.0">Accept</b></button>', function (instance, toast) {
                     that.add_new_features(generalizedFeature, true);
                     that.feature_application.update_feature_application('direct-update', generalizedFeature.expression);
-
-                    console.log(generalizedFeature.expression);
 
                     // EXPERIMENT
                     if(that.tutorial_in_progress){
