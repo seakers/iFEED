@@ -164,25 +164,29 @@ class FeatureApplication{
             .attr('transform','translate('+ margin.left + "," + margin.top + ")");
 
         this.i = 0;
-        this.data = this.construct_tree(this, expression);  
+        this.data = null;
 
-        if(this.data.type === "leaf"){
-            let root = this.construct_node(this, 0, "logic", "AND", [this.data], null);
-            this.data.depth = 1;
-            this.data.parent = root;
-            this.data = root;
-        }
-        
-        if(updateOption){
-            if(updateOption.is_temporary){
-                this.visit_nodes(this.data, (d) => {
-                    d.temp = true;
-                }); 
+        if(expression && expression !== ""){
+            this.data = this.construct_tree(this, expression);  
 
-                if(this.stashed_root){
-                    this.get_node_matches_between_features(this.data, this.stashed_root);
-                }
+            if(this.data.type === "leaf"){
+                let root = this.construct_node(this, 0, "logic", "AND", [this.data], null);
+                this.data.depth = 1;
+                this.data.parent = root;
+                this.data = root;
             }
+            
+            if(updateOption){
+                if(updateOption.is_temporary){
+                    this.visit_nodes(this.data, (d) => {
+                        d.temp = true;
+                    }); 
+
+                    if(this.stashed_root){
+                        this.get_node_matches_between_features(this.data, this.stashed_root);
+                    }
+                }
+            }  
         }
         this.update(updateOption);  
     }
@@ -242,9 +246,6 @@ class FeatureApplication{
     update(option){
         let that = this;  
 
-        // Check the tree structure and make sure that it is correct
-        this.check_tree_structure();
-        
         // If there is no feature tree, return
         if(this.data === null){
             d3.selectAll('.treeNode').remove();
@@ -254,6 +255,9 @@ class FeatureApplication{
             return;
         }
 
+        // Check the tree structure and make sure that it is correct
+        this.check_tree_structure();
+        
         // Apply the feature expression
         PubSub.publish(APPLY_FEATURE_EXPRESSION, {expression: this.parse_tree(this.data), option: option});
 

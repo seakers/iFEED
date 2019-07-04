@@ -1469,7 +1469,7 @@ class EOSSAssigningFilter extends Filter{
             if(!isOrbitExceptionEmpty || !isInstrumentExceptionEmpty){
                 filter_expression = filter_expression + "except[" + orbitExceptionString + ";" + instrumentExceptionString + ";]";
             }
-            
+
         } else if(filterType === "paretoFront"){
             if(numberInputs.length === 0){
                 invalid_input = true;
@@ -1751,7 +1751,7 @@ class EOSSAssigningFilter extends Filter{
 
             let out = false;
             let instrument = args[1][0];
-            let instantiated_args = Array.from(args);
+            let instantiated_args = JSON.parse(JSON.stringify(args));
 
             if(instrument >= this.ninstr){
                 let instance_list = this.instance_index_map["instrument"][instrument];
@@ -1780,7 +1780,7 @@ class EOSSAssigningFilter extends Filter{
 
             let out = true;
             let instrument = args[1][0];
-            let instantiated_args = Array.from(args);
+            let instantiated_args = JSON.parse(JSON.stringify(args));
 
             if(instrument >= this.ninstr){
                 let instance_list = this.instance_index_map["instrument"][instrument];
@@ -1812,7 +1812,7 @@ class EOSSAssigningFilter extends Filter{
             let instruments = args[1];
             let out = false;
 
-            let instantiated_args = Array.from(args);
+            let instantiated_args = JSON.parse(JSON.stringify(args));
             if(orbit >= this.norb){
                 let instance_list = this.instance_index_map["orbit"][orbit];
                 for(let i = 0; i < instance_list.length; i++){
@@ -1899,7 +1899,7 @@ class EOSSAssigningFilter extends Filter{
             let orbit = args[0][0];
             let instruments = args[1];
             let out = true;
-            let instantiated_args = Array.from(args);
+            let instantiated_args = JSON.parse(JSON.stringify(args));
 
             if(orbit >= this.norb){
                 let instance_list = this.instance_index_map["orbit"][orbit];
@@ -2000,7 +2000,7 @@ class EOSSAssigningFilter extends Filter{
                 isInstrumentExceptionEmpty = true;
             }
 
-            let instantiatedArgs = Array.from([mainArgs, exceptArgs]);
+            let instantiatedArgs = JSON.parse(JSON.stringify(args));
             if(instrument >= this.ninstr){
                 let instance_list = this.instance_index_map["instrument"][instrument];
                 for(let i = 0; i < instance_list.length ;i++){
@@ -2062,7 +2062,7 @@ class EOSSAssigningFilter extends Filter{
                 isInstrumentExceptionEmpty = true;
             }
 
-            let instantiatedArgs = Array.from([mainArgs, exceptArgs]);
+            let instantiatedArgs = JSON.parse(JSON.stringify(args));
             if(orbit >= this.norb){
                 let instance_list = this.instance_index_map["orbit"][orbit];
                 for(let i = 0; i < instance_list.length; i++){
@@ -2105,7 +2105,6 @@ class EOSSAssigningFilter extends Filter{
         }
 
         this.notInOrbitExcept = (args, inputs) => {
-            //validInputCheck(args);
             let out = true;
 
             let mainArgs = args[0];
@@ -2125,7 +2124,7 @@ class EOSSAssigningFilter extends Filter{
                 isInstrumentExceptionEmpty = true;
             }
 
-            let instantiatedArgs = Array.from([mainArgs, exceptArgs]);
+            let instantiatedArgs = JSON.parse(JSON.stringify(args));
             if(orbit >= this.norb){
                 let instance_list = this.instance_index_map["orbit"][orbit];
                 for(let i = 0; i < instance_list.length; i++){
@@ -2186,7 +2185,6 @@ class EOSSAssigningFilter extends Filter{
                             }
                             instantiatedArgs[0][1] = [].concat(...ground_items, iter);
                         }
-
                         if(common_element_found){
                             continue;
                         }
@@ -2197,7 +2195,7 @@ class EOSSAssigningFilter extends Filter{
                         }
                     }
 
-                } else{                    
+                } else {                    
                     out = true;
                     for(let j = 0; j < instruments.length; j++){
                         let instrument = instruments[j];
@@ -2244,7 +2242,7 @@ class EOSSAssigningFilter extends Filter{
                 isInstrumentExceptionEmpty = true;
             }
 
-            let instantiatedArgs = Array.from(args);
+            let instantiatedArgs = JSON.parse(JSON.stringify(args));
             let ground_items = [];
             let class_instances = [];
             for(let i = 0; i < instruments.length; i++){
@@ -2347,7 +2345,7 @@ class EOSSAssigningFilter extends Filter{
             let instruments = args[1];
             let out = false;
 
-            let instantiated_args = Array.from(args);
+            let instantiated_args = JSON.parse(JSON.stringify(args));
             let ground_items = [];
             let class_instances = [];
             for(let i = 0; i < instruments.length; i++){
@@ -2428,7 +2426,7 @@ class EOSSAssigningFilter extends Filter{
             let instruments = args[1];
             let out = true;
 
-            let instantiated_args = Array.from(args);
+            let instantiated_args = JSON.parse(JSON.stringify(args);
             let ground_items = [];
             let class_instances = [];
             for(let i = 0; i < instruments.length; i++){
@@ -2509,7 +2507,7 @@ class EOSSAssigningFilter extends Filter{
             validInputCheck(args);
             let out = true;
             let orbit = args[0][0];
-            let instantiated_args = Array.from(args);
+            let instantiated_args = JSON.parse(JSON.stringify(args));
 
             if(orbit >= this.norb){
                 let instance_list = this.instance_index_map["orbit"][orbit];
