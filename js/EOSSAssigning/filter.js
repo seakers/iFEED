@@ -534,8 +534,11 @@ class EOSSAssigningFilter extends Filter{
                         .attr("type","number")
                         .on("change", function(){
                             that.input_modification_callback();
-                            enableApplyButton();
                         });
+
+            this.input_modification_callback = () => {
+                enableApplyButton();
+            }
             
         }else{
             let presetFilter = this.get_preset_option(option);
