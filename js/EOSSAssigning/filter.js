@@ -2195,7 +2195,7 @@ class EOSSAssigningFilter extends Filter{
                     }
                     
                     instantiatedArgs[0][0] = [instance_list[i]];
-                    if(!this.emptyOrbit(instantiatedArgs, inputs)){
+                    if(!this.emptyOrbitExcept(instantiatedArgs, inputs)){
                         out = false;
                         break;
                     }
