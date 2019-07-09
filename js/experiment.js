@@ -226,6 +226,7 @@ class Experiment{
         this.filter.initialize();
         this.data_mining.allFeatures = [];
         this.data_mining.display_features([]);
+        this.feature_application.clear_feature_application();
 
         // Initialize measurements
         this.initialize_feature_synthesis_task_measurements();
