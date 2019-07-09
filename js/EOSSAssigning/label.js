@@ -42,7 +42,6 @@ class EOSSAssigningLabel extends Label{
         PubSub.subscribe(PROBLEM_CONCEPT_HIERARCHY_LOADED, (msg, data) => {
             this.orbit_extended_list = data["params"]["rightSet"];
             this.instrument_extended_list = data["params"]["leftSet"];
-
             for(let i = this.orbit_relabeled.length; i < this.orbit_extended_list.length; i++){
                 this.orbit_relabeled.push(this.orbit_extended_list[i]);
             }
@@ -256,6 +255,7 @@ class EOSSAssigningLabel extends Label{
             || name === 'IF_THEN'){
                 return exp;
             }
+
         } else {
             for(let i = 0; i < numComponents; i++){
                 let component = exp.split("]")[i];
@@ -287,12 +287,13 @@ class EOSSAssigningLabel extends Label{
                 }
             }
             for(let j = 0; j < instruments.length; j++){
-                if(instruments[j].length===0){
+                if(instruments[j].length === 0){
                     continue;
                 }else{
                     ppinstruments.push(this.index2DisplayName(instruments[j], "instrument"));
                 }
             }
+
             let ppComponent = this.featureActualName2DisplayName(name) + "[" + pporbits.join(", ") + ";  " + ppinstruments.join(", ") + ";  " + numbers + "]";
             ppExpression.push(ppComponent)
         }

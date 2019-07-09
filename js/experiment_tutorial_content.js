@@ -16,8 +16,8 @@ function loadTutorialContent(){
             name: "tutorial-intro-timer",
             object: d3.select('#timer').node(), 
             content: "<p>The elapsed time is shown here. We expect this tutorial to take no more than 20 minutes.</p>"
-                    +"<p>For certain tasks during this experiment, time limit may be applied. "
-                    +"In this case, the remaining time will be displayed here.</p>",
+                    +"<p>For certain tasks during this experiment, there may be time limits. "
+                    +"In such cases, the remaining time will be displayed here.</p>",
             callback: function(currentStep){
                 document.getElementById('tab1').click();
                 PubSub.publish(INSPECT_ARCH, problem.data[1239]);

@@ -183,7 +183,7 @@ class FeatureApplication{
                     }); 
 
                     if(this.stashed_root){
-                        this.get_node_matches_between_features(this.data, this.stashed_root);
+                        //this.get_node_matches_between_features(this.data, this.stashed_root);
                     }
                 }
             }  
@@ -587,7 +587,7 @@ class FeatureApplication{
             .on('contextmenu', (d) => { 
 
                 // EXPERIMENT
-                if(that.experiment_condition === "automated_generalization"){
+                if(that.experiment_condition.indexOf("automated_generalization") !== -1){
                     return;
                 }
 
@@ -608,11 +608,6 @@ class FeatureApplication{
     }
         
     dragStart(d){
-        // EXPERIMENT
-        if(this.experiment_condition === "automated_generalization"){
-            return;
-        }
-
         // Dragging disabled in the root node
         if(d.depth === 0) { 
         	return;
@@ -652,15 +647,28 @@ class FeatureApplication{
 
         linksToHide.select("text").style('opacity',0);
 
+        // EXPERIMENT
+        if(this.experiment_condition.indexOf("automated_generalization") !== -1){
+            // pass
+        }else{
+            d3.selectAll('.nodeRange').filter((d) => {
+                if(d.type === 'leaf'){
+                    return false;
+                }else{
+                    // You can only add new nodes to logic nodes
+                    return true;
+                }
+            }).style('opacity',0.2);
+        }
 
-        d3.selectAll('.nodeRange').filter((d) => {
-            if(d.type === 'leaf'){
-                return false;
-            }else{
-                // You can only add new nodes to logic nodes
-                return true;
-            }
-        }).style('opacity',0.2);
+        // d3.selectAll('.nodeRange').filter((d) => {
+        //     if(d.type === 'leaf'){
+        //         return false;
+        //     }else{
+        //         // You can only add new nodes to logic nodes
+        //         return true;
+        //     }
+        // }).style('opacity',0.2);
 
         this.select_treeNode_by_id(id).attr('pointer-events','none');
     }
@@ -671,6 +679,12 @@ class FeatureApplication{
 	        let mouseX = mouse_pos[0]; 
 	        let mouseY = mouse_pos[1];        
             this.select_treeNode_by_id(d.id).attr("transform","translate("+ mouseX + "," + mouseY + ")");
+
+            // EXPERIMENT
+            if(this.experiment_condition.indexOf("automated_generalization") !== -1){
+                return;
+            }
+
             this.updateTempConnector(d.id, mouseX, mouseY);          
         }
     }
@@ -685,6 +699,23 @@ class FeatureApplication{
 
             // Remove links that were generated temporarily
             d3.selectAll(".tempTreeLink").remove();  
+
+
+            // EXPERIMENT
+            if(this.experiment_condition.indexOf("automated_generalization") !== -1){
+                // No node selected (all nodes go back to the previous positions)
+                d3.selectAll('.nodeRange')
+                    .on('mouseover', function(d){
+                        that.selectedNode = that.select_treeNode_by_id(d.id).node().__data__;
+                    })
+                    .attr('r',40);
+                let updateOption = {add_to_feature_space_plot: true, replace_equivalent_feature: true};
+                this.update(updateOption);
+                this.dragStarted = false;
+                this.draggingNode = null;
+                return;
+            }
+
 
             if(this.selectedNode){
                 let selectedNode = this.select_dataNode_by_id(this.selectedNode.id);

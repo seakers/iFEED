@@ -174,7 +174,7 @@
     }
  
 
-    PubSub.publish(LOAD_DATA, null);
+    // PubSub.publish(LOAD_DATA, null);
 
     function select_fuzzy_pareto_front(rank){
 
@@ -187,68 +187,68 @@
         tradespace_plot.toggle_selection_and_highlight();
     }
 
-    // var experiment = new Experiment(problem, tradespace_plot, filter, data_mining, feature_application, label, 2);
+    var experiment = new Experiment(problem, tradespace_plot, filter, data_mining, feature_application, label, 2);
 
 
-    // var experiment, tutorial;
+    var experiment, tutorial;
 
-    // let firstSignInCallback = function (instance, toast, button, event, inputs) {
-    //     let input = inputs[0].value;
-    //     let valid = false;
-    //     let treatmentCondition = null;
+    let firstSignInCallback = function (instance, toast, button, event, inputs) {
+        let input = inputs[0].value;
+        let valid = false;
+        let treatmentCondition = null;
 
-    //     let passcode = "goseakers";
+        let passcode = "goseakers";
 
-    //     if(input.indexOf(passcode) !== -1){
-    //         if(input.length === passcode.length + 1){
-    //             let treatmentConditionStr = input.substring(passcode.length);
-    //             if(!isNaN(treatmentConditionStr)){
-    //                 treatmentCondition = + treatmentConditionStr;
-    //                 if(treatmentCondition >= 0 && treatmentCondition <= 3){
-    //                     valid = true;
-    //                 }
-    //             }
+        if(input.indexOf(passcode) !== -1){
+            if(input.length === passcode.length + 1){
+                let treatmentConditionStr = input.substring(passcode.length);
+                if(!isNaN(treatmentConditionStr)){
+                    treatmentCondition = + treatmentConditionStr;
+                    if(treatmentCondition >= 0 && treatmentCondition <= 3){
+                        valid = true;
+                    }
+                }
 
-    //         }else if(input === passcode){
-    //             valid = true;
-    //             treatmentCondition = undefined;
-    //         }
-    //     }
+            }else if(input === passcode){
+                valid = true;
+                treatmentCondition = undefined;
+            }
+        }
         
-    //     if(valid){
-    //         instance.hide({ transitionOut: 'fadeOut' }, toast, 'button');
-    //         experiment = new Experiment(problem, tradespace_plot, filter, data_mining, feature_application, label, treatmentCondition);
-    //         tutorial = new ExperimentTutorial(problem, tradespace_plot, filter, data_mining, feature_application, label, experiment);
-    //         setTimeout(() => { PubSub.publish(EXPERIMENT_TUTORIAL_START, null);}, 1700);
+        if(valid){
+            instance.hide({ transitionOut: 'fadeOut' }, toast, 'button');
+            experiment = new Experiment(problem, tradespace_plot, filter, data_mining, feature_application, label, treatmentCondition);
+            tutorial = new ExperimentTutorial(problem, tradespace_plot, filter, data_mining, feature_application, label, experiment);
+            setTimeout(() => { PubSub.publish(EXPERIMENT_TUTORIAL_START, null);}, 1700);
 
-    //     }else{
-    //         iziToast.error({
-    //             title: 'Error',
-    //             message: "Invalid passcode",
-    //             position: 'topRight'
-    //         });
-    //     }
-    // }
+        }else{
+            iziToast.error({
+                title: 'Error',
+                message: "Invalid passcode",
+                position: 'topRight'
+            });
+        }
+    }
     
-    // iziToast.question({
-    //     drag: false,
-    //     timeout: false,
-    //     close: false,
-    //     overlay: true,
-    //     displayMode: 0,
-    //     id: 'question',
-    //     color: 'blue',
-    //     progressBar: false,
-    //     title: "Type in a passcode to start the experiment",
-    //     message: "(Please ask the experimenter to provide the passcode)",
-    //     position: 'center',
-    //     inputs: [
-    //         ['<input type="text" style="width: 300px">', 'change', function (instance, toast, select, event) {}],
-    //     ],
-    //     buttons: [
-    //         ['<button id="iziToast_button_confirm" style="width: 80px; margin-left: 10px; margin-right: 10px; float: left;"><b>Confirm</b></button>', firstSignInCallback, false], // true to focus
-    //     ],
-    // });
+    iziToast.question({
+        drag: false,
+        timeout: false,
+        close: false,
+        overlay: true,
+        displayMode: 0,
+        id: 'question',
+        color: 'blue',
+        progressBar: false,
+        title: "Type in a passcode to start the experiment",
+        message: "(Please ask the experimenter to provide the passcode)",
+        position: 'center',
+        inputs: [
+            ['<input type="text" style="width: 300px">', 'change', function (instance, toast, select, event) {}],
+        ],
+        buttons: [
+            ['<button id="iziToast_button_confirm" style="width: 80px; margin-left: 10px; margin-right: 10px; float: left;"><b>Confirm</b></button>', firstSignInCallback, false], // true to focus
+        ],
+    });
 
 </script>
 

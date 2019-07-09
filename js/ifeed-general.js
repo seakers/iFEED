@@ -108,7 +108,6 @@ class IFEED{
         }); 
     }
     
-
     get_data_ids(data){
         if(!data){
             data = this.data;
@@ -143,7 +142,7 @@ class IFEED{
             async: false,
             success: function (data, textStatus, jqXHR){
                 that.data = data;                
-                PubSub.publish(DATA_IMPORTED,data);
+                PubSub.publish(DATA_IMPORTED, data);
             },
             error: function (jqXHR, textStatus, errorThrown){
                 alert("error");

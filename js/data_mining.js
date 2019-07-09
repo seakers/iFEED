@@ -103,7 +103,7 @@ class DataMining{
                 this.display_features([]);
 
             } else if(data === "automated_generalization"){
-                this.import_feature_data("6655_AOSMOEA_GP", true, true);
+                this.import_feature_data("6655_AOSMOEA_GP_fuzzy8_24_7500", false, true);
 
             } else if(data === "interactive_generalization"){
                 this.import_feature_data("6655_epsilonMOEA_ruleset", true, false);
@@ -1705,7 +1705,6 @@ class DataMining{
             {
                 if(that.metadata.problem === "ClimateCentric"){
                     let concept_hierarchy = that.get_problem_concept_hierarchy();
-
                     concept_hierarchy["params"] = data;
                     PubSub.publish(PROBLEM_CONCEPT_HIERARCHY_LOADED, concept_hierarchy);
                 }
