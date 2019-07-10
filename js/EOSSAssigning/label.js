@@ -19,13 +19,16 @@ class EOSSAssigningLabel extends Label{
         this.orbit_extended_list = [];
         this.instrument_extended_list = [];
 
-        this.orbit_relabeled = ["LEO-600-polar","SSO-600-AM","SSO-600-DD","SSO-800-DD","SSO-800-PM"];
-        this.instrument_relabeled = ["OCE_SPEC","AERO_POL","AERO_LID",
+        this.orbit_relabeled_fixed = ["LEO-600-polar","SSO-600-AM","SSO-600-DD","SSO-800-DD","SSO-800-PM"];
+        this.instrument_relabeled_fixed = ["OCE_SPEC","AERO_POL","AERO_LID",
             "HYP_ERB","CPR_RAD","VEG_INSAR","VEG_LID","CHEM_UVSPEC",
             "CHEM_SWIRSPEC","HYP_IMAG","HIRES_SOUND","SAR_ALTIM"];
         // this.instrument_relabeled = ["ACE_ORCA","ACE_POL","ACE_LID","CLAR_ERB","ACE_CPR","DESD_SAR","DESD_LID","GACM_VIS","GACM_SWIR","HYSP_TIR","POSTEPS_IRS","CNES_KaRIN"];
         // this.orbit_relabeled = ["1","2","3","4","5"];
         // this.instrument_relabeled = ["A","B","C","D","E","F","G","H","I","J","K","L"];
+
+        this.orbit_relabeled = JSON.parse(JSON.stringify(this.orbit_relabeled_fixed));
+        this.instrument_relabeled = JSON.parse(JSON.stringify(this.instrument_relabeled_fixed));
 
         this.feature_names = ["present","absent","inOrbit","notInOrbit","together",
                             "togetherInOrbit","separate","emptyOrbit","numOrbits",
@@ -42,6 +45,9 @@ class EOSSAssigningLabel extends Label{
         PubSub.subscribe(PROBLEM_CONCEPT_HIERARCHY_LOADED, (msg, data) => {
             this.orbit_extended_list = data["params"]["rightSet"];
             this.instrument_extended_list = data["params"]["leftSet"];
+
+            this.orbit_relabeled = JSON.parse(JSON.stringify(this.orbit_relabeled_fixed));
+            this.instrument_relabeled = JSON.parse(JSON.stringify(this.instrument_relabeled_fixed));
             for(let i = this.orbit_relabeled.length; i < this.orbit_extended_list.length; i++){
                 this.orbit_relabeled.push(this.orbit_extended_list[i]);
             }

@@ -155,7 +155,6 @@ class EOSSAssigningFilter extends Filter{
             this.instance_index_map["instrument"] = {};
 
             for(let class_name in this.instance_map) {
-
                 let instance_names = this.instance_map[class_name];
                 let instance_indices = [];
 

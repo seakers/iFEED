@@ -263,7 +263,7 @@ class DataMining{
                 }
             }
 
-            if(extractedFeatures === null){
+            if(extractedFeatures === null || typeof extractedFeatures === "undefined"){
                 return;
             } else if(extractedFeatures.length === 0){ // If there is no driving feature returned
                 return;
@@ -305,7 +305,6 @@ class DataMining{
     }
 
     get_driving_features_epsilon_moea(selected, non_selected){
-
         console.log("Epsilon-MOEA called");
 
         let output;
@@ -321,15 +320,16 @@ class DataMining{
             async: false,
             success: function (data, textStatus, jqXHR)
             {
-                if(data=="[]"){
+                if(data === "[]"){
                     alert("No driving feature mined. Please try modifying the selection. (Try selecting more designs)");
                 }
                 output = data;
             },
             error: function (jqXHR, textStatus, errorThrown)
-            {alert("error");}
+            {
+                alert("Error occurred while running data mining");
+            }
         });
-
         return output;
     }
 

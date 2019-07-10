@@ -587,8 +587,10 @@ class FeatureApplication{
             .on('contextmenu', (d) => { 
 
                 // EXPERIMENT
-                if(that.experiment_condition.indexOf("automated_generalization") !== -1){
-                    return;
+                if(that.experiment_condition){
+                    if(that.experiment_condition.indexOf("automated_generalization") !== -1){
+                        return;
+                    }
                 }
 
                 d3.event.preventDefault();
@@ -648,9 +650,13 @@ class FeatureApplication{
         linksToHide.select("text").style('opacity',0);
 
         // EXPERIMENT
-        if(this.experiment_condition.indexOf("automated_generalization") !== -1){
-            // pass
-        }else{
+        let pass = false;
+        if(this.experiment_condition){
+            if(this.experiment_condition.indexOf("automated_generalization") !== -1){
+                pass = true;
+            }
+        }
+        if(!pass){
             d3.selectAll('.nodeRange').filter((d) => {
                 if(d.type === 'leaf'){
                     return false;
@@ -660,6 +666,9 @@ class FeatureApplication{
                 }
             }).style('opacity',0.2);
         }
+
+
+
 
         // d3.selectAll('.nodeRange').filter((d) => {
         //     if(d.type === 'leaf'){
@@ -681,8 +690,10 @@ class FeatureApplication{
             this.select_treeNode_by_id(d.id).attr("transform","translate("+ mouseX + "," + mouseY + ")");
 
             // EXPERIMENT
-            if(this.experiment_condition.indexOf("automated_generalization") !== -1){
-                return;
+            if(this.experiment_condition){
+                if(this.experiment_condition.indexOf("automated_generalization") !== -1){
+                    return;
+                }
             }
 
             this.updateTempConnector(d.id, mouseX, mouseY);          
@@ -702,21 +713,22 @@ class FeatureApplication{
 
 
             // EXPERIMENT
-            if(this.experiment_condition.indexOf("automated_generalization") !== -1){
-                // No node selected (all nodes go back to the previous positions)
-                d3.selectAll('.nodeRange')
-                    .on('mouseover', function(d){
-                        that.selectedNode = that.select_treeNode_by_id(d.id).node().__data__;
-                    })
-                    .attr('r',40);
-                let updateOption = {add_to_feature_space_plot: true, replace_equivalent_feature: true};
-                this.update(updateOption);
-                this.dragStarted = false;
-                this.draggingNode = null;
-                return;
+            if(this.experiment_condition){
+                if(this.experiment_condition.indexOf("automated_generalization") !== -1){
+                    // No node selected (all nodes go back to the previous positions)
+                    d3.selectAll('.nodeRange')
+                        .on('mouseover', function(d){
+                            that.selectedNode = that.select_treeNode_by_id(d.id).node().__data__;
+                        })
+                        .attr('r',40);
+                    let updateOption = {add_to_feature_space_plot: true, replace_equivalent_feature: true};
+                    this.update(updateOption);
+                    this.dragStarted = false;
+                    this.draggingNode = null;
+                    return;
+                }
             }
-
-
+            
             if(this.selectedNode){
                 let selectedNode = this.select_dataNode_by_id(this.selectedNode.id);
                 let draggingNode = this.select_dataNode_by_id(this.draggingNode.id);            
