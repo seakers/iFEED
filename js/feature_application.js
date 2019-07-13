@@ -246,18 +246,19 @@ class FeatureApplication{
     update(option){
         let that = this;  
 
+        // Check the tree structure and make sure that it is correct
+        this.check_tree_structure();
+
         // If there is no feature tree, return
         if(this.data === null){
             d3.selectAll('.treeNode').remove();
             d3.selectAll('.treeLink').remove();
             this.i = 0;
             PubSub.publish(APPLY_FEATURE_EXPRESSION, null);
+            PubSub.publish(REMOVE_FEATURE_CURSOR, null);
             return;
         }
 
-        // Check the tree structure and make sure that it is correct
-        this.check_tree_structure();
-        
         // Apply the feature expression
         PubSub.publish(APPLY_FEATURE_EXPRESSION, {expression: this.parse_tree(this.data), option: option});
 
