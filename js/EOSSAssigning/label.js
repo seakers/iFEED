@@ -31,8 +31,13 @@ class EOSSAssigningLabel extends Label{
         this.instrument_relabeled = JSON.parse(JSON.stringify(this.instrument_relabeled_fixed));
 
         this.feature_names = ["present","absent","inOrbit","notInOrbit","together",
-                            "togetherInOrbit","separate","emptyOrbit","numOrbits",
-                            "subsetOfInstruments", "absentExceptInOrbit", "notInOrbitExceptInstrument", "notInOrbitExceptOrbit"];
+                            "togetherInOrbit","separate","emptyOrbit","numOrbits", "numInstruments", "numInstrumentsInOrbit",
+                            "absent_except", "emptyOrbit_except", "notInOrbit_except", "separate_except"];
+
+        this.feature_display_order = ["notInOrbit", "separate", "absent", "emptyOrbit", 
+                            "inOrbit", "together", "present",
+                            "numOrbits", "numInstruments", "numInstrumentsInOrbit",
+                            "absent_except", "emptyOrbit_except", "notInOrbit_except", "separate_except"];
         this.feature_relabeled = null;
         // this.feature_relabeled = ["present","absent","assignedTo","notAssignedTo","together","bothAssignedTo","notAssignedTogether","emptySlot","numSlots","AtLeastTwoItemsAssignedTo"];
 

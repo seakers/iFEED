@@ -205,33 +205,60 @@ class FeatureApplication{
         }
 
         let branches = [];
-        let nodes_of_same_feature_type = {};
-        for(let i = 0; i < root.children.length; i++){
-            let node = root.children[i];
-
-            if(node.type === "logic"){
-                branches.push(node);
-                continue;
-            }
-
-            let type = this.label.pp_feature_type(node.name);
-            if(!(type in nodes_of_same_feature_type)){
-                nodes_of_same_feature_type[type] = [];
-            }
-            nodes_of_same_feature_type[type].push(node);
-        }
-
         let sorted_nodes = [];
-        // Iterate over each feature type
-        for (let type in nodes_of_same_feature_type) {
-            if (nodes_of_same_feature_type.hasOwnProperty(type)) {  
-                for(let i = 0; i < root.children.length; i++){
-                    let node = root.children[i];
+        if(this.label.feature_display_order){
+            for(let i = 0; i < this.label.feature_display_order.length; i++){
+                let currentType = this.label.feature_display_order[i];
+                for(let j = 0; j < root.children.length; j++){
+                    let node = root.children[j];
                     if(node.type === "logic"){
                         continue;
                     }
-                    if(this.label.pp_feature_type(node.name) === type){
+                    let type = this.label.pp_feature_type(node.name);
+                    if(type === currentType){
                         sorted_nodes.push(node);
+                    }
+                }
+            }
+
+            for(let i = 0; i < root.children.length; i++){
+                let node = root.children[i];
+                if(node.type === "logic"){
+                    branches.push(node);
+                }else{
+                    if(sorted_nodes.indexOf(node) === -1){
+                        sorted_nodes.push(node);
+                    }
+                }
+            }
+
+        } else {
+            let nodes_of_same_feature_type = {};
+            for(let i = 0; i < root.children.length; i++){
+                let node = root.children[i];
+
+                if(node.type === "logic"){
+                    branches.push(node);
+                    continue;
+                }
+                let type = this.label.pp_feature_type(node.name);
+                if(!(type in nodes_of_same_feature_type)){
+                    nodes_of_same_feature_type[type] = [];
+                }
+                nodes_of_same_feature_type[type].push(node);
+            }
+
+            // Iterate over each feature type
+            for (let type in nodes_of_same_feature_type) {
+                if (nodes_of_same_feature_type.hasOwnProperty(type)) {  
+                    for(let i = 0; i < root.children.length; i++){
+                        let node = root.children[i];
+                        if(node.type === "logic"){
+                            continue;
+                        }
+                        if(this.label.pp_feature_type(node.name) === type){
+                            sorted_nodes.push(node);
+                        }
                     }
                 }
             }
@@ -1212,8 +1239,11 @@ class FeatureApplication{
 
             // Start new generalization search
             expression = this.parse_tree(this.data);
-            this.data_mining.generalize_feature(expression, expression);
 
+            if(this.data_mining.enable_generalization){
+                this.data_mining.generalize_feature(expression, expression);
+            }
+            
             // EXPERIMENT 
             PubSub.publish(EXPERIMENT_TUTORIAL_EVENT, "feature_clicked");
 

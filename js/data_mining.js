@@ -4,7 +4,7 @@ class DataMining{
     constructor(filteringScheme, labelingScheme){
 
         this.run_ga = true;
-        this.enable_generalization = false;
+        this.enable_generalization = true;
 
         this.filter = filteringScheme;
         this.label = labelingScheme;
@@ -290,8 +290,7 @@ class DataMining{
                 logical_connective = "AND";
             }
 
-            extractedFeatures = this.get_marginal_driving_features(selected, non_selected, base_feature, logical_connective,
-                                                     this.support_threshold,this.confidence_threshold,this.lift_threshold);
+            extractedFeatures = this.get_marginal_driving_features(selected, non_selected, base_feature, logical_connective);
             
 
             let featuresToAdd = [];
@@ -318,11 +317,7 @@ class DataMining{
             if(!this.run_ga){
                 extractedFeatures = this.get_driving_features(selected, non_selected, this.support_threshold, this.confidence_threshold, this.lift_threshold);
             }else{
-                if(this.enable_generalization){
-                    extractedFeatures = this.get_driving_features_with_generalization(selected, non_selected);
-                }else{
-                    extractedFeatures = this.get_driving_features_epsilon_moea(selected, non_selected);
-                }
+                extractedFeatures = this.get_driving_features_epsilon_moea(selected, non_selected); 
             }
 
             if(extractedFeatures === null || typeof extractedFeatures === "undefined"){
@@ -427,8 +422,7 @@ class DataMining{
     /*
         Run local search: can be used for both conjunction and disjunction
     */  
-    get_marginal_driving_features(selected,non_selected,featureExpression,logical_connective,
-                                                   support_threshold,confidence_threshold,lift_threshold){
+    get_marginal_driving_features(selected,non_selected,featureExpression,logical_connective){
 
         this.stop_search();
         
@@ -443,9 +437,6 @@ class DataMining{
                     selected: JSON.stringify(selected),
                     non_selected:JSON.stringify(non_selected),
                     logical_connective:logical_connective,
-                    supp:support_threshold,
-                    conf:confidence_threshold,
-                    lift:lift_threshold
                   },
             async: false,
             success: function (data, textStatus, jqXHR)
@@ -514,9 +505,7 @@ class DataMining{
             async: true,
             success: function (data, textStatus, jqXHR)
             {
-
-
-                let extractedFeatures = data;
+                // let extractedFeatures = data;
                 // let tempFeatures = [];
                 // for(let i = 0; i < extractedFeatures.length; i++){
                 //     let thisFeature = extractedFeatures[i];
@@ -528,14 +517,9 @@ class DataMining{
                 // }
 
 
-                if(extractedFeatures.length === 0){
-                    return;
-                }
-
-
-
-
-
+                // if(extractedFeatures.length === 0){
+                //     return;
+                // }
 
                 // // Get the feature with the shortest distance to the utopia point
                 // let shortestDistance = 99;  
@@ -556,15 +540,6 @@ class DataMining{
                 // let description = that.relabel_generalization_description(bestFeature.description);
                 // that.show_generalization_suggestion(description, bestFeature);
                 // PubSub.publish(CANCEL_ADD_FEATURE, null); 
-
-
-
-
-                
-
-
-
-
 
             },
             error: function (jqXHR, textStatus, errorThrown)
@@ -1964,6 +1939,7 @@ class DataMining{
                 if(imported_features.length === 0){ // If there is no driving feature returned
                     return;
                 }
+
 
                 that.display_features(imported_features);  
 
