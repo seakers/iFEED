@@ -27,8 +27,7 @@ const ADD_FEATURE_FROM_EXPRESSION = "add_feature_from_expression";
 // Initialize feature application (pub: data_mining.js, sub: feature_application.js)
 const INITIALIZE_FEATURE_APPLICATION = "initialize_feature_application";
 
-const PROBLEM_CONCEPT_HIERARCHY_LOADED = "problem_concept_hierarhcy_loaded";
-
+const GENERALIZED_CONCEPTS_LOADED = "generalized_concepts_loaded";
 const GENERALIZE_FEATURE = "generalize_feature";
 
 const REMOVE_FEATURE_CURSOR = "remove_feature_cursor";

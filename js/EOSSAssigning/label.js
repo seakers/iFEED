@@ -42,9 +42,9 @@ class EOSSAssigningLabel extends Label{
             PubSub.publish(LABELING_SCHEME_LOADED, this);
         });
 
-        PubSub.subscribe(PROBLEM_CONCEPT_HIERARCHY_LOADED, (msg, data) => {
-            this.orbit_extended_list = data["params"]["rightSet"];
-            this.instrument_extended_list = data["params"]["leftSet"];
+        PubSub.subscribe(GENERALIZED_CONCEPTS_LOADED, (msg, data) => {
+            this.orbit_extended_list = data["rightSet"];
+            this.instrument_extended_list = data["leftSet"];
 
             this.orbit_relabeled = JSON.parse(JSON.stringify(this.orbit_relabeled_fixed));
             this.instrument_relabeled = JSON.parse(JSON.stringify(this.instrument_relabeled_fixed));

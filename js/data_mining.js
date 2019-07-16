@@ -82,7 +82,7 @@ class DataMining{
 
         PubSub.subscribe(DESIGN_PROBLEM_LOADED, (msg, data) => {
             this.metadata = data.metadata;
-            this.import_generalized_variable_list();
+            this.set_problem_parameters();
         }); 
 
         PubSub.subscribe(SELECTION_UPDATED, (msg, data) => {
@@ -132,6 +132,70 @@ class DataMining{
             }
         });  
 
+        // Make a new websocket connection
+        let that = this;
+        this.ws = new WebSocket("ws://localhost:8080/api/ifeed/data-mining");
+        this.ws.onmessage = (event) => {
+            if(event.data === ""){
+                return;
+            }
+ 
+            let content = JSON.parse(event.data);       
+            if(content){
+                console.log(content.type);
+
+                if(content.type === "search.finished"){
+                    if(content.features){
+                        console.log(content.features);
+                        that.add_new_features(content.features, true);
+                    }
+                
+                } else if(content.type === "problem.entities"){
+
+                    let entities = {};
+                    if(that.metadata.problem === "ClimateCentric"){
+                        entities = {leftSet: content.leftSet, rightSet: content.rightSet};
+
+                        if(content.rightSet.length > that.metadata.problem_specific_params.orbit_list.length 
+                            ||content.leftSet.length > that.metadata.problem_specific_params.instrument_list.length
+                        ){
+                            
+                            let instanceMap = content.instanceMap;
+                            let superclassMap = content.superclassMap;
+
+                            // If instance map is empty
+                            if(Object.keys(instanceMap).length == 0){
+
+                                // For each superclass
+                                for (let varName in superclassMap) {
+                                    if (superclassMap.hasOwnProperty(varName)) {
+
+                                        let listOfSuperclasses = superclassMap[varName];
+                                        for(let i = 0; i < listOfSuperclasses.length; i++){
+
+                                            let superclassName = listOfSuperclasses[i];
+                                            if(!instanceMap.hasOwnProperty(superclassName)){
+                                                instanceMap[superclassName] = [];
+                                            }
+                                            // Add each instance to super classes
+                                            instanceMap[superclassName].push(varName);
+                                        }
+                                    }
+                                }
+                            }
+                            entities['instanceMap'] = instanceMap;
+                            entities['superclassMap'] = superclassMap;
+                            PubSub.publish(GENERALIZED_CONCEPTS_LOADED, entities);
+                        }
+
+                    } else {
+                        alert("Unsupported problem formulation: " + that.metadata.problem);
+                    }
+                }
+            }
+        };
+
+        // Initialize the interface
         this.initialize();        
     }
 
@@ -178,8 +242,6 @@ class DataMining{
     }
 
     async run(option){
-        this.set_problem_parameters();
-
         // Store the id's of all samples
         let selected = [];
         let non_selected = [];
@@ -295,7 +357,6 @@ class DataMining{
                     alert("No driving feature mined. Please try modifying the selection. (Try selecting more designs)");
                 }
                 output = data;
-                that.get_problem_parameters();
             },
             error: function (jqXHR, textStatus, errorThrown)
             {alert("error");}
@@ -369,7 +430,7 @@ class DataMining{
     get_marginal_driving_features(selected,non_selected,featureExpression,logical_connective,
                                                    support_threshold,confidence_threshold,lift_threshold){
 
-        this.set_problem_generalized_concepts();
+        this.stop_search();
         
         let output;
         $.ajax({
@@ -399,9 +460,6 @@ class DataMining{
     }    
 
     generalize_feature(root, node){
-        this.set_problem_parameters();
-        this.set_problem_generalized_concepts();
-
         let metrics = this.currentFeature.metrics;
         let precision = metrics[2];
         let recall = metrics[3];
@@ -442,7 +500,6 @@ class DataMining{
 
         let that = this;
 
-        let output;
         $.ajax({
             url: "/api/data-mining/generalize-feature",
             type: "POST",
@@ -457,43 +514,63 @@ class DataMining{
             async: true,
             success: function (data, textStatus, jqXHR)
             {
+
+
                 let extractedFeatures = data;
-                let tempFeatures = [];
-                for(let i = 0; i < extractedFeatures.length; i++){
-                    let thisFeature = extractedFeatures[i];
-                    // if(precision - thisFeature.metrics[2] > 0.01 || recall - thisFeature.metrics[3] > 0.01){
-                    //     continue;
-                    // }else{
-                        tempFeatures.push(thisFeature);
-                    // }
-                }
+                // let tempFeatures = [];
+                // for(let i = 0; i < extractedFeatures.length; i++){
+                //     let thisFeature = extractedFeatures[i];
+                //     // if(precision - thisFeature.metrics[2] > 0.01 || recall - thisFeature.metrics[3] > 0.01){
+                //     //     continue;
+                //     // }else{
+                //         tempFeatures.push(thisFeature);
+                //     // }
+                // }
 
-                if(tempFeatures.length === 0){
+
+                if(extractedFeatures.length === 0){
                     return;
-                }    
-
-                // Get the feature with the shortest distance to the utopia point
-                let shortestDistance = 99;  
-                let bestFeature = null;
-                for (let i = 0; i < tempFeatures.length; i++){
-                    let precision = tempFeatures[i].metrics[2];
-                    let recall = tempFeatures[i].metrics[3];
-                    let dist = 1 - Math.sqrt(Math.pow(1 - precision, 2) + Math.pow(1 - recall, 2));
-                    if(dist < shortestDistance){
-                        shortestDistance = dist;
-                        bestFeature = tempFeatures[i];
-                    }
-
-                    //console.log("specificity: " + precision + ", coverage: " + recall + ": "+ tempFeatures[i].name);
                 }
-                let description = that.relabel_generalization_description(bestFeature.description);
 
-                that.show_generalization_suggestion(description, bestFeature);
-                PubSub.publish(CANCEL_ADD_FEATURE, null); 
-                that.get_problem_parameters();
+
+
+
+
+
+                // // Get the feature with the shortest distance to the utopia point
+                // let shortestDistance = 99;  
+                // let bestFeature = null;
+                // for (let i = 0; i < tempFeatures.length; i++){
+                //     let precision = tempFeatures[i].metrics[2];
+                //     let recall = tempFeatures[i].metrics[3];
+                //     let dist = 1 - Math.sqrt(Math.pow(1 - precision, 2) + Math.pow(1 - recall, 2));
+                //     if(dist < shortestDistance){
+                //         shortestDistance = dist;
+                //         bestFeature = tempFeatures[i];
+                //     }
+
+                //     //console.log("specificity: " + precision + ", coverage: " + recall + ": "+ tempFeatures[i].name);
+                // }
+
+
+                // let description = that.relabel_generalization_description(bestFeature.description);
+                // that.show_generalization_suggestion(description, bestFeature);
+                // PubSub.publish(CANCEL_ADD_FEATURE, null); 
+
+
+
+
+                
+
+
+
+
+
             },
             error: function (jqXHR, textStatus, errorThrown)
-            {alert("error");}
+            {
+                alert("Error in generalizing a feature");
+            }
         });        
     } 
 
@@ -1648,7 +1725,7 @@ class DataMining{
         });    
     }
 
-    set_problem_parameters(callback){
+    set_problem_parameters(){
         $.ajax({
             url: "/api/data-mining/set-problem-parameters",
             type: "POST",
@@ -1657,20 +1734,15 @@ class DataMining{
                     params: JSON.stringify(this.metadata.problem_specific_params)
                   },
             async: false,
-            success: function (data, textStatus, jqXHR)
-            {      
-                if(callback){
-                    callback();
-                }
-            },
+            success: function (data, textStatus, jqXHR){},
             error: function (jqXHR, textStatus, errorThrown)
             {
-                alert("error");
+                alert("Error in calling set_problem_parameters()");
             }
         });    
     }
 
-    set_problem_generalized_concepts(callback){
+    set_problem_generalized_concepts(){
         $.ajax({
             url: "/api/data-mining/set-problem-generalized-concepts",
             type: "POST",
@@ -1679,15 +1751,10 @@ class DataMining{
                     params: JSON.stringify(this.metadata.problem_specific_params)
                   },
             async: false,
-            success: function (data, textStatus, jqXHR)
-            {
-                if(callback){
-                    callback();
-                }
-            },
+            success: function (data, textStatus, jqXHR){},
             error: function (jqXHR, textStatus, errorThrown)
             {
-                alert("error");
+                alert("Error in calling set_problem_generalized_concepts()");
             }
         });    
     }
@@ -1767,6 +1834,22 @@ class DataMining{
         });
 
         return {"instance_map":instance_map, "superclass_map":superclass_map};    
+    }
+
+    stop_search(){
+        $.ajax({
+            url: "/api/data-mining/stop-search",
+            type: "POST",
+            data: {},
+            async: false,
+            success: function (data, textStatus, jqXHR)
+            {       
+            },
+            error: function (jqXHR, textStatus, errorThrown)
+            {
+                alert("Error in stopping the search");
+            }
+        });    
     }
 
     import_target_selection(filename){
@@ -1886,29 +1969,16 @@ class DataMining{
 
                 if(generalization_enabled){
                     if(that.metadata.problem === "ClimateCentric"){
-
                         // Params loaded from a file
-                        that.metadata.problem_specific_params.instrument_extended_list = data["params"]["rightSet"];
-                        that.metadata.problem_specific_params.orbit_extended_list = data["params"]["leftSet"];
-
-                        let callback2 = () => {
-                            // Concept hierarchy info obtained from the vassar server
-                            let concept_hierarchy = that.get_problem_concept_hierarchy();
-                            concept_hierarchy["params"] = data["params"];
-                            PubSub.publish(PROBLEM_CONCEPT_HIERARCHY_LOADED, concept_hierarchy);
-                        };
-
-                        let callback1 = () => {
-                            that.set_problem_generalized_concepts(callback2); 
-                        };
-
-                        that.set_problem_parameters(callback1);
+                        that.metadata.problem_specific_params.instrument_extended_list = data["params"]["leftSet"];
+                        that.metadata.problem_specific_params.orbit_extended_list = data["params"]["rightSet"];
+                        that.set_problem_generalized_concepts();
                     }  
                 }
             },
             error: function (jqXHR, textStatus, errorThrown)
             {
-                alert("error");
+                alert("Error in calling import_feature_data()");
             }
         });
     }
@@ -2012,12 +2082,6 @@ class DataMining{
         //     onClosing: function(instance, toast, closedBy){
         //         console.info('closedBy: ' + closedBy); // tells if it was closed by 'drag' or 'button'
         //     }
-        });
-    }
-
-    import_generalized_variable_list(){
-        this.set_problem_parameters(()=>{
-            this.get_problem_parameters();
         });
     }
 }

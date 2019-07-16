@@ -1206,6 +1206,14 @@ class FeatureApplication{
             })  
             this.update({add_to_feature_space_plot: true, replace_equivalent_feature: false});
 
+
+            // Stop the search currently running
+            this.data_mining.stop_search();
+
+            // Start new generalization search
+            expression = this.parse_tree(this.data);
+            this.data_mining.generalize_feature(expression, expression);
+
             // EXPERIMENT 
             PubSub.publish(EXPERIMENT_TUTORIAL_EVENT, "feature_clicked");
 

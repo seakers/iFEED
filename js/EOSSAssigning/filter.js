@@ -145,11 +145,11 @@ class EOSSAssigningFilter extends Filter{
             }
         });
 
-        PubSub.subscribe(PROBLEM_CONCEPT_HIERARCHY_LOADED, (msg, data) => {
-            this.orbit_extended_list = data["params"]["rightSet"];
-            this.instrument_extended_list = data["params"]["leftSet"];
-            this.instance_map = data["instance_map"];
-            this.superclass_map = data["superclass_map"];
+        PubSub.subscribe(GENERALIZED_CONCEPTS_LOADED, (msg, data) => {
+            this.orbit_extended_list = data["rightSet"];
+            this.instrument_extended_list = data["leftSet"];
+            this.instance_map = data["instanceMap"];
+            this.superclass_map = data["superclassMap"];
             this.instance_index_map = {};
             this.instance_index_map["orbit"] = {};
             this.instance_index_map["instrument"] = {};
