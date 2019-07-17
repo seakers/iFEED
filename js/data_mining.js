@@ -35,7 +35,6 @@ class DataMining{
         this.recentlyAddedFeatureIDs = [];
 
         this.featureSpaceInteractionMode = "viewing";
-        this.featureSpaceLocalSearchLogic = "conjunction";
 
         this.complexityFilterThresholds = null;
         this.algorithmGeneratedFeatureIDs = []; // EXPERIMENT
@@ -302,7 +301,7 @@ class DataMining{
     }
 
     run_local_search(logic){
-        if(logic !== "OR"){
+        if(!logic){
             logic = "AND";
         }
 
