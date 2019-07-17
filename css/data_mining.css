@@ -32,7 +32,7 @@
   -webkit-appearance: none;
   -moz-appearance: none;
   appearance: none;
-  width: 180px;
+  width: 200px;
   height: 32px;
   display: inline-block;
   position: relative;
@@ -46,7 +46,7 @@
 }
 
 .feature_space_interaction_mode.toggle:before {
-  content: "Exploitation Exploration";
+  content: "Exploration_mode Viewing_mode";
   display: block;
   position: absolute;
   z-index: 2;
@@ -59,7 +59,7 @@
   font: 10px/28px Helvetica;
   text-transform: uppercase;
   font-weight: bold;
-  text-indent: -108px;
+  text-indent: -152px;
   word-spacing: 45px;
   color: #fff;
   text-shadow: -1px -1px rgba(0,0,0,0.15);
@@ -74,7 +74,7 @@
 }
 
 .feature_space_interaction_mode.toggle:checked:before {
-  left: 149px;
+  left: 170px;
 }
 
 .feature_complexity_range_filter.minRange{

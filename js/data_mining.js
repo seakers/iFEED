@@ -34,7 +34,9 @@ class DataMining{
         this.stashedFeatures = [];
         this.recentlyAddedFeatureIDs = [];
 
-        this.featureSpaceInteractionMode = "exploration";
+        this.featureSpaceInteractionMode = "viewing";
+        this.featureSpaceLocalSearchLogic = "conjunction";
+
         this.complexityFilterThresholds = null;
         this.algorithmGeneratedFeatureIDs = []; // EXPERIMENT
 
@@ -593,7 +595,7 @@ class DataMining{
                 .on("click", () => {
                     let checked = d3.select('.feature_space_interaction_mode.toggle').node().checked;
                     if(checked){
-                        this.featureSpaceInteractionMode = "exploitation";
+                        this.featureSpaceInteractionMode = "exploration";
 
                         let recencyIsEmptyInAllFeatures = true;
                         for(let i = 0; i < this.allFeatures.length; i++){
@@ -618,7 +620,7 @@ class DataMining{
                         }
                         
                     }else{
-                        this.featureSpaceInteractionMode = "exploration";
+                        this.featureSpaceInteractionMode = "viewing";
                     }
 
                     // Clear the feature application
@@ -630,7 +632,7 @@ class DataMining{
                     this.feature_adjust_opacity();
                 });
 
-        if(this.featureSpaceInteractionMode === "exploration"){
+        if(this.featureSpaceInteractionMode === "viewing"){
             d3.select('.feature_space_interaction_mode.toggle').node().checked = false;
         }else{
             d3.select('.feature_space_interaction_mode.toggle').node().checked = true;
@@ -656,7 +658,7 @@ class DataMining{
                 .attr('class','restore_features_button button')
                 .on("click", () => {
                     that.allFeatures = JSON.parse(JSON.stringify(that.stashedFeatures));
-                    if(this.featureSpaceInteractionMode === "exploitation"){
+                    if(this.featureSpaceInteractionMode === "exploration"){
                         // Calculate the pareto ranking
                         this.calculate_pareto_ranking_of_features(this.allFeatures, [2, 3], 4);
 
@@ -788,10 +790,10 @@ class DataMining{
     }
 
     add_and_remove_features(featuresToAdd){
-        // Assumes that the current interaction mode is exploitation mode
+        // Assumes that the current interaction mode is exploration mode
 
-        if(this.featureSpaceInteractionMode !== "exploitation"){
-            alert("add_and_remove_features() must be called in Exploitation Mode only");
+        if(this.featureSpaceInteractionMode !== "exploration"){
+            alert("add_and_remove_features() must be called in exploration Mode only");
             return;
         }
 
@@ -943,7 +945,7 @@ class DataMining{
         let height = this.height;
 
         let duration = 500;
-        if(this.featureSpaceInteractionMode === "exploitation"){
+        if(this.featureSpaceInteractionMode === "exploration"){
             duration = 50;
         }
         
@@ -1388,7 +1390,7 @@ class DataMining{
     }
 
     feature_adjust_opacity(){
-        if(this.featureSpaceInteractionMode === "exploitation"){
+        if(this.featureSpaceInteractionMode === "exploration"){
             d3.selectAll('.dot.feature_plot').style("opacity", (d) => 
                 {
                     if(d.recency){

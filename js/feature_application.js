@@ -1240,11 +1240,15 @@ class FeatureApplication{
             // Start new generalization search
             expression = this.parse_tree(this.data);
 
-            // if(this.data_mining.enable_generalization){
-            //     this.data_mining.generalize_feature(expression, expression);
-            // }
-            if(this.data_mining.featureSpaceInteractionMode === "exploitation"){
-                this.data_mining.run_local_search("AND");
+
+            if(this.data_mining.featureSpaceInteractionMode === "exploration"){
+
+                // this.data_mining.generalize_feature(expression, expression);
+                if(this.data_mining.featureSpaceLocalSearchLogic === "conjunction"){
+                    this.data_mining.run_local_search("AND");
+                }else{
+                    this.data_mining.run_local_search("OR");
+                }
             }
             
             // EXPERIMENT 
