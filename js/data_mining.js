@@ -597,7 +597,7 @@ class DataMining{
 
                         let recencyIsEmptyInAllFeatures = true;
                         for(let i = 0; i < this.allFeatures.length; i++){
-                            if(this.allFeatures[i].recency){
+                            if(this.allFeatures[i].recency !== null && typeof this.allFeatures[i].recency !== "undefined"){
                                 recencyIsEmptyInAllFeatures = false;
                             }
                         }
@@ -611,7 +611,7 @@ class DataMining{
                         
                         } else {
                             for(let i = 0; i < this.allFeatures.length; i++){
-                                if(!this.allFeatures[i].recency && this.allFeatures[i].recency !== 0){
+                                if(this.allFeatures[i].recency === null || typeof this.allFeatures[i].recency === "undefined"){
                                     this.allFeatures[i].recency = 0;
                                 }
                             }
@@ -808,7 +808,7 @@ class DataMining{
                 let thisFeature = this.allFeatures[i];
 
                 // Set the recency based on the pareto ranking
-                if(thisFeature.pareto_ranking && thisFeature.pareto_ranking < 5){ 
+                if(thisFeature.pareto_ranking !== null && typeof thisFeature.pareto_ranking !== "undefined" && thisFeature.pareto_ranking < 5){ 
                     thisFeature.recency = thisFeature.pareto_ranking + 1;
                 } else {
                     if(thisFeature.id === this.currentFeature.id){
@@ -826,7 +826,7 @@ class DataMining{
                 if(thisFeature.id === this.currentFeature.id){
                     thisFeature.recency = 0;
                 } else {
-                    if(thisFeature.recency){
+                    if(thisFeature.recency !== null && typeof thisFeature.recency !== "undefined"){
                         thisFeature.recency = thisFeature.recency + 1;
                     }else{
                         thisFeature.recency = 1;
@@ -837,7 +837,7 @@ class DataMining{
 
         for(let i = 0; i < this.allFeatures.length; i++){
             let thisFeature = this.allFeatures[i];
-            if(!thisFeature.recency || thisFeature.recency > 4){
+            if(thisFeature.recency === null || typeof thisFeature.recency === "undefined" || thisFeature.recency > 4){
                 featuresToBeRemovedID.push(thisFeature.id);
             }
         }
