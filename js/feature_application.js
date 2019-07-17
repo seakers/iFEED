@@ -124,14 +124,14 @@ class FeatureApplication{
         }); 
 
         d3.select('#conjunctive_local_search').on('click', (d) => {
-            this.data_mining.run();
+            this.data_mining.run_local_search("AND");
 
             // EXPERIMENT 
             PubSub.publish(EXPERIMENT_TUTORIAL_EVENT, "local_search_conjunctive"); 
         }); 
        
         d3.select('#disjunctive_local_search').on('click',(d) => {
-            this.data_mining.run("asdf");
+            this.data_mining.run_local_search("OR");
         }); 
 
         d3.select('#generalize_feature').on('click',(d) => {
@@ -1240,8 +1240,11 @@ class FeatureApplication{
             // Start new generalization search
             expression = this.parse_tree(this.data);
 
-            if(this.data_mining.enable_generalization){
-                this.data_mining.generalize_feature(expression, expression);
+            // if(this.data_mining.enable_generalization){
+            //     this.data_mining.generalize_feature(expression, expression);
+            // }
+            if(this.data_mining.featureSpaceInteractionMode === "exploitation"){
+                this.data_mining.run_local_search("AND");
             }
             
             // EXPERIMENT 
