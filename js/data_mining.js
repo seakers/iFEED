@@ -295,9 +295,7 @@ class DataMining{
             return;
         }else{
             this.display_features(extractedFeatures);  
-
             this.stashedFeatures = JSON.parse(JSON.stringify(extractedFeatures));
-            this.calculate_pareto_ranking_of_features(extractedFeatures, [2, 3], 5);
         }          
     }
 
@@ -596,20 +594,40 @@ class DataMining{
                     let checked = d3.select('.feature_space_interaction_mode.toggle').node().checked;
                     if(checked){
                         this.featureSpaceInteractionMode = "exploitation";
+
+                        let recencyIsEmptyInAllFeatures = true;
+                        for(let i = 0; i < this.allFeatures.length; i++){
+                            if(this.allFeatures[i].recency){
+                                recencyIsEmptyInAllFeatures = false;
+                            }
+                        }
+
+                        if(recencyIsEmptyInAllFeatures){
+                            // Calculate the pareto ranking
+                            this.calculate_pareto_ranking_of_features(this.allFeatures, [2, 3], 4);
+                            for(let i = 0; i < this.allFeatures.length; i++){
+                                this.allFeatures[i].recency = 0;
+                            }
+                        
+                        } else {
+                            for(let i = 0; i < this.allFeatures.length; i++){
+                                if(!this.allFeatures[i].recency && this.allFeatures[i].recency !== 0){
+                                    this.allFeatures[i].recency = 0;
+                                }
+                            }
+                        }
+                        
                     }else{
                         this.featureSpaceInteractionMode = "exploration";
                     }
 
-                    setTimeout(function() {
-                        that.allFeatures = JSON.parse(JSON.stringify(that.stashedFeatures));
-                        that.display_features(that.allFeatures);
+                    // Clear the feature application
+                    PubSub.publish(INITIALIZE_FEATURE_APPLICATION, null);
 
-                        // Clear the feature application
-                        PubSub.publish(INITIALIZE_FEATURE_APPLICATION, null);
+                    // Remove all highlights in the scatter plot (retain target solutions)
+                    PubSub.publish(APPLY_FEATURE_EXPRESSION, null);
 
-                        // Remove all highlights in the scatter plot (retain target solutions)
-                        PubSub.publish(APPLY_FEATURE_EXPRESSION, null);
-                    }, 800);
+                    this.feature_adjust_opacity();
                 });
 
         if(this.featureSpaceInteractionMode === "exploration"){
@@ -630,6 +648,32 @@ class DataMining{
                 .text('Max complexity: ')
                 .append('select');
         this.complexityFilterThresholds = null;
+
+        // Button for restoring the initial set of features
+        feature_space_display_options_container.append('div')
+                .attr('class','restore_features_button container')
+                .append('button')
+                .attr('class','restore_features_button button')
+                .on("click", () => {
+                    that.allFeatures = JSON.parse(JSON.stringify(that.stashedFeatures));
+                    if(this.featureSpaceInteractionMode === "exploitation"){
+                        // Calculate the pareto ranking
+                        this.calculate_pareto_ranking_of_features(this.allFeatures, [2, 3], 4);
+
+                        // Initialize recency info
+                        for(let i = 0; i < this.allFeatures.length; i++){
+                            this.allFeatures[i].recency = 0;
+                        }
+                    } 
+                    that.display_features(that.allFeatures);
+
+                    // Clear the feature application
+                    PubSub.publish(INITIALIZE_FEATURE_APPLICATION, null);
+
+                    // Remove all highlights in the scatter plot (retain target solutions)
+                    PubSub.publish(APPLY_FEATURE_EXPRESSION, null);
+                })
+                .text("Restore initial features");
 
         // Create plot div's
         let feature_plot = tab.append('div')
@@ -744,20 +788,64 @@ class DataMining{
     }
 
     add_and_remove_features(featuresToAdd){
-        // if(this.recentlyAddedFeatureIDs.length === 0){
-        //     this.calculate_pareto_ranking_of_features(this.allFeatures, [2, 3], 3);
-        // }
+        // Assumes that the current interaction mode is exploitation mode
 
-        let featuresToBeRemovedID = [];
-        for(let i = 0; i < this.allFeatures.length; i++){
-            if(this.allFeatures[i].id !== this.currentFeature.id){
-                featuresToBeRemovedID.push(this.allFeatures[i].id);
-            }
+        if(this.featureSpaceInteractionMode !== "exploitation"){
+            alert("add_and_remove_features() must be called in Exploitation Mode only");
+            return;
         }
 
+        let featuresToBeRemovedID = [];
+        let allFeaturesAreRecent = true;
+        for(let i = 0; i < this.allFeatures.length; i++){
+            if(this.allFeatures[i].recency > 0){
+                allFeaturesAreRecent = false;
+            }
+        }
+        
+        if(allFeaturesAreRecent){
+            for(let i = 0; i < this.allFeatures.length; i++){
+                let thisFeature = this.allFeatures[i];
+
+                // Set the recency based on the pareto ranking
+                if(thisFeature.pareto_ranking && thisFeature.pareto_ranking < 5){ 
+                    thisFeature.recency = thisFeature.pareto_ranking + 1;
+                } else {
+                    if(thisFeature.id === this.currentFeature.id){
+                        thisFeature.recency = 0;
+                    }else{
+                        thisFeature.recency = 10;
+                    }
+                }
+            }
+
+        } else {
+            for(let i = 0; i < this.allFeatures.length; i++){
+                let thisFeature = this.allFeatures[i];
+
+                if(thisFeature.id === this.currentFeature.id){
+                    thisFeature.recency = 0;
+                } else {
+                    if(thisFeature.recency){
+                        thisFeature.recency = thisFeature.recency + 1;
+                    }else{
+                        thisFeature.recency = 1;
+                    }
+                }
+            } 
+        }
+
+        for(let i = 0; i < this.allFeatures.length; i++){
+            let thisFeature = this.allFeatures[i];
+            if(!thisFeature.recency || thisFeature.recency > 4){
+                featuresToBeRemovedID.push(thisFeature.id);
+            }
+        }
+       
         featuresToAdd = JSON.parse(JSON.stringify(featuresToAdd));
         for(let i = 0; i < featuresToAdd.length; i++){
             featuresToAdd[i].id = this.featureID++;
+            featuresToAdd[i].recency = 0;
         }
             
         this.recentlyAddedFeatureIDs = [];
@@ -853,8 +941,12 @@ class DataMining{
         // Set variables
         let width = this.width;
         let height = this.height;
-        let duration = 500;
 
+        let duration = 500;
+        if(this.featureSpaceInteractionMode === "exploitation"){
+            duration = 50;
+        }
+        
         // Set the axis to be Conf(F->S) and Conf(S->F)
         let xIndex = 2;
         let yIndex = 3;
@@ -892,10 +984,11 @@ class DataMining{
         }
 
         if(featuresToBeRemovedID){
+
+            // Remove pre-existing features that overlap with the features to be added
             if(typeof(featuresToBeRemovedID) === "object" && !Array.isArray(featuresToBeRemovedID)){
                 if(Object.keys(featuresToBeRemovedID).length !== 0){
 
-                    // Remove pre-existing features that overlap with the features to be added
                     let featuresToBeRemovedIDMap = featuresToBeRemovedID;
                     if(Object.keys(featuresToBeRemovedIDMap).length !== 0){ // check whether the key is not empty
                         for(let id in featuresToBeRemovedIDMap){
@@ -1001,44 +1094,26 @@ class DataMining{
 
         // Check if 
         if(rescalePoints){
-            // Rescale metrics
-            let supps = [];
-            let lifts = [];
-            let conf1s = [];
-            let conf2s = [];
-            let scores=[];   
-            let complexities = [];
-            let maxScore = -1;
-            let maxComplexity = -1;
 
-            // Get the maximum values
-            for (let i = 0; i < featuresToPlot.length; i++){
-                let thisFeature = featuresToPlot[i];
+            // Get max values of each metric
+            let maxSupp = d3.max(featuresToPlot, (d) => {return d.metrics[0]});
+            let maxLift = d3.max(featuresToPlot, (d) => {return d.metrics[1]});
+            let maxConf1 = d3.max(featuresToPlot, (d) => {return d.metrics[2]});
+            let maxConf2 = d3.max(featuresToPlot, (d) => {return d.metrics[3]});
+            let maxConf = Math.max(maxConf1, maxConf2);
+            let maxComplexity = d3.max(featuresToPlot, (d) => {return d.complexity});
 
-                supps.push(thisFeature.metrics[0]);
-                lifts.push(thisFeature.metrics[1]);
-                conf1s.push(thisFeature.metrics[2]);
-                conf2s.push(thisFeature.metrics[3]);
-                let score = 1 - Math.sqrt(Math.pow(1-conf1s[i],2) + Math.pow(1-conf2s[i],2));
-                scores.push(score);
-                if(score > maxScore) maxScore = score;
-                complexities.push(thisFeature.complexity);
-                if(thisFeature.complexity > maxComplexity) maxComplexity = thisFeature.complexity;
+            // Consider the stashed features in obtaining the min and max complexity
+            if(d3.max(this.stashedFeatures, (d) => {return d.complexity}) > maxComplexity){
+                maxComplexity = d3.max(this.stashedFeatures, (d) => {return d.complexity});
             }
 
-            let max_conf1 = Math.max.apply(null, conf1s);
-            let max_conf2 = Math.max.apply(null, conf2s);
-            let max_conf = Math.max(max_conf1, max_conf2);
-
             // Set the location of the utopia point
-            this.utopiaPoint.metrics = [Math.max.apply(null, lifts), Math.max.apply(null, supps), max_conf, max_conf];
-
-            // Add score for the utopia point (0.15 more than the best score found so far)
-            scores.splice(0, 0, Math.max.apply(null, scores) + 0.15); 
+            this.utopiaPoint.metrics = [maxLift, maxSupp, maxConf, maxConf];
 
             // Needed to map the values of the dataset to the color scale
             this.colorInterpolateRainbow = d3.scaleLinear()
-                    .domain(d3.extent(complexities))
+                    .domain([1, maxComplexity])
                     .range([0,1]);
 
             //Transition the colors to a rainbow
@@ -1049,7 +1124,7 @@ class DataMining{
                     })
             }
 
-            this.update_feature_complexity_range_filter(Math.min.apply(null, complexities), Math.max.apply(null, complexities));
+            this.update_feature_complexity_range_filter(1, maxComplexity);
         }
 
         if(featuresToPlot.length !== 0 && featuresToPlot.length !== 1){
@@ -1289,6 +1364,9 @@ class DataMining{
         if(this.updateFeatureColor !== null){
             this.updateFeatureColor();
         }
+
+        // Adjust the opacity of each point based on how recently each point is added
+        this.feature_adjust_opacity();
         
         if(currentFeature){
             let cursor = get_cursor();
@@ -1306,6 +1384,33 @@ class DataMining{
             this.currentFeatureBlinkInterval = setInterval(blink, 350);
         }else{
             get_cursor().style("opacity",0);
+        }
+    }
+
+    feature_adjust_opacity(){
+        if(this.featureSpaceInteractionMode === "exploitation"){
+            d3.selectAll('.dot.feature_plot').style("opacity", (d) => 
+                {
+                    if(d.recency){
+                        if(d.recency === 0){
+                            return 1.0;
+                        }else if(d.recency === 1){
+                            return 0.8;
+                        }else if(d.recency === 2){
+                            return 0.6;
+                        }else if(d.recency === 3){
+                            return 0.4;
+                        }else if(d.recency === 4){
+                            return 0.2;
+                        }else{
+                            return 0;
+                        }
+                    }else{
+                        return 1.0;
+                    }
+                });
+        }else{
+            d3.selectAll('.dot.feature_plot').style("opacity", 1);
         }
     }
 
@@ -2047,7 +2152,6 @@ class DataMining{
                 }
 
                 that.stashedFeatures = JSON.parse(JSON.stringify(imported_features));
-                that.calculate_pareto_ranking_of_features(imported_features, [2, 3], 5);
                 that.display_features(imported_features);  
 
                 if(generalization_enabled){
