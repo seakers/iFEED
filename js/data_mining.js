@@ -792,7 +792,7 @@ class DataMining{
         // Assumes that the current interaction mode is exploration mode
 
         if(this.featureSpaceInteractionMode !== "exploration"){
-            alert("add_and_remove_features() must be called in exploration Mode only");
+            // alert("add_and_remove_features() must be called in exploration Mode only");
             return;
         }
 

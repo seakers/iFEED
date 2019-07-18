@@ -273,6 +273,15 @@ class Experiment{
         this.clock.stop();
         let durationInSeconds = this.clock.getTimeElapsed() / 1000;
 
+        this.features_tested = [];
+        let allFeatures = this.data_mining.allFeatures;
+        for(let i = 0; i < allFeatures.length; i++){
+            let feature = allFeatures[i];
+            if(this.data_mining.algorithmGeneratedFeatureIDs.indexOf(feature.id) === -1){
+                this.features_tested.push(feature);
+            }
+        }
+
         let feature_synthesis_task_data = {
             "participantID": this.participantID,
             "treatmentCondition": this.treatmentCondition,
