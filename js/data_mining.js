@@ -95,7 +95,7 @@ class DataMining{
 
         // Make a new websocket connection
         let that = this;
-        this.ws = new WebSocket("ws://localhost:8080/api/ifeed/data-mining");
+        this.ws = new WebSocket("wss://selva-research.engr.tamu.edu/api/ifeed/data-mining");
         this.ws.onmessage = (event) => {
             if(event.data === ""){
                 return;
