@@ -106,9 +106,9 @@
             <div id='feature_expression_panel'>
                 <div>
                     <div>Feature Application Panel</div>
-                    <button id='conjunctive_local_search' class='feature_application_options_button'>Improve specificity</button>
+                    <!-- <button id='conjunctive_local_search' class='feature_application_options_button'>Improve specificity</button>
                     <button id='disjunctive_local_search' class='feature_application_options_button'>Improve coverage</button>
-                    <button id='generalize_feature' class='feature_application_options_button'>Generalize feature</button>
+                    <button id='generalize_feature' class='feature_application_options_button'>Generalize feature</button> -->
                     <button id='clear_all_features' class='feature_application_options_button'>Clear</button>
                 </div>
                 <div id='feature_expression'></div>
@@ -205,16 +205,19 @@
 
     PubSub.publish(LOAD_DATA, null);
 
-    function select_fuzzy_pareto_front(rank){
 
-        problem.calculate_pareto_ranking([], 15);
-    
-        let exp = "{paretoFront["+ rank +"]}";
+    problem.calculate_pareto_ranking([], 15);
 
-        filter.apply_filter_expression(exp);
+    // function select_fuzzy_pareto_front(rank){
+        
+    //     problem.calculate_pareto_ranking([],20);
 
-        tradespace_plot.toggle_selection_and_highlight();
-    }
+    //     let exp = "{paretoFront["+ rank +"]}";
+
+    //     filter.apply_filter_expression(exp);
+
+    //     tradespace_plot.toggle_selection_and_highlight();
+    // }
 
 </script>
 

@@ -124,11 +124,11 @@ class FeatureApplication{
         }); 
 
         d3.select('#conjunctive_local_search').on('click', (d) => {
-            this.data_mining.run();
+            this.data_mining.run_local_search("AND");
         }); 
        
         d3.select('#disjunctive_local_search').on('click',(d) => {
-            this.data_mining.run("asdf");
+            this.data_mining.run_local_search("OR");
         }); 
 
         d3.select('#generalize_feature').on('click',(d) => {
@@ -174,7 +174,7 @@ class FeatureApplication{
                     }); 
 
                     if(this.stashed_root){
-                        this.get_node_matches_between_features(this.data, this.stashed_root);
+                        //this.get_node_matches_between_features(this.data, this.stashed_root);
                     }
                 }
             }  
@@ -196,33 +196,60 @@ class FeatureApplication{
         }
 
         let branches = [];
-        let nodes_of_same_feature_type = {};
-        for(let i = 0; i < root.children.length; i++){
-            let node = root.children[i];
-
-            if(node.type === "logic"){
-                branches.push(node);
-                continue;
-            }
-
-            let type = this.label.pp_feature_type(node.name);
-            if(!(type in nodes_of_same_feature_type)){
-                nodes_of_same_feature_type[type] = [];
-            }
-            nodes_of_same_feature_type[type].push(node);
-        }
-
         let sorted_nodes = [];
-        // Iterate over each feature type
-        for (let type in nodes_of_same_feature_type) {
-            if (nodes_of_same_feature_type.hasOwnProperty(type)) {  
-                for(let i = 0; i < root.children.length; i++){
-                    let node = root.children[i];
+        if(this.label.feature_display_order){
+            for(let i = 0; i < this.label.feature_display_order.length; i++){
+                let currentType = this.label.feature_display_order[i];
+                for(let j = 0; j < root.children.length; j++){
+                    let node = root.children[j];
                     if(node.type === "logic"){
                         continue;
                     }
-                    if(this.label.pp_feature_type(node.name) === type){
+                    let type = this.label.pp_feature_type(node.name);
+                    if(type === currentType){
                         sorted_nodes.push(node);
+                    }
+                }
+            }
+
+            for(let i = 0; i < root.children.length; i++){
+                let node = root.children[i];
+                if(node.type === "logic"){
+                    branches.push(node);
+                }else{
+                    if(sorted_nodes.indexOf(node) === -1){
+                        sorted_nodes.push(node);
+                    }
+                }
+            }
+
+        } else {
+            let nodes_of_same_feature_type = {};
+            for(let i = 0; i < root.children.length; i++){
+                let node = root.children[i];
+
+                if(node.type === "logic"){
+                    branches.push(node);
+                    continue;
+                }
+                let type = this.label.pp_feature_type(node.name);
+                if(!(type in nodes_of_same_feature_type)){
+                    nodes_of_same_feature_type[type] = [];
+                }
+                nodes_of_same_feature_type[type].push(node);
+            }
+
+            // Iterate over each feature type
+            for (let type in nodes_of_same_feature_type) {
+                if (nodes_of_same_feature_type.hasOwnProperty(type)) {  
+                    for(let i = 0; i < root.children.length; i++){
+                        let node = root.children[i];
+                        if(node.type === "logic"){
+                            continue;
+                        }
+                        if(this.label.pp_feature_type(node.name) === type){
+                            sorted_nodes.push(node);
+                        }
                     }
                 }
             }
@@ -237,18 +264,19 @@ class FeatureApplication{
     update(option){
         let that = this;  
 
+        // Check the tree structure and make sure that it is correct
+        this.check_tree_structure();
+
         // If there is no feature tree, return
         if(this.data === null){
             d3.selectAll('.treeNode').remove();
             d3.selectAll('.treeLink').remove();
             this.i = 0;
             PubSub.publish(APPLY_FEATURE_EXPRESSION, null);
+            PubSub.publish(REMOVE_FEATURE_CURSOR, null);
             return;
         }
 
-        // Check the tree structure and make sure that it is correct
-        this.check_tree_structure();
-        
         // Apply the feature expression
         PubSub.publish(APPLY_FEATURE_EXPRESSION, {expression: this.parse_tree(this.data), option: option});
 
@@ -632,15 +660,35 @@ class FeatureApplication{
 
         linksToHide.select("text").style('opacity',0);
 
-
-        d3.selectAll('.nodeRange').filter((d) => {
-            if(d.type === 'leaf'){
-                return false;
-            }else{
-                // You can only add new nodes to logic nodes
-                return true;
+        // EXPERIMENT
+        let pass = false;
+        if(this.experiment_condition){
+            if(this.experiment_condition.indexOf("automated_generalization") !== -1){
+                pass = true;
             }
-        }).style('opacity',0.2);
+        }
+        if(!pass){
+            d3.selectAll('.nodeRange').filter((d) => {
+                if(d.type === 'leaf'){
+                    return false;
+                }else{
+                    // You can only add new nodes to logic nodes
+                    return true;
+                }
+            }).style('opacity',0.2);
+        }
+
+
+
+
+        // d3.selectAll('.nodeRange').filter((d) => {
+        //     if(d.type === 'leaf'){
+        //         return false;
+        //     }else{
+        //         // You can only add new nodes to logic nodes
+        //         return true;
+        //     }
+        // }).style('opacity',0.2);
 
         this.select_treeNode_by_id(id).attr('pointer-events','none');
     }
@@ -651,6 +699,14 @@ class FeatureApplication{
 	        let mouseX = mouse_pos[0]; 
 	        let mouseY = mouse_pos[1];        
             this.select_treeNode_by_id(d.id).attr("transform","translate("+ mouseX + "," + mouseY + ")");
+
+            // EXPERIMENT
+            if(this.experiment_condition){
+                if(this.experiment_condition.indexOf("automated_generalization") !== -1){
+                    return;
+                }
+            }
+
             this.updateTempConnector(d.id, mouseX, mouseY);          
         }
     }
@@ -666,6 +722,24 @@ class FeatureApplication{
             // Remove links that were generated temporarily
             d3.selectAll(".tempTreeLink").remove();  
 
+
+            // EXPERIMENT
+            if(this.experiment_condition){
+                if(this.experiment_condition.indexOf("automated_generalization") !== -1){
+                    // No node selected (all nodes go back to the previous positions)
+                    d3.selectAll('.nodeRange')
+                        .on('mouseover', function(d){
+                            that.selectedNode = that.select_treeNode_by_id(d.id).node().__data__;
+                        })
+                        .attr('r',40);
+                    let updateOption = {add_to_feature_space_plot: true, replace_equivalent_feature: true};
+                    this.update(updateOption);
+                    this.dragStarted = false;
+                    this.draggingNode = null;
+                    return;
+                }
+            }
+            
             if(this.selectedNode){
                 let selectedNode = this.select_dataNode_by_id(this.selectedNode.id);
                 let draggingNode = this.select_dataNode_by_id(this.draggingNode.id);            
@@ -1136,6 +1210,16 @@ class FeatureApplication{
                 d.temp = false;
             })  
             this.update({add_to_feature_space_plot: true, replace_equivalent_feature: false});
+
+            // Stop the search currently running
+            this.data_mining.stop_search();
+
+            // Start new generalization search
+            expression = this.parse_tree(this.data);
+
+            if(this.data_mining.featureSpaceInteractionMode === "exploration"){
+                this.data_mining.run_local_search("BOTH");
+            }
 
         } else if(option === 'direct-update'){ // Make a direct update to the feature application status
             // Remove the stashed information                

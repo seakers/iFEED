@@ -2,9 +2,8 @@
 class DataMining{
     
     constructor(filteringScheme, labelingScheme){
-
         this.run_ga = true;
-        this.enable_generalization = false;
+        this.enable_generalization = true;
 
         this.filter = filteringScheme;
         this.label = labelingScheme;
@@ -32,8 +31,10 @@ class DataMining{
         this.transform = null;
 
         this.allFeatures = [];
+        this.stashedFeatures = [];
         this.recentlyAddedFeatureIDs = [];
 
+        this.featureSpaceInteractionMode = "viewing";
         this.complexityFilterThresholds = null;
 
         this.currentFeature = null;
@@ -80,7 +81,7 @@ class DataMining{
 
         PubSub.subscribe(DESIGN_PROBLEM_LOADED, (msg, data) => {
             this.metadata = data.metadata;
-            this.import_generalized_variable_list();
+            this.set_problem_parameters();
         }); 
 
         PubSub.subscribe(SELECTION_UPDATED, (msg, data) => {
@@ -91,6 +92,81 @@ class DataMining{
         PubSub.subscribe(FEATURE_APPLICATION_LOADED, (msg, data) => {
             this.feature_application = data;
         });  
+
+        // Make a new websocket connection
+        let that = this;
+        this.ws = new WebSocket("ws://localhost:8080/api/ifeed/data-mining");
+        this.ws.onmessage = (event) => {
+            if(event.data === ""){
+                return;
+            }
+ 
+            let content = JSON.parse(event.data);       
+            if(content){
+                console.log(content.type);
+
+                if(content.type === "search.finished"){
+                    if(content.features){
+                        console.log(content.features);
+
+                        if(content.searchMethod){
+                            if(content.searchMethod === "localSearch"){
+                                that.add_and_remove_features(content.features);
+
+                            }else if(content.searchMethod === "generalization"){
+                                that.add_new_features(content.features, true);
+                            }
+                        }else{
+                            that.add_new_features(content.features, true);
+                        }
+                    }
+                
+                } else if(content.type === "problem.entities"){
+
+                    let entities = {};
+                    if(that.metadata.problem === "ClimateCentric"){
+                        entities = {leftSet: content.leftSet, rightSet: content.rightSet};
+
+                        if(content.rightSet.length > that.metadata.problem_specific_params.orbit_list.length 
+                            ||content.leftSet.length > that.metadata.problem_specific_params.instrument_list.length
+                        ){
+                            
+                            let instanceMap = content.instanceMap;
+                            let superclassMap = content.superclassMap;
+
+                            // If instance map is empty
+                            if(Object.keys(instanceMap).length == 0){
+
+                                // For each superclass
+                                for (let varName in superclassMap) {
+                                    if (superclassMap.hasOwnProperty(varName)) {
+
+                                        let listOfSuperclasses = superclassMap[varName];
+                                        for(let i = 0; i < listOfSuperclasses.length; i++){
+
+                                            let superclassName = listOfSuperclasses[i];
+                                            if(!instanceMap.hasOwnProperty(superclassName)){
+                                                instanceMap[superclassName] = [];
+                                            }
+                                            // Add each instance to super classes
+                                            instanceMap[superclassName].push(varName);
+                                        }
+                                    }
+                                }
+                            }
+                            entities['instanceMap'] = instanceMap;
+                            entities['superclassMap'] = superclassMap;
+                            PubSub.publish(GENERALIZED_CONCEPTS_LOADED, entities);
+                        }
+
+                    } else {
+                        alert("Unsupported problem formulation: " + that.metadata.problem);
+                    }
+                }
+            }
+        };
+
+        // Initialize the interface
         this.initialize();        
     }
 
@@ -121,6 +197,7 @@ class DataMining{
         d3.selectAll("#run_data_mining_button").on("click", () => {this.run();});
         
         this.allFeatures = [];
+        this.stashedFeatures = [];
         this.recentlyAddedFeatureIDs = [];
         this.currentFeature = null;
         this.currentFeatureBlinkInterval=null;
@@ -135,9 +212,7 @@ class DataMining{
         this.featureID = 1;
     }
 
-    async run(option){
-        this.set_problem_parameters();
-
+    async run(){
         // Store the id's of all samples
         let selected = [];
         let non_selected = [];
@@ -159,76 +234,91 @@ class DataMining{
             alert("Target solutions must be selected to run data mining!");
             return;
         }     
+                
+        // Clear the feature application
+        PubSub.publish(INITIALIZE_FEATURE_APPLICATION, null);
+
+        // Remove all highlights in the scatter plot (retain target solutions)
+        PubSub.publish(APPLY_FEATURE_EXPRESSION, null);
 
         let extractedFeatures = null;
-                
-        // If the feature application tree exists, run local search
-        if(this.feature_application.data){
-
-            // Run data mining in the marginal feature space
-            let selected_node = null;            
-            
-            // Save the node where the placeholder is to be located
-            this.feature_application.visit_nodes(this.feature_application.data, (d) => {
-                if(d.add){
-                    selected_node=d;
-                }                        
-            })            
-            
-            // Save the currently applied feature
-            let base_feature = this.feature_application.parse_tree(this.feature_application.data, selected_node);
-
-            // Run local search either using disjunction or conjunction
-            let logical_connective = null;
-            if(option){
-                logical_connective = "OR";
-            }else{
-                logical_connective = "AND";
-            }
-
-            extractedFeatures = this.get_marginal_driving_features(selected, non_selected, base_feature, logical_connective,
-                                                     this.support_threshold,this.confidence_threshold,this.lift_threshold);
-            
-
-            let featuresToAdd = [];
-
-            // Check non-dominance against all existing features
-            for(let i = 0; i < extractedFeatures.length; i++){
-                let thisFeature = extractedFeatures[i];
-                if(this.check_if_non_dominated(thisFeature, this.allFeatures)){
-                    // non-dominated
-                    featuresToAdd.push(thisFeature);
-                }
-            }
-            this.add_new_features(featuresToAdd, false);
-            PubSub.publish(CANCEL_ADD_FEATURE, null);
-                        
-        } else { // Run data mining from the scratch (no local search)
-            
-            // Clear the feature application
-            PubSub.publish(INITIALIZE_FEATURE_APPLICATION, null);
-
-            // Remove all highlights in the scatter plot (retain target solutions)
-            PubSub.publish(APPLY_FEATURE_EXPRESSION, null);
-
-            if(!this.run_ga){
-                extractedFeatures = this.get_driving_features(selected, non_selected, this.support_threshold, this.confidence_threshold, this.lift_threshold);
-            }else{
-                if(this.enable_generalization){
-                    extractedFeatures = this.get_driving_features_with_generalization(selected, non_selected);
-                }else{
-                    extractedFeatures = this.get_driving_features_epsilon_moea(selected, non_selected);
-                }
-            }
-
-            if(extractedFeatures === null){
-                return;
-            } else if(extractedFeatures.length === 0){ // If there is no driving feature returned
-                return;
-            }else{
-                this.display_features(extractedFeatures);  
-            }          
+        if(this.run_ga){
+            // Epsilon MOEA
+            extractedFeatures = this.get_driving_features_epsilon_moea(selected, non_selected); 
+        }else{
+            // Apriori 
+            extractedFeatures = this.get_driving_features(selected, non_selected, this.support_threshold, this.confidence_threshold, this.lift_threshold);
         }
+
+        if(extractedFeatures === null || typeof extractedFeatures === "undefined"){
+            return;
+        } else if(extractedFeatures.length === 0){ // If there is no driving feature returned
+            return;
+        }else{
+            this.display_features(extractedFeatures);  
+            this.stashedFeatures = JSON.parse(JSON.stringify(extractedFeatures));
+        }          
+    }
+
+    run_local_search(logic){
+        if(!logic){
+            logic = "AND";
+        }
+
+        if (this.selected_archs.length ===0){
+            alert("Target solutions must be selected to run local search!");
+            return;
+        }     
+        
+        if(!this.feature_application.data){
+            alert("The baseline feature must be selected to run local search!");
+        }
+
+        // Store the id's of all samples
+        let selected = [];
+        let non_selected = [];
+
+        for (let i = 0; i< this.selected_archs.length; i++){
+            selected.push(this.selected_archs[i].id);
+        }
+        for (let i = 0; i < this.data.length; i++){
+            if(!this.data[i].hidden){
+                let id = this.data[i].id;
+                if (selected.indexOf(id) === -1){
+                    // non-selected
+                    non_selected.push(id);
+                }
+            }
+        }
+
+        // Run data mining in the marginal feature space
+        let selected_node = null;            
+        
+        // Save the node where the placeholder is to be located
+        this.feature_application.visit_nodes(this.feature_application.data, (d) => {
+            if(d.add){
+                selected_node = d;
+            }                        
+        })            
+        
+        // Save the currently applied feature
+        let baseline_feature = this.feature_application.parse_tree(this.feature_application.data, selected_node);
+
+        // Run local search either using disjunction or conjunction
+        this.get_marginal_driving_features(selected, non_selected, baseline_feature, logic);
+        
+        // // Check non-dominance against all existing features
+        // let featuresToAdd = [];
+        // for(let i = 0; i < extractedFeatures.length; i++){
+        //     let thisFeature = extractedFeatures[i];
+        //     if(this.check_if_non_dominated(thisFeature, this.allFeatures)){
+        //         // non-dominated
+        //         featuresToAdd.push(thisFeature);
+        //     }
+        // }
+
+        // this.add_new_features(featuresToAdd, false);
+        PubSub.publish(CANCEL_ADD_FEATURE, null);   
     }
 
     get_driving_features_with_generalization(selected, non_selected){
@@ -253,7 +343,6 @@ class DataMining{
                     alert("No driving feature mined. Please try modifying the selection. (Try selecting more designs)");
                 }
                 output = data;
-                that.get_problem_parameters();
             },
             error: function (jqXHR, textStatus, errorThrown)
             {alert("error");}
@@ -263,7 +352,6 @@ class DataMining{
     }
 
     get_driving_features_epsilon_moea(selected, non_selected){
-
         console.log("Epsilon-MOEA called");
 
         let output;
@@ -279,15 +367,16 @@ class DataMining{
             async: false,
             success: function (data, textStatus, jqXHR)
             {
-                if(data=="[]"){
+                if(data === "[]"){
                     alert("No driving feature mined. Please try modifying the selection. (Try selecting more designs)");
                 }
                 output = data;
             },
             error: function (jqXHR, textStatus, errorThrown)
-            {alert("error");}
+            {
+                alert("Error occurred while running data mining");
+            }
         });
-
         return output;
     }
 
@@ -324,10 +413,8 @@ class DataMining{
     /*
         Run local search: can be used for both conjunction and disjunction
     */  
-    get_marginal_driving_features(selected,non_selected,featureExpression,logical_connective,
-                                                   support_threshold,confidence_threshold,lift_threshold){
-
-        this.set_problem_generalized_concepts();
+    get_marginal_driving_features(selected,non_selected,featureExpression,logical_connective){
+        this.stop_search();
         
         let output;
         $.ajax({
@@ -340,26 +427,15 @@ class DataMining{
                     selected: JSON.stringify(selected),
                     non_selected:JSON.stringify(non_selected),
                     logical_connective:logical_connective,
-                    supp:support_threshold,
-                    conf:confidence_threshold,
-                    lift:lift_threshold
                   },
-            async: false,
-            success: function (data, textStatus, jqXHR)
-            {
-                output = data;
-            },
+            async: true,
+            success: function (data, textStatus, jqXHR){},
             error: function (jqXHR, textStatus, errorThrown)
-            {alert("error");}
+            {alert("Error in calling get_marginal_driving_features()");}
         });
-
-        return output;
     }    
 
     generalize_feature(root, node){
-        this.set_problem_parameters();
-        this.set_problem_generalized_concepts();
-
         let metrics = this.currentFeature.metrics;
         let precision = metrics[2];
         let recall = metrics[3];
@@ -400,7 +476,6 @@ class DataMining{
 
         let that = this;
 
-        let output;
         $.ajax({
             url: "/api/data-mining/generalize-feature",
             type: "POST",
@@ -415,47 +490,52 @@ class DataMining{
             async: true,
             success: function (data, textStatus, jqXHR)
             {
-                let extractedFeatures = data;
-                let tempFeatures = [];
-                for(let i = 0; i < extractedFeatures.length; i++){
-                    let thisFeature = extractedFeatures[i];
-                    // if(precision - thisFeature.metrics[2] > 0.01 || recall - thisFeature.metrics[3] > 0.01){
-                    //     continue;
-                    // }else{
-                        tempFeatures.push(thisFeature);
-                    // }
-                }
+                // let extractedFeatures = data;
+                // let tempFeatures = [];
+                // for(let i = 0; i < extractedFeatures.length; i++){
+                //     let thisFeature = extractedFeatures[i];
+                //     // if(precision - thisFeature.metrics[2] > 0.01 || recall - thisFeature.metrics[3] > 0.01){
+                //     //     continue;
+                //     // }else{
+                //         tempFeatures.push(thisFeature);
+                //     // }
+                // }
 
-                if(tempFeatures.length === 0){
-                    return;
-                }    
 
-                // Get the feature with the shortest distance to the utopia point
-                let shortestDistance = 99;  
-                let bestFeature = null;
-                for (let i = 0; i < tempFeatures.length; i++){
-                    let precision = tempFeatures[i].metrics[2];
-                    let recall = tempFeatures[i].metrics[3];
-                    let dist = 1 - Math.sqrt(Math.pow(1 - precision, 2) + Math.pow(1 - recall, 2));
-                    if(dist < shortestDistance){
-                        shortestDistance = dist;
-                        bestFeature = tempFeatures[i];
-                    }
+                // if(extractedFeatures.length === 0){
+                //     return;
+                // }
 
-                    //console.log("specificity: " + precision + ", coverage: " + recall + ": "+ tempFeatures[i].name);
-                }
-                let description = that.relabel_generalization_description(bestFeature.description);
+                // // Get the feature with the shortest distance to the utopia point
+                // let shortestDistance = 99;  
+                // let bestFeature = null;
+                // for (let i = 0; i < tempFeatures.length; i++){
+                //     let precision = tempFeatures[i].metrics[2];
+                //     let recall = tempFeatures[i].metrics[3];
+                //     let dist = 1 - Math.sqrt(Math.pow(1 - precision, 2) + Math.pow(1 - recall, 2));
+                //     if(dist < shortestDistance){
+                //         shortestDistance = dist;
+                //         bestFeature = tempFeatures[i];
+                //     }
 
-                that.show_generalization_suggestion(description, bestFeature);
-                PubSub.publish(CANCEL_ADD_FEATURE, null); 
-                that.get_problem_parameters();
+                //     //console.log("specificity: " + precision + ", coverage: " + recall + ": "+ tempFeatures[i].name);
+                // }
+
+
+                // let description = that.relabel_generalization_description(bestFeature.description);
+                // that.show_generalization_suggestion(description, bestFeature);
+                // PubSub.publish(CANCEL_ADD_FEATURE, null); 
+
             },
             error: function (jqXHR, textStatus, errorThrown)
-            {alert("error");}
+            {
+                alert("Error in generalizing a feature");
+            }
         });        
     } 
 
     display_features(features){
+        let that = this;
         
         // Remove previous plot
         d3.select("#view3").select("g").remove();
@@ -463,8 +543,62 @@ class DataMining{
         let tab = d3.select('#view3').append('g');
 
         // Create feature complexity range filter
-        let feature_complexity_range_filter = tab.append('div')
-                .attr('class', 'feature_complexity_range_filter container');
+        let feature_space_display_options_container = tab.append('div')
+                .attr('id', 'feature_space_display_options_container');
+
+        let modeToggleSwitch = feature_space_display_options_container.append('div')
+                .attr('class','feature_space_interaction_mode container')
+                .append('input')
+                .attr('class','feature_space_interaction_mode toggle')
+                .attr('type','checkbox')
+                .on("click", () => {
+                    let checked = d3.select('.feature_space_interaction_mode.toggle').node().checked;
+                    if(checked){
+                        this.featureSpaceInteractionMode = "exploration";
+
+                        let recencyIsEmptyInAllFeatures = true;
+                        for(let i = 0; i < this.allFeatures.length; i++){
+                            if(this.allFeatures[i].recency !== null && typeof this.allFeatures[i].recency !== "undefined"){
+                                recencyIsEmptyInAllFeatures = false;
+                            }
+                        }
+
+                        if(recencyIsEmptyInAllFeatures){
+                            // Calculate the pareto ranking
+                            this.calculate_pareto_ranking_of_features(this.allFeatures, [2, 3], 4);
+                            for(let i = 0; i < this.allFeatures.length; i++){
+                                this.allFeatures[i].recency = 0;
+                            }
+                        
+                        } else {
+                            for(let i = 0; i < this.allFeatures.length; i++){
+                                if(this.allFeatures[i].recency === null || typeof this.allFeatures[i].recency === "undefined"){
+                                    this.allFeatures[i].recency = 0;
+                                }
+                            }
+                        }
+                        
+                    }else{
+                        this.featureSpaceInteractionMode = "viewing";
+                    }
+
+                    // Clear the feature application
+                    PubSub.publish(INITIALIZE_FEATURE_APPLICATION, null);
+
+                    // Remove all highlights in the scatter plot (retain target solutions)
+                    PubSub.publish(APPLY_FEATURE_EXPRESSION, null);
+
+                    this.feature_adjust_opacity();
+                });
+
+        if(this.featureSpaceInteractionMode === "viewing"){
+            d3.select('.feature_space_interaction_mode.toggle').node().checked = false;
+        }else{
+            d3.select('.feature_space_interaction_mode.toggle').node().checked = true;
+        }
+
+        let feature_complexity_range_filter = feature_space_display_options_container.append('div')
+                .attr('class', 'feature_complexity_range_filter container')
 
         feature_complexity_range_filter.append('div')
                 .attr('class', 'feature_complexity_range_filter minRange')
@@ -475,6 +609,32 @@ class DataMining{
                 .text('Max complexity: ')
                 .append('select');
         this.complexityFilterThresholds = null;
+
+        // Button for restoring the initial set of features
+        feature_space_display_options_container.append('div')
+                .attr('class','restore_features_button container')
+                .append('button')
+                .attr('class','restore_features_button button')
+                .on("click", () => {
+                    that.allFeatures = JSON.parse(JSON.stringify(that.stashedFeatures));
+                    if(this.featureSpaceInteractionMode === "exploration"){
+                        // Calculate the pareto ranking
+                        this.calculate_pareto_ranking_of_features(this.allFeatures, [2, 3], 4);
+
+                        // Initialize recency info
+                        for(let i = 0; i < this.allFeatures.length; i++){
+                            this.allFeatures[i].recency = 0;
+                        }
+                    } 
+                    that.display_features(that.allFeatures);
+
+                    // Clear the feature application
+                    PubSub.publish(INITIALIZE_FEATURE_APPLICATION, null);
+
+                    // Remove all highlights in the scatter plot (retain target solutions)
+                    PubSub.publish(APPLY_FEATURE_EXPRESSION, null);
+                })
+                .text("Restore initial features");
 
         // Create plot div's
         let feature_plot = tab.append('div')
@@ -507,10 +667,10 @@ class DataMining{
             features[i].y0 = -1;
             features[i].id = this.featureID++;
         }
+        this.currentFeature = null;
         this.utopiaPoint = {id:-1, name:null, expression:null, metrics:null, x0:-1, y0:-1, x:-1, y:-1, utopiaPoint: true};
         this.update(features);
     }
-
 
     // Batch add 
     // Single feature add 
@@ -584,6 +744,75 @@ class DataMining{
         }
     }
 
+    add_and_remove_features(featuresToAdd){
+        // Assumes that the current interaction mode is exploration mode
+
+        if(this.featureSpaceInteractionMode !== "exploration"){
+            // alert("add_and_remove_features() must be called in exploration Mode only");
+            return;
+        }
+
+        let featuresToBeRemovedID = [];
+        let allFeaturesAreRecent = true;
+        for(let i = 0; i < this.allFeatures.length; i++){
+            if(this.allFeatures[i].recency > 0){
+                allFeaturesAreRecent = false;
+            }
+        }
+        
+        if(allFeaturesAreRecent){
+            for(let i = 0; i < this.allFeatures.length; i++){
+                let thisFeature = this.allFeatures[i];
+
+                // Set the recency based on the pareto ranking
+                if(thisFeature.pareto_ranking !== null && typeof thisFeature.pareto_ranking !== "undefined" && thisFeature.pareto_ranking < 5){ 
+                    thisFeature.recency = thisFeature.pareto_ranking + 1;
+                } else {
+                    if(thisFeature.id === this.currentFeature.id){
+                        thisFeature.recency = 0;
+                    }else{
+                        thisFeature.recency = 10;
+                    }
+                }
+            }
+
+        } else {
+            for(let i = 0; i < this.allFeatures.length; i++){
+                let thisFeature = this.allFeatures[i];
+
+                if(thisFeature.id === this.currentFeature.id){
+                    thisFeature.recency = 0;
+                } else {
+                    if(thisFeature.recency !== null && typeof thisFeature.recency !== "undefined"){
+                        thisFeature.recency = thisFeature.recency + 1;
+                    }else{
+                        thisFeature.recency = 1;
+                    }
+                }
+            } 
+        }
+
+        for(let i = 0; i < this.allFeatures.length; i++){
+            let thisFeature = this.allFeatures[i];
+            if(thisFeature.recency === null || typeof thisFeature.recency === "undefined" || thisFeature.recency > 4){
+                featuresToBeRemovedID.push(thisFeature.id);
+            }
+        }
+       
+        featuresToAdd = JSON.parse(JSON.stringify(featuresToAdd));
+        for(let i = 0; i < featuresToAdd.length; i++){
+            featuresToAdd[i].id = this.featureID++;
+            featuresToAdd[i].recency = 0;
+        }
+            
+        this.recentlyAddedFeatureIDs = [];
+        for(let i = 0; i < featuresToAdd.length; i++){
+            this.recentlyAddedFeatureIDs.push(featuresToAdd[i].id);
+            this.algorithmGeneratedFeatureIDs.push(featuresToAdd[i].id); // EXPERIMENT
+        }
+        this.update(featuresToAdd, featuresToBeRemovedID, this.currentFeature);
+    }
+
     add_new_feature_from_expression(expression, replaceEquivalentFeature){
 
         if(!expression || expression === ""){
@@ -653,7 +882,7 @@ class DataMining{
         }
     }
     
-    update(featuresToBeAdded, mapFeaturesToBeRemoved, currentFeature){
+    update(featuresToBeAdded, featuresToBeRemovedID, currentFeature, option){
         let that = this;
 
         if(d3.select('.feature_plot.figure').node() === null){
@@ -669,8 +898,12 @@ class DataMining{
         // Set variables
         let width = this.width;
         let height = this.height;
-        let duration = 500;
 
+        let duration = 500;
+        if(this.featureSpaceInteractionMode === "exploration"){
+            duration = 50;
+        }
+        
         // Set the axis to be Conf(F->S) and Conf(S->F)
         let xIndex = 2;
         let yIndex = 3;
@@ -707,63 +940,67 @@ class DataMining{
             this.allFeatures[i].y0 = this.allFeatures[i].y;
         }
 
-        if(mapFeaturesToBeRemoved){
-            if(typeof(mapFeaturesToBeRemoved) === "object"){
-                if(Object.keys(mapFeaturesToBeRemoved).length !== 0){ // check whether the key is not empty
-                    for(let id in mapFeaturesToBeRemoved){
+        if(featuresToBeRemovedID){
 
-                        // Take the feature to be added from the featuresToBeAdded list
-                        let addedFeature, removedFeature;
-                        let featureIndex = null;
-                        if(featuresToBeAdded.constructor === Array){
-                            for(let i = 0; i < featuresToBeAdded.length; i++){
-                                if(featuresToBeAdded[i].id === id){
+            // Remove pre-existing features that overlap with the features to be added
+            if(typeof(featuresToBeRemovedID) === "object" && !Array.isArray(featuresToBeRemovedID)){
+                if(Object.keys(featuresToBeRemovedID).length !== 0){
+
+                    let featuresToBeRemovedIDMap = featuresToBeRemovedID;
+                    if(Object.keys(featuresToBeRemovedIDMap).length !== 0){ // check whether the key is not empty
+                        for(let id in featuresToBeRemovedIDMap){
+
+                            // Take the feature to be added from the featuresToBeAdded list
+                            let addedFeature, removedFeature;
+                            let featureIndex = null;
+                            if(featuresToBeAdded.constructor === Array){
+                                for(let i = 0; i < featuresToBeAdded.length; i++){
+                                    if(featuresToBeAdded[i].id === id){
+                                        featureIndex = i;
+                                        break;
+                                    }
+                                }
+                                if(featureIndex === null){
+                                    continue;
+                                }else{
+                                    addedFeature = featuresToBeAdded.splice(featureIndex, 1);
+                                }
+                            }else{
+                                addedFeature = featuresToBeAdded;
+                                featuresToBeAdded = null;
+                            }
+
+                            // Find the index of the feature to be removed
+                            for(let i = 0; i < this.allFeatures.length; i++){
+                                if(this.allFeatures[i].id === featuresToBeRemovedIDMap[id].id){
                                     featureIndex = i;
                                     break;
                                 }
                             }
-                            if(featureIndex === null){
-                                continue;
-                            }else{
-                                addedFeature = featuresToBeAdded.splice(featureIndex, 1);
-                            }
-                        }else{
-                            addedFeature = featuresToBeAdded;
-                            featuresToBeAdded = null;
+                            removedFeature = this.allFeatures[featureIndex];
+
+                            // Copy information from the removed feature to the added feature
+                            addedFeature.x = removedFeature.x;
+                            addedFeature.y = removedFeature.y;
+                            addedFeature.x0 = removedFeature.x0;
+                            addedFeature.y0 = removedFeature.y0;
+
+                            // Replace the feature in allFeatures with the new one
+                            this.allFeatures.splice(featureIndex, 1, addedFeature);
+
+                            let node = d3.selectAll('.dot.feature_plot').filter((d) => {
+                                if(d.id === removedFeature.id){
+                                    return true;
+                                } else{
+                                    return false;
+                                }
+                            });
+                            node.node().__data__.id = addedFeature.id;
+                            node.node().__data__.expression = addedFeature.expression;
+                            node.node().__data__.name = addedFeature.name;
                         }
-
-                        // Find the index of the feature to be removed
-                        for(let i = 0; i < this.allFeatures.length; i++){
-                            if(this.allFeatures[i].id === mapFeaturesToBeRemoved[id].id){
-                                featureIndex = i;
-                                break;
-                            }
-                        }
-                        removedFeature = this.allFeatures[featureIndex];
-
-                        // Copy information from the removed feature to the added feature
-                        addedFeature.x = removedFeature.x;
-                        addedFeature.y = removedFeature.y;
-                        addedFeature.x0 = removedFeature.x0;
-                        addedFeature.y0 = removedFeature.y0;
-
-                        // Replace the feature in allFeatures with the new one
-                        this.allFeatures.splice(featureIndex, 1, addedFeature);
-
-                        let node = d3.selectAll('.dot.feature_plot').filter((d) => {
-                            if(d.id === removedFeature.id){
-                                return true;
-                            } else{
-                                return false;
-                            }
-                        });
-                        node.node().__data__.id = addedFeature.id;
-                        node.node().__data__.expression = addedFeature.expression;
-                        node.node().__data__.name = addedFeature.name;
                     }
                 }   
-            } else {
-                error();
             }
         }
 
@@ -775,7 +1012,6 @@ class DataMining{
                 for(let i = 0; i < featuresToBeAdded.length; i++){
                     addedFeaturesID.push(featuresToBeAdded[i].id);
                 }
-
             } else {
                 // A single feature is added manually
                 this.allFeatures.push(featuresToBeAdded);
@@ -815,44 +1051,26 @@ class DataMining{
 
         // Check if 
         if(rescalePoints){
-            // Rescale metrics
-            let supps = [];
-            let lifts = [];
-            let conf1s = [];
-            let conf2s = [];
-            let scores=[];   
-            let complexities = [];
-            let maxScore = -1;
-            let maxComplexity = -1;
 
-            // Get the maximum values
-            for (let i = 0; i < featuresToPlot.length; i++){
-                let thisFeature = featuresToPlot[i];
+            // Get max values of each metric
+            let maxSupp = d3.max(featuresToPlot, (d) => {return d.metrics[0]});
+            let maxLift = d3.max(featuresToPlot, (d) => {return d.metrics[1]});
+            let maxConf1 = d3.max(featuresToPlot, (d) => {return d.metrics[2]});
+            let maxConf2 = d3.max(featuresToPlot, (d) => {return d.metrics[3]});
+            let maxConf = Math.max(maxConf1, maxConf2);
+            let maxComplexity = d3.max(featuresToPlot, (d) => {return d.complexity});
 
-                supps.push(thisFeature.metrics[0]);
-                lifts.push(thisFeature.metrics[1]);
-                conf1s.push(thisFeature.metrics[2]);
-                conf2s.push(thisFeature.metrics[3]);
-                let score = 1 - Math.sqrt(Math.pow(1-conf1s[i],2) + Math.pow(1-conf2s[i],2));
-                scores.push(score);
-                if(score > maxScore) maxScore = score;
-                complexities.push(thisFeature.complexity);
-                if(thisFeature.complexity > maxComplexity) maxComplexity = thisFeature.complexity;
+            // Consider the stashed features in obtaining the min and max complexity
+            if(d3.max(this.stashedFeatures, (d) => {return d.complexity}) > maxComplexity){
+                maxComplexity = d3.max(this.stashedFeatures, (d) => {return d.complexity});
             }
 
-            let max_conf1 = Math.max.apply(null, conf1s);
-            let max_conf2 = Math.max.apply(null, conf2s);
-            let max_conf = Math.max(max_conf1, max_conf2);
-
             // Set the location of the utopia point
-            this.utopiaPoint.metrics = [Math.max.apply(null, lifts), Math.max.apply(null, supps), max_conf, max_conf];
-
-            // Add score for the utopia point (0.15 more than the best score found so far)
-            scores.splice(0, 0, Math.max.apply(null, scores) + 0.15); 
+            this.utopiaPoint.metrics = [maxLift, maxSupp, maxConf, maxConf];
 
             // Needed to map the values of the dataset to the color scale
             this.colorInterpolateRainbow = d3.scaleLinear()
-                    .domain(d3.extent(complexities))
+                    .domain([1, maxComplexity])
                     .range([0,1]);
 
             //Transition the colors to a rainbow
@@ -863,7 +1081,7 @@ class DataMining{
                     })
             }
 
-            this.update_feature_complexity_range_filter(Math.min.apply(null, complexities), Math.max.apply(null, complexities));
+            this.update_feature_complexity_range_filter(1, maxComplexity);
         }
 
         if(featuresToPlot.length !== 0 && featuresToPlot.length !== 1){
@@ -997,6 +1215,24 @@ class DataMining{
             featuresToPlot = filteredList;
         }
 
+        if(featuresToBeRemovedID && Array.isArray(featuresToBeRemovedID)){
+            let filteredList = [];
+            for(let i = 0; i < featuresToPlot.length; i++){
+                if(featuresToBeRemovedID.indexOf(featuresToPlot[i].id) === -1){
+                    filteredList.push(featuresToPlot[i]);
+                }
+            }
+            featuresToPlot = filteredList;
+
+            let filteredList2 = [];
+            for(let i = 0; i < this.allFeatures.length; i++){
+                if(featuresToBeRemovedID.indexOf(this.allFeatures[i].id) === -1){
+                    filteredList2.push(this.allFeatures[i]);
+                }
+            }
+            this.allFeatures = filteredList2;
+        }
+
         let objects = d3.select(".objects.feature_plot")
 
         // Remove unnecessary points
@@ -1085,6 +1321,9 @@ class DataMining{
         if(this.updateFeatureColor !== null){
             this.updateFeatureColor();
         }
+
+        // Adjust the opacity of each point based on how recently each point is added
+        this.feature_adjust_opacity();
         
         if(currentFeature){
             let cursor = get_cursor();
@@ -1102,6 +1341,33 @@ class DataMining{
             this.currentFeatureBlinkInterval = setInterval(blink, 350);
         }else{
             get_cursor().style("opacity",0);
+        }
+    }
+
+    feature_adjust_opacity(){
+        if(this.featureSpaceInteractionMode === "exploration"){
+            d3.selectAll('.dot.feature_plot').style("opacity", (d) => 
+                {
+                    if(d.recency){
+                        if(d.recency === 0){
+                            return 1.0;
+                        }else if(d.recency === 1){
+                            return 0.8;
+                        }else if(d.recency === 2){
+                            return 0.6;
+                        }else if(d.recency === 3){
+                            return 0.4;
+                        }else if(d.recency === 4){
+                            return 0.2;
+                        }else{
+                            return 0;
+                        }
+                    }else{
+                        return 1.0;
+                    }
+                });
+        }else{
+            d3.selectAll('.dot.feature_plot').style("opacity", 1);
         }
     }
 
@@ -1587,7 +1853,7 @@ class DataMining{
         });    
     }
 
-    set_problem_parameters(callback){
+    set_problem_parameters(){
         $.ajax({
             url: "/api/data-mining/set-problem-parameters",
             type: "POST",
@@ -1596,20 +1862,15 @@ class DataMining{
                     params: JSON.stringify(this.metadata.problem_specific_params)
                   },
             async: false,
-            success: function (data, textStatus, jqXHR)
-            {      
-                if(callback){
-                    callback();
-                }
-            },
+            success: function (data, textStatus, jqXHR){},
             error: function (jqXHR, textStatus, errorThrown)
             {
-                alert("error");
+                alert("Error in calling set_problem_parameters()");
             }
         });    
     }
 
-    set_problem_generalized_concepts(callback){
+    set_problem_generalized_concepts(){
         $.ajax({
             url: "/api/data-mining/set-problem-generalized-concepts",
             type: "POST",
@@ -1618,15 +1879,10 @@ class DataMining{
                     params: JSON.stringify(this.metadata.problem_specific_params)
                   },
             async: false,
-            success: function (data, textStatus, jqXHR)
-            {
-                if(callback){
-                    callback();
-                }
-            },
+            success: function (data, textStatus, jqXHR){},
             error: function (jqXHR, textStatus, errorThrown)
             {
-                alert("error");
+                alert("Error in calling set_problem_generalized_concepts()");
             }
         });    
     }
@@ -1644,7 +1900,6 @@ class DataMining{
             {
                 if(that.metadata.problem === "ClimateCentric"){
                     let concept_hierarchy = that.get_problem_concept_hierarchy();
-
                     concept_hierarchy["params"] = data;
                     PubSub.publish(PROBLEM_CONCEPT_HIERARCHY_LOADED, concept_hierarchy);
                 }
@@ -1707,6 +1962,22 @@ class DataMining{
         });
 
         return {"instance_map":instance_map, "superclass_map":superclass_map};    
+    }
+
+    stop_search(){
+        $.ajax({
+            url: "/api/data-mining/stop-search",
+            type: "POST",
+            data: {},
+            async: false,
+            success: function (data, textStatus, jqXHR)
+            {       
+            },
+            error: function (jqXHR, textStatus, errorThrown)
+            {
+                alert("Error in stopping the search");
+            }
+        });    
     }
 
     import_target_selection(filename){
@@ -1822,33 +2093,21 @@ class DataMining{
                     return;
                 }
 
+                that.stashedFeatures = JSON.parse(JSON.stringify(imported_features));
                 that.display_features(imported_features);  
 
                 if(generalization_enabled){
                     if(that.metadata.problem === "ClimateCentric"){
-
                         // Params loaded from a file
-                        that.metadata.problem_specific_params.instrument_extended_list = data["params"]["rightSet"];
-                        that.metadata.problem_specific_params.orbit_extended_list = data["params"]["leftSet"];
-
-                        let callback2 = () => {
-                            // Concept hierarchy info obtained from the vassar server
-                            let concept_hierarchy = that.get_problem_concept_hierarchy();
-                            concept_hierarchy["params"] = data["params"];
-                            PubSub.publish(PROBLEM_CONCEPT_HIERARCHY_LOADED, concept_hierarchy);
-                        };
-
-                        let callback1 = () => {
-                            that.set_problem_generalized_concepts(callback2); 
-                        };
-
-                        that.set_problem_parameters(callback1);
+                        that.metadata.problem_specific_params.instrument_extended_list = data["params"]["leftSet"];
+                        that.metadata.problem_specific_params.orbit_extended_list = data["params"]["rightSet"];
+                        that.set_problem_generalized_concepts();
                     }  
                 }
             },
             error: function (jqXHR, textStatus, errorThrown)
             {
-                alert("error");
+                alert("Error in calling import_feature_data()");
             }
         });
     }
@@ -1934,10 +2193,64 @@ class DataMining{
         });
     }
 
-    import_generalized_variable_list(){
-        this.set_problem_parameters(()=>{
-            this.get_problem_parameters();
-        });
-    }
+    calculate_pareto_ranking_of_features(featureData, objective_indices, limit){  
+        console.log("Calculating pareto ranking of features...");
+
+        if(!objective_indices || objective_indices.length === 0){
+            objective_indices = [2, 3];
+        }
+
+        let features = [];
+        let feature_objectives = [];
+        for(let i = 0; i < featureData.length; i++){
+            let objectives = JSON.parse(JSON.stringify(featureData[i].metrics)).multisplice(objective_indices);
+            feature_objectives.push(objectives);
+            features.push(featureData[i]);
+        }
+
+        let rank = 0;
+        if(!limit){
+            limit = 5;
+        }
+        
+        let remaining_objectives, remaining;
+        while(features.length > 0){
+            remaining_objectives = [];
+            remaining = [];
+
+            let n = features.length;
+            
+            if (rank > limit){
+                break;
+            }
+
+            for (let i = 0; i < n; i++){ 
+                // Check dominance for each architecture
+                let non_dominated = true;
+                let this_feature_objectives = feature_objectives[i];
+
+                for (let j = 0; j < n; j++){
+                    let features_to_compare_objectives = feature_objectives[j];
+                    if (i === j){
+                        continue;
+                    }else if(dominates(features_to_compare_objectives, this_feature_objectives)){
+                        non_dominated = false;
+                    }
+                }
+
+                if (non_dominated){
+                    features[i].pareto_ranking = rank;
+                }else{
+                    remaining_objectives.push(feature_objectives[i]);
+                    remaining.push(features[i]);
+                    features[i].pareto_ranking = 100;
+                }
+            }
+
+            rank++;
+            features = remaining;
+            feature_objectives = remaining_objectives;
+        }
+    }  
 }
 

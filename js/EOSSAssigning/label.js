@@ -19,17 +19,25 @@ class EOSSAssigningLabel extends Label{
         this.orbit_extended_list = [];
         this.instrument_extended_list = [];
 
-        this.orbit_relabeled = ["LEO-600-polar","SSO-600-AM","SSO-600-DD","SSO-800-DD","SSO-800-PM"];
-        this.instrument_relabeled = ["OCE_SPEC","AERO_POL","AERO_LID",
+        this.orbit_relabeled_fixed = ["LEO-600-polar","SSO-600-AM","SSO-600-DD","SSO-800-DD","SSO-800-PM"];
+        this.instrument_relabeled_fixed = ["OCE_SPEC","AERO_POL","AERO_LID",
             "HYP_ERB","CPR_RAD","VEG_INSAR","VEG_LID","CHEM_UVSPEC",
             "CHEM_SWIRSPEC","HYP_IMAG","HIRES_SOUND","SAR_ALTIM"];
         // this.instrument_relabeled = ["ACE_ORCA","ACE_POL","ACE_LID","CLAR_ERB","ACE_CPR","DESD_SAR","DESD_LID","GACM_VIS","GACM_SWIR","HYSP_TIR","POSTEPS_IRS","CNES_KaRIN"];
         // this.orbit_relabeled = ["1","2","3","4","5"];
         // this.instrument_relabeled = ["A","B","C","D","E","F","G","H","I","J","K","L"];
 
+        this.orbit_relabeled = JSON.parse(JSON.stringify(this.orbit_relabeled_fixed));
+        this.instrument_relabeled = JSON.parse(JSON.stringify(this.instrument_relabeled_fixed));
+
         this.feature_names = ["present","absent","inOrbit","notInOrbit","together",
-                            "togetherInOrbit","separate","emptyOrbit","numOrbits",
-                            "subsetOfInstruments", "absentExceptInOrbit", "notInOrbitExceptInstrument", "notInOrbitExceptOrbit"];
+                            "togetherInOrbit","separate","emptyOrbit","numOrbits", "numInstruments", "numInstrumentsInOrbit",
+                            "absent_except", "emptyOrbit_except", "notInOrbit_except", "separate_except"];
+
+        this.feature_display_order = ["notInOrbit", "separate", "absent", "emptyOrbit", 
+                            "inOrbit", "together", "present",
+                            "numOrbits", "numInstruments", "numInstrumentsInOrbit",
+                            "absent_except", "emptyOrbit_except", "notInOrbit_except", "separate_except"];
         this.feature_relabeled = null;
         // this.feature_relabeled = ["present","absent","assignedTo","notAssignedTo","together","bothAssignedTo","notAssignedTogether","emptySlot","numSlots","AtLeastTwoItemsAssignedTo"];
 
@@ -39,10 +47,12 @@ class EOSSAssigningLabel extends Label{
             PubSub.publish(LABELING_SCHEME_LOADED, this);
         });
 
-        PubSub.subscribe(PROBLEM_CONCEPT_HIERARCHY_LOADED, (msg, data) => {
-            this.orbit_extended_list = data["params"]["rightSet"];
-            this.instrument_extended_list = data["params"]["leftSet"];
+        PubSub.subscribe(GENERALIZED_CONCEPTS_LOADED, (msg, data) => {
+            this.orbit_extended_list = data["rightSet"];
+            this.instrument_extended_list = data["leftSet"];
 
+            this.orbit_relabeled = JSON.parse(JSON.stringify(this.orbit_relabeled_fixed));
+            this.instrument_relabeled = JSON.parse(JSON.stringify(this.instrument_relabeled_fixed));
             for(let i = this.orbit_relabeled.length; i < this.orbit_extended_list.length; i++){
                 this.orbit_relabeled.push(this.orbit_extended_list[i]);
             }
@@ -256,6 +266,7 @@ class EOSSAssigningLabel extends Label{
             || name === 'IF_THEN'){
                 return exp;
             }
+
         } else {
             for(let i = 0; i < numComponents; i++){
                 let component = exp.split("]")[i];
@@ -287,12 +298,13 @@ class EOSSAssigningLabel extends Label{
                 }
             }
             for(let j = 0; j < instruments.length; j++){
-                if(instruments[j].length===0){
+                if(instruments[j].length === 0){
                     continue;
                 }else{
                     ppinstruments.push(this.index2DisplayName(instruments[j], "instrument"));
                 }
             }
+
             let ppComponent = this.featureActualName2DisplayName(name) + "[" + pporbits.join(", ") + ";  " + ppinstruments.join(", ") + ";  " + numbers + "]";
             ppExpression.push(ppComponent)
         }
