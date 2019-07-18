@@ -808,7 +808,6 @@ class DataMining{
         this.recentlyAddedFeatureIDs = [];
         for(let i = 0; i < featuresToAdd.length; i++){
             this.recentlyAddedFeatureIDs.push(featuresToAdd[i].id);
-            this.algorithmGeneratedFeatureIDs.push(featuresToAdd[i].id); // EXPERIMENT
         }
         this.update(featuresToAdd, featuresToBeRemovedID, this.currentFeature);
     }
