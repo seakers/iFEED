@@ -1,57 +1,35 @@
 
 #feature_expression_panel{
     float:left;
-    width:700px;
-    height: 70px;
-    padding:20px;
+    width: 100%;
+    padding: 30px;
 }
 
 #feature_expression_panel > div > div{
-    height:30px; 
+    /*height:0px; */
     float:left;
-    width:700px;
-    margin-top:5px;
-    margin-bottom: 5px;
-    font-size: 20px;
-}
-
-#feature_expression{
-    float:left;
-    margin-top:3px;
-    margin-bottom: 3px;
-    
-    width:100%;
-   /* height:125px;*/
-    height: 5px;
-    
-    overflow:scroll;
-    
-    font-size:19px
+    width: 250px;
+    font-size: 22px;
 }
 
 #feature_application_panel{
     float:left;
-    width:100%;
+    width: 100%;
 }
 
 #feature_application{
     float:left;
     margin-top: 10px;   
     width:1120px;
-    height:890px;
     padding:20px;
-    overflow:scroll;
-    
+    overflow:scroll;  
 }
 
 .feature_application_options_button{
     float:left;
-    margin-top:5px;
-    margin-bottom: 5px;
     margin-left: 20px;
+    font-size: 17px;
 }
-
-
 
 .img-hor-vert {
     -moz-transform: scale(-1, -1);

@@ -27,7 +27,7 @@ class FeatureApplication{
         // top  right bottem left
         this.margin = {left:70,right:20,top:10,bottom:20},
         this.width = 2400 - this.margin.left - this.margin.right,
-        this.height = 1040 - this.margin.top - this.margin.bottom;
+        this.height = 910 - this.margin.top - this.margin.bottom;
 
         this.draggingNode = null;
         this.selectedNode = null;
