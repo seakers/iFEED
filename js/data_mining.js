@@ -58,6 +58,25 @@ class DataMining{
 
         this.updateFeatureColor = null;
 
+        PubSub.subscribe(DESIGN_PROBLEM_LOADED, (msg, data) => {
+            this.metadata = data.metadata;
+        }); 
+
+        // Save the data
+        PubSub.subscribe(DATA_PROCESSED, (msg, data) => {
+            this.data = data;
+            this.openWebsocketConnection();
+        });  
+
+        PubSub.subscribe(SELECTION_UPDATED, (msg, data) => {
+            this.initialize();
+            this.selected_archs = data;
+        });
+
+        PubSub.subscribe(FEATURE_APPLICATION_LOADED, (msg, data) => {
+            this.feature_application = data;
+        });  
+
         PubSub.subscribe(ADD_FEATURE_FROM_EXPRESSION, (msg, data) => {
             let expression = data.expression;
             let replaceEquivalentFeature = data.replaceEquivalentFeature;
@@ -74,28 +93,16 @@ class DataMining{
             this.generalize_feature(root, node);
         });  
         
-        // Save the data
-        PubSub.subscribe(DATA_PROCESSED, (msg, data) => {
-            this.data = data;
-        });       
+        // Initialize the interface
+        this.initialize();        
+    }
 
-        PubSub.subscribe(DESIGN_PROBLEM_LOADED, (msg, data) => {
-            this.metadata = data.metadata;
-            this.set_problem_parameters();
-        }); 
-
-        PubSub.subscribe(SELECTION_UPDATED, (msg, data) => {
-            this.initialize();
-            this.selected_archs = data;
-        });
-
-        PubSub.subscribe(FEATURE_APPLICATION_LOADED, (msg, data) => {
-            this.feature_application = data;
-        });  
-
+    openWebsocketConnection(){
         // Make a new websocket connection
         let that = this;
-        this.ws = new WebSocket("wss://selva-research.engr.tamu.edu/api/ifeed/data-mining");
+        this.ws = new WebSocket("wss://selva-research.engr.tamu.edu/api/daphne")
+        // this.ws = new WebSocket("ws://localhost:8080/api/daphne");
+        
         this.ws.onmessage = (event) => {
             if(event.data === ""){
                 return;
@@ -105,7 +112,7 @@ class DataMining{
             if(content){
                 console.log(content.type);
 
-                if(content.type === "search.finished"){
+                if(content.type === "data.mining.search.finished"){
                     if(content.features){
                         console.log(content.features);
 
@@ -121,7 +128,7 @@ class DataMining{
                         }
                     }
                 
-                } else if(content.type === "problem.entities"){
+                } else if(content.type === "data.mining.problem.entities"){
 
                     let entities = {};
                     if(that.metadata.problem === "ClimateCentric"){
@@ -166,8 +173,10 @@ class DataMining{
             }
         };
 
-        // Initialize the interface
-        this.initialize();        
+        this.ws.onopen = function(){
+            console.log("WebSocket connection successful");
+            that.set_problem_parameters();            
+        }
     }
 
     initialize(){
