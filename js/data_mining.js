@@ -173,10 +173,10 @@ class DataMining{
             }
         };
 
-        this.ws.onopen = function(){
-            console.log("WebSocket connection successful");
-            that.set_problem_parameters();            
-        }
+        // this.ws.onopen = function(){
+            // console.log("WebSocket connection successful");
+            // that.set_problem_parameters();            
+        // }
     }
 
     initialize(){
