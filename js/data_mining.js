@@ -100,7 +100,8 @@ class DataMining{
     openWebsocketConnection(){
         // Make a new websocket connection
         let that = this;
-        this.ws = new WebSocket("wss://selva-research.engr.tamu.edu/api/daphne")
+        this.ws = new WebSocket("wss://www.selva-research.com/api/daphne")
+        // this.ws = new WebSocket("wss://selva-research.engr.tamu.edu/api/daphne")
         // this.ws = new WebSocket("ws://localhost:8080/api/daphne");
         
         this.ws.onmessage = (event) => {
@@ -173,10 +174,10 @@ class DataMining{
             }
         };
 
-        // this.ws.onopen = function(){
-            // console.log("WebSocket connection successful");
-            // that.set_problem_parameters();            
-        // }
+        this.ws.onopen = function(){
+            console.log("WebSocket connection successful");
+            that.set_problem_parameters();            
+        }
     }
 
     initialize(){
