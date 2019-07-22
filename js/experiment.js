@@ -454,28 +454,20 @@ class Experiment{
 
         if(this.treatmentCondition === 0){
             treatmentConditionName = "manual_generalization";
-            d3.select('#conjunctive_local_search').remove();
-            d3.select('#disjunctive_local_search').remove();
-            d3.select('#generalize_feature').remove();
+            d3.select("#feature_space_display_options_container").remove();
 
         } else if (this.treatmentCondition === 1){
             treatmentConditionName = "automated_generalization";
             // Disable filter
             d3.select("#tab2").text('-');
             d3.select("#view2").selectAll('g').remove();
-
-            d3.select('#conjunctive_local_search').remove();
-            d3.select('#disjunctive_local_search').remove();
-            d3.select('#generalize_feature').remove();
+            d3.select("#feature_space_display_options_container").remove();
 
         } else if (this.treatmentCondition === 2){
             treatmentConditionName = "interactive_generalization";
 
         } else if(this.treatmentCondition === 3){
             treatmentConditionName = "design_inspection_only";
-            d3.select('#conjunctive_local_search').remove();
-            d3.select('#disjunctive_local_search').remove();
-            d3.select('#generalize_feature').remove();
 
             // Disable filter
             d3.select("#tab2").text('-');

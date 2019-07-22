@@ -100,6 +100,7 @@ class DataMining{
         // EXPERIMENT
         PubSub.subscribe(EXPERIMENT_SET_MODE, (msg, data) => {
             this.tutorial_in_progress = false;
+            this.treatment_condition = data;
 
             if(data === "manual_generalization"){
                 this.allFeatures = [];
@@ -131,7 +132,7 @@ class DataMining{
             } else if(data === "tutorial_interactive_generalization"){
                 this.import_feature_data("experiment_tutorial_data", false, false);
                 this.tutorial_in_progress = true;
-            }
+            }  
         });  
 
         // Initialize the interface
@@ -141,8 +142,8 @@ class DataMining{
     openWebsocketConnection(){
         // Make a new websocket connection
         let that = this;
-        this.ws = new WebSocket("ws://localhost:8080/api/daphne");
-        // this.ws = new WebSocket("wss://www.selva-research.com/api/daphne")
+        // this.ws = new WebSocket("ws://localhost:8080/api/daphne");
+        this.ws = new WebSocket("wss://www.selva-research.com/api/daphne")
         
         this.ws.onmessage = (event) => {
             if(event.data === ""){
@@ -718,6 +719,13 @@ class DataMining{
             return;
         }
 
+        // EXPERIMENT
+        if(this.treatment_condition){
+            if(this.treatment_condition.indexOf("interactive_generalization") === -1){
+                d3.select("#feature_space_display_options_container").remove();
+            }
+        }
+
         // Initialize the location of each feature
         this.featureID = 1;
         this.algorithmGeneratedFeatureIDs = []; // EXPERIMENT
@@ -1152,13 +1160,15 @@ class DataMining{
                     this.utopiaPoint.metrics[3] < currentFeature.metrics[3])
                 {
                     rescalePoints = true;
+
+                }else if(!this.utopiaPoint.metrics[0]){
+                    rescalePoints = true;
                 }
             }
         }
 
         // Check if 
         if(rescalePoints){
-
             // Get max values of each metric
             let maxSupp = d3.max(featuresToPlot, (d) => {return d.metrics[0]});
             let maxLift = d3.max(featuresToPlot, (d) => {return d.metrics[1]});
@@ -1492,6 +1502,10 @@ class DataMining{
     }
 
     feature_mouseover(d){
+        if(d.utopiaPoint){
+            return;
+        }
+
         // EXPERIMENT 
         PubSub.publish(EXPERIMENT_TUTORIAL_EVENT, "feature_mouse_hover");    
         let id = d.id; 
@@ -1598,6 +1612,13 @@ class DataMining{
 
     update_feature_complexity_range_filter(min, max){
         let that = this;
+
+        // EXPERIMENT
+        if(this.treatment_condition){
+            if(this.treatment_condition.indexOf("interactive_generalization") === -1){
+                return;
+            }
+        }
 
         let options = [];
         for(let i = 0; i < max - min + 1; i++){

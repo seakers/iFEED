@@ -745,7 +745,7 @@ function loadTutorialContent(){
                     +"(separate window), and you will not be able to use iFEED.</p>"
                     +"<p>Therefore, try to record as much information as possible on the interactive graph.</p>",
             callback: function(){
-                window.open("https://cornell.qualtrics.com/jfe/form/SV_6gR0KArSoPVbfw1 ");
+                window.open("https://cornell.qualtrics.com/jfe/form/SV_bvZxj19eEYDWr5j");
             }
         },
         { 
