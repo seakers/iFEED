@@ -1233,14 +1233,6 @@ class FeatureApplication{
             })  
             this.update({add_to_feature_space_plot: true, replace_equivalent_feature: false});
 
-
-            // Stop the search currently running
-            this.data_mining.stop_search();
-
-            // Start new generalization search
-            expression = this.parse_tree(this.data);
-
-
             if(this.data_mining.featureSpaceInteractionMode === "exploration"){
                 this.data_mining.run_local_search("BOTH");
             }

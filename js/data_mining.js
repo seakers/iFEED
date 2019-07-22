@@ -36,6 +36,8 @@ class DataMining{
 
         this.featureSpaceInteractionMode = "viewing";
 
+        this.interactiveSearchVisitedFeatureIDs = [];
+
         this.complexityFilterThresholds = null;
         this.algorithmGeneratedFeatureIDs = []; // EXPERIMENT
 
@@ -140,6 +142,8 @@ class DataMining{
         // Make a new websocket connection
         let that = this;
         this.ws = new WebSocket("ws://localhost:8080/api/daphne");
+        // this.ws = new WebSocket("wss://www.selva-research.com/api/daphne")
+        
         this.ws.onmessage = (event) => {
             if(event.data === ""){
                 return;
@@ -157,8 +161,13 @@ class DataMining{
                             if(content.searchMethod === "localSearch"){
                                 that.add_and_remove_features(content.features);
 
+                                // Start new generalization search
+                                that.generalize_feature(that.currentFeature.name);
+
                             }else if(content.searchMethod === "generalization"){
-                                that.add_new_features(content.features, true);
+                                that.add_and_remove_features(content.features);
+                                // that.add_new_features(content.features, true);
+
                             }
                         }else{
                             that.add_new_features(content.features, true);
@@ -483,6 +492,8 @@ class DataMining{
     }    
 
     generalize_feature(root, node){
+        this.stop_search();
+
         let metrics = this.currentFeature.metrics;
         let precision = metrics[2];
         let recall = metrics[3];
@@ -761,15 +772,15 @@ class DataMining{
 
             // Check if there exists a feature whose metrics match with the current feature's metrics
             let matchedFeature = find_equivalent_feature(thisFeature.metrics,[2,3]);  
-            if(matchedFeature != null){
+            if(matchedFeature){
                 cursorFeatureID = matchedFeature.id;
             }
 
-            if(matchedFeature == null || replaceEquivalentFeature){
+            if(!matchedFeature || replaceEquivalentFeature){
                 let featureCopy =  JSON.parse(JSON.stringify(thisFeature));
                 featureCopy.id = this.featureID++;
                 featuresToAdd.push(featureCopy);
-                if(matchedFeature != null){
+                if(matchedFeature){
                     featuresToRemove[featureCopy.id] = matchedFeature;
                 }
             }
@@ -799,7 +810,6 @@ class DataMining{
         // Assumes that the current interaction mode is exploration mode
 
         if(this.featureSpaceInteractionMode !== "exploration"){
-            // alert("add_and_remove_features() must be called in exploration Mode only");
             return;
         }
 
@@ -812,10 +822,11 @@ class DataMining{
         }
         
         if(allFeaturesAreRecent){
+            // If all features have the recency scores of 0, set new recency scores based on the pareto ranking
             for(let i = 0; i < this.allFeatures.length; i++){
                 let thisFeature = this.allFeatures[i];
 
-                // Set the recency based on the pareto ranking
+                // Set the recency score based on the pareto ranking
                 if(thisFeature.pareto_ranking !== null && typeof thisFeature.pareto_ranking !== "undefined" && thisFeature.pareto_ranking < 5){ 
                     thisFeature.recency = thisFeature.pareto_ranking + 1;
                 } else {
@@ -843,6 +854,7 @@ class DataMining{
             } 
         }
 
+        // Filter out features whose recency score is above certain threshold
         for(let i = 0; i < this.allFeatures.length; i++){
             let thisFeature = this.allFeatures[i];
             if(thisFeature.recency === null || typeof thisFeature.recency === "undefined" || thisFeature.recency > 4){
@@ -850,12 +862,57 @@ class DataMining{
             }
         }
        
+        // Assign recency score to the newly added features
         featuresToAdd = JSON.parse(JSON.stringify(featuresToAdd));
         for(let i = 0; i < featuresToAdd.length; i++){
             featuresToAdd[i].id = this.featureID++;
             featuresToAdd[i].recency = 0;
         }
-            
+
+        let that = this;
+        function find_equivalent_feature_ids(metrics, indices){
+            let matchedFeatureIDs = [];
+            for(let i = 0; i < that.allFeatures.length; i++){
+                let _metrics = that.allFeatures[i].metrics;
+                let match = true;
+                for(let j = 0; j < indices.length; j++){
+                    if(round_num(metrics[indices[j]]) != round_num(_metrics[indices[j]])){
+                        match = false;
+                        break;
+                    }
+                }
+                if(match){
+                    matchedFeatureIDs.push(that.allFeatures[i].id);
+                }
+            }
+            return matchedFeatureIDs;
+        }
+
+        let overlappedFeatureIDs = [];
+        for(let i = 0; i < featuresToAdd.length; i++){
+            let thisFeature = featuresToAdd[i];
+
+            // Check if there exists a feature whose metrics match with the current feature's metrics
+            let matchedFeatureIDs = find_equivalent_feature_ids(thisFeature.metrics,[2,3]);  
+
+            if(matchedFeatureIDs.indexOf(this.currentFeature.id) !== -1){
+                // Update the current feature
+                this.currentFeature = thisFeature;
+            }
+
+            overlappedFeatureIDs = overlappedFeatureIDs.concat(matchedFeatureIDs);
+        }
+
+        // Remove all features that overlap with the features to be added
+        for(let i = 0; i < overlappedFeatureIDs.length; i++){
+            for(let j = 0; j < this.allFeatures.length; j++){
+                if(this.allFeatures[j].id === overlappedFeatureIDs[i]){
+                    this.allFeatures.splice(j, 1);
+                    break;
+                }
+            }
+        }
+
         this.recentlyAddedFeatureIDs = [];
         for(let i = 0; i < featuresToAdd.length; i++){
             this.recentlyAddedFeatureIDs.push(featuresToAdd[i].id);
@@ -865,7 +922,6 @@ class DataMining{
     }
 
     add_new_feature_from_expression(expression, replaceEquivalentFeature){
-
         if(!expression || expression === ""){
             this.currentFeature = null;
             this.update();
@@ -2036,13 +2092,8 @@ class DataMining{
             type: "POST",
             data: {},
             async: false,
-            success: function (data, textStatus, jqXHR)
-            {       
-            },
-            error: function (jqXHR, textStatus, errorThrown)
-            {
-                alert("Error in stopping the search");
-            }
+            success: function (data, textStatus, jqXHR){},
+            error: function (jqXHR, textStatus, errorThrown){ alert("Error in stopping the search"); }
         });    
     }
 
