@@ -71,6 +71,9 @@ class ExperimentTutorial{
 
         if(this.experiment.stage === "tutorial"){
 
+            // Select the target region
+            this.experiment.select_archs_using_ids(tutorial_selection);
+
             // Load the treatment condition
             this.experiment.load_treatment_condition(true);
 

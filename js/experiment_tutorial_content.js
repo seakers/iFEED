@@ -116,9 +116,7 @@ function loadTutorialContent(){
                     +"<p>The goal here is to find patterns that are shared uniquely by these architectures. </p>"
                     +"<p>Learning what constitutes good designs is useful, as you can learn more about the design problem and "
                     +"the model used to evaluate the architectures.</p>",
-            callback: function(currentStep){
-                experiment.select_archs_using_ids(tutorial_selection);
-            },
+            callback: function(currentStep){},
         },
         {
             name: "tutorial-ifeed-inspecting-design",
