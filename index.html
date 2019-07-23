@@ -178,21 +178,12 @@
 
 
     function select_fuzzy_pareto_front(rank){
-
         problem.calculate_pareto_ranking([],20);
-    
-        let exp = "{paretoFront["+ rank +"]}";
-
-        filter.apply_filter_expression(exp);
-
+        filter.apply_filter_expression("{paretoFront["+ rank +"]}");
         tradespace_plot.toggle_selection_and_highlight();
     }
 
-    var experiment = new Experiment(problem, tradespace_plot, filter, data_mining, feature_application, label, 2);
-
-
     var experiment, tutorial;
-
     let firstSignInCallback = function (instance, toast, button, event, inputs) {
         let input = inputs[0].value;
         let valid = false;

@@ -493,18 +493,6 @@ class Experiment{
 
 
 
-
-
-
-
-
-
-
-
-
-
-
-
     _print_experiment_summary_OUTDATED(){
 
         // task_order, condition_order, account_id

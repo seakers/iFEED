@@ -70,8 +70,6 @@ class ExperimentTutorial{
         this.intro.exit();
 
         if(this.experiment.stage === "tutorial"){
-            this.experiment.select_archs_using_ids(tutorial_selection);
-
 
             // Load the treatment condition
             this.experiment.load_treatment_condition(true);
