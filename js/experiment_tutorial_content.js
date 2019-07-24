@@ -817,7 +817,7 @@ function loadTutorialContent(){
             name: "design-synthesis-intro-2",
             object: d3.select('.tradespace_plot.figure').node(),
             content: "<p>The scatter plot is now empty, and the task here is to create as many architectures as possible "
-                    +"that are close to the Pareto front (architectures having high science score and low cost)</p>"
+                    +"that are close to, or inside the target region. </p>"
                     +"<p>The architectures from the previous task are displayed faintly, "
                     +"and can be used as a reference for determining how good your designs are.</p>",
         }, 
@@ -871,7 +871,7 @@ function loadTutorialContent(){
             name: "design-synthesis-intro-10",
             object: undefined,
             content: "<p>Now you are ready to start the task. Again, try to create as many architectures as possible that are close "
-                    +"to the Pareto front (architectures having high science score and low cost).</p>"
+                    +"to, or inside the target region (highlighted in light blue color).</p>"
                     +"<p>7 minutes will be given for this task.</p>",
         }
     ];

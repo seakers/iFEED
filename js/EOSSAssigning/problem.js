@@ -231,12 +231,11 @@ class EOSSAssigning extends Problem{
                                 .attr("id", "arch_info_display_table");
 
         let columns = [];
-        //columns.push({columnName: "orbit"});
-        columns.push({columnName: "Slots"});
+        columns.push({columnName: "Orbit"});
         
         for (let i = 0; i < maxNInst; i++) {
             let tmp = i + 1;
-            columns.push({columnName: "Item " + tmp});
+            columns.push({columnName: "Instrument " + tmp});
         }
 
         // create table header
