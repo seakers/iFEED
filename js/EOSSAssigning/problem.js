@@ -1,4 +1,22 @@
-
+TOOLTIP_MESSAGES = {
+    "LEO-600-polar-NA": "LEO with polar inclination at 600km altitude",
+    "SSO-600-SSO-AM": "SSO with morning LTAN at 600km altitude",
+    "SSO-600-SSO-DD": "SSO with dawn-dusk LTAN at 600km altitude",
+    "SSO-800-SSO-DD": "SSO with afternoon LTAN at 800km altitude",
+    "SSO-800-SSO-PM": "SSO with dawn-dusk LTAN at 800km altitude",
+    "ACE_ORCA": "Ocean color spectrometer",
+    "ACE_POL": "Aerosol polarimeter",
+    "ACE_LID": "Differential absorption lidar",
+    "CLAR_ERB": "Short-wave / long-wave radiation budget",
+    "ACE_CPR": "Cloud and precipitation radar",
+    "DESD_SAR": "Polarimetric L-band SAR",
+    "DESD_LID": "Vegetation/ice green lidar",
+    "GACM_VIS": "UV/VIS limb spectrometer",
+    "GACM_SWIR": "SWIR nadir spectrometer",
+    "HYSP_TIR": "SWIR-TIR hyperspectral imager",
+    "POSTEPS_IRS": "IR atmospheric sounder",
+    "CNES_KaRIN": "Wide-swath radar altimeter",
+}
 
 class EOSSAssigning extends Problem{
 
@@ -282,7 +300,7 @@ class EOSSAssigning extends Problem{
                 return d.content;
             })
             .style("background-color", function (d) {
-                if (d.type == "orbit") {
+                if (d.type === "orbit") {
                     return "#D0D0D0";
                 }
             })
@@ -294,19 +312,32 @@ class EOSSAssigning extends Problem{
                 }
             })
             .attr("width", function (d, i) {
-                if (d.type == "orbit") {
+                if (d.type === "orbit") {
                     return "120px";
                 } else {
                     return "70px";
                 }
             })
             .text((d) => {
-               if(d.type=="orbit"){
+               if(d.type === "orbit"){
                   return that.label.actualName2DisplayName(d.content,"orbit");
               }
               return that.label.actualName2DisplayName(d.content,"instrument");
+            })
+            .attr("aria-label",(d) => {
+                if(d.content in TOOLTIP_MESSAGES){
+                    return TOOLTIP_MESSAGES[d.content];
+                }else{
+                    return d.content;
+                }
+            })
+            .attr("data-balloon-pos", (d)=> {
+                if(d.type === "orbit"){
+                    return "right";
+                }else{
+                    return "up";
+                }
             });
-
 
         // EXPERIMENT
         if(typeof this.experimentMode !== "undefined" && this.experimentMode !== null){

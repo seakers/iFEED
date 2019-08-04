@@ -3,6 +3,8 @@
 class Experiment{
 
     constructor(problem, tradespace_plot, filter, data_mining, feature_application, label, treatmentCondition){
+        window.onbeforeunload = function() { return "Warning: Changes you made may not be saved."; };
+
         this.problem = problem;
         this.tradespace_plot = tradespace_plot;
         this.filter = filter;

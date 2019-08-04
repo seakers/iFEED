@@ -56,7 +56,8 @@ function loadTutorialContent(){
                     +'<tr><td class="tg-0lax">SSO-800-PM</td><td class="tg-0lax">SSO with afternoon LTAN at 600km altitude</td></tr>'
                     +'</table>'
                     +"<p>(LEO = Low Earth Orbit, SSO = Sun-Synchronous Orbit, AM = morning, PM = afternoonm, DD = dawn-dusk, "
-                    +"LTAN = Local Time of the Ascending Node)</p>",
+                    +"LTAN = Local Time of the Ascending Node)</p>"
+                    +"<p>You can hover the mouse over the each orbit box to view these short descriptions later.</p>",
             callback: null,
         },
         {
@@ -79,7 +80,8 @@ function loadTutorialContent(){
                     +'<tr><td class="tg-0lax">SAT_ALTIM</td><td class="tg-0lax">Wide-swath radar altimeter</td></tr>'
                     +'</table>'
                     +"<p>(SAR = Synthetic Aperture Radar, UV = Ultra Violet, VIS = VISible, SWIR = Short Wave InfraRed, "
-                    +"TIR = Thermal InfraRed, IR = InfraRed)</p>",
+                    +"TIR = Thermal InfraRed, IR = InfraRed)</p>"
+                    +"<p>You can hover the mouse over the each instrument box to view these short descriptions later.</p>",
             callback: null,
         },
         {
@@ -169,6 +171,14 @@ function loadTutorialContent(){
             object: d3.select('#support_panel').node(),
             content: "The filter \"Present\" is used to selectively highlight designs that contain a specific instrument. "
                     +"It takes in one instrument as an argument, and selects all designs that use the specified instrument.", 
+            callback: null,
+        },
+        {
+            name: "tutorial-ifeed-filter-instrument-options",
+            object: d3.select('#support_panel').node(),
+            content: "<p>From the dropdown menu, you can select an instrument as an argument to the filter.</p>"
+                    +"<p>Note that the first 12 options are actual instrument names. You can also specify an instrument class, which "+
+                    "represents one or more instruments. </p>", 
             callback: null,
         },
         {

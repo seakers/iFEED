@@ -107,7 +107,7 @@ class DataMining{
                 this.display_features([]);
 
             } else if(data === "automated_generalization"){
-                this.import_feature_data("6655_AOSMOEA_GP_fuzzy8_24_7500", false, true);
+                this.import_feature_data("6655_AOSMOEA_GP_fuzzy8_24_7500_3", false, true);
 
             } else if(data === "interactive_generalization"){
                 this.import_feature_data("6655_epsilonMOEA_ruleset", true, false);
@@ -636,9 +636,22 @@ class DataMining{
                                 }
                             }
                         }
-                        
+                        if(d3.select('.feature_complexity_range_filter.minRange').node()){
+                            d3.select('.feature_complexity_range_filter.minRange').select('select').node().disabled = true;
+                            d3.select('.feature_complexity_range_filter.maxRange').select('select').node().disabled = true;
+                            let featureComplexityRange = d3.select('.feature_complexity_range_filter.minRange').select('select').selectAll('option').nodes();
+                            d3.select('.feature_complexity_range_filter.minRange').select('select').node().value = featureComplexityRange[0].value;
+                            d3.select('.feature_complexity_range_filter.maxRange').select('select').node().value = featureComplexityRange[featureComplexityRange.length - 1].value;   
+                            this.complexityFilterThresholds = null;
+                            this.update();
+                        }
+
                     }else{
                         this.featureSpaceInteractionMode = "viewing";
+                        if(d3.select('.feature_complexity_range_filter.minRange').node()){
+                            d3.select('.feature_complexity_range_filter.minRange').select('select').node().disabled = false;
+                            d3.select('.feature_complexity_range_filter.maxRange').select('select').node().disabled = false;
+                        }
                     }
 
                     // Clear the feature application
@@ -2039,72 +2052,51 @@ class DataMining{
                     problem: that.metadata.problem,  // ClimateCentric, GNC, etc
                   },
             async: false,
-            success: function (data, textStatus, jqXHR)
-            {
+            success: function (data, textStatus, jqXHR){
+                let entities = {};
                 if(that.metadata.problem === "ClimateCentric"){
-                    let concept_hierarchy = that.get_problem_concept_hierarchy();
-                    concept_hierarchy["params"] = data;
-                    PubSub.publish(PROBLEM_CONCEPT_HIERARCHY_LOADED, concept_hierarchy);
-                }
-            },
-            error: function (jqXHR, textStatus, errorThrown)
-            {
-                alert("error");
-            }
-        });    
-    }
+                    entities = {leftSet: data.leftSet, rightSet: data.rightSet};
 
-    get_problem_concept_hierarchy(){
-        let that = this;
-        let instance_map = null;
-        let superclass_map = null;
-        $.ajax({
-            url: "/api/data-mining/get-problem-concept-hierarchy",
-            type: "POST",
-            data: {
-                    problem: that.metadata.problem,  // ClimateCentric, GNC, etc
-                    params: JSON.stringify(that.metadata.problem_specific_params),
-                  },
-            async: false,
-            success: function (data, textStatus, jqXHR)
-            {
-                // If the problem is "ClimateCentric"
-                if(that.metadata.problem === "ClimateCentric"){
-                    instance_map = data.instanceMap;
-                    superclass_map = data.superclassMap;
+                    if(data.rightSet.length > that.metadata.problem_specific_params.orbit_list.length 
+                        ||data.leftSet.length > that.metadata.problem_specific_params.instrument_list.length
+                    ){  
+                        let instanceMap = data.instanceMap;
+                        let superclassMap = data.superclassMap;
 
-                    // If instance map is empty
-                    if(Object.keys(instance_map).length == 0){
+                        // If instance map is empty
+                        if(Object.keys(instanceMap).length == 0){
 
-                        // For each superclass
-                        for (let var_name in superclass_map) {
-                            if (superclass_map.hasOwnProperty(var_name)) {
+                            // For each superclass
+                            for (let varName in superclassMap) {
+                                if (superclassMap.hasOwnProperty(varName)) {
 
-                                let list_of_superclasses = superclass_map[var_name];
-                                for(let i = 0; i < list_of_superclasses.length; i++){
+                                    let listOfSuperclasses = superclassMap[varName];
+                                    for(let i = 0; i < listOfSuperclasses.length; i++){
 
-                                    let superclass_name = list_of_superclasses[i];
-                                    if(!instance_map.hasOwnProperty(superclass_name)){
-                                        instance_map[superclass_name] = [];
+                                        let superclassName = listOfSuperclasses[i];
+                                        if(!instanceMap.hasOwnProperty(superclassName)){
+                                            instanceMap[superclassName] = [];
+                                        }
+                                        // Add each instance to super classes
+                                        instanceMap[superclassName].push(varName);
                                     }
-                                    // Add each instance to super classes
-                                    instance_map[superclass_name].push(var_name);
                                 }
                             }
                         }
+                        entities['instanceMap'] = instanceMap;
+                        entities['superclassMap'] = superclassMap;
+                        PubSub.publish(GENERALIZED_CONCEPTS_LOADED, entities);
                     }
 
-                }else{
+                } else {
                     alert("Unsupported problem formulation: " + that.metadata.problem);
                 }
             },
             error: function (jqXHR, textStatus, errorThrown)
             {
-                alert("error");
+                alert("Error in calling get_problem_parameters()");
             }
-        });
-
-        return {"instance_map":instance_map, "superclass_map":superclass_map};    
+        });    
     }
 
     stop_search(){
