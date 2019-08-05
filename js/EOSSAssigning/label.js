@@ -9,6 +9,8 @@
 //{"LEO-600-polar-NA","SSO-600-SSO-AM","SSO-600-SSO-DD","SSO-800-SSO-DD","SSO-800-SSO-PM"};
 
 
+
+
 class EOSSAssigningLabel extends Label{
 
     constructor(disabled){

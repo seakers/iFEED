@@ -24,11 +24,13 @@
     <!-- <link href="css/lib/bootstrap.min.css" rel="stylesheet" media="screen"> -->
     <link href="css/lib/introjs.css" rel="stylesheet" type="text/css"/>
     <link href="css/lib/tabcontent.css" rel="stylesheet" type="text/css"/>
+    <link href="css/lib/balloon.min.css" rel="stylesheet" type="text/css"/>
+
     <link href="css/tradespace_plot.css" rel="stylesheet" type="text/css"/>
     <link href="css/filter.css" rel="stylesheet" type="text/css"/>
     <link href="css/data_mining.css" rel="stylesheet" type="text/css"/>
     <link href="css/feature_application.css" rel="stylesheet" type="text/css"/>
-    <link href="css/lib/iziToast.min.css" rel="stylesheet" type="text/css">
+    <link href="css/lib/iziToast.css" rel="stylesheet" type="text/css">
 
 </head>
 
@@ -106,14 +108,12 @@
             <div id='feature_expression_panel'>
                 <div>
                     <div>Feature Application Panel</div>
-                    <!-- <button id='conjunctive_local_search' class='feature_application_options_button'>Improve specificity</button>
-                    <button id='disjunctive_local_search' class='feature_application_options_button'>Improve coverage</button>
-                    <button id='generalize_feature' class='feature_application_options_button'>Generalize feature</button> -->
                     <button id='clear_all_features' class='feature_application_options_button'>Clear current feature</button>
                 </div>
                 <div id='feature_expression'></div>
             </div>
             <div id='feature_application_panel'>
+                <div id="feature_application_loader"></div>
                 <div id='feature_application'></div>
             </div>
         </div>
@@ -242,21 +242,10 @@
     PubSub.publish(LOAD_DATA, null);
 
 
-
-
-
-
-
-
-
     // function select_fuzzy_pareto_front(rank){
-
     //     problem.calculate_pareto_ranking([],20);
-
     //     let exp = "{paretoFront["+ rank +"]}";
-
     //     filter.apply_filter_expression(exp);
-
     //     tradespace_plot.toggle_selection_and_highlight();
     // }
 

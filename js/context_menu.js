@@ -44,6 +44,7 @@ class ContextMenu {
             'featType': [{'value':'toggle-col-exp','text':'Collapse/Expand'}],
             
             'default':[
+                        {'value': 'generalizeFeature', 'text': 'Generalize this feature'},
                         {'value': 'applyFeatureBranch', 'text': 'Apply this feature'},
                         {'value':'addParent','text':'Add parent node'},
                         // {'value':'addIfThen','text':'Add if-then statement'},
@@ -78,7 +79,6 @@ class ContextMenu {
     }    
 
     showMenu (context, coord) {
-
         let parent = context.parent;
         let type = context.type;
         let logic = context.name;
@@ -517,10 +517,18 @@ class ContextMenu {
 
         // Default options
         switch(option) {
+            case 'generalizeFeature':
+                feature_application.start_loading_animation();
+                let rootExpression = feature_application.parse_tree(root);
+                let nodeExpression = feature_application.parse_tree(node);
+                let userInitiated = true;
+                feature_application.data_mining.generalize_feature(rootExpression, nodeExpression, userInitiated);
+                break;
+
             case 'applyFeatureBranch':
-                    feature_application.update_feature_application('direct-update', feature_application.parse_tree(node));
-                    updateOption = null;
-                    break;
+                feature_application.update_feature_application('direct-update', feature_application.parse_tree(node));
+                updateOption = null;
+                break;
 
             case 'addParent':
 

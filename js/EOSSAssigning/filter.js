@@ -1,6 +1,5 @@
 
 class EOSSAssigningFilter extends Filter{
-
     constructor(labelingScheme) {
         let presetFeatures = [];
         let presetFeaturesInfo = [{value:"not_selected",text:"Preset Filters"},
@@ -49,7 +48,7 @@ class EOSSAssigningFilter extends Filter{
         PubSub.subscribe(DATA_PROCESSED, (msg, data) => {
             this.set_application_functions();
         });
-``
+
         let that = this;
         PubSub.subscribe(COPY_BASE_FEATURE_TO_FILTER, (msg, data) => {
             // Copy the feature expression to filter input

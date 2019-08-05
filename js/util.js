@@ -122,12 +122,12 @@ function shuffle(array) {
     return array;
 }
 
-function dominates(metrics1,metrics2,objective){
-    
+function dominates(metrics1, metrics2, objective){
     let at_least_as_good_as = true;
     let better_than_in_one = false;
     
     if(!objective){
+        // Assumes all metrics are "larger-is-better"
         objective = [];
         for(let i = 0; i < metrics1.length; i++){
             objective.push(1);
@@ -135,13 +135,12 @@ function dominates(metrics1,metrics2,objective){
     }
     
     for(let i = 0; i < metrics1.length; i++){
-        
         let val1 = objective[i] * metrics1[i];
         let val2 = objective[i] * metrics2[i];
         
         if(val1 > val2){
             // First better than Second
-            better_than_in_one=true;
+            better_than_in_one = true;
             
         }else if(val1 < val2){
             // First is worse than Second
