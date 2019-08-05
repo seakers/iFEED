@@ -154,9 +154,10 @@ class FeatureApplication{
         
         this.tree = d3.tree().size([height, width]);
 
-        d3.select('#feature_application_panel').select('#feature_application').select('svg').remove();
+        // d3.select('#feature_application_loader').style('display','none');
+        d3.select('#feature_application').select('svg').remove();
 
-        d3.select('#feature_application_panel').select('#feature_application')
+        d3.select('#feature_application')
             .append('svg')
             .attr('width', width + margin.left + margin.right)
             .attr('height', height + margin.bottom + margin.top)
@@ -1233,8 +1234,11 @@ class FeatureApplication{
             })  
             this.update({add_to_feature_space_plot: true, replace_equivalent_feature: false});
 
-            if(this.data_mining.featureSpaceInteractionMode === "exploration"){
+            if(this.data_mining.localSearchOn){
                 this.data_mining.run_local_search("BOTH");
+            }else if(this.data_mining.generalizationOn){
+                let rootExpression = this.parse_tree(this.data);
+                this.data_mining.generalize_feature(rootExpression);
             }
             
             // EXPERIMENT 
@@ -1654,7 +1658,6 @@ class FeatureApplication{
     }
 
 	update_feature_expression(expression){
-
 	    let logic_color = "#FF9500";
 	    let bracket_color = "#FF0000";
 
@@ -1675,6 +1678,19 @@ class FeatureApplication{
 
    		d3.select('#feature_expression').html("<p>"+expression+"</p>");
 	}
+
+    start_loading_animation(){
+        // Show loading animation while generalization search is on
+        d3.select('#feature_application_loader').style('display','block');
+
+        if(this.data){ // If there exists a feature tree, change the color to gray
+            this.update_feature_application("temp", this.parse_tree(this.data));
+        }
+    }
+
+    end_loading_animation(){
+        d3.select('#feature_application_loader').style('display','none');
+    }
 
     get_num_literal(node){
         let counter = 0;

@@ -30,7 +30,7 @@
     <link href="css/filter.css" rel="stylesheet" type="text/css"/>
     <link href="css/data_mining.css" rel="stylesheet" type="text/css"/>
     <link href="css/feature_application.css" rel="stylesheet" type="text/css"/>
-    <link href="css/lib/iziToast.min.css" rel="stylesheet" type="text/css">
+    <link href="css/lib/iziToast.css" rel="stylesheet" type="text/css">
 
     <link href="css/experiment.css" rel="stylesheet" type="text/css">
     <link href="css/experiment_tutorial.css" rel="stylesheet" type="text/css">
@@ -75,14 +75,12 @@
             <div id='feature_expression_panel'>
                 <div>
                     <div>Feature Application Panel</div>
-                    <!-- <button id='conjunctive_local_search' class='feature_application_options_button'>Improve specificity</button>
-                    <button id='disjunctive_local_search' class='feature_application_options_button'>Improve coverage</button>
-                    <button id='generalize_feature' class='feature_application_options_button'>Generalize feature</button> -->
                     <button id='clear_all_features' class='feature_application_options_button'>Clear current feature</button>
                 </div>
                 <div id='feature_expression'></div>
             </div>
             <div id='feature_application_panel'>
+                <div id="feature_application_loader"></div>
                 <div id='feature_application'></div>
             </div>
         </div>
