@@ -2153,6 +2153,7 @@ class DataMining{
 
     show_generalization_suggestion(features){
         let that = this;
+        iziToast.destroy();
 
         let timeout = 20000;
         let numMaxFeatures = 4;
