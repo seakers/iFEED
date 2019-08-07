@@ -33,8 +33,8 @@ class DataMining{
         this.allFeatures = [];
         this.stashedFeatures = [];
         this.recentlyAddedFeatureIDs = [];
-        this.localSearchOn = true;
-        this.generalizationOn = true;
+        this.localSearchOn = false;
+        this.generalizationOn = false;
 
         this.complexityFilterThresholds = null;
         this.algorithmGeneratedFeatureIDs = []; // EXPERIMENT
@@ -108,12 +108,19 @@ class DataMining{
                 this.import_feature_data("6655_AOSMOEA_GP_fuzzy8_24_7500_3", false, true);
 
             } else if(data === "interactive_generalization"){
-                this.import_feature_data("6655_epsilonMOEA_ruleset", true, false);
+                this.import_feature_data("6655_epsilonMOEA_ruleset_fuzzy8_24_7500", true, false);
+                this.localSearchOn = true;
+                this.generalizationOn = true;
+                if(d3.select('.feature_space_interaction.localSearch.toggle').node()){
+                    d3.select('.feature_space_interaction.localSearch.toggle').node().checked = true;
+                    d3.select('.feature_space_interaction.generalization.toggle').node().checked = true;
+                }
             
             } else if(data === "design_synthesis"){
                 this.initialize = function(){
                     d3.select("#support_panel").select("#view3").select("g").remove();
                 }
+
             } else if(data === "feature_synthesis"){
                 this.allFeatures = [];
                 this.display_features([]);
@@ -130,6 +137,7 @@ class DataMining{
             } else if(data === "tutorial_interactive_generalization"){
                 this.import_feature_data("experiment_tutorial_data", false, false);
                 this.tutorial_in_progress = true;
+                
             }  
         });  
         // Initialize the interface
@@ -604,10 +612,10 @@ class DataMining{
                     }
                 });
 
-        this.localSearchOn = true;
-        this.generalizationOn = true;
-        d3.select('.feature_space_interaction.localSearch.toggle').node().checked = true;
-        d3.select('.feature_space_interaction.generalization.toggle').node().checked = true;
+        this.localSearchOn = false;
+        this.generalizationOn = false;
+        d3.select('.feature_space_interaction.localSearch.toggle').node().checked = false;
+        d3.select('.feature_space_interaction.generalization.toggle').node().checked = false;
 
         // let feature_complexity_range_filter = feature_space_display_options_container.append('div')
         //         .attr('class', 'feature_complexity_range_filter container')
@@ -2165,6 +2173,7 @@ class DataMining{
                     return;
                 }
 
+                this.allFeatures = [];
                 that.stashedFeatures = JSON.parse(JSON.stringify(imported_features));
                 that.display_features(imported_features);  
 
@@ -2184,36 +2193,13 @@ class DataMining{
         });
     }
 
-    relabel_generalization_description(message){
-        let instrument_original_names = this.label.instrument_list;
-        let instrument_relabeled_names = this.label.instrument_relabeled;
-        let orbit_original_names = this.label.orbit_list;
-        let orbit_relabeled_names = this.label.orbit_relabeled;
-
-        for(let i = 0; i < instrument_original_names.length; i++){
-            let instr_original = instrument_original_names[i];  
-            if(message.indexOf(instr_original) !== -1){
-                let instr_relabeled = instrument_relabeled_names[i];
-                message = message.replace(new RegExp(instr_original, 'g'), instr_relabeled);
-            }
-        }
-
-        for(let i = 0; i < orbit_original_names.length; i++){
-            let orb_original = orbit_original_names[i];            
-            if(message.indexOf(orb_original) !== -1){
-                let orb_relabeled = orbit_relabeled_names[i];
-                message = message.replace(new RegExp(orb_original, 'g'), orb_relabeled);
-            }
-        }
-
-        return message;
-    }
-
     show_generalization_suggestion(features){
         let that = this;
 
-        let timeout = 2000000;
+        let timeout = 20000;
         let numMaxFeatures = 4;
+
+        iziToast.destroy();
 
         let message = "";
         if(this.currentFeature){
@@ -2252,11 +2238,12 @@ class DataMining{
         let buttonsStyle = "width: 80%; float: left; margin-top: 20px; margin-bottom: 20px; font-size: 17px;";
         let buttonsList = [];
         for(let i = 0; i < features.length; i++){
-
             let description = features[i].description;
+            description = that.label.pp_generalization_description(description);
             description = description.replace("\" to \"", "\"</p> <p>to</p> <p>\"")
             description = "<p>" + description + "</p>";
             description += "<p>(coverage: "+ round_num(features[i].metrics[3]) + ", specificity: " + round_num(features[i].metrics[2]) +")</p>";
+            
             let button = ['<button style="'+ buttonsStyle +'"><b>'+ description +'</b></button>', function (instance, toast) {
                     that.feature_application.update_feature_application('direct-update', features[i].name);
                     that.add_new_features(features[i], true);

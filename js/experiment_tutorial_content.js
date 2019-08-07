@@ -63,7 +63,8 @@ function loadTutorialContent(){
         {
             name: "tutorial-problem-formulation-candidate-instruments",
             object: null,
-            content: "<p>The following is the list of 12 candidate instruments considered in this problem.</p>"
+            content: "<p>The following is the list of 12 candidate instruments considered in this problem. "+
+                    +"The instruments have been adapted from the NRC 2007 Earth Science Decadal Survey.</p>"
                     +'<table class="tg">'
                     +'<tr><th class="tg-r87d">Instrument</th><th class="tg-r87d">Description</th></tr>'
                     +'<tr><td class="tg-s268">OCE_SPEC</td><td class="tg-s268">Ocean color spectrometer</td></tr>'
@@ -475,7 +476,7 @@ function loadTutorialContent(){
             object: d3.select('#feature_application').node(),
             content: "<p>You can view the options for various actions by right-clicking on each node. "
                     +"<p>There may be different set of options depending on the type of each node. "
-                    +"We will go over two of these options as examples. </p>", 
+                    +"We will go over three of these options as examples. </p>", 
             callback: function(currentStep){
                 document.getElementById('tab3').click();
                 experiment.feature_application.update_feature_application("direct-update", tutorial_feature_example_d);
@@ -548,7 +549,7 @@ function loadTutorialContent(){
             content: "<p>Again, the title text (highlighted in red) indicates that you are currently in \"Feature modification mode\". "
                     +"<p>This time, the arguments of the selected condition have been copied to the filter setting tab. This "
                     +"makes it easier to make modifications to the currently selected condition.</p>"
-                    +"<p>(To continue, try making a slight change to the current condition and apply it by clicking \"Modify the condition\" button)</p>",
+                    +"<p>(To continue, try making a change to the current condition and apply it by clicking \"Modify the condition\" button)</p>",
             callback: function(currentStep){
                 document.getElementById('tab2').click();
                 tutorial.start_tutorial_event_listener("filter_modification", currentStep);
@@ -561,7 +562,159 @@ function loadTutorialContent(){
             callback: function(currentStep){
                 document.getElementById('tab2').click();
             }
+        },
+
+
+
+
+
+
+
+
+
+
+
+
+        // { 
+        //     name: "tutorial-ifeed-feature-application-interaction-context-menu-generalize-feature",
+        //     object: null,
+        //     content: "<p>Another option that we will explore is called \"Generalize this feature\" option.</p>"
+        //             +"<p>This option triggers a search for a more compact and general knowledge. It may help extracting information "
+        //             +"in a more useful form than what is represented in the current feature.</p>",
+        //     callback: function(currentStep){
+        //         document.getElementById('tab3').click();
+        //         experiment.feature_application.update_feature_application("direct-update", tutorial_feature_example_i);
+        //     }
+        // }, 
+        // { 
+        //     name: "tutorial-ifeed-feature-application-interaction-context-menu-generalize-feature-2",
+        //     object: null,
+        //     content: "<p>To run generalization, you can select either the root node (the leftmost node) or any other nodes.</p>"
+        //             +"<p>When the root node is used to initiate generalization, the search algorithm will use the whole feature. "
+        //             +"When other nodes are used to initiate generalization, the search will be focused on simplifying the selected node. </p>"
+        //             +"<p>To continue, right-click on the root node and select \"Generalize this feature\" option.</p>",
+        //     callback: function(currentStep){
+        //         document.getElementById('tab3').click();
+        //         experiment.feature_application.update_feature_application("direct-update", tutorial_feature_example_i);
+
+        //         let listenerCallback = () => {
+        //             tutorial.intro.exit();
+        //             setTimeout(function() {
+        //                 tutorial.set_tutorial_content("tutorial_end");
+        //             }, 1000);
+        //             return;
+        //         }
+
+        //         tutorial.start_tutorial_event_listener("generalization_suggestion", currentStep, listenerCallback);
+        //         experiment.feature_application.update_feature_application("direct-update", tutorial_feature_example_h);
+        //     }
+        // }, 
+
+
+
+
+
+
+
+        { 
+            name: "tutorial-ifeed-feature-application-helper-generalization",
+            object: d3.select('.column.c2').node(),
+            content: "<p>Another helper function that is available for use is generalizing the selected feature by clicking "
+                    +"\"Generalize feature\" button.</p>"
+                    +"<p>This button triggers a search for a more compact and general knowledge. It may help extracting information in a more "
+                    +"useful form than what is represented in the current feature.</p>"
+                    +"<p>To continue, click \"Generalize feature\" button</p>",
+            callback: function(currentStep){
+                document.getElementById('tab3').click();
+
+                let listenerCallback = () => {
+                    tutorial.intro.exit();
+                    setTimeout(function() {
+                        tutorial.set_tutorial_content("tutorial_end");
+                    }, 1000);
+                    return;
+                }
+
+                tutorial.start_tutorial_event_listener("generalization_suggestion", currentStep, listenerCallback);
+                experiment.feature_application.update_feature_application("direct-update", tutorial_feature_example_h);
+            }
         }, 
+        {
+            name: "tutorial-ifeed-feature-application-helper-generalization-popup",
+            object: document.getElementsByClassName("iziToast-capsule")[0], 
+            content: "<p>When the algorithm successfully finds a way to generalize the knowledge "
+                    +"in the current feature, a popup message "
+                    +"will appear as shown.</p>", 
+
+            callback: function(currentStep){
+                // Remove iziToast overlay layer
+                d3.select('.iziToast-overlay').remove();
+
+                // Get iziToast element
+                let iziToastElement = document.querySelector('.iziToast-capsule');
+                iziToastElement.parentNode.removeChild(iziToastElement);
+
+                // Re-insert the iziToast element
+                let body = document.querySelector('body');
+                body.insertBefore(iziToastElement, body.childNodes[0]);
+
+                let buttons = d3.selectAll(".iziToast-buttons-child.revealIn");
+                for(let i = 0; i < buttons.nodes().length; i++){
+                    buttons.nodes()[i].disabled = true;
+                    buttons.select('b').style("opacity", "0.2");
+
+                }
+            },
+        },
+
+
+
+        { 
+            name: "tutorial-ifeed-feature-application-helper-generalization-popup-2",
+            object: null,
+            content: "<p>The suggestion here is to generalize the knowledge by replacing instruments AERO_LID and HYP_IMAG "
+                    +"to the concept \"Instrument that is capable of taking measurements related to vegetation (e.g. type, structure, leaf are)\"</p>"
+                    +"<p>This generalization can be made as both instruments take measurements such as leaf area index.</p>",
+        }, 
+        { 
+            name: "tutorial-ifeed-feature-application-helper-generalization-popup-3",
+            object: null,
+            content: "<p>You can either accept the suggestion or reject it, depending on whether you think the suggested generalization "
+                    +"is useful or not. For now, click \"Accept\" to continue.</p>",
+            
+            callback: function(currentStep){
+                tutorial.start_tutorial_event_listener("generalization_accept", currentStep);
+
+                let buttons = d3.selectAll(".iziToast-buttons-child.revealIn");
+                for(let i = 0; i < buttons.nodes().length; i++){
+                    buttons.nodes()[i].disabled = false;
+                    buttons.select('b').style("opacity", "1.0");
+                }
+            }
+        },
+        { 
+            name: "tutorial-ifeed-feature-application-helper-generalization-outcome",
+            object: d3.select('#feature_application_panel').node(),
+            content: "<p>Note that a new node with generalized variable is added to the current feature. </p>"
+                    +"<p>Generalization of knowledge may be helpful in finding useful knowledge that is otherwise very hard to identify.</p>",
+        }, 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
         { 
             name: "tutorial-ifeed-feature-application-interaction-context-menu-other",
             object: null,
@@ -637,85 +790,18 @@ function loadTutorialContent(){
                 tutorial.fill_in_keyword_placeholder(currentStep, keywords, placeholders);
             }
         }, 
-        { 
-            name: "tutorial-ifeed-feature-application-helper-generalization",
-            object: d3.select('.column.c2').node(),
-            content: "<p>Another helper function that is available for use is generalizing the selected feature by clicking "
-                    +"\"Generalize feature\" button.</p>"
-                    +"<p>This button triggers a search for a more compact and general knowledge. It may help extracting information in a more "
-                    +"useful form than what is represented in the current feature.</p>"
-                    +"<p>To continue, click \"Generalize feature\" button</p>",
-            callback: function(currentStep){
-                document.getElementById('tab3').click();
 
-                let listenerCallback = () => {
-                    tutorial.intro.exit();
-                    setTimeout(function() {
-                        tutorial.set_tutorial_content("tutorial_end");
-                    }, 1000);
-                    return;
-                }
 
-                tutorial.start_tutorial_event_listener("generalization_suggestion", currentStep, listenerCallback);
-                experiment.feature_application.update_feature_application("direct-update", tutorial_feature_example_h);
-            }
-        }, 
-        {
-            name: "tutorial-ifeed-feature-application-helper-generalization-popup",
-            object: document.getElementsByClassName("iziToast-capsule")[0], 
-            content: "<p>When the algorithm successfully finds a way to generalize the knowledge "
-                    +"in the current feature, a popup message "
-                    +"will appear as shown.</p>", 
 
-            callback: function(currentStep){
-                // Remove iziToast overlay layer
-                d3.select('.iziToast-overlay').remove();
 
-                // Get iziToast element
-                let iziToastElement = document.querySelector('.iziToast-capsule');
-                iziToastElement.parentNode.removeChild(iziToastElement);
 
-                // Re-insert the iziToast element
-                let body = document.querySelector('body');
-                body.insertBefore(iziToastElement, body.childNodes[0]);
 
-                let buttons = d3.selectAll(".iziToast-buttons-child.revealIn");
-                for(let i = 0; i < buttons.nodes().length; i++){
-                    buttons.nodes()[i].disabled = true;
-                    buttons.select('b').style("opacity", "0.2");
 
-                }
-            },
-        },
-        { 
-            name: "tutorial-ifeed-feature-application-helper-generalization-popup-2",
-            object: null,
-            content: "<p>The suggestion here is to generalize the knowledge by replacing instruments AERO_LID and HYP_IMAG "
-                    +"to the concept \"Instrument that is capable of taking measurements related to vegetation (e.g. type, structure, leaf are)\"</p>"
-                    +"<p>This generalization can be made as both instruments take measurements such as leaf area index.</p>",
-        }, 
-        { 
-            name: "tutorial-ifeed-feature-application-helper-generalization-popup-3",
-            object: null,
-            content: "<p>You can either accept the suggestion or reject it, depending on whether you think the suggested generalization "
-                    +"is useful or not. For now, click \"Accept\" to continue.</p>",
-            
-            callback: function(currentStep){
-                tutorial.start_tutorial_event_listener("generalization_accept", currentStep);
 
-                let buttons = d3.selectAll(".iziToast-buttons-child.revealIn");
-                for(let i = 0; i < buttons.nodes().length; i++){
-                    buttons.nodes()[i].disabled = false;
-                    buttons.select('b').style("opacity", "1.0");
-                }
-            }
-        },
-        { 
-            name: "tutorial-ifeed-feature-application-helper-generalization-outcome",
-            object: d3.select('#feature_application_panel').node(),
-            content: "<p>Note that a new node with generalized variable is added to the current feature. </p>"
-                    +"<p>Generalization of knowledge may be helpful in finding useful knowledge that is otherwise very hard to identify.</p>",
-        }, 
+
+
+
+
         { 
             name: "tutorial-ifeed-closing",
             object: undefined,

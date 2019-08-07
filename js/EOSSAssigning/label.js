@@ -12,7 +12,6 @@
 
 
 class EOSSAssigningLabel extends Label{
-
     constructor(disabled){
         super(disabled);        
         
@@ -52,6 +51,8 @@ class EOSSAssigningLabel extends Label{
         PubSub.subscribe(GENERALIZED_CONCEPTS_LOADED, (msg, data) => {
             this.orbit_extended_list = data["rightSet"];
             this.instrument_extended_list = data["leftSet"];
+            this.instance_map = data["instanceMap"];
+            this.superclass_map = data["superclassMap"];
 
             this.orbit_relabeled = JSON.parse(JSON.stringify(this.orbit_relabeled_fixed));
             this.instrument_relabeled = JSON.parse(JSON.stringify(this.instrument_relabeled_fixed));
@@ -299,11 +300,23 @@ class EOSSAssigningLabel extends Label{
                     pporbits.push(this.index2DisplayName(orbits[j], "orbit"));
                 }
             }
+
             for(let j = 0; j < instruments.length; j++){
                 if(instruments[j].length === 0){
                     continue;
                 }else{
-                    ppinstruments.push(this.index2DisplayName(instruments[j], "instrument"));
+                    if(+instruments[j] >= this.instrument_list.length){
+                        ppinstruments.push(this.index2DisplayName(instruments[j], "instrument"));
+                    }
+                }
+            }
+            for(let j = 0; j < instruments.length; j++){
+                if(instruments[j].length === 0){
+                    continue;
+                }else{
+                    if(+instruments[j] < this.instrument_list.length){
+                        ppinstruments.push(this.index2DisplayName(instruments[j], "instrument"));
+                    }
                 }
             }
 
@@ -314,7 +327,6 @@ class EOSSAssigningLabel extends Label{
     }
     
     pp_feature(expression){
-
         let output = '';
 
     //    if(expression.indexOf('{FeatureToBeAdded}')>-1){
@@ -347,8 +359,62 @@ class EOSSAssigningLabel extends Label{
         return output;
     }
 
-    pp_feature_description_single(expression){
-    
+    pp_generalization_description(description){
+
+        let cnt = 0;
+        let tempColors = ["#6DA365", "#C9813A", "#3ABEC9", "#9134C9"];
+        for (let classname in this.instance_map){
+            let class_and_instance_found = false;
+            if(description.indexOf(classname) !== -1){
+                let instances = this.instance_map[classname];
+                for(let i = 0; i < instances.length; i++){
+                    if(description.indexOf(instances[i]) !== -1){
+                        class_and_instance_found = true;
+                        break;
+                    }
+                }
+                if(class_and_instance_found){
+                    let regex = new RegExp(classname, 'g');
+                    description = description.replace(regex, "<span style=\"color:"+ tempColors[cnt] +"\">"+ classname +"</span>");
+                    for(let i = 0; i < instances.length; i++){
+                        let regex2 = new RegExp(instances[i], 'g');
+                        description = description.replace(regex2, "<span style=\"color:"+ tempColors[cnt] +"\">"+ instances[i] +"</span>");
+                    }
+                    cnt += 1;
+                }else{
+                    continue;
+                }                
+            }
+        }
+
+        // Replace orbit names
+        for(let i = 0; i < this.orbit_list.length; i++){
+            if(description.indexOf(this.orbit_list[i]) !== -1){
+                let regex = new RegExp(this.orbit_list[i], 'g');
+                description = description.replace(regex, this.orbit_relabeled[i]);
+            }
+        }
+
+        // Replace instrument names
+        for(let i = 0; i < this.instrument_list.length; i++){
+            if(description.indexOf(this.instrument_list[i]) !== -1){
+                let regex = new RegExp(this.instrument_list[i], 'g');
+                description = description.replace(regex, this.instrument_relabeled[i]);
+            }
+        }
+
+        return description;
+    }
+
+
+
+
+
+
+
+
+
+    get_feature_description_single(expression){
         let exp = expression;
         if(exp[0] === "{"){
             // Remove the outer curly bracket
@@ -428,7 +494,7 @@ class EOSSAssigningLabel extends Label{
         return out;
     }
     
-    pp_feature_description(expression){
+    get_feature_description(expression){
         let output = '';
         let save = false;
         let savedString = '';
