@@ -97,49 +97,52 @@ class DataMining{
         
         // EXPERIMENT
         PubSub.subscribe(EXPERIMENT_SET_MODE, (msg, data) => {
-            this.tutorial_in_progress = false;
-            this.treatment_condition = data;
+            this.experimentCondition = data.condition;
+            this.experimentStage = data.stage;
+            this.experimentGeneralizationEnabled = data.generalization;
 
-            if(data === "manual_generalization"){
+            if(this.experimentStage === "tutorial"){
+                if(this.experimentCondition.indexOf("manual") !== -1){
+                    this.allFeatures = [];
+                    this.display_features([]);
+
+                } else if(this.experimentCondition.indexOf("automated") !== -1){
+                    this.import_feature_data("experiment_tutorial_data", false, false);
+
+                } else if(this.experimentCondition.indexOf("interactive") !== -1){
+                    this.import_feature_data("experiment_tutorial_data", false, false);
+                } 
+
+            } else if (this.experimentStage === "learning"){
+                if(this.experimentCondition.indexOf("manual") !== -1){
+                    // Start from an empty feature space
+                    this.allFeatures = [];
+                    this.display_features([]);
+
+                } else if(this.experimentCondition.indexOf("automated") !== -1){
+                    this.import_feature_data("6655_AOSMOEA_GP_fuzzy8_24_7500_3", false, true);
+
+                } else if(this.experimentCondition.indexOf("interactive") !== -1){
+                    this.import_feature_data("6655_epsilonMOEA_ruleset_fuzzy8_24_7500", true, false);
+                    this.localSearchOn = true;
+                    this.generalizationOn = true;
+                    if(d3.select('.feature_space_interaction.localSearch.toggle').node()){
+                        d3.select('.feature_space_interaction.localSearch.toggle').node().checked = true;
+                        d3.select('.feature_space_interaction.generalization.toggle').node().checked = true;
+                    }
+                }
+
+            } else if(this.experimentStage === "feature_synthesis"){
                 this.allFeatures = [];
                 this.display_features([]);
-
-            } else if(data === "automated_generalization"){
-                this.import_feature_data("6655_AOSMOEA_GP_fuzzy8_24_7500_3", false, true);
-
-            } else if(data === "interactive_generalization"){
-                this.import_feature_data("6655_epsilonMOEA_ruleset_fuzzy8_24_7500", true, false);
-                this.localSearchOn = true;
-                this.generalizationOn = true;
-                if(d3.select('.feature_space_interaction.localSearch.toggle').node()){
-                    d3.select('.feature_space_interaction.localSearch.toggle').node().checked = true;
-                    d3.select('.feature_space_interaction.generalization.toggle').node().checked = true;
-                }
-            
-            } else if(data === "design_synthesis"){
+                
+            } else if(this.experimentStage === "design_synthesis"){
                 this.initialize = function(){
                     d3.select("#support_panel").select("#view3").select("g").remove();
                 }
-
-            } else if(data === "feature_synthesis"){
-                this.allFeatures = [];
-                this.display_features([]);
-
-            } else if(data === "tutorial_manual_generalization"){
-                this.allFeatures = [];
-                this.display_features([]);
-                this.tutorial_in_progress = true;
-
-            } else if(data === "tutorial_automated_generalization"){
-                this.import_feature_data("experiment_tutorial_data", false, false);
-                this.tutorial_in_progress = true;
-
-            } else if(data === "tutorial_interactive_generalization"){
-                this.import_feature_data("experiment_tutorial_data", false, false);
-                this.tutorial_in_progress = true;
-                
             }  
         });  
+
         // Initialize the interface
         this.initialize();        
     }
@@ -576,7 +579,7 @@ class DataMining{
         let feature_space_display_options_container = tab.append('div')
                 .attr('id', 'feature_space_display_options_container');
 
-        // Add optiomn to turn on local search and generalization
+        // Add optiomn to turn on local search 
         let local_search_option = feature_space_display_options_container.append('div')
                 .attr('class','feature_space_interaction localSearch container');
 
@@ -592,9 +595,14 @@ class DataMining{
                     if(this.localSearchOn && this.currentFeature){
                         this.run_local_search("BOTH");
                     }
+
+                    // EXPERIMENT
+                    if(this.localSearchOn){
+                        PubSub.publish(EXPERIMENT_TUTORIAL_EVENT, "local_search_on");
+                    }
                 });
 
-        // Add optiomn to turn on local search and generalization
+        // Add option to turn on generalization
         let generalization_option = feature_space_display_options_container.append('div')
                 .attr('class','feature_space_interaction generalization container');
 
@@ -616,6 +624,19 @@ class DataMining{
         this.generalizationOn = false;
         d3.select('.feature_space_interaction.localSearch.toggle').node().checked = false;
         d3.select('.feature_space_interaction.generalization.toggle').node().checked = false;
+        
+
+        // EXPERIMENT
+        if(this.experimentCondition){
+            if(this.experimentCondition.indexOf("interactive") === -1){
+                d3.select("#feature_space_display_options_container").remove();
+            }
+
+            if(!this.experimentGeneralizationEnabled){
+                d3.select('.feature_space_interaction.generalization.container').remove();
+            }
+        }
+
 
         // let feature_complexity_range_filter = feature_space_display_options_container.append('div')
         //         .attr('class', 'feature_complexity_range_filter container')
@@ -668,13 +689,6 @@ class DataMining{
 
         if(typeof features === 'undefined' || features == null){
             return;
-        }
-
-        // EXPERIMENT
-        if(this.treatment_condition){
-            if(this.treatment_condition.indexOf("interactive_generalization") === -1){
-                d3.select("#feature_space_display_options_container").remove();
-            }
         }
 
         // Initialize the location of each feature
@@ -1140,7 +1154,7 @@ class DataMining{
             }
 
             // Set the location of the utopia point
-            this.utopiaPoint.metrics = [maxLift, maxSupp, maxConf, maxConf];
+            this.utopiaPoint.metrics = [maxLift, maxSupp, 1.0, 1.0];
 
             // Needed to map the values of the dataset to the color scale
             this.colorInterpolateRainbow = d3.scaleLinear()
@@ -1446,6 +1460,7 @@ class DataMining{
         this.feature_application.update_feature_application('update');
 
         // EXPERIMENT 
+        PubSub.publish(EXPERIMENT_TUTORIAL_EVENT, "feature_clicked");
         if(this.recentlyAddedFeatureIDs.indexOf(d.id) !== -1){
             PubSub.publish(EXPERIMENT_TUTORIAL_EVENT, "new_feature_clicked");
         }
@@ -1571,8 +1586,8 @@ class DataMining{
         }
 
         // EXPERIMENT
-        if(this.treatment_condition){
-            if(this.treatment_condition.indexOf("interactive_generalization") === -1){
+        if(this.experimentCondition){
+            if(this.experimentCondition.indexOf("interactive_generalization") === -1){
                 return;
             }
         }
@@ -2169,7 +2184,9 @@ class DataMining{
                 // Remove all highlights in the scatter plot (retain target solutions)
                 PubSub.publish(APPLY_FEATURE_EXPRESSION, null);
 
-                if(imported_features.length === 0){ // If there is no driving feature returned
+                if(!imported_features){ // If there is no driving feature returned
+                    return;
+                }else if(imported_features.length === 0){
                     return;
                 }
 
@@ -2198,13 +2215,19 @@ class DataMining{
 
         let timeout = 20000;
         let numMaxFeatures = 4;
-
         iziToast.destroy();
+
+        if(this.experimentStage === "tutorial"){
+            timeout = 2000000;
+        }
 
         let message = "";
         if(this.currentFeature){
             message = "(current feature - coverage: " + round_num(this.currentFeature.metrics[3]) + ", specificity: " + round_num(this.currentFeature.metrics[2]) + ")";
         }
+
+        // EXPERIMENT 
+        PubSub.publish(EXPERIMENT_TUTORIAL_EVENT, "generalization_suggestion");    
 
         // Shuffle the order of the features
         features = shuffle(features);
@@ -2245,9 +2268,12 @@ class DataMining{
             description += "<p>(coverage: "+ round_num(features[i].metrics[3]) + ", specificity: " + round_num(features[i].metrics[2]) +")</p>";
             
             let button = ['<button style="'+ buttonsStyle +'"><b>'+ description +'</b></button>', function (instance, toast) {
+
+                    // EXPERIMENT 
+                    PubSub.publish(EXPERIMENT_TUTORIAL_EVENT, "generalization_selected");    
+
                     that.feature_application.update_feature_application('direct-update', features[i].name);
                     that.add_new_features(features[i], true);
-
                     instance.hide({transitionOut: 'fadeOutUp',}, toast, 'buttonName');
                 }, true];
             buttonsList.push(button);

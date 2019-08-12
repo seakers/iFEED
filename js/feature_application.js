@@ -141,9 +141,13 @@ class FeatureApplication{
 		PubSub.publish(FEATURE_APPLICATION_LOADED, this);
 
         // EXPERIMENT
-        this.experiment_condition = null;
+        this.experimentStage = null;
+        this.experimentCondition = null;
+        this.experimentGeneralizationEnabled = null;
         PubSub.subscribe(EXPERIMENT_SET_MODE, (msg, data) => {
-            this.experiment_condition = data;
+            this.experimentStage = data.stage;
+            this.experimentCondition = data.condition;
+            this.experimentGeneralizationEnabled = data.generalization;
         });  
     }
     
@@ -616,8 +620,8 @@ class FeatureApplication{
             .on('contextmenu', (d) => { 
 
                 // EXPERIMENT
-                if(that.experiment_condition){
-                    if(that.experiment_condition.indexOf("automated_generalization") !== -1){
+                if(that.experimentCondition){
+                    if(that.experimentCondition.indexOf("automated") !== -1){
                         return;
                     }
                 }
@@ -680,8 +684,8 @@ class FeatureApplication{
 
         // EXPERIMENT
         let pass = false;
-        if(this.experiment_condition){
-            if(this.experiment_condition.indexOf("automated_generalization") !== -1){
+        if(this.experimentCondition){
+            if(this.experimentCondition.indexOf("automated") !== -1){
                 pass = true;
             }
         }
@@ -719,8 +723,8 @@ class FeatureApplication{
             this.select_treeNode_by_id(d.id).attr("transform","translate("+ mouseX + "," + mouseY + ")");
 
             // EXPERIMENT
-            if(this.experiment_condition){
-                if(this.experiment_condition.indexOf("automated_generalization") !== -1){
+            if(this.experimentCondition){
+                if(this.experimentCondition.indexOf("automated") !== -1){
                     return;
                 }
             }
@@ -742,8 +746,8 @@ class FeatureApplication{
 
 
             // EXPERIMENT
-            if(this.experiment_condition){
-                if(this.experiment_condition.indexOf("automated_generalization") !== -1){
+            if(this.experimentCondition){
+                if(this.experimentCondition.indexOf("automated") !== -1){
                     // No node selected (all nodes go back to the previous positions)
                     d3.selectAll('.nodeRange')
                         .on('mouseover', function(d){
@@ -1186,6 +1190,22 @@ class FeatureApplication{
     
     update_feature_application(option, expression){
         let that = this;
+
+        // EXPERIMENT
+        if(this.experimentCondition.indexOf("design_inspection") !== -1){
+            if(this.experimentStage === "learning" || this.experimentStage === "tutorial"){
+
+                // If there is no feature tree, return
+                if(!experiment || experiment === ""){
+                    return;
+                }
+                // Apply the feature expression
+                PubSub.publish(APPLY_FEATURE_EXPRESSION, {expression: expression, option: option});
+
+                // Do not display any feature tree
+                return;
+            }
+        }
         
         if(option === "temp"){ // Mouseover on the feature plot
             if(this.data){ // There already exists a feature tree

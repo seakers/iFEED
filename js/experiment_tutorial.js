@@ -11,6 +11,7 @@ class ExperimentTutorial{
         this.label = label;
         this.experiment = experiment;
         this.treatmentCondition = experiment.treatmentCondition;
+        this.treatmentConditionName = experiment.treatmentConditionName;
         this.participantID = experiment.participantID;
 
         // Setup introJS
@@ -35,11 +36,6 @@ class ExperimentTutorial{
         PubSub.subscribe(EXPERIMENT_TUTORIAL_START, (msg, data) => {
             that.start_tutorial();
         }); 
-
-        PubSub.subscribe(EXPERIMENT_CONDITION_CHANGE, (msg, data) => {
-            that.treatmentCondition = that.experiment.treatmentCondition;
-            that.participantID = that.experiment.participantID;
-        });
 
         loadTutorialContent();
     }
@@ -75,7 +71,7 @@ class ExperimentTutorial{
             this.experiment.select_archs_using_ids(tutorial_selection);
 
             // Load the treatment condition
-            this.experiment.load_treatment_condition(true);
+            this.experiment.load_treatment_condition();
 
             // Set timer callback events
             let d1 = 15 * 60 * 1000;
@@ -111,18 +107,13 @@ class ExperimentTutorial{
         this.set_tutorial_content(this.experiment.stage);
     }
 
-    start_intro(objects, messages, classname, callback, stage){
+    start_intro(objects, messages, classname, callback, stage, progress){
         if(typeof stage === "undefined" || stage == null){
             stage = this.experiment.stage;
         }
 
-        if(messages.length === 1){
-            this.intro.setOption('showButtons',true)
-                        .setOption('showBullets', false);
-        }else{
-            this.intro.setOption('showButtons',true)
-                        .setOption('showBullets', false);
-        }
+        this.intro.setOption('showButtons', true)
+                    .setOption('showBullets', true);
         
         if(!classname){
             classname = 'introjs_tooltip';
@@ -161,9 +152,7 @@ class ExperimentTutorial{
 
         d3.select('.introjs-skipbutton')
             .text(() => {
-                if(stage === "tutorial_end"){
-                    return "LOAD DATA ANALYSIS TASK";
-                }else if( stage === "tutorial"){
+                if( stage === "tutorial"){
                     return "LOAD DATA ANALYSIS TASK";
                 }else if(stage === "learning"){
                     return "START DATA ANALYSIS TASK";
@@ -190,9 +179,7 @@ class ExperimentTutorial{
 
                 d3.select('.introjs-skipbutton')
                     .text(() => {
-                        if(stage === "tutorial_end"){
-                            return "LOAD DATA ANALYSIS TASK";
-                        }else if( stage === "tutorial"){
+                        if( stage === "tutorial"){
                             return "LOAD DATA ANALYSIS TASK";
                         }else if(stage === "learning"){
                             return "START DATA ANALYSIS TASK";
@@ -212,21 +199,6 @@ class ExperimentTutorial{
 
         this.intro.oncomplete(function() {
             if(stage === "tutorial"){
-                if(that.experiment.treatmentCondition === 0 || that.experiment.treatmentCondition === 1){
-                    that.experiment.clock.stop();
-
-                    // Load the data
-                    that.problem.metadata.file_path = "ClimateCentric_050819.csv";
-                    PubSub.publish(LOAD_DATA, null);
-
-                    // Generate sign in message
-                    that.experiment.generateSignInMessage(() => {
-                        that.experiment.load_learning_task();
-                        setTimeout(() => { PubSub.publish(EXPERIMENT_TUTORIAL_START, null);}, 1000);
-                    });
-                }
-
-            } else if(stage === "tutorial_end"){ 
                 that.experiment.clock.stop();
 
                 // Load the data
@@ -236,7 +208,7 @@ class ExperimentTutorial{
                 // Generate sign in message
                 that.experiment.generateSignInMessage(() => {
                     that.experiment.load_learning_task();
-                    setTimeout(() => { PubSub.publish(EXPERIMENT_TUTORIAL_START, null);}, 1000);
+                    setTimeout(() => { PubSub.publish(EXPERIMENT_TUTORIAL_START, null);}, 2000);
                 });
 
             }else if(stage === "learning"){
@@ -250,7 +222,7 @@ class ExperimentTutorial{
                 //Move onto the next stage
                 that.experiment.generateSignInMessage(() => {
                     that.experiment.load_feature_synthesis_task();
-                    setTimeout(() => { PubSub.publish(EXPERIMENT_TUTORIAL_START, null);}, 300);
+                    setTimeout(() => { PubSub.publish(EXPERIMENT_TUTORIAL_START, null);}, 2000);
                 });
 
             }else if(stage === "feature_synthesis"){
@@ -262,6 +234,10 @@ class ExperimentTutorial{
                 that.experiment.start_design_synthesis_task();
             }
         });
+
+        if(progress){
+            this.intro.goToStep(progress);
+        }
     }
 
     start_tutorial_event_listener(eventKeyword, targetStep, callback){
@@ -296,7 +272,7 @@ class ExperimentTutorial{
         });
     }
 
-    set_tutorial_content(stage){
+    set_tutorial_content(stage, progressKeyword){
         let that = this;
         let objects, contents, classname, callback;
         objects = [];
@@ -311,95 +287,163 @@ class ExperimentTutorial{
 
         let stageContent = [];
         if(stage === 'tutorial' || typeof stage === 'undefined' || stage == null){
-            stageContent = this.getContentHavingKeyword(TUTORIAL_CONTENT, "tutorial");
+            stageContent = this.getContentsHavingKeyword(TUTORIAL_CONTENT, "tutorial");
             
             // filter contents
             let contentsToSkip = [];
-            if(this.treatmentCondition === 0){
+            if(this.treatmentConditionName.indexOf("design_inspection") !== -1){
                 contentsToSkip = [
+                    "tutorial-intro-opening-general",
+                    "tutorial-ifeed-intro-general",
+                    "tutorial-ifeed-filter",
+                    "tutorial-ifeed-feature-intro-v1",
+                    "tutorial-ifeed-feature-metric-coverage-scatter-plot-v1",
+                    "tutorial-ifeed-feature-space-plot",
+                    "tutorial-ifeed-feature-application",
+                    "tutorial-ifeed-feature-interactive",
+                    "tutorial-ifeed-closing-general",
+                ];
+
+            } else if (this.treatmentConditionName.indexOf("manual") !== -1){
+                contentsToSkip = [
+                    "design-inspection-only",
                     "tutorial-ifeed-filter-intro-v2",
                     "tutorial-ifeed-feature-intro-v2",
                     "tutorial-ifeed-feature-metric-coverage-scatter-plot-v2",
                     "tutorial-ifeed-feature-application-interaction-intro-v2",
-                    "tutorial-ifeed-feature-application-helper"
+                    "tutorial-ifeed-feature-application-interaction-context-menu-generalize-feature",
+                    "tutorial-ifeed-feature-interactive",
                 ];
 
-            }else if(this.treatmentCondition === 1){
+            } else if (this.treatmentConditionName.indexOf("automated") !== -1){
                 contentsToSkip = [
+                    "design-inspection-only",
                     "tutorial-ifeed-filter",
                     "tutorial-ifeed-feature-intro-v1",
                     "tutorial-ifeed-feature-metric-coverage-scatter-plot-v1",
                     "tutorial-ifeed-feature-application-interaction",
-                    "tutorial-ifeed-feature-application-helper",
+                    "tutorial-ifeed-feature-interactive",
                 ];
 
-            }else if(this.treatmentCondition === 2){
+            } else if (this.treatmentConditionName.indexOf("interactive") !== -1){
                 contentsToSkip = [
+                    "design-inspection-only",
                     "tutorial-ifeed-filter-intro-v2",
                     "tutorial-ifeed-feature-intro-v2",
                     "tutorial-ifeed-feature-metric-coverage-scatter-plot-v2",
                     "tutorial-ifeed-feature-application-interaction-intro-v2",
-                    "feature-application-helper-generalization-popup",
-                    "feature-application-helper-generalization-outcome",
-                    "tutorial-open-concept-map"
                 ];
-            } else if(this.treatmentCondition === 3){
-                // To be implemented
+            } 
+            stageContent = this.filterContentByKeyword(stageContent, contentsToSkip);
 
+            // Skip stages based on whether generalization is enabled or not
+            contentsToSkip = [];
+            if(this.experiment.generalizationEnabled){ // Generalization is enabled
+                contentsToSkip.push("tutorial-ifeed-filter-instrument-options-no-generalization");
+                
+            }else{ // No generalization
+                contentsToSkip.push("tutorial-ifeed-filter-instrument-options-with-generalization");
+                contentsToSkip.push("tutorial-ifeed-feature-application-interaction-context-menu-generalize-feature");
             }
             stageContent = this.filterContentByKeyword(stageContent, contentsToSkip);
 
-        } else if(stage === 'tutorial_end'){
-            let out = [];
-            out = out.concat(this.getContentHavingKeyword(TUTORIAL_CONTENT, "feature-application-helper-generalization-popup"));
-            out = out.concat(this.getContentHavingKeyword(TUTORIAL_CONTENT, "feature-application-helper-generalization-outcome"));
-            out = out.concat(this.getContentHavingKeyword(TUTORIAL_CONTENT, "tutorial-ifeed-closing"));
-            out = out.concat(this.getContentHavingKeyword(TUTORIAL_CONTENT, "tutorial-open-concept-map"));
-            stageContent = out;
-            this.findContentByKeyword(stageContent, "feature-application-helper-generalization-popup").object = document.getElementsByClassName("iziToast-capsule")[0];
-
         } else if(stage === 'learning'){
-            stageContent = this.getContentHavingKeyword(TUTORIAL_CONTENT, "learning-task-intro");
+            stageContent = this.getContentsHavingKeyword(TUTORIAL_CONTENT, "learning-task-intro");
+
+            // filter contents
+            if(this.treatmentConditionName.indexOf("design_inspection") !== -1){
+                stageContent = this.filterContentByKeyword(stageContent, ["general-condition"]);
+            } else {
+                stageContent = this.filterContentByKeyword(stageContent, ["design-inspection-only"]);
+            }
 
         } else if(stage === 'learning_end'){
-            stageContent = this.getContentHavingKeyword(TUTORIAL_CONTENT, "learning-task-end");
+            stageContent = this.getContentsHavingKeyword(TUTORIAL_CONTENT, "learning-task-end");
 
         } else if(stage === 'feature_synthesis'){
-            stageContent = this.getContentHavingKeyword(TUTORIAL_CONTENT, "feature-synthesis-intro");
+            stageContent = this.getContentsHavingKeyword(TUTORIAL_CONTENT, "feature-synthesis-intro");
 
-            if(this.treatmentCondition === 0){
-                // pass
-
-            }else if(this.treatmentCondition === 1){
-                stageContent = this.filterContentByKeyword(stageContent, ["feature-synthesis-intro-filter-setting", "feature-synthesis-intro-start"]);
+            if(this.treatmentConditionName.indexOf("design_inspection") !== -1 ){
+                stageContent = this.filterContentByKeyword(stageContent, [
+                    "general-condition",
+                    "feature-synthesis-intro-2",
+                    "feature-synthesis-intro-filter-setting", 
+                    "feature-synthesis-intro-start",
+                ]);
 
                 // Add filter explanation
-                stageContent = stageContent.concat(this.getContentHavingKeyword(TUTORIAL_CONTENT, "tutorial-ifeed-filter"));
+                stageContent = stageContent.concat(this.getContentsHavingKeyword(TUTORIAL_CONTENT, "tutorial-ifeed-filter"));
+                stageContent = this.filterContentByKeyword(stageContent, [
+                    "tutorial-ifeed-filter-intro-v1",
+                    "tutorial-ifeed-filter-instrument-options-no-generalization",
+                ]);
+
+                // Add feature space explanation
+                stageContent = stageContent.concat(this.getContentsHavingKeyword(TUTORIAL_CONTENT, "tutorial-ifeed-feature-space-plot"));
+
+                // Add feature tree explanation
+                stageContent = stageContent.concat(this.getContentsHavingKeyword(TUTORIAL_CONTENT, "tutorial-ifeed-feature-application"));
+                stageContent = this.filterContentByKeyword(stageContent, [
+                    "tutorial-ifeed-feature-application-interaction-intro-v2",
+                    "tutorial-ifeed-feature-application-interaction-context-menu-generalize"
+                ]);
+
+                // Finish the explanation on the feature synthesis task
+                stageContent = stageContent.concat(this.getContentsHavingKeyword(TUTORIAL_CONTENT, "feature-synthesis-intro-2"));
+                stageContent = stageContent.concat(this.getContentsHavingKeyword(TUTORIAL_CONTENT, "feature-synthesis-intro-start"));
+
+            } else if( this.treatmentConditionName.indexOf("automated") !== -1 ){
+                stageContent = this.filterContentByKeyword(stageContent, [
+                    "design-inspection-only", 
+                    "feature-synthesis-intro-filter-setting", 
+                    "feature-synthesis-intro-start"
+                ]);
+
+                // Add filter explanation
+                stageContent = stageContent.concat(this.getContentsHavingKeyword(TUTORIAL_CONTENT, "tutorial-ifeed-filter"));
                 stageContent = this.filterContentByKeyword(stageContent, [
                     "tutorial-ifeed-filter-intro-v1",
                     "tutorial-ifeed-filter-present-outcome", 
                     "tutorial-ifeed-filter-inOrbit-outcome"
                 ]);
-                stageContent = stageContent.concat(this.getContentHavingKeyword(TUTORIAL_CONTENT, "feature-synthesis-extra-filter"));
+                stageContent = stageContent.concat(this.getContentsHavingKeyword(TUTORIAL_CONTENT, "feature-synthesis-extra-filter"));
 
-                // Add feature application
-                stageContent = stageContent.concat(this.getContentHavingKeyword(TUTORIAL_CONTENT, "tutorial-ifeed-feature-application-interaction"));
-                stageContent = this.filterContentByKeyword(stageContent, ["tutorial-ifeed-feature-application-interaction-intro-v1",]);
-                stageContent = stageContent.concat(this.getContentHavingKeyword(TUTORIAL_CONTENT, "feature-synthesis-intro-start"));
-
-                this.findContentByKeyword(stageContent, "tutorial-ifeed-filter-options").object = d3.select('.filter.options.dropdown').node();
-                
-
-            }else if(this.treatmentCondition === 2){
-                // pass 
-
-            } else if(this.treatmentCondition === 3){
-                // pass
+                // Add feature tree interaction explanation
+                stageContent = stageContent.concat(this.getContentsHavingKeyword(TUTORIAL_CONTENT, "tutorial-ifeed-feature-application-interaction"));
+                stageContent = this.filterContentByKeyword(stageContent, [
+                    "tutorial-ifeed-feature-application-interaction-intro-v1",
+                    "tutorial-ifeed-feature-application-interaction-context-menu-generalize",
+                ]);
+                stageContent = stageContent.concat(this.getContentsHavingKeyword(TUTORIAL_CONTENT, "feature-synthesis-intro-start"));
+            
+            } else {
+                stageContent = this.filterContentByKeyword(stageContent, ["design-inspection-only"]);
             }
-                           
+
+            // Skip stages based on whether generalization is enabled or not
+            let contentsToSkip = [];
+            if(this.experiment.generalizationEnabled){ // Generalization is enabled
+                // Generalized variables were introduced during the learning task tutorial, so it can be skipped here
+                contentsToSkip.push("feature-synthesis-intro-filter-setting-generalized-variables-intro");
+                
+            }else{ // No generalization
+                // Generalized variables need to be explained
+                contentsToSkip.push("feature-synthesis-intro-filter-setting-v1");
+            }
+            stageContent = this.filterContentByKeyword(stageContent, contentsToSkip);
+
+
         } else if(stage === 'design_synthesis'){
-            stageContent = this.getContentHavingKeyword(TUTORIAL_CONTENT, "design-synthesis-intro");
+            stageContent = this.getContentsHavingKeyword(TUTORIAL_CONTENT, "design-synthesis-intro");
         }
+
+        // Update the target object
+        this.updateContentObject(stageContent, "tutorial-ifeed-filter-options", d3.select('.filter.options.dropdown').node());
+        this.updateContentObject(stageContent, "tutorial-ifeed-feature-interactive-intro", d3.select('#feature_space_display_options_container').node());
+        this.updateContentObject(stageContent, "tutorial-ifeed-feature-interactive-local-search-1", d3.select('.feature_space_interaction.localSearch.container').node());
+        this.updateContentObject(stageContent, "tutorial-ifeed-feature-interactive-generalization-1", d3.select('.feature_space_interaction.generalization.container').node());
+        this.updateContentObject(stageContent, "tutorial-ifeed-feature-application-interaction-context-menu-generalize-feature-3", document.getElementsByClassName("iziToast-capsule")[0]);
+        this.updateContentObject(stageContent, "design-synthesis-intro-4", d3.select('#instr_options_display').node());
 
         callback = function(targetElement) {
             that.enable_introjs_nextButton();
@@ -410,18 +454,23 @@ class ExperimentTutorial{
             if(that.max_visited_step < this._currentStep){
                 that.max_visited_step = this._currentStep;
             }
-
             if(stageContent[this._currentStep].callback){
                 stageContent[this._currentStep].callback(this._currentStep);
             }
         }
 
+        let progress = null;
         for(let i = 0; i < stageContent.length; i++){
+            if(progressKeyword){
+                if(stageContent[i].name === progressKeyword){
+                    progress = i + 1;
+                }
+            }
             objects.push(stageContent[i].object);
             contents.push(stageContent[i].content);
         }  
 
-        this.start_intro(objects, contents, classname, callback, stage);
+        this.start_intro(objects, contents, classname, callback, stage, progress);
     }
 
     fill_in_keyword_placeholder(stepIndex, keywords, placeholders){
@@ -434,6 +483,9 @@ class ExperimentTutorial{
     }
 
     restore_keyword_placeholder(){
+        if(!this){
+            return;
+        }
         if(this.stashed_stepIndex){
             for(let i = 0; i < this.stashed_keywords.length; i++){
                 this.intro._introItems[this.stashed_stepIndex].intro = this.intro._introItems[this.stashed_stepIndex].intro.replace(this.stashed_keywords[i], this.stashed_placeholders[i]);
@@ -508,28 +560,33 @@ class ExperimentTutorial{
         return out;
     }
 
-    getContentHavingKeyword(content, keyword){
+    getContentsHavingKeyword(contents, keyword){
         let out = [];
-        for(let i = 0; i < content.length; i++){
-            if(content[i].name.indexOf(keyword) !== -1){
-                out.push(content[i]);
+        for(let i = 0; i < contents.length; i++){
+            if(contents[i].name.indexOf(keyword) !== -1){
+                out.push(contents[i]);
             }
         }
         return out;
     }
 
-    findContentByKeyword(content, keyword){
-        let out = [];
-        for(let i = 0; i < content.length; i++){
-            if(content[i].name.indexOf(keyword) !== -1){
-                out = content[i];
+    findContentByKeyword(contents, keyword){
+        let out = null;
+        for(let i = 0; i < contents.length; i++){
+            if(contents[i].name === keyword){
+                out = contents[i];
             }
         }
         return out;
     }
 
+    updateContentObject(contents, keyword, object){
+        let content = this.findContentByKeyword(contents, keyword);
+        if(content){
+            content.object = object;
+        }
+    }
 }
-
 
 
 let tutorial_feature_example_a = "({present[;11;]}||{inOrbit[4;7;]})";

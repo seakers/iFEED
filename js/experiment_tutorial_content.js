@@ -1,14 +1,24 @@
 
 var TUTORIAL_CONTENT = null;
+
 function loadTutorialContent(){
     TUTORIAL_CONTENT = [
         {
-            name: "tutorial-intro-opening",
+            name: "tutorial-intro-opening-general-condition",
             object: null, 
             content: "<p>In this experiment, you will use a web-based data analysis tool called iFEED. "
                     +"It is a program developed to help engineers solve complex system architecting problems. </p>"
                     +"<p>This tutorial will walk you through the capabilities of iFEED and explain how you can use them to analyze data.</p>"
                     +"<p>After this tutorial is finished, you will use the tool to analyze a given dataset. "
+                    +"Then, you will be asked to answer a series of questions to test how much you have learned from analyzing the data. </p>", 
+            callback: null,
+        },
+        {
+            name: "tutorial-intro-opening-design-inspection-only",
+            object: null, 
+            content: "<p>In this experiment, you will first go through a short tutorial about a design problem and the task.</p>"
+                    +"<p>The main task in this experiment is to analyze and finding patterns in a dataset "
+                    +"containing various design alternatives.</p>"
                     +"Then, you will be asked to answer a series of questions to test how much you have learned from analyzing the data. </p>", 
             callback: null,
         },
@@ -26,7 +36,7 @@ function loadTutorialContent(){
         {
             name: "tutorial-intro-task",
             object: undefined,
-            content: "<p>The task at hand deals with architecting a constellation of satellites for Earth observation.</p>"
+            content: "<p>The design problem at hand is architecting a constellation of satellites for Earth observation.</p>"
                     +"<p>Each design consists of multiple satellites carrying different sensors "
                     +"working together to satisfy some measurement requirements related to climate monitoring.</p>",
             callback: null,
@@ -57,13 +67,13 @@ function loadTutorialContent(){
                     +'</table>'
                     +"<p>(LEO = Low Earth Orbit, SSO = Sun-Synchronous Orbit, AM = morning, PM = afternoonm, DD = dawn-dusk, "
                     +"LTAN = Local Time of the Ascending Node)</p>"
-                    +"<p>You can hover the mouse over the each orbit box to view these short descriptions later.</p>",
+                    +"<p>You can hover the mouse over the each orbit box to review these descriptions later.</p>",
             callback: null,
         },
         {
             name: "tutorial-problem-formulation-candidate-instruments",
             object: null,
-            content: "<p>The following is the list of 12 candidate instruments considered in this problem. "+
+            content: "<p>The following is the list of 12 candidate instruments considered in this problem. "
                     +"The instruments have been adapted from the NRC 2007 Earth Science Decadal Survey.</p>"
                     +'<table class="tg">'
                     +'<tr><th class="tg-r87d">Instrument</th><th class="tg-r87d">Description</th></tr>'
@@ -82,7 +92,7 @@ function loadTutorialContent(){
                     +'</table>'
                     +"<p>(SAR = Synthetic Aperture Radar, UV = Ultra Violet, VIS = VISible, SWIR = Short Wave InfraRed, "
                     +"TIR = Thermal InfraRed, IR = InfraRed)</p>"
-                    +"<p>You can hover the mouse over the each instrument box to view these short descriptions later.</p>",
+                    +"<p>You can hover the mouse over the each instrument box to review these descriptions later.</p>",
             callback: null,
         },
         {
@@ -96,8 +106,10 @@ function loadTutorialContent(){
                     +"to different orbits, the science score and the cost may vary significantly.</p>",
             callback: null,
         },
+
+//////////// iFEED ///////////////////////////////////////////////////////////////////////////
         {
-            name: "tutorial-ifeed",
+            name: "tutorial-ifeed-intro-general-condition",
             object: undefined, 
             content: "<p>Now that we have covered the basic information about the problem, "
                     +"we will go over different parts of iFEED and explain how to use it to analyze the data.</p>"
@@ -105,9 +117,16 @@ function loadTutorialContent(){
             callback: null,
         },
         {
+            name: "tutorial-ifeed-intro-design-inspection-only",
+            object: undefined, 
+            content: "<p>Now that we have covered the basic information about the problem, "
+                    +"we will go over the main components of the interface, and explain the task to be performed using the interface.</p>", 
+            callback: null,
+        },
+        {
             name: "tutorial-ifeed-scatter-plot",
             object: d3.select('.tradespace_plot.figure').node(),
-            content: "The main display of iFEED is a scatter plot of different architectures of a satellite system. "
+            content: "The main display is a scatter plot of different architectures of a satellite system. "
                     +"Each dot corresponds to one architecture, and its location indicates the corresponding cost and the scientific benefit.", 
             callback: null,
         },
@@ -140,9 +159,11 @@ function loadTutorialContent(){
                 document.getElementById('tab1').click();
             },
         },
+
+//////////// Filter ///////////////////////////////////////////////////////////////////////////
         {
             name: "tutorial-ifeed-filter-intro-v1",
-            object: null,
+            object: d3.selectAll('#support_panel').node(),
             content: "The filter setting tab allows you to highlight a group of architectures that share the common feature that you define", 
             callback: function(currentStep){
                 document.getElementById('tab2').click();
@@ -150,7 +171,7 @@ function loadTutorialContent(){
         },
         {
             name: "tutorial-ifeed-filter-intro-v2",
-            object: null,
+            object: d3.selectAll('#support_panel').node(),
             content: "Adding new features can be done using the filter setting tab.", 
             callback: function(currentStep){
                 document.getElementById('tab2').click();
@@ -175,11 +196,18 @@ function loadTutorialContent(){
             callback: null,
         },
         {
-            name: "tutorial-ifeed-filter-instrument-options",
+            name: "tutorial-ifeed-filter-instrument-options-no-generalization",
+            object: d3.select('#support_panel').node(),
+            content: "<p>From the dropdown menu, you can select an instrument as an argument to the filter.</p>", 
+            callback: null,
+        },
+        {
+            name: "tutorial-ifeed-filter-instrument-options-with-generalization",
             object: d3.select('#support_panel').node(),
             content: "<p>From the dropdown menu, you can select an instrument as an argument to the filter.</p>"
-                    +"<p>Note that the first 12 options are actual instrument names. You can also specify an instrument class, which "+
-                    "represents one or more instruments. </p>", 
+                    +"<p>Note that the first 12 options are actual instrument names. </p>"
+                    +"<p>You can also select an instrument class, which represents one or more instruments "
+                    +"(e.g. CPR_RAD, VEG_INSAR, and SAR_ALTIM are all radars).</p>", 
             callback: null,
         },
         {
@@ -251,6 +279,8 @@ function loadTutorialContent(){
                 tutorial.fill_in_keyword_placeholder(currentStep, keywords, placeholders);
             }
         }, 
+
+//////////// Feature concept ///////////////////////////////////////////////////////////////////////////
         {
             name: "tutorial-ifeed-feature-intro-v1",
             object: undefined,
@@ -268,7 +298,7 @@ function loadTutorialContent(){
         { 
             name: "tutorial-ifeed-feature-intro-v2",
             object: undefined,
-            content: "<p>Now, we will introduce the term \"feature\". Feature is the description of a pattern that can be found "
+            content: "<p>Now, we introduce the term \"feature\". Feature is a description of a pattern that can be found "
                     +"among the target designs (highlighted in blue). Below are some examples of what features might look like:</p>"
                     +"<ul><li>OCE_SPEC is assigned to LEO-600-polar</li>"
                     +"<li>AERO_LID and CHEM_UVSPEC are assigned together in the same orbit</li>"
@@ -303,8 +333,8 @@ function loadTutorialContent(){
             content: "<p>The architectures currently highlighted in pink and purple represent architectures "
                     +"that \"do not assign HYP_ERB to any orbit\". "
                     +"Let\'s call this feature A.</p>" 
-                    +"<p>The pink dots represent designs that have the feature, but are not in the target region. "
-                    +"The purple dots represent designs that have the feature and are inside the target region (highlighted in blue). </p>"
+                    +"<p>The pink dots represent designs that satisfy this feature, but are not in the target region. "
+                    +"The purple dots represent the overlap between the designs that have the feature and the target region (highlighted in blue). </p>"
                     +"<p>Note that many of the target designs share feature A (as indicated by the large number of purple dots). "
                     +"We say that this feature has a good coverage of target designs. Such good coverage is desired in a good feature.</p>", 
             callback: function(currentStep){
@@ -355,6 +385,8 @@ function loadTutorialContent(){
                     +"Therefore, the key is finding the right balance between those two criteria. </p>", 
             callback: null,
         }, 
+
+//////////// Feature space plot ///////////////////////////////////////////////////////////////////////////
         { 
             name: "tutorial-ifeed-feature-space-plot",
             object: d3.selectAll('#support_panel').node(),
@@ -421,6 +453,8 @@ function loadTutorialContent(){
             content: "Once a feature is clicked, you will see that a cursor appears. "
                     +"The cursor shows where the currently selected feature is located.", 
         }, 
+
+//////////// Feature tree ///////////////////////////////////////////////////////////////////////////
         { 
             name: "tutorial-ifeed-feature-application-node-types",
             object: d3.select('#feature_application').node(),
@@ -434,7 +468,7 @@ function loadTutorialContent(){
                 document.getElementById('tab3').click();
                 experiment.feature_application.update_feature_application("direct-update", tutorial_feature_example_f);
                 let expression = tutorial.feature_application.parse_tree(tutorial.feature_application.data);
-                let ppExpression = tutorial.label.pp_feature_description(expression);
+                let ppExpression = tutorial.label.get_feature_description(expression);
                 let keywords = [ppExpression];
                 let placeholders = ["[PLACEHOLDER]"];
                 tutorial.fill_in_keyword_placeholder(currentStep, keywords, placeholders);
@@ -504,7 +538,7 @@ function loadTutorialContent(){
         { 
             name: "tutorial-ifeed-feature-application-interaction-context-menu-add-child-3",
             object: d3.selectAll('#support_panel').node(),
-            content: "<p>Note that the title (highlighted in red) changed to \"Feature addition mode\". This indicates that when you apply a filter, "
+            content: "<p>Note that the title of the tab (highlighted in red) changed to \"Feature addition mode\". This indicates that when you apply a filter, "
                     +"it will be added as a condition under the selected logical connective node. </p>"
                     +"<p>To add a new condition, simply define a filter and click the button \"Add new condition\".</p>"
                     +"<p>(To continue, define a new filter by clicking \"Add new condition\" button)</p>",
@@ -564,87 +598,45 @@ function loadTutorialContent(){
             }
         },
 
-
-
-
-
-
-
-
-
-
-
-
-        // { 
-        //     name: "tutorial-ifeed-feature-application-interaction-context-menu-generalize-feature",
-        //     object: null,
-        //     content: "<p>Another option that we will explore is called \"Generalize this feature\" option.</p>"
-        //             +"<p>This option triggers a search for a more compact and general knowledge. It may help extracting information "
-        //             +"in a more useful form than what is represented in the current feature.</p>",
-        //     callback: function(currentStep){
-        //         document.getElementById('tab3').click();
-        //         experiment.feature_application.update_feature_application("direct-update", tutorial_feature_example_i);
-        //     }
-        // }, 
-        // { 
-        //     name: "tutorial-ifeed-feature-application-interaction-context-menu-generalize-feature-2",
-        //     object: null,
-        //     content: "<p>To run generalization, you can select either the root node (the leftmost node) or any other nodes.</p>"
-        //             +"<p>When the root node is used to initiate generalization, the search algorithm will use the whole feature. "
-        //             +"When other nodes are used to initiate generalization, the search will be focused on simplifying the selected node. </p>"
-        //             +"<p>To continue, right-click on the root node and select \"Generalize this feature\" option.</p>",
-        //     callback: function(currentStep){
-        //         document.getElementById('tab3').click();
-        //         experiment.feature_application.update_feature_application("direct-update", tutorial_feature_example_i);
-
-        //         let listenerCallback = () => {
-        //             tutorial.intro.exit();
-        //             setTimeout(function() {
-        //                 tutorial.set_tutorial_content("tutorial_end");
-        //             }, 1000);
-        //             return;
-        //         }
-
-        //         tutorial.start_tutorial_event_listener("generalization_suggestion", currentStep, listenerCallback);
-        //         experiment.feature_application.update_feature_application("direct-update", tutorial_feature_example_h);
-        //     }
-        // }, 
-
-
-
-
-
-
-
+//////////// Generalization ///////////////////////////////////////////////////////////////////////////
         { 
-            name: "tutorial-ifeed-feature-application-helper-generalization",
-            object: d3.select('.column.c2').node(),
-            content: "<p>Another helper function that is available for use is generalizing the selected feature by clicking "
-                    +"\"Generalize feature\" button.</p>"
-                    +"<p>This button triggers a search for a more compact and general knowledge. It may help extracting information in a more "
-                    +"useful form than what is represented in the current feature.</p>"
-                    +"<p>To continue, click \"Generalize feature\" button</p>",
+            name: "tutorial-ifeed-feature-application-interaction-context-menu-generalize-feature-1",
+            object: null,
+            content: "<p>Another option that we will explore is called \"Generalize this feature\" option.</p>"
+                    +"<p>This option triggers a search for a more compact and general knowledge. It may help extracting information "
+                    +"in a more useful form than what is represented in the current feature.</p>",
+            callback: function(currentStep){
+                document.getElementById('tab3').click();
+                experiment.feature_application.update_feature_application("direct-update", tutorial_feature_example_i);
+            }
+        }, 
+        { 
+            name: "tutorial-ifeed-feature-application-interaction-context-menu-generalize-feature-2",
+            object: null,
+            content: "<p>To run generalization, you can right-click on any of the nodes and select \"Generalize this feature\" option.</p>"
+                    +"<p>When the root node (the leftmost node) is used to initiate generalization, the search algorithm will use the whole feature. "
+                    +"When other nodes are used to initiate generalization, the search will be focused on simplifying only the selected node. </p>"
+                    +"<p>To continue, right-click on the root node and select \"Generalize this feature\" option.</p>",
             callback: function(currentStep){
                 document.getElementById('tab3').click();
 
                 let listenerCallback = () => {
                     tutorial.intro.exit();
                     setTimeout(function() {
-                        tutorial.set_tutorial_content("tutorial_end");
+                        tutorial.set_tutorial_content("tutorial", "tutorial-ifeed-feature-application-interaction-context-menu-generalize-feature-3");
                     }, 1000);
                     return;
                 }
 
                 tutorial.start_tutorial_event_listener("generalization_suggestion", currentStep, listenerCallback);
-                experiment.feature_application.update_feature_application("direct-update", tutorial_feature_example_h);
+                experiment.feature_application.update_feature_application("direct-update", tutorial_feature_example_i);
             }
         }, 
         {
-            name: "tutorial-ifeed-feature-application-helper-generalization-popup",
+            name: "tutorial-ifeed-feature-application-interaction-context-menu-generalize-feature-3",
             object: document.getElementsByClassName("iziToast-capsule")[0], 
             content: "<p>When the algorithm successfully finds a way to generalize the knowledge "
-                    +"in the current feature, a popup message "
-                    +"will appear as shown.</p>", 
+                    +"in the current feature, a popup message will appear as shown.</p>", 
 
             callback: function(currentStep){
                 // Remove iziToast overlay layer
@@ -662,28 +654,27 @@ function loadTutorialContent(){
                 for(let i = 0; i < buttons.nodes().length; i++){
                     buttons.nodes()[i].disabled = true;
                     buttons.select('b').style("opacity", "0.2");
-
                 }
             },
         },
-
-
-
         { 
-            name: "tutorial-ifeed-feature-application-helper-generalization-popup-2",
+            name: "tutorial-ifeed-feature-application-interaction-context-menu-generalize-feature-4",
             object: null,
-            content: "<p>The suggestion here is to generalize the knowledge by replacing instruments AERO_LID and HYP_IMAG "
-                    +"to the concept \"Instrument that is capable of taking measurements related to vegetation (e.g. type, structure, leaf are)\"</p>"
-                    +"<p>This generalization can be made as both instruments take measurements such as leaf area index.</p>",
+            content: "<p>The popup shows different suggestions on how the current feature may be "
+                    +" simplified by generalizing the knowledge represented by it."
+                    +"<p>For example, the notion that \"AERO_POL and HYP_IMAG should not be assigned to SSO-800-DD orbit\" "
+                    +"may be generalized to \"Low-power instruments should not be assigned to SSO-800-DD orbit\" "
+                    +"(AERO_POL and HYP_IMAG both have low power requirements). </p>",
         }, 
         { 
-            name: "tutorial-ifeed-feature-application-helper-generalization-popup-3",
+            name: "tutorial-ifeed-feature-application-interaction-context-menu-generalize-feature-5",
             object: null,
-            content: "<p>You can either accept the suggestion or reject it, depending on whether you think the suggested generalization "
-                    +"is useful or not. For now, click \"Accept\" to continue.</p>",
+            content: "<p>Among the suggested generalizations, you can select the one that seems to be the most useful. "
+                    +"You may also choose to not accept any of the suggestions.</p>"
+                    +"<p>To continue, click one of the suggestions provided.</p>",
             
             callback: function(currentStep){
-                tutorial.start_tutorial_event_listener("generalization_accept", currentStep);
+                tutorial.start_tutorial_event_listener("generalization_selected", currentStep);
 
                 let buttons = d3.selectAll(".iziToast-buttons-child.revealIn");
                 for(let i = 0; i < buttons.nodes().length; i++){
@@ -693,28 +684,25 @@ function loadTutorialContent(){
             }
         },
         { 
-            name: "tutorial-ifeed-feature-application-helper-generalization-outcome",
+            name: "tutorial-ifeed-feature-application-interaction-context-menu-generalize-feature-5-delay",
+            object: null,
+            content: "",
+            callback: function(currentStep){
+                setTimeout(function() {
+                    tutorial.intro.exit();
+                    tutorial.set_tutorial_content("tutorial", "tutorial-ifeed-feature-application-interaction-context-menu-generalize-feature-6");
+                }, 1000);
+                return;
+            }
+        },
+        { 
+            name: "tutorial-ifeed-feature-application-interaction-context-menu-generalize-feature-6",
             object: d3.select('#feature_application_panel').node(),
-            content: "<p>Note that a new node with generalized variable is added to the current feature. </p>"
-                    +"<p>Generalization of knowledge may be helpful in finding useful knowledge that is otherwise very hard to identify.</p>",
+            content: "<p>Note that the generalization is applied to the current feature. </p>"
+                    +"<p>Generalization of knowledge may be helpful in finding useful knowledge that may otherwise be difficult to identify.</p>",
         }, 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+//////////// End Generalization ///////////////////////////////////////////////////////////////////////////
         { 
             name: "tutorial-ifeed-feature-application-interaction-context-menu-other",
             object: null,
@@ -722,92 +710,95 @@ function loadTutorialContent(){
                     +"These options are used to add a parent node, deactivate the current node, and to delete the node, respectively. </p>"
                     +"<p>You can try different options later, as you use the interactive graph during the task.</p>",
         }, 
+
+//////////// Interactive search ///////////////////////////////////////////////////////////////////////////
         { 
-            name: "tutorial-ifeed-feature-application-helper",
-            object: d3.select('#feature_expression_panel').node(), 
-            content: "<p>While you can test different features by manually modifying the feature, "
-                    +"there are also automatic helper functions "
-                    +"that improve the currently selected feature. </p>",
+            name: "tutorial-ifeed-feature-interactive-intro",
+            object: d3.select('#feature_space_display_options_container').node(), 
+            content: "<p>While you can test different features by manually modifying features, "
+                    +"there are also automatic helper functions that improve the currently selected feature. </p>",
             callback: function(currentStep){
                 document.getElementById('tab3').click();
                 experiment.feature_application.clear_feature_application();
-                experiment.feature_application.update_feature_application("direct-update", tutorial_feature_example_g);
             }
         }, 
         { 
-            name: "tutorial-ifeed-feature-application-helper-local-search",
-            object: d3.select('.column.c2').node(),
-            content: "<p>Once a feature has been selected, you can click either \"Improve specificity\", or \"Improve coverage\" button to "
-                    +"improve one of the metrics. </p>"
-                    +"<p>\"Improve specificity\" button improves specificity by adding a new condition using AND (conjucntion), "
-                    +"while \"Improve coverage\" improves coverage by adding a new condition using OR (disjunction). </p>"
-                    +"<p>The current feature has good coverage and poor specificity. So, try clicking \"Improve specificity\" button.</p>",
+            name: "tutorial-ifeed-feature-interactive-local-search-1",
+            object: d3.select('.feature_space_interaction.localSearch.container').node(),
+            content: "<p>First, you can turn on the \"Auto search\" option.</p>"
+                    +"<p>While it is on, a data mining search will be initiated whenever you select (click) a feature. </p>"
+                    +"<p>The data mining algorithm will add an additional base feature and improve either "
+                    +"the specificity or the coverage of the selected feature.</p>"
+                    +"<p>To continue, turn on the \"Auto search\" option.</p>",
             callback: function(currentStep){
                 document.getElementById('tab3').click();
-                tutorial.start_tutorial_event_listener("local_search_conjunctive", currentStep);
+                experiment.feature_application.clear_feature_application();
+                tutorial.start_tutorial_event_listener("local_search_on", currentStep);
             }
         }, 
         { 
-            name: "tutorial-ifeed-feature-application-helper-local-search-2",
+            name: "tutorial-ifeed-feature-interactive-local-search-2",
             object: d3.selectAll('#support_panel').node(),
-            content: "<p>Note that some crosses appeared in the plot. If there are features that improve the current feature, "
-                    +"they will appear in the Feature plot as crosses.</p>"
-                    +"<p>You can use these helper functions to improve coverage and specificity of a feature up to a certain level. </p>"
-                    +"<p>To continue, click one of the newly tested features (crosses)</p>",
+            content: "<p>Now try selecting a feature in the feature space plot.</p>",
             callback: function(currentStep){
                 document.getElementById('tab3').click();
-                tutorial.start_tutorial_event_listener("new_feature_clicked", currentStep);
+                tutorial.start_tutorial_event_listener("feature_clicked", currentStep);
             }
         }, 
         { 
-            name: "tutorial-ifeed-feature-application-helper-local-search-3",
-            object: d3.select('#feature_application').node(),
-            content: "<p>If you compare this feature to the previous one, the condition [PLACEHOLDER] has just been added. </p>"
-                    +"Similarly, \"Improve coverage\" may be used to improve the coverage of a feature by adding new conditions under OR. </p>",
+            name: "tutorial-ifeed-feature-interactive-local-search-3",
+            object: d3.selectAll('#support_panel').node(),
+            content: "<p>Note that some crosses appeared in the plot. These crosses represent new features "
+                    +"that are obtained by adding a new condition to the selected feature.</p>"
+                    +"<p>You can use the auto search in iterative manner, in order to explore the feature space quickly. </p>",
             callback: function(currentStep){
                 document.getElementById('tab3').click();
-                let feature_application = experiment.feature_application;
-                let previousFeature = feature_application.construct_tree(feature_application, tutorial_feature_example_g);
-                let newFeature = feature_application.data;
-
-                let addedBaseFeature = null;
-                feature_application.visit_nodes(newFeature, (d1) => {
-                    let matchFound = false;
-                    feature_application.visit_nodes(previousFeature, (d2) => {
-                        if(d1.name === d2.name){
-                            matchFound = true;
-                            return;
-                        }
-                    })
-                    if(!matchFound){
-                        addedBaseFeature = d1;
-                    }
-                })
-                let ppExpression = experiment.label.pp_feature_single(addedBaseFeature.name);
-
-                let keywords = [ppExpression, ppExpression];
-                let placeholders = ["[PLACEHOLDER]", "[PLACEHOLDER]"];
-                tutorial.fill_in_keyword_placeholder(currentStep, keywords, placeholders);
+            }
+        }, 
+        { 
+            name: "tutorial-ifeed-feature-interactive-local-search-4",
+            object: d3.selectAll('#support_panel').node(),
+            content: "However, as the search algorithm is greedy, the improvements in coverage and specificity "
+                    +"that can be achieved using this approach is limited."
+                    +"<p>A recommended strategy is to start from a feature with good coverage, and progressively improve specificity"
+                    +" using the auto search.</p>"
+                    +"<p>Note that as you run auto search iteratively, old features will become faint or deleted to prevent "
+                    +"the plot from being too cluttered.</p>",
+            callback: function(currentStep){
+                document.getElementById('tab3').click();
+            }
+        }, 
+        { 
+            name: "tutorial-ifeed-feature-interactive-generalization-1",
+            object: d3.select('.feature_space_interaction.generalization.container').node(), 
+            content: "<p>Another helper function is called \"Generalization suggestions.\" </p>"
+                    +"<p>While this option is on, generalization search will be initiated whenever you select (click)"
+                    +" a feature. </p>"
+                    +"<p>While the final outcome is equivalent to initiating the generalization search manually from the feature graph, "
+                    +"This option allows running generalization on the background without the user having to initiate the search.</p>",
+            callback: function(currentStep){
+                document.getElementById('tab3').click();
+                experiment.feature_application.clear_feature_application();
             }
         }, 
 
-
-
-
-
-
-
-
-
-
-
+//////////// Closing ///////////////////////////////////////////////////////////////////////////
 
         { 
-            name: "tutorial-ifeed-closing",
+            name: "tutorial-ifeed-closing-general-condition",
             object: undefined,
             content: "<p>We just covered all the capabilities of iFEED, and now you are ready to start the experiment. </p>"
                     +"<p>The first part of the experiment will be conducted on a separate window, which will be loaded automatically "
                     +"after clicking the next button below.</p>",
+        },  
+        { 
+            name: "tutorial-ifeed-closing-design-inspection-only",
+            object: undefined,
+            content: "<p>Your goal in this experiment is to identify and learn as many features as possible that have good "
+                    +"coverage and specificity. </p>"
+                    +"<p>To make it easier to see how different orbits and instruments are related, "
+                    +"we provide a visualization of the relevant concepts used in this problem. </p>"
+                    +"<p>Clicking the next button below will load the visualization.</p>",
         },  
         { 
             name: "tutorial-open-concept-map",
@@ -818,13 +809,25 @@ function loadTutorialContent(){
             }
         },
 
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////
+//////////// Learning Task ///////////////////////////////////////////////////////////////////////////
         { 
-            name: "learning-task-intro",
+            name: "learning-task-intro-1-general-condition",
             object: undefined,
             content: "<p>In this step, you are given 30 minutes to analyze a dataset which is generated from running a "
                     +"multi-objective optimization algorithm.</p>"
                     +"<p>Your goal is to identify and record as many features as possible that are shared by the target designs.</p>" // 0
                     +"<p>Use the interactive concept graph provided in a separate window to record any interesting features that you find.</p>",
+        }, 
+        { 
+            name: "learning-task-intro-1-design-inspection-only",
+            object: undefined,
+            content: "<p>In this step, you are given 30 minutes to analyze a dataset which is generated from running a "
+                    +"multi-objective optimization algorithm.</p>"
+                    +"<p>Your goal is to identify and record as many features as possible that are shared by the target designs.</p>" // 0
+                    +"<p>You can write down any notes on the paper provided by the experimenter.</p>"
+                    +"<p>If you haven't received a piece of paper, please ask the experiment to provide one.</p>",
         }, 
         { 
             name: "learning-task-intro-2",
@@ -835,11 +838,21 @@ function loadTutorialContent(){
                     +"<p>Few sample questions are provided in a separate window (will be loaded automatically when you click next)</p>",
         },
         { 
-            name: "learning-task-intro-3",
+            name: "learning-task-intro-3-general-condition",
             object: undefined,
             content: "<p>As you answer the questions, you will only have access to the information you record in the interactive graph "
                     +"(separate window), and you will not be able to use iFEED.</p>"
                     +"<p>Therefore, try to record as much information as possible on the interactive graph.</p>",
+            callback: function(){
+                window.open("https://cornell.qualtrics.com/jfe/form/SV_bvZxj19eEYDWr5j");
+            }
+        },
+        { 
+            name: "learning-task-intro-3-design-inspection-only",
+            object: undefined,
+            content: "<p>As you answer the questions, you will only have access to the note you write on the paper, "
+                    +"and you will not have any access to the actual data.</p>"
+                    +"<p>Therefore, try to record as much information as possible during this task.</p>",
             callback: function(){
                 window.open("https://cornell.qualtrics.com/jfe/form/SV_bvZxj19eEYDWr5j");
             }
@@ -858,8 +871,11 @@ function loadTutorialContent(){
                     +"<p>Please copy the participant ID (<b>"+ experiment.participantID +"</b>) "
                     +"and paste it into the survey page, which will be loaded when you click the finish button below</p>",
         },
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////
+//////////// Feature Synthesis Task //////////////////////////////////////////////////////////////////
         { 
-            name: "feature-synthesis-intro",
+            name: "feature-synthesis-intro-1-general-condition",
             object: null,
             content: "<p>In this step, you are asked to create your own features based on what you have learned "
                     +"during the data analysis session.</p>",
@@ -868,22 +884,57 @@ function loadTutorialContent(){
             }
         }, 
         { 
+            name: "feature-synthesis-intro-1-design-inspection-only",
+            object: null,
+            content: "<p>In this step, you are asked to specify the features you found during the data analysis session.</p>"
+                    +"<p>You will use the graphical user interface to input and submit features. </p>",
+            callback: function(){
+                document.getElementById('tab3').click();
+            }
+        }, 
+        { 
             name: "feature-synthesis-intro-2",
             object: d3.selectAll('#support_panel').node(),
-            content: "<p>The task here is to find the feature that has good coverage and good specificity.</p>"
+            content: "<p>The goal in this part of the experiment is to define the feature that has good coverage and good specificity.</p>"
                     +"<p>In other words, try to reach the top-right corner of this plot by adding new features.</p>",
             callback: function(){
                 document.getElementById('tab3').click();
             }
         }, 
         {
-            name: "feature-synthesis-intro-filter-setting",
-            object: null,
-            content: "<p>As before, you can define new features using the Filter Setting tab</p>",
+            name: "feature-synthesis-intro-filter-setting-v1",
+            object: d3.select('#support_panel').node(),
+            content: "<p>As before, you can define new features using the Filter Setting tab.</p>",
             callback: function(){
                 document.getElementById('tab2').click();
             }
         },  
+        {
+            name: "feature-synthesis-intro-filter-setting-generalized-variables-intro",
+            object: d3.select('#support_panel').node(),
+            content: "<p>As before, you can define new features using the Filter Setting tab.</p>"
+                    +"<p>This time, however, you have more options to choose from when selecting arguments for a feature. </p>"
+                    +"<p>To see this, select a filter called \"InOrbit\".</p>",
+            callback: function(currentStep){
+                document.getElementById('tab2').click();
+                tutorial.start_tutorial_event_listener("filter_select_inOrbit", currentStep);
+            }
+        },  
+        {
+            name: "feature-synthesis-intro-filter-setting-generalized-variables-intro-2",
+            object: d3.select('#support_panel').node(),
+            content: "<p>View the dropdown menu options for instrument.</p>"
+                    +"<p>Note that there exist more than 12 options. The additional options represent different instrument classes, which represent one or more instruments "
+                    +"(e.g. CPR_RAD, VEG_INSAR, and SAR_ALTIM are all radars).</p>"
+                    +"<p>Similarly, you can also select an orbit class as an argument to the feature InOrbit.</p>", 
+            callback: null,
+        },
+        {
+            name: "feature-synthesis-intro-filter-setting-generalized-variables-intro-3",
+            object: d3.select('#support_panel').node(),
+            content: "<p>These variable class arguments may be used to represent information more compactly.</p>", 
+            callback: null,
+        },
         { 
             name: "feature-synthesis-intro-start",
             object: undefined,
@@ -900,6 +951,9 @@ function loadTutorialContent(){
                 document.getElementById('tab3').click();
             }
         },
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////
+//////////// Design Synthesis Task ///////////////////////////////////////////////////////////////////
         { 
             name: "design-synthesis-intro",
             object: null,

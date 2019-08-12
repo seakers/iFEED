@@ -24,10 +24,6 @@ class EOSSAssigningFilter extends Filter{
                                 {value:"emptyOrbit_except",text:"EmptyOrbit + Exception",input:"emptyOrbit_except", hints:"Selects designs whose orbit [ORBIT] is empty, with an exception"},
                                 {value:"notInOrbit_except",text:"NotInOrbit + Exception",input:"notInOrbit_except", hints:"Selects designs that do NOT assign {[INSTRUMENT]} to [ORBIT], with an exception"},
                                 {value:"separate_except",text:"Separate + Exception",input:"separate_except", hints:"Selects designs that never assign {[INSTRUMENT]} to the same orbit, with an exception"},
-
-                                // {value:"absentExceptInOrbit",text:"absentExceptInOrbit",input:"orbitAndInstInput",hints:""},
-                                // {value:"notInOrbitExceptInstrument",text:"notInOrbitExceptInstrument",input:"orbitAndMultipleInstInput",hints:""},
-                                // {value:"notInOrbitExceptOrbit",text:"notInOrbitExceptOrbit",input:"multipleOrbitAndInstInput",hints:""},
                             ];  
 
         for (let i = 0; i < presetFeaturesInfo.length; i++){
@@ -191,10 +187,47 @@ class EOSSAssigningFilter extends Filter{
             this.reset_variable_options();
         });
 
+        // EXPERIMENT
+        PubSub.subscribe(EXPERIMENT_SET_MODE, (msg, data) => {
+            this.experimentCondition = data.condition;
+            this.experimentStage = data.stage;
+            this.experimentGeneralizationEnabled = data.generalization; 
+            this.reset_variable_options();
+        }); 
+
         this.define_filter_functions();
     }
 
     reset_variable_options(){
+
+        // EXPERIMENT
+        if(this.experimentStage){
+            if(this.experimentGeneralizationEnabled || (this.experimentStage !== "learning"  && this.experimentStage !== "tutorial")){
+                this.instrumentInputOptions = JSON.parse(JSON.stringify(this.label.instrument_relabeled));
+                if(this.label.instrument_relabeled.length > this.label.instrument_list.length){
+                    this.instrumentInputOptions.splice(this.label.instrument_list.length, 0, "--- Instrument Classes ---");
+                }
+                this.orbitInputOptions = JSON.parse(JSON.stringify(this.label.orbit_relabeled));
+                if(this.label.orbit_relabeled.length > this.label.orbit_list.length){
+                    this.orbitInputOptions.splice(this.label.orbit_list.length, 0, "--- Orbit Classes ---");
+                }
+
+            }else{ // No generalized variable
+                this.instrumentInputOptions = [];
+                this.orbitInputOptions = [];
+                for(let i = 0; i < this.label.instrument_list.length; i++){
+                    this.instrumentInputOptions.push(this.label.instrument_relabeled[i]);
+                }
+                for(let i = 0; i < this.label.orbit_list.length; i++){
+                    this.orbitInputOptions.push(this.label.orbit_relabeled[i]);
+                }
+            }
+
+            this.instrumentInputOptions.unshift('select');
+            this.orbitInputOptions.unshift('select');
+            return;
+        }
+
         this.instrumentInputOptions = JSON.parse(JSON.stringify(this.label.instrument_relabeled));
         if(this.label.instrument_relabeled.length > this.label.instrument_list.length){
             this.instrumentInputOptions.splice(this.label.instrument_list.length, 0, "--- Instrument Classes ---");

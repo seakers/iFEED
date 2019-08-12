@@ -76,6 +76,11 @@ class ContextMenu {
                     'margin':0.15,
                     'scaled':false}
         };
+
+        // EXPERIMENT
+        this.experimentStage = feature_application.experimentStage;
+        this.experimentCondition = feature_application.experimentCondition;;
+        this.experimentGeneralizationEnabled = feature_application.experimentGeneralizationEnabled;;
     }    
 
     showMenu (context, coord) {
@@ -218,7 +223,35 @@ class ContextMenu {
             }   
         }
 
- 
+        // EXPERIMENT
+        if(this.experimentStage){ // Remove option to interactively generalize a feature
+            let removeGeneralizationOption = false;
+            if(!this.experimentGeneralizationEnabled){
+                removeGeneralizationOption = true;
+            } else {
+                if(this.experimentStage !== "tutorial" && this.experimentStage !== "learning"){
+                    removeGeneralizationOption = true;
+                }
+
+                if(this.experimentCondition.indexOf("interactive") === -1){
+                    removeGeneralizationOption = true;
+                }
+            }
+
+            if(removeGeneralizationOption){
+                let index = null;
+                for(let i = 0; i < items.length; i++){
+                    if(items[i].value === 'generalizeFeature'){
+                        index = i;
+                        break;
+                    }
+                }
+                if(index){
+                    items.splice(index,1);
+                } 
+            }
+        }
+
         let size;
         if(type === "logic" && logic === "IF_THEN"){
             size = this.contextMenuSize["ifThen"];

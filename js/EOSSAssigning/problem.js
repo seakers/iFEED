@@ -113,13 +113,13 @@ class EOSSAssigning extends Problem{
 
         // EXPERIMENT
         PubSub.subscribe(EXPERIMENT_SET_MODE, (msg, data) => {
-            if(data === "design_synthesis"){
+            if(data.stage === "design_synthesis"){
                 if(this._display_arch_info){
                     this.display_arch_info = this._display_arch_info;
                     this._display_arch_info = null;
                 }
 
-                this.experimentMode = data;
+                this.experimentStage = data.stage;
                 this.display_instrument_options();
 
                 let emptyBitString = "";
@@ -134,12 +134,11 @@ class EOSSAssigning extends Problem{
                     .text("Drag instruments to empty orbit slots to build and evaluate new designs")
                     .style('font-size','20px');
             
-            }else if(data === "feature_synthesis"){
-                this.experimentMode = data;
+            }else if(data.stage === "feature_synthesis"){
+                this.experimentStage = data.stage;
                 this._display_arch_info = this.display_arch_info;
                 this.display_arch_info = () => {};
             }
-
         });  
     }
     
@@ -340,8 +339,8 @@ class EOSSAssigning extends Problem{
             });
 
         // EXPERIMENT
-        if(typeof this.experimentMode !== "undefined" && this.experimentMode !== null){
-            if(this.experimentMode === "design_synthesis"){
+        if(typeof this.experimentStage !== "undefined" && this.experimentStage !== null){
+            if(this.experimentStage === "design_synthesis"){
                 this.enable_modify_architecture();
             }
         }

@@ -23,16 +23,40 @@ class Experiment{
             alert("No action set up!");
         };
 
+        // Set tutorial as the first stage by default
         this.stage = "tutorial";
 
         // Set treatment condition
+        this.treatmentCondition = null;
+        this.treatmentConditionName = null;
+        this.generalizationEnabled = false;
+
         if(typeof treatmentCondition === "undefined" || treatmentCondition === null){
             let min = 0; 
-            let max = 4;  
+            let max = 6;  
             let randomInt = Math.floor(Math.random() * (+max - +min)) + +min; 
             this.treatmentCondition = randomInt;
         }else{
             this.treatmentCondition = treatmentCondition
+        }
+
+        if(this.treatmentCondition === 0){
+            this.treatmentConditionName = "design_inspection";
+        } else if (this.treatmentCondition === 1){
+            this.treatmentConditionName = "manual";
+        } else if (this.treatmentCondition === 2){
+            this.treatmentConditionName = "automated";
+        } else if(this.treatmentCondition === 3){
+            this.treatmentConditionName = "interactive";
+        } else if (this.treatmentCondition === 4){
+            this.treatmentConditionName = "manual_generalization";
+        } else if (this.treatmentCondition === 5){
+            this.treatmentConditionName = "automated_generalization";
+        } else if(this.treatmentCondition === 6){
+            this.treatmentConditionName = "interactive_generalization";
+        }
+        if(this.treatmentCondition > 3){
+            this.generalizationEnabled = true;
         }
 
         // Participant-specific info store
@@ -71,7 +95,14 @@ class Experiment{
     }
 
     remove_unncessary_filters(){
-        let filtersToBeRemoved = ["paretoFront", "absentExceptInOrbit", "notInOrbitExceptInstrument", "notInOrbitExceptOrbit"];
+        let filtersToBeRemoved = ["paretoFront"];
+
+        // EXPERIMENT
+        if(this.generalizationEnabled){
+            // pass
+        } else {
+            // pass
+        }
 
         d3.select('.filter.options.dropdown')
             .selectAll('option')
@@ -122,7 +153,7 @@ class Experiment{
 
         // Load treatment condition
         setTimeout(function() {
-            that.load_treatment_condition(false);
+            that.load_treatment_condition();
         }, 1500)
     }
 
@@ -213,13 +244,12 @@ class Experiment{
         d3.select("#tab3").text('Feature Analysis');
         this.data_mining.initialize();
 
-        d3.select('#conjunctive_local_search').remove();
-        d3.select('#disjunctive_local_search').remove();
-        d3.select('#generalize_feature').remove();
+        d3.select("#feature_space_display_options_container").remove();
 
         this.select_archs_using_ids(fuzzy_pareto_front_8_mid_538);
 
-        PubSub.publish(EXPERIMENT_SET_MODE, this.stage);
+        let mode = {condition: this.treatmentConditionName, stage: this.stage, generalization: this.generalizationEnabled};
+        PubSub.publish(EXPERIMENT_SET_MODE, mode);  
     }
 
     start_feature_synthesis_task(){
@@ -316,7 +346,8 @@ class Experiment{
         d3.select("#tab3").text('-');
         d3.select("#view3").selectAll('g').remove();
 
-        PubSub.publish(EXPERIMENT_SET_MODE, this.stage);
+        let mode = {condition: this.treatmentConditionName, stage: this.stage, generalization: this.generalizationEnabled};
+        PubSub.publish(EXPERIMENT_SET_MODE, mode);  
     }
 
     start_design_synthesis_task(){
@@ -432,13 +463,6 @@ class Experiment{
             .text("Participant ID: " + this.participantID);
     }
 
-    set_treatment_conditions(condition){
-        this.treatmentCondition = condition;
-        this.participantID = this.generate_participant_id();
-        this.display_participant_id();
-        PubSub.publish(EXPERIMENT_CONDITION_CHANGE, this.participantID); 
-    }
-
     generate_participant_id(){
         let out = "";
         for(let i = 0; i < 10; i++){
@@ -451,26 +475,8 @@ class Experiment{
         return out;
     }
 
-    load_treatment_condition(isTutorial){
-        let treatmentConditionName = null;
-
-        if(this.treatmentCondition === 0){
-            treatmentConditionName = "manual_generalization";
-            d3.select("#feature_space_display_options_container").remove();
-
-        } else if (this.treatmentCondition === 1){
-            treatmentConditionName = "automated_generalization";
-            // Disable filter
-            d3.select("#tab2").text('-');
-            d3.select("#view2").selectAll('g').remove();
-            d3.select("#feature_space_display_options_container").remove();
-
-        } else if (this.treatmentCondition === 2){
-            treatmentConditionName = "interactive_generalization";
-
-        } else if(this.treatmentCondition === 3){
-            treatmentConditionName = "design_inspection_only";
-
+    load_treatment_condition(){
+        if(this.treatmentConditionName === "design_inspection"){
             // Disable filter
             d3.select("#tab2").text('-');
             d3.select("#view2").selectAll('g').remove();
@@ -478,65 +484,27 @@ class Experiment{
             // Disable feature analysis tab
             d3.select("#tab3").text('-');
             d3.select("#view3").selectAll('g').remove();
+
+        } else if (this.treatmentConditionName.indexOf("manual") !== -1){
+            d3.select("#feature_space_display_options_container").remove();
+
+        } else if (this.treatmentConditionName.indexOf("automated") !== -1){
+            // Disable filter
+            d3.select("#tab2").text('-');
+            d3.select("#view2").selectAll('g').remove();
+            d3.select("#feature_space_display_options_container").remove();
+
+        } else if(this.treatmentConditionName.indexOf("interactive") !== -1){
+            // Do nothing
         }
 
-        if(isTutorial){
-            treatmentConditionName = "tutorial_" + treatmentConditionName;
-        }
-        PubSub.publish(EXPERIMENT_SET_MODE, treatmentConditionName);  
+        let mode = {condition: this.treatmentConditionName, stage: this.stage, generalization: this.generalizationEnabled};
+        PubSub.publish(EXPERIMENT_SET_MODE, mode);  
     }
 
     save_data(data){
         let filename = this.participantID + "-" + this.stage + ".json";;        
         this.saveTextAsFile(filename, JSON.stringify(data));
-    }
-
-
-
-
-
-    _print_experiment_summary_OUTDATED(){
-
-        // task_order, condition_order, account_id
-        // orbitOrder, instrOrder
-
-        let path = "";
-        let filename = path + that.account_id + '.csv';
-
-        let printout = [];
-
-        let header = ['account_id','condition','task','design_viewed','feature_viewed',
-        'new_design_evaluated','design_local_search','conjunctive_local_search','disjunctive_local_search',
-        'new_feature_tested','best_features_found'];
-
-        header = header.join(',');
-        
-        printout.push(header);
-
-        for(let i=0;i<2;i++){
-
-            let row = [];
-            
-            let condition = that.condition_order[i];
-            let task = that.task_order[i];
-
-            row = row.concat([that.account_id,condition,task]);
-            row = row.concat([that.store_design_viewed[i],
-                           that.store_feature_viewed[i],
-                           that.store_new_design_evaluated[i],
-                            that.store_design_local_search[i],
-                            that.store_conjunctive_local_search[i],
-                            that.store_disjunctive_local_search[i],
-                            that.store_new_feature_tested[i],
-                            that.store_best_features_found[i]
-                           ]);
-
-            row = row.join(",");
-            printout.push(row);
-        }
-
-        printout = printout.join('\n');
-        saveTextAsFile(filename, printout);
     }
 
     saveTextAsFile(filename, inputText){

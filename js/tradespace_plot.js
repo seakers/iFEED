@@ -89,7 +89,7 @@ class TradespacePlot{
 
         // EXPERIMENT
         PubSub.subscribe(EXPERIMENT_SET_MODE, (msg, data) => {
-            if(data === "design_synthesis"){
+            if(data.stage === "design_synthesis"){
                 if(fuzzy_pareto_front_8_mid_538_list){
                     this.data.forEach( (point) => {
                         if(fuzzy_pareto_front_8_mid_538_list.indexOf(point.id) !== -1){

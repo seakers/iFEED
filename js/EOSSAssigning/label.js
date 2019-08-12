@@ -507,7 +507,7 @@ class EOSSAssigningLabel extends Label{
                 save = false;
                 savedString = savedString + '}';
                 let feature_expression = savedString;
-                output = output + this.pp_feature_description_single(feature_expression);
+                output = output + this.get_feature_description_single(feature_expression);
             } else {
                 if(save){
                     savedString = savedString + expression[i];
