@@ -168,7 +168,6 @@ class ExperimentTutorial{
             })
             .style('color','red');
 
-
         // Disable SKIP button until it reaches the last step
         if(messages.length > 1){
             $('.introjs-skipbutton').hide();
@@ -449,7 +448,14 @@ class ExperimentTutorial{
             that.enable_introjs_nextButton();
             that.restore_keyword_placeholder();
             that.current_step = this._currentStep;
-            that.set_introjs_moveButtonCallback(this._currentStep);
+
+            let skipPrevStep = false;  
+            if(this._currentStep !== 0){
+                if(stageContent[this._currentStep - 1].name.indexOf("_delay_") !== -1){
+                    skipPrevStep = true;
+                }
+            }
+            that.set_introjs_moveButtonCallback(this._currentStep, skipPrevStep);
 
             if(that.max_visited_step < this._currentStep){
                 that.max_visited_step = this._currentStep;
@@ -512,13 +518,16 @@ class ExperimentTutorial{
         }
     }
 
-    set_introjs_moveButtonCallback(currentStep){
+    set_introjs_moveButtonCallback(currentStep, skipPrevStep){
         if(!$('.introjs-nextbutton').get(0) || !$('.introjs-prevbutton').get(0)){
             return;
         }
         let that = this;
         let nextStep = currentStep + 1;
         let prevStep = currentStep - 1;
+        if(skipPrevStep){
+            prevStep = prevStep - 1;
+        }
         let max = this.intro._introItems.length - 1;
         let min = 0;
 

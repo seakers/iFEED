@@ -684,7 +684,7 @@ function loadTutorialContent(){
             }
         },
         { 
-            name: "tutorial-ifeed-feature-application-interaction-context-menu-generalize-feature-5-delay",
+            name: "tutorial-ifeed-feature-application-interaction-context-menu-generalize-feature-5_delay_",
             object: null,
             content: "",
             callback: function(currentStep){

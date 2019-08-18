@@ -33,6 +33,7 @@ class DataMining{
         this.allFeatures = [];
         this.stashedFeatures = [];
         this.recentlyAddedFeatureIDs = [];
+        this.localSearchInitiatedFromGeneralization = false;
         this.localSearchOn = false;
         this.generalizationOn = false;
 
@@ -120,14 +121,21 @@ class DataMining{
                     this.display_features([]);
 
                 } else if(this.experimentCondition.indexOf("automated") !== -1){
-                    this.import_feature_data("6655_AOSMOEA_GP_fuzzy8_24_7500_3", false, true);
+                    if(this.experimentGeneralizationEnabled){
+                        this.import_feature_data("6655_AOSMOEA_ruleset_fuzzy8_24_7500", false, true);
+                    }else{
+                        this.import_feature_data("6655_epsilonMOEA_ruleset_fuzzy8_24_7500", true, false);
+                    }                    
 
                 } else if(this.experimentCondition.indexOf("interactive") !== -1){
                     this.import_feature_data("6655_epsilonMOEA_ruleset_fuzzy8_24_7500", true, false);
-                    this.localSearchOn = true;
-                    this.generalizationOn = true;
+                    
                     if(d3.select('.feature_space_interaction.localSearch.toggle').node()){
+                        this.localSearchOn = true;
                         d3.select('.feature_space_interaction.localSearch.toggle').node().checked = true;
+                    }
+                    if(d3.select('.feature_space_interaction.generalization.toggle').node()){
+                        this.generalizationOn = true;
                         d3.select('.feature_space_interaction.generalization.toggle').node().checked = true;
                     }
                 }
@@ -170,7 +178,7 @@ class DataMining{
                             if(content.searchMethod === "localSearch"){
                                 that.add_and_remove_features(content.features);
 
-                                if(that.generalizationOn){
+                                if(that.generalizationOn && !that.localSearchInitiatedFromGeneralization){
                                     //Start new generalization search
                                     that.generalize_feature(that.currentFeature.name);
                                 }
@@ -390,6 +398,8 @@ class DataMining{
         this.get_marginal_driving_features(selected, non_selected, baseline_feature, logic);
 
         PubSub.publish(CANCEL_ADD_FEATURE, null);   
+
+        this.localSearchInitiatedFromGeneralization = false;
     }
 
     get_driving_features_with_generalization(selected, non_selected){
@@ -637,18 +647,17 @@ class DataMining{
             }
         }
 
-
-        // let feature_complexity_range_filter = feature_space_display_options_container.append('div')
-        //         .attr('class', 'feature_complexity_range_filter container')
-        // feature_complexity_range_filter.append('div')
-        //         .attr('class', 'feature_complexity_range_filter minRange')
-        //         .text('Min complexity: ')
-        //         .append('select');
-        // feature_complexity_range_filter.append('div')
-        //         .attr('class', 'feature_complexity_range_filter maxRange')        
-        //         .text('Max complexity: ')
-        //         .append('select');
-        // this.complexityFilterThresholds = null;
+        let feature_complexity_range_filter = feature_space_display_options_container.append('div')
+                .attr('class', 'feature_complexity_range_filter container')
+        feature_complexity_range_filter.append('div')
+                .attr('class', 'feature_complexity_range_filter minRange')
+                .text('Min complexity: ')
+                .append('select');
+        feature_complexity_range_filter.append('div')
+                .attr('class', 'feature_complexity_range_filter maxRange')        
+                .text('Max complexity: ')
+                .append('select');
+        this.complexityFilterThresholds = null;
 
         // Button for restoring the initial set of features
         feature_space_display_options_container.append('div')
@@ -2274,6 +2283,10 @@ class DataMining{
 
                     that.feature_application.update_feature_application('direct-update', features[i].name);
                     that.add_new_features(features[i], true);
+                    that.run_local_search("BOTH");
+
+                    that.localSearchInitiatedFromGeneralization = true;
+
                     instance.hide({transitionOut: 'fadeOutUp',}, toast, 'buttonName');
                 }, true];
             buttonsList.push(button);

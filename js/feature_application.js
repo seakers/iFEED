@@ -1192,18 +1192,20 @@ class FeatureApplication{
         let that = this;
 
         // EXPERIMENT
-        if(this.experimentCondition.indexOf("design_inspection") !== -1){
-            if(this.experimentStage === "learning" || this.experimentStage === "tutorial"){
+        if(this.experimentCondition){
+            if(this.experimentCondition.indexOf("design_inspection") !== -1){
+                if(this.experimentStage === "learning" || this.experimentStage === "tutorial"){
 
-                // If there is no feature tree, return
-                if(!experiment || experiment === ""){
+                    // If there is no feature tree, return
+                    if(!experiment || experiment === ""){
+                        return;
+                    }
+                    // Apply the feature expression
+                    PubSub.publish(APPLY_FEATURE_EXPRESSION, {expression: expression, option: option});
+
+                    // Do not display any feature tree
                     return;
                 }
-                // Apply the feature expression
-                PubSub.publish(APPLY_FEATURE_EXPRESSION, {expression: expression, option: option});
-
-                // Do not display any feature tree
-                return;
             }
         }
         

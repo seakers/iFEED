@@ -1008,9 +1008,19 @@ class EOSSAssigningFilter extends Filter{
                         }
 
                         let newHelpText;
-                        if(instrumentNames.length === 0 || instrumentNames.length === 1){
+                        if(instrumentNames.length === 0){
                             newHelpText = helpText + "<p>(At least two instruments must be selected!)</p>";
                             disableApplyButton();
+
+                        }else if(instrumentNames.length === 1){
+                            // let instrName = instrumentNames[0];
+                            // if(that.label.instrument_relabeled.indexOf(instrName) >= that.label.instrument_list.length){
+                                newHelpText = helpText + "<p>(At least two instruments must be selected!)</p>";
+                                disableApplyButton();
+                            // }else{
+                            //     newHelpText = helpText.replace('[INSTRUMENT]', 'more than one ' + instrName);
+                            //     enableApplyButton();
+                            // }
                         }else{
                             newHelpText = helpText.replace('[INSTRUMENT]', instrumentNames.join(", "));
                             enableApplyButton();
