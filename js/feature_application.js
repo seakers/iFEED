@@ -16,7 +16,8 @@ class FeatureApplication{
                      "temp":"#BEBEBE",
                      "tempUnmatched": "#BE5C5C",
                      "tempMatched": "#5CBE66",
-                     "unsatisfied": "#FF5C5C"};
+                     "unsatisfied": "#FF5C5C",
+                     "generalizedVariable": "#7300B9"};
         
         this.stashed_root = null;
         this.tree = null;
@@ -363,10 +364,8 @@ class FeatureApplication{
             .attr("r", 1e-6);
 
         nodeEnter.append("svg:text")
-            .attr("x", function(d) { return d.children || d._children ? -10 : 10; })
             .attr("dy", ".40em")
-            .style("font-size","14px")
-            .attr("text-anchor", function(d) { return d.children || d._children ? "end" : "start"; })
+            .append("tspan")
             .style("fill-opacity", 1e-6);
         
         nodeEnter.filter((d) => {
@@ -413,26 +412,258 @@ class FeatureApplication{
              });
 
         nodeUpdate.select("text")
-            .attr("x",function(d){
-                if(d.children){ return -10; }
-                else{ return 10; }
-            })
-            .attr("text-anchor", function(d) { 
-                if(d.children){ return "end"; }
-                else{ return "start"; }
-            })
-            .text(function(d) {
+            .attr("x", function(d) { return d.children || d._children ? -10 : 10; })
+            .attr("text-anchor", function(d) { return d.children || d._children ? "end" : "start"; })
+            .selectAll("text > tspan")
+            .html((d) => {
                 if(d.data.name === "IF_THEN"){
                     return "";
-                }else{
-                    return that.label.pp_feature_single(d.data.name);
+                } else {
+                    return that.label.pp_feature_single_variable_tagged(d.data.name);
                 }
             })
             .style("fill",(d) => {
                 return this.get_node_color(d);
             })
             .style("font-size",23)
-            .style("fill-opacity", 1);  
+            .style("fill-opacity", 1);
+
+        nodeUpdate.selectAll("tspan")
+            .selectAll(".baseFeatureComponent")
+            // .style("fill", () => { // Change the color of the generalized variables
+            //     return "#7300B9";
+            // }); 
+            .on('mouseout', function(){
+                d3.selectAll('#tooltip_g').remove();
+            })
+            .on('mouseover', function(){
+                let outputText = null;
+
+                let variable_name = this.textContent;
+                let is_generalized_variable = false;
+                let is_orbit_variable = false;
+                let memberClassNames = d3.select(this).attr('class'); 
+
+                let is_feature_name = memberClassNames.indexOf("featureName") !== -1;               
+                if(is_feature_name){ // Feature name
+                    let feature_expression = this.parentNode.__data__.data.name;
+                    // Get the description of the feature
+                    outputText = "<p>" + that.label.get_feature_description(feature_expression) + "</p>";
+
+                } else { // Variable
+
+                    outputText = "";
+                    if(memberClassNames.indexOf("generalizedVariable") !== -1){
+                        is_generalized_variable = true;
+                    }
+
+                    if(memberClassNames.indexOf("orbit") !== -1){
+                        is_orbit_variable = true;
+                    }
+
+
+                    let varType;
+                    if(is_orbit_variable){
+                        varType = "orbit";
+                    }else{
+                        varType = "instrument";
+                    }
+
+                    
+                    if(is_generalized_variable){
+                        // list of memeber instances
+                        outputText = "<p>" + TOOLTIP_MESSAGES[variable_name] + "</p>";
+                        let _instances = that.label.instance_map[variable_name];
+                        let instances = [];
+                        for(let i = 0; i < _instances.length; i++){
+                            instances.push(that.label.actualName2DisplayName(_instances[i], varType));
+                        }
+                        outputText = outputText + "<p> Member instances: {" + instances.join(", ") + "}</p>";
+
+                    } else {
+                        outputText = "<p>" + TOOLTIP_MESSAGES[that.label.displayName2ActualName(variable_name, varType)] + "</p>";
+                    }
+                }
+
+                let tooltip_width, tooltip_height;
+                if(is_feature_name){
+                    tooltip_width = 450;
+                    tooltip_height = 140;
+
+                } else {
+                    if(is_generalized_variable){
+                        tooltip_width = 450;
+                        tooltip_height = 180;
+                    } else {
+                        tooltip_width = 450;
+                        tooltip_height = 70;
+                    }
+                }
+
+                let mouseLoc_x = d3.mouse(d3.select("#feature_application_panel").select('svg').node())[0];
+                let mouseLoc_y = d3.mouse(d3.select("#feature_application_panel").select('svg').node())[1];
+
+                let tooltip_location = {x:0, y:0};
+                let v_threshold = parseInt(d3.select("#feature_application_panel").select("svg").style("height"), 10) * 0.60;
+                let h_threshold = parseInt(d3.select("#feature_application_panel").style("width"), 10) * 0.60;
+
+                if(mouseLoc_x < h_threshold){
+                    tooltip_location.x = 5;
+                } else{
+                    tooltip_location.x = -20 - tooltip_width;
+                }
+                if(mouseLoc_y < v_threshold){
+                    tooltip_location.y = 5;
+                } else{
+                    tooltip_location.y = -20 - tooltip_height;
+                }
+
+                let svg = d3.select('#feature_application_panel').select('svg');
+                let tooltip = svg.append("g")
+                                .attr("id","tooltip_g");
+
+                tooltip.append("rect")
+                    .attr("id","tooltip_rect")
+                    .attr("transform", function(){
+                        let x = mouseLoc_x + tooltip_location.x;
+                        let y = mouseLoc_y + tooltip_location.y;
+                        return "translate(" + x + "," + y + ")";
+                     })
+                    .attr("width",tooltip_width)
+                    .attr("height",tooltip_height)
+                    .style("fill","#303030")
+                    .style("opacity", 0.92);    
+
+                let fo = tooltip
+                    .append("foreignObject")
+                    .attr('id','tooltip_foreignObject')
+                    .attr("x",function(){
+                        return mouseLoc_x + tooltip_location.x;
+                    })
+                    .attr("y",function(){
+                       return mouseLoc_y + tooltip_location.y; 
+                    })
+                    .attrs({
+                        'width':tooltip_width,
+                        'height':tooltip_height  
+                    })
+                    .data([outputText]) 
+                    .html(outputText)
+                    .style("padding","25px")
+                    .style('color','#D5D5D5')
+                    .style('word-wrap','break-word');   
+
+                fo.selectAll('p')
+                    .style("font-size","20px")
+                    .style("margin-top","0px");
+
+
+
+
+
+
+
+                // let size;
+                // if(type === "logic" && logic === "IF_THEN"){
+                //     size = this.contextMenuSize["ifThen"];
+                // }else{
+                //     size = this.contextMenuSize[type];
+                // }
+                // let width = size.width;
+                // let height = size.height;
+                // let margin = size.margin;
+                
+                // // Draw the menu
+                // let menu = d3.select('#feature_application')
+                //     .select('svg')
+                //     .append('g')
+                //     .attr('class', 'context-menu')
+                //     .selectAll('.tmp')
+                //     .data(items)
+                //     .enter()
+                //     .append('g')
+                //     .attr('class', 'menu-entry')
+                //     .styles({'cursor': 'pointer'});
+
+                // let that = this;
+                // d3.selectAll('.menu-entry')
+                //     .on('mouseover', function(d){ 
+                //         d3.select(this).select('rect').styles(that.style.rect.mouseover) })
+                //     .on('mouseout', function(d){ 
+                //         d3.select(this).select('rect').styles(that.style.rect.mouseout) })
+                //     .on('click', (d) => {
+                //         this.ContextMenuAction(context, d.value);
+                //     });
+                
+                // d3.selectAll('.menu-entry')
+                //     .append('rect')
+                //     .attr('x', x)
+                //     .attr('y', function(d, i){ return y + (i * height); })
+                //     .attr('width', width)
+                //     .attr('height', height)
+                //     .styles(this.style.rect.mouseout);
+                
+                // d3.selectAll('.menu-entry')
+                //     .append('text')
+                //     .text(function(d){             
+                //         if(d.value === 'addChild'){
+                //             if(isBeingModified){
+                //                 return 'Cancel adding child node';
+                //             }else{
+                //                 return 'Add child node here';
+                //             }
+                //         }else if(d.value === 'toggle-logic'){
+                //             if(logic === 'AND'){
+                //                 return 'Change to OR';
+                //             }else{
+                //                 return 'Change to AND';
+                //             }
+                //         }else if(d.value === 'toggle-activation'){
+                //             if(deactivated){
+                //                 return 'Activate';
+                //             }else{
+                //                 return 'Deactivate';
+                //             }
+                //         }else if(d.value === 'toggle-col-exp'){
+                //             if(hasChildren){
+                //                 return 'Collapse';
+                //             }else{
+                //                 return 'Expand';
+                //             }
+                //         }else if(d.value === 'modifyBaseFeature'){
+                //             if(isBeingModified){
+                //                 return 'Cancel modifying this feature';
+                //             }else{
+                //                 return 'Modify this feature';
+                //             }
+                //         }else{
+                //             return d.text; 
+                //         }
+                //     })
+                //     .attr('x', x)
+                //     .attr('y', function(d, i){ return y + (i * height); })
+                //     .attr('dy', height - margin / 2)
+                //     .attr('dx', margin)
+                //     .styles(this.style.text);
+
+
+
+
+            });
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
         // Adjust the horizontal location of IF_THEN nodes
         nodeUpdate.filter((d) => {

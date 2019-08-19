@@ -230,7 +230,6 @@ class EOSSAssigningLabel extends Label{
     }
     
     pp_feature_type(expression){
-
         if(expression.indexOf('[')==-1){
             return expression;
         }
@@ -359,6 +358,98 @@ class EOSSAssigningLabel extends Label{
         return output;
     }
 
+    pp_feature_single_variable_tagged(expression){
+        let exp = expression;
+        if(exp[0] === "{" && exp[exp.length - 1] === "}"){
+            exp = exp.substring(1, exp.length - 1);
+        }
+
+        let numComponents = exp.split("[").length - 1;
+        let names = [];
+        let argSetString = [];
+
+        if(numComponents === 0){
+            let name = exp;
+            if(name === "paretoFront" || name === 'FeatureToBeAdded' 
+            || name === 'AND' || name === 'OR' 
+            || name === 'IF_THEN'){
+                return exp;
+            }
+
+        } else {
+            for(let i = 0; i < numComponents; i++){
+                let component = exp.split("]")[i];
+                names.push(component.split("[")[0]);
+                argSetString.push(component.split("[")[1]);
+            }
+
+            let combinedFeatureName = names.join("_");
+            if(combinedFeatureName[0] === '~'){
+                combinedFeatureName = 'NOT '+ combinedFeatureName.substring(1);
+            }
+        }
+
+        let ppExpression = [];
+        for(let i = 0; i < numComponents; i++){
+            let name = names[i];
+            let componentArgs = argSetString[i];
+            let orbits = componentArgs.split(";")[0].split(",");
+            let instruments = componentArgs.split(";")[1].split(",");
+            let numbers = componentArgs.split(";")[2];
+
+            let pporbits = [];
+            let ppinstruments = [];
+
+            // Orbit variables
+            for(let j = 0; j < orbits.length; j++){
+                if(orbits[j].length === 0){
+                    continue;
+                }else{
+                    let varname = this.index2DisplayName(orbits[j], "orbit");
+                    let classname = "";
+                    if(+orbits[j] >= this.orbit_list.length){
+                        // Generalized variable
+                        classname = "baseFeatureComponent generalizedVariable orbit";
+                    } else {
+                        classname = "baseFeatureComponent instanceVariable orbit";
+                    }
+                    pporbits.push("<tspan class=\"" + classname + "\">" + varname + "</tspan>");
+                }
+            }
+
+            // Generalized variables
+            for(let j = 0; j < instruments.length; j++){
+                if(instruments[j].length === 0){
+                    continue;
+                }else{
+                    if(+instruments[j] >= this.instrument_list.length){
+                        let varname = this.index2DisplayName(instruments[j], "instrument");
+                        let classname = "baseFeatureComponent generalizedVariable instrument";
+                        ppinstruments.push("<tspan class=\"" + classname + "\">" + varname + "</tspan>");
+                    }
+                }
+            }
+
+            // Instance variables
+            for(let j = 0; j < instruments.length; j++){
+                if(instruments[j].length === 0){
+                    continue;
+                }else{
+                    if(+instruments[j] < this.instrument_list.length){
+                        let varname = this.index2DisplayName(instruments[j], "instrument");
+                        let classname = "baseFeatureComponent instanceVariable instrument";
+                        ppinstruments.push("<tspan class=\"" + classname + "\">" + varname + "</tspan>");
+                    }
+                }
+            }
+
+            let taggedFeatureName = "<tspan class=\"baseFeatureComponent featureName\">" + this.featureActualName2DisplayName(name) + "</tspan>";
+            let ppComponent = taggedFeatureName + "[" + pporbits.join(", ") + ";  " + ppinstruments.join(", ") + ";  " + numbers + "]";
+            ppExpression.push(ppComponent)
+        }
+        return ppExpression.join(" ");
+    }
+    
     pp_generalization_description(description){
 
         let cnt = 0;
@@ -405,14 +496,6 @@ class EOSSAssigningLabel extends Label{
 
         return description;
     }
-
-
-
-
-
-
-
-
 
     get_feature_description_single(expression){
         let exp = expression;
@@ -478,7 +561,7 @@ class EOSSAssigningLabel extends Label{
             out = "{" + ppinstruments + "} are assigned together in one of the orbits"; 
 
         } else if(featureName === "separate"){
-            out = "{" + ppinstruments + "} are never assigned together in one of the orbits"; 
+            out = "{" + ppinstruments + "} are never assigned together in one orbit"; 
 
         } else if(featureName === "emptyOrbit"){
             out = pporbits + " is empty"; 

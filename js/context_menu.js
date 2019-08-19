@@ -129,25 +129,26 @@ class ContextMenu {
         items = items.concat(this.contextItems['default']);
         
         let x,y;
-        if(coord[0] >= 240){
-            x = coord[0] - 105;
+        let containerHeight = parseInt(d3.select("#feature_application_panel").select("svg").style("height"), 10);
+        let containerWidth = parseInt(d3.select("#feature_application_panel").style("width"), 10);
+
+        if(coord[0] < containerWidth * 1.00){
+            x = coord[0] + 90;
         } else{
-            x = coord[0] + 80;
+            x = coord[0] - 200;
         }
-        if(coord[1] < 370){
+    
+        if(coord[1] < containerHeight * 0.6){
             y = coord[1] + 40;
         } else{
-            if(type=="logic"){
-                if(depth==0){
-                    y = coord[1] - 180;
-                }else{
-                    y = coord[1] - 150;
-                }                
+            if(type === "logic"){
+                y = coord[1] - 150;               
             }else{
-                y = coord[1]  - 120;
+                y = coord[1]  - 250;
             }
         }
 
+        d3.selectAll('#tooltip_g').remove();
         d3.select('.context-menu').remove();
         this.scaleItems(context,items);
         
