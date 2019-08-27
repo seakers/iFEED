@@ -113,7 +113,8 @@ class ExperimentTutorial{
         }
 
         this.intro.setOption('showButtons', true)
-                    .setOption('showBullets', true);
+                    .setOption('showBullets', true)
+                    .setOption('keyboardNavigation', false);
         
         if(!classname){
             classname = 'introjs_tooltip';

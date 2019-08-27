@@ -418,6 +418,8 @@ class FeatureApplication{
             .html((d) => {
                 if(d.data.name === "IF_THEN"){
                     return "";
+                } else if (d.data.name === "AND" || d.data.name === "OR"){
+                    return d.data.name;
                 } else {
                     return that.label.pp_feature_single_variable_tagged(d.data.name);
                 }
@@ -469,10 +471,14 @@ class FeatureApplication{
                         varType = "instrument";
                     }
 
-                    
                     if(is_generalized_variable){
                         // list of memeber instances
-                        outputText = "<p>" + TOOLTIP_MESSAGES[variable_name] + "</p>";
+                        if(TOOLTIP_MESSAGES[variable_name]){
+                            outputText = "<p>" + TOOLTIP_MESSAGES[variable_name] + "</p>";
+                        } else {
+                            outputText = "<p>" + variable_name + "</p>";
+                        }
+
                         let _instances = that.label.instance_map[variable_name];
                         let instances = [];
                         for(let i = 0; i < _instances.length; i++){
@@ -556,114 +562,7 @@ class FeatureApplication{
                 fo.selectAll('p')
                     .style("font-size","20px")
                     .style("margin-top","0px");
-
-
-
-
-
-
-
-                // let size;
-                // if(type === "logic" && logic === "IF_THEN"){
-                //     size = this.contextMenuSize["ifThen"];
-                // }else{
-                //     size = this.contextMenuSize[type];
-                // }
-                // let width = size.width;
-                // let height = size.height;
-                // let margin = size.margin;
-                
-                // // Draw the menu
-                // let menu = d3.select('#feature_application')
-                //     .select('svg')
-                //     .append('g')
-                //     .attr('class', 'context-menu')
-                //     .selectAll('.tmp')
-                //     .data(items)
-                //     .enter()
-                //     .append('g')
-                //     .attr('class', 'menu-entry')
-                //     .styles({'cursor': 'pointer'});
-
-                // let that = this;
-                // d3.selectAll('.menu-entry')
-                //     .on('mouseover', function(d){ 
-                //         d3.select(this).select('rect').styles(that.style.rect.mouseover) })
-                //     .on('mouseout', function(d){ 
-                //         d3.select(this).select('rect').styles(that.style.rect.mouseout) })
-                //     .on('click', (d) => {
-                //         this.ContextMenuAction(context, d.value);
-                //     });
-                
-                // d3.selectAll('.menu-entry')
-                //     .append('rect')
-                //     .attr('x', x)
-                //     .attr('y', function(d, i){ return y + (i * height); })
-                //     .attr('width', width)
-                //     .attr('height', height)
-                //     .styles(this.style.rect.mouseout);
-                
-                // d3.selectAll('.menu-entry')
-                //     .append('text')
-                //     .text(function(d){             
-                //         if(d.value === 'addChild'){
-                //             if(isBeingModified){
-                //                 return 'Cancel adding child node';
-                //             }else{
-                //                 return 'Add child node here';
-                //             }
-                //         }else if(d.value === 'toggle-logic'){
-                //             if(logic === 'AND'){
-                //                 return 'Change to OR';
-                //             }else{
-                //                 return 'Change to AND';
-                //             }
-                //         }else if(d.value === 'toggle-activation'){
-                //             if(deactivated){
-                //                 return 'Activate';
-                //             }else{
-                //                 return 'Deactivate';
-                //             }
-                //         }else if(d.value === 'toggle-col-exp'){
-                //             if(hasChildren){
-                //                 return 'Collapse';
-                //             }else{
-                //                 return 'Expand';
-                //             }
-                //         }else if(d.value === 'modifyBaseFeature'){
-                //             if(isBeingModified){
-                //                 return 'Cancel modifying this feature';
-                //             }else{
-                //                 return 'Modify this feature';
-                //             }
-                //         }else{
-                //             return d.text; 
-                //         }
-                //     })
-                //     .attr('x', x)
-                //     .attr('y', function(d, i){ return y + (i * height); })
-                //     .attr('dy', height - margin / 2)
-                //     .attr('dx', margin)
-                //     .styles(this.style.text);
-
-
-
-
             });
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
         // Adjust the horizontal location of IF_THEN nodes
         nodeUpdate.filter((d) => {

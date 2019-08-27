@@ -209,11 +209,9 @@ class DataMining{
                     }
                 
                 } else if(content.type === "data.mining.problem.entities"){
-
                     let entities = {};
                     if(that.metadata.problem === "ClimateCentric"){
                         entities = {leftSet: content.leftSet, rightSet: content.rightSet};
-
                         if(content.rightSet.length > that.metadata.problem_specific_params.orbit_list.length 
                             ||content.leftSet.length > that.metadata.problem_specific_params.instrument_list.length
                         ){
@@ -635,7 +633,6 @@ class DataMining{
         d3.select('.feature_space_interaction.localSearch.toggle').node().checked = false;
         d3.select('.feature_space_interaction.generalization.toggle').node().checked = false;
         
-
         // EXPERIMENT
         if(this.experimentCondition){
             if(this.experimentCondition.indexOf("interactive") === -1){
@@ -2283,9 +2280,11 @@ class DataMining{
 
                     that.feature_application.update_feature_application('direct-update', features[i].name);
                     that.add_new_features(features[i], true);
-                    that.run_local_search("BOTH");
 
-                    that.localSearchInitiatedFromGeneralization = true;
+                    if(that.localSearchOn){
+                        that.run_local_search("BOTH");
+                        that.localSearchInitiatedFromGeneralization = true;
+                    }
 
                     instance.hide({transitionOut: 'fadeOutUp',}, toast, 'buttonName');
                 }, true];

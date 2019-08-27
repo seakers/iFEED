@@ -369,10 +369,9 @@ class EOSSAssigningLabel extends Label{
         let argSetString = [];
 
         if(numComponents === 0){
-            let name = exp;
-            if(name === "paretoFront" || name === 'FeatureToBeAdded' 
-            || name === 'AND' || name === 'OR' 
-            || name === 'IF_THEN'){
+            if(exp === "paretoFront" || exp === 'FeatureToBeAdded' 
+            || exp === 'AND' || exp === 'OR' 
+            || exp === 'IF_THEN'){
                 return exp;
             }
 
@@ -547,16 +546,18 @@ class EOSSAssigningLabel extends Label{
 
         } else if(featureName === "inOrbit"){
             if(instrumentList.length === 1){
-                out = ppinstruments + "is assigned to " + pporbits;
+                out = ppinstruments + " is assigned to " + pporbits;
             }else{
                 out = "{" + ppinstruments + "} are assigned to " + pporbits; 
             }
+
         } else if(featureName === "notInOrbit"){
             if(instrumentList.length === 1){
-                out = ppinstruments + "is not assigned to " + pporbits;
+                out = ppinstruments + " is not assigned to " + pporbits;
             }else{
                 out = "{" + ppinstruments + "} are not assigned to " + pporbits; 
             }
+            
         } else if(featureName === "together"){
             out = "{" + ppinstruments + "} are assigned together in one of the orbits"; 
 
