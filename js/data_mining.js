@@ -1487,6 +1487,7 @@ class DataMining{
         let metrics = d.metrics;
         let conf = d.metrics[2];
         let conf2 = d.metrics[3];
+        let complexity = d.complexity;
 
         // Set variables
         let margin = this.margin;
@@ -1500,7 +1501,7 @@ class DataMining{
 
         // EXPERIMENT
         let tooltip_width = 170;
-        let tooltip_height = 75;
+        let tooltip_height = 92;
         // let tooltip_width = 250;
         // let tooltip_height = 120;
 
@@ -1547,7 +1548,7 @@ class DataMining{
                             'width':tooltip_width,
                             'height':tooltip_height  
                         })
-                        .data([{id:id, expression:expression, metrics:metrics}]) 
+                        .data([{id:id, expression:expression, metrics:metrics, complexity: complexity}]) 
                         .html(function(d){
                             // let output= "lift: " + round_num(d.metrics[1]) + 
                             // "<br> Support: " + round_num(d.metrics[0]) + 
@@ -1556,7 +1557,8 @@ class DataMining{
 
                             // EXPERIMENT
                             let output= "Specificity: " + round_num(d.metrics[2]) + 
-                            "<br> Coverage: " + round_num(d.metrics[3]) + "";
+                            "<br> Coverage: " + round_num(d.metrics[3]) + 
+                            "<br> Complexity: " + d.complexity;
                             return output;
                         }).style("padding","14px")
                         .style('color','#F7FF55')
