@@ -1197,10 +1197,12 @@ class DataMining{
             if(currentFeature){
                 this.currentFeature = currentFeature;
                 cursorFeature = JSON.parse(JSON.stringify(currentFeature));
+                this.draw_venn_diagram(currentFeature.metrics[3], currentFeature.metrics[2]);
                 
             }else{
                 this.currentFeature = null;
                 cursorFeature = JSON.parse(JSON.stringify(this.utopiaPoint));
+                this.draw_venn_diagram(null, null);
                 
             }
             cursorFeature.cursor = true;
@@ -1277,13 +1279,13 @@ class DataMining{
             
             // x-axis
             this.gX = svg.append("g")
-                .attr("class", "axis axis-x objects feature_plot")
+                .attr("class", "axis axis-x axisObjects feature_plot")
                 .attr("transform", "translate(0, " + height + ")")
                 .call(this.xAxis);
 
             svg.append("text")
                 .attr("transform", "translate(" + width + ", " + height + ")")
-                .attr("class", "label")
+                .attr("class", "axisLabel axisObjects axis-x")
                 .attr("y", -6)
                 .style("text-anchor", "end")
                 .text('Specificity')
@@ -1291,17 +1293,25 @@ class DataMining{
 
             // y-axis
             this.gY = svg.append("g")
-                .attr("class", "axis axis-y objects feature_plot")
+                .attr("class", "axis axis-y axisObjects feature_plot")
                 .call(this.yAxis);
             
             svg.append("text")
-                .attr("class", "label")
+                .attr("class", "axisLabel axisObjects axis-y")
                 .attr("transform", "rotate(-90)")
                 .attr("y", 6)
                 .attr("dy", ".71em")
                 .style("text-anchor", "end")
                 .text('Coverage')
                 .style('font-size','17px');
+
+            d3.selectAll(".feature_plot.figure").selectAll(".axisObjects")
+                .on("mouseover", function(){
+                    that.axis_label_mouseover(this);
+                })
+                .on("mouseout", function(){
+                    that.axis_label_mouseout(this);
+                });
         }
 
         if(this.complexityFilterThresholds){
@@ -1498,12 +1508,8 @@ class DataMining{
         let conf2 = d.metrics[3];
         let complexity = d.complexity;
 
-
-
-
+        // Draw Venn diagram
         this.draw_venn_diagram(conf2, conf);
-
-
 
         // Set variables
         let margin = this.margin;
@@ -1596,11 +1602,89 @@ class DataMining{
     }
 
     feature_mouseout(d){
+        // Restore the venn diagram
+        if(this.currentFeature){
+            let precision = this.currentFeature.metrics[2];
+            let recall = this.currentFeature.metrics[3];
+            this.draw_venn_diagram(recall, precision);
+        } else {
+            this.draw_venn_diagram(null, null);
+        }
+
         // Remove the tooltip
         d3.selectAll("#tooltip_g").remove();
 
         // Bring back the previously stored feature expression
-        this.feature_application.update_feature_application('restore');        
+        this.feature_application.update_feature_application('restore');       
+    }
+
+    axis_label_mouseout(axisLabelNode){
+        d3.select("#axis_label_tooltip_g").remove();
+    }
+
+    axis_label_mouseover(axisLabelNode){
+        let mouseLoc_x = d3.mouse(d3.select(".objects.feature_plot").node())[0];
+        let mouseLoc_y = d3.mouse(d3.select(".objects.feature_plot").node())[1];
+        let tooltip_location = {x:0, y:0};
+        let tooltip_width = 380;
+        let tooltip_height = 110;
+
+        let is_x_axis = false;
+
+        if(d3.select(axisLabelNode).classed("axis-x")){
+            tooltip_location.x = -10 - tooltip_width;
+            tooltip_location.y = -10 - tooltip_height;
+            is_x_axis = true;
+        
+        } else if(d3.select(axisLabelNode).classed("axis-y")){
+            tooltip_location.y = 10;
+            tooltip_location.x = 10;
+        }
+
+        let svg = d3.select(".objects.feature_plot");
+        let tooltip = svg.append("g")
+                        .attr("id","axis_label_tooltip_g");
+
+        tooltip.append("rect")
+            .attr("id","tooltip_rect")
+            .attr("transform", function(){
+                let x = mouseLoc_x + tooltip_location.x;
+                let y = mouseLoc_y + tooltip_location.y;
+                return "translate(" + x + "," + y + ")";
+             })
+            .attr("width",tooltip_width)
+            .attr("height",tooltip_height)
+            .style("fill","#4B4B4B")
+            .style("opacity", 0.92);    
+
+        let fo = tooltip
+            .append("foreignObject")
+            .attr('id','tooltip_foreignObject')
+            .attr("x",function(){
+                return mouseLoc_x + tooltip_location.x;
+            })
+            .attr("y",function(){
+               return mouseLoc_y + tooltip_location.y; 
+            })
+            .attrs({
+                'width':tooltip_width,
+                'height':tooltip_height  
+            })
+            .html(() => {
+                let out = null;
+                if(is_x_axis){
+                    out = "<p>X axis: Specificity</p>"
+                    +"<p>specificity = (# of purple dots) / (# of pink dots)</p>";
+                    
+                }else{
+                    out = "<p>Y axis: Coverage</p>"
+                    +"<p>coverage = (# of purple dots) / (# of blue dots)</p>";
+                }
+                return out;
+            })
+            .style("padding","14px")
+            .style('color','#F7FF55')
+            .style('word-wrap','break-word');   
     }
 
     update_feature_complexity_range_filter(min, max){
@@ -2391,52 +2475,80 @@ class DataMining{
         }
     }  
 
+    remove_venn_diagram(){
+        d3.select('.feature_plot.venn_diagram').select('div').select('svg').remove();
+    }
+
     draw_venn_diagram(recall, precision){
         let venn_diagram_container = d3.select('.feature_plot.venn_diagram').select('div');
 
         if(!venn_diagram_container.node()) {
             return;
         }
-        
-        venn_diagram_container.select("svg").remove();
-        
-        let svg = venn_diagram_container
-            .append("svg")
-            .style('width','300px')             
-            .style('border-width','3px')
-            .style('height','245px')
-            .style('border-style','solid')
-            .style('border-color','black')
-            .style('border-radius','40px')
-            .style('margin-top','10px')
-            .style('margin-bottom','10px'); 
 
         let total = this.data.length;
         let selected = this.selected_archs.length;
-        let intersection = Math.round(recall * selected);
-        let highlighted = Math.round(1 / precision * intersection);
-        
-        // Selection has a fixed radius
+        let highlighted = null;
+        let intersection = null;
+        if(recall){
+            intersection = Math.round(recall * selected);
+        } else {
+            intersection = 0;
+        }
+        if(precision && intersection){
+            highlighted = Math.round(1 / precision * intersection);
+        } else {
+            highlighted = 0;
+        }
+
+        // Selection has a fixed radius and location
         let r1 = 70;
         let left_margin = 50;
         let c1x = 110;
 
-        svg.append("circle")
-            .attr("id","venn_diag_c1")
-            .attr("cx", c1x)
-            .attr("cy", 125)
-            .attr("r", r1)
-            .style("fill", "steelblue")
-            .style("fill-opacity", ".5");
+        let svg = venn_diagram_container.select('svg');
+        if(!svg.node()){
+            svg = venn_diagram_container
+                .append("svg")
+                .style('width','300px')             
+                .style('border-width','3px')
+                .style('height','245px')
+                .style('border-style','solid')
+                .style('border-color','black')
+                .style('border-radius','40px')
+                .style('margin-top','10px')
+                .style('margin-bottom','10px'); 
+
+            svg.append("circle")
+                .attr("id","venn_diag_c1")
+                .attr("cx", c1x)
+                .attr("cy", 125)
+                .attr("r", r1)
+                .style("fill", "steelblue")
+                .style("fill-opacity", ".5");
+
+            svg.append("text")
+                .attr("id","venn_diag_c1_text")
+                .attr("x", 20)
+                .attr("y", 230)
+                .attr("font-size", "17px")
+                .attr("fill","steelblue")
+                .text("Target:" + selected );
+        }
+
+        d3.select("#venn_diag_c2").remove();
+        d3.select("#venn_diag_c2_text").remove();
+        d3.select("#venn_diag_int_text").remove();
+
+        if(!highlighted && !intersection){
+            return;
+        }
 
         // Feature 
         let r2 = Math.sqrt(highlighted / selected) * r1;
-        if(r2 > 105){ // 
-            r2 = 105;
+        if(r2 > 100){ // Cap the size of the circle at r=100
+            r2 = 100;
         }
-
-        let a1 = Math.PI * Math.pow(r1, 2);
-        let a2 = Math.PI * Math.pow(r2, 2);
 
         let c2x;
         if (precision > 0.999){
@@ -2444,12 +2556,17 @@ class DataMining{
 
         } else {
             let dist;
+
+            // let intersectionArea = Math.PI * Math.pow(r1, 2) * intersection / selected;
+            // console.log(Math.PI * Math.pow(r1, 2));
+            // console.log(Math.PI * Math.pow(r2, 2));
+            // console.log(intersectionArea);
             // $.ajax({
-            //     url: "/api/ifeed/venn-diagram-distance",
+            //     url: "/api/ifeed/get-venn-diagram-distance",
             //     type: "POST",
-            //     data: {a1: a1,
-            //            a2: a2,
-            //            intersection: intersection},
+            //     data: {r1: r1,
+            //            r2: r2,
+            //            intersection: intersectionArea},
             //     async: false,
             //     success: function (data, textStatus, jqXHR)
             //     {
@@ -2459,8 +2576,8 @@ class DataMining{
             //     {alert("error");}
             // });
 
-            dist = 30;
 
+            dist = 35;
             c2x = c1x + dist;
         }
 
@@ -2471,14 +2588,6 @@ class DataMining{
             .attr("r", r2)
             .style("fill", "brown")
             .style("fill-opacity", ".5");
-        
-        svg.append("text")
-            .attr("id","venn_diag_int_text")
-            .attr("x", left_margin - 14)
-            .attr("y", 20)
-            .attr("font-size","17px")
-            .attr("fill","black")
-            .text("Intersection: " + intersection);
 
         svg.append("text")
             .attr("id","venn_diag_c2_text")
@@ -2489,12 +2598,12 @@ class DataMining{
             .text("Features:" + highlighted );
 
         svg.append("text")
-            .attr("id","venn_diag_c1_text")
-            .attr("x", 20)
-            .attr("y", 230)
-            .attr("font-size", "17px")
-            .attr("fill","steelblue")
-            .text("Selected:" + selected );
+            .attr("id","venn_diag_int_text")
+            .attr("x", left_margin - 14)
+            .attr("y", 20)
+            .attr("font-size","17px")
+            .attr("fill","#4E1499")
+            .text("Intersection: " + intersection);
     }
 }
 
