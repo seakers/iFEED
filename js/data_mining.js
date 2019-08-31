@@ -2556,28 +2556,25 @@ class DataMining{
 
         } else {
             let dist;
+            if(selected > highlighted){
+                if(intersection == 0){
+                    dist = r1 + r2;
+                } else if(intersection === highlighted){
+                    dist = r1 - r2;
+                } else { // Linear mapping from r1-r2 to r1+r2, as intersection changes from 0 to highlighted
+                    dist = -2 * r2 * intersection / highlighted + r1 + r2;
+                }
+            } else {
+                if(intersection == 0){
+                    dist = r1 + r2;
+                } else if(intersection === selected){
+                    dist = r2 - r1;
+                } else { // Linear mapping from r2-r1 to r1+r2, as intersection changes from 0 to selected
+                    dist = -2 * r1 * intersection / selected + r1 + r2;
+                }
+            }
 
-            // let intersectionArea = Math.PI * Math.pow(r1, 2) * intersection / selected;
-            // console.log(Math.PI * Math.pow(r1, 2));
-            // console.log(Math.PI * Math.pow(r2, 2));
-            // console.log(intersectionArea);
-            // $.ajax({
-            //     url: "/api/ifeed/get-venn-diagram-distance",
-            //     type: "POST",
-            //     data: {r1: r1,
-            //            r2: r2,
-            //            intersection: intersectionArea},
-            //     async: false,
-            //     success: function (data, textStatus, jqXHR)
-            //     {
-            //         dist = + data;
-            //     },
-            //     error: function (jqXHR, textStatus, errorThrown)
-            //     {alert("error");}
-            // });
-
-
-            dist = 35;
+  
             c2x = c1x + dist;
         }
 
