@@ -17,9 +17,9 @@ class DataMining{
         this.confidence_threshold = 0.2;
         this.lift_threshold = 1;
         
-        this.margin = {top: 20, right: 20, bottom: 30, left:65};
-        this.width = 770 - 35 - this.margin.left - this.margin.right;
-        this.height = 400 - 20 - this.margin.top - this.margin.bottom;
+        this.margin = {top: 20, right: 20, bottom: 30, left:35};
+        this.width = 710 - 35 - this.margin.left - this.margin.right;
+        this.height = 370 - 20 - this.margin.top - this.margin.bottom;
 
         // Parameters specific to each feature space plot
         this.xAxis = null;
@@ -130,13 +130,13 @@ class DataMining{
                 } else if(this.experimentCondition.indexOf("interactive") !== -1){
                     this.import_feature_data("6655_epsilonMOEA_ruleset_fuzzy8_24_7500", true, false);
                     
-                    if(d3.select('.feature_space_interaction.localSearch.toggle').node()){
+                    if(d3.select('.feature_space.interaction.localSearch.toggle').node()){
                         this.localSearchOn = true;
-                        d3.select('.feature_space_interaction.localSearch.toggle').node().checked = true;
+                        d3.select('.feature_space.interaction.localSearch.toggle').node().checked = true;
                     }
-                    if(d3.select('.feature_space_interaction.generalization.toggle').node()){
+                    if(d3.select('.feature_space.interaction.generalization.toggle').node()){
                         this.generalizationOn = true;
-                        d3.select('.feature_space_interaction.generalization.toggle').node().checked = true;
+                        d3.select('.feature_space.interaction.generalization.toggle').node().checked = true;
                     }
                 }
 
@@ -584,22 +584,21 @@ class DataMining{
         let tab = d3.select('#view3').append('g');
 
         // Create feature space display options
-        let feature_space_display_options_container = tab.append('div')
-                .attr('id', 'feature_space_display_options_container');
+        let feature_space_display_options_container = tab.append('div').attr('id', 'feature_space_display_options_container');
 
         // Add optiomn to turn on local search 
         let local_search_option = feature_space_display_options_container.append('div')
-                .attr('class','feature_space_interaction localSearch container');
+                .attr('class','feature_space interaction localSearch container');
 
         local_search_option.append('div')
-                .attr('class','feature_space_interaction localSearch textbox')
+                .attr('class','feature_space interaction localSearch textbox')
                 .text("Auto search: ");
 
         local_search_option.append('input')
-                .attr('class','feature_space_interaction localSearch toggle')
+                .attr('class','feature_space interaction localSearch toggle')
                 .attr('type','checkbox')
                 .on("click", () => {
-                    this.localSearchOn = d3.select('.feature_space_interaction.localSearch.toggle').node().checked;
+                    this.localSearchOn = d3.select('.feature_space.interaction.localSearch.toggle').node().checked;
                     if(this.localSearchOn && this.currentFeature){
                         this.run_local_search("BOTH");
                     }
@@ -612,17 +611,18 @@ class DataMining{
 
         // Add option to turn on generalization
         let generalization_option = feature_space_display_options_container.append('div')
-                .attr('class','feature_space_interaction generalization container');
+                .attr('class','feature_space interaction generalization container');
 
         generalization_option.append('div')
-                .attr('class','feature_space_interaction generalization textbox')
-                .text("Generalization suggestions: ");
+                .attr('class','feature_space interaction generalization textbox')
+                .text("Generalization suggestions: ")
+                .style("margin-top","0px");
 
         generalization_option.append('input')
-                .attr('class','feature_space_interaction generalization toggle')
+                .attr('class','feature_space interaction generalization toggle')
                 .attr('type','checkbox')
                 .on("click", () => {
-                    this.generalizationOn = d3.select('.feature_space_interaction.generalization.toggle').node().checked;
+                    this.generalizationOn = d3.select('.feature_space.interaction.generalization.toggle').node().checked;
                     if(this.generalizationOn && this.currentFeature){
                         this.generalize_feature(this.currentFeature.name);
                     }
@@ -630,48 +630,52 @@ class DataMining{
 
         this.localSearchOn = false;
         this.generalizationOn = false;
-        d3.select('.feature_space_interaction.localSearch.toggle').node().checked = false;
-        d3.select('.feature_space_interaction.generalization.toggle').node().checked = false;
+        d3.select('.feature_space.interaction.localSearch.toggle').node().checked = false;
+        d3.select('.feature_space.interaction.generalization.toggle').node().checked = false;
         
         // EXPERIMENT
         if(this.experimentCondition){
-            if(this.experimentCondition.indexOf("interactive") === -1){
+            if(this.experimentCondition.indexOf("interactive") === -1){ // Remove feature interactive options
                 d3.select("#feature_space_display_options_container").remove();
             }
 
-            if(!this.experimentGeneralizationEnabled){
-                d3.select('.feature_space_interaction.generalization.container').remove();
+            if(!this.experimentGeneralizationEnabled){ // Remove generalization option
+                d3.select('.feature_space.interaction.generalization.container').remove();
             }
         }
 
-        let feature_complexity_range_filter = feature_space_display_options_container.append('div')
-                .attr('class', 'feature_complexity_range_filter container')
-        feature_complexity_range_filter.append('div')
-                .attr('class', 'feature_complexity_range_filter minRange')
-                .text('Min complexity: ')
-                .append('select');
-        feature_complexity_range_filter.append('div')
-                .attr('class', 'feature_complexity_range_filter maxRange')        
-                .text('Max complexity: ')
-                .append('select');
+        // Range filter for feature complexity 
+        let feature_complexity_range_filter_min = feature_space_display_options_container.append('div')
+                .attr('class', 'feature_space interaction complexityFilter container minRange');
+        feature_complexity_range_filter_min.append('div')
+                .attr('class', 'feature_space interaction complexityFilter textbox minRange')
+                .text('Min complexity: ');
+        feature_complexity_range_filter_min.append('select');
+        
+        let feature_complexity_range_filter_max = feature_space_display_options_container.append('div')
+                .attr('class', 'feature_space interaction complexityFilter container maxRange');
+        feature_complexity_range_filter_max.append('div')
+                .attr('class', 'feature_space interaction complexityFilter textbox maxRange')
+                .text('Min complexity: ');
+        feature_complexity_range_filter_max.append('select');
         this.complexityFilterThresholds = null;
 
         // Button for restoring the initial set of features
         feature_space_display_options_container.append('div')
-                .attr('class','restore_features_button container')
-                .append('button')
-                .attr('class','restore_features_button button')
-                .on("click", () => {
-                    that.allFeatures = JSON.parse(JSON.stringify(that.stashedFeatures));
-                    that.display_features(that.allFeatures);
+            .attr('class','feature_space interaction restoreButton container')
+            .append('button')
+            .attr('class','feature_space interaction restoreButton button')
+            .on("click", () => {
+                that.allFeatures = JSON.parse(JSON.stringify(that.stashedFeatures));
+                that.display_features(that.allFeatures);
 
-                    // Clear the feature application
-                    PubSub.publish(INITIALIZE_FEATURE_APPLICATION, null);
+                // Clear the feature application
+                PubSub.publish(INITIALIZE_FEATURE_APPLICATION, null);
 
-                    // Remove all highlights in the scatter plot (retain target solutions)
-                    PubSub.publish(APPLY_FEATURE_EXPRESSION, null);
-                })
-                .text("Restore initial features");
+                // Remove all highlights in the scatter plot (retain target solutions)
+                PubSub.publish(APPLY_FEATURE_EXPRESSION, null);
+            })
+            .text("Restore initial features");
 
         // Create plot div's
         let feature_plot = tab.append('div')
@@ -692,6 +696,11 @@ class DataMining{
                 .attr("width", this.width)
                 .attr("height", this.height)
                 .style('margin-bottom','30px');
+
+        feature_plot.append('div')
+            .attr('class','feature_plot venn_diagram')
+            .append('div')
+            .text('Total number of designs: ' + this.data.length);
 
         if(typeof features === 'undefined' || features == null){
             return;
@@ -1278,7 +1287,7 @@ class DataMining{
                 .attr("y", -6)
                 .style("text-anchor", "end")
                 .text('Specificity')
-                .style('font-size','15px');
+                .style('font-size','17px');
 
             // y-axis
             this.gY = svg.append("g")
@@ -1292,7 +1301,7 @@ class DataMining{
                 .attr("dy", ".71em")
                 .style("text-anchor", "end")
                 .text('Coverage')
-                .style('font-size','15px');
+                .style('font-size','17px');
         }
 
         if(this.complexityFilterThresholds){
@@ -1489,6 +1498,13 @@ class DataMining{
         let conf2 = d.metrics[3];
         let complexity = d.complexity;
 
+
+
+
+        this.draw_venn_diagram(conf2, conf);
+
+
+
         // Set variables
         let margin = this.margin;
         let width = this.width;
@@ -1524,45 +1540,46 @@ class DataMining{
                         .attr("id","tooltip_g");
 
         tooltip.append("rect")
-                    .attr("id","tooltip_rect")
-                    .attr("transform", function(){
-                        let x = mouseLoc_x + tooltip_location.x;
-                        let y = mouseLoc_y + tooltip_location.y;
-                        return "translate(" + x + "," + y + ")";
-                     })
-                    .attr("width",tooltip_width)
-                    .attr("height",tooltip_height)
-                    .style("fill","#4B4B4B")
-                    .style("opacity", 0.92);    
+            .attr("id","tooltip_rect")
+            .attr("transform", function(){
+                let x = mouseLoc_x + tooltip_location.x;
+                let y = mouseLoc_y + tooltip_location.y;
+                return "translate(" + x + "," + y + ")";
+             })
+            .attr("width",tooltip_width)
+            .attr("height",tooltip_height)
+            .style("fill","#4B4B4B")
+            .style("opacity", 0.92);    
 
         let fo = tooltip
-                        .append("foreignObject")
-                        .attr('id','tooltip_foreignObject')
-                        .attr("x",function(){
-                            return mouseLoc_x + tooltip_location.x;
-                        })
-                        .attr("y",function(){
-                           return mouseLoc_y + tooltip_location.y; 
-                        })
-                        .attrs({
-                            'width':tooltip_width,
-                            'height':tooltip_height  
-                        })
-                        .data([{id:id, expression:expression, metrics:metrics, complexity: complexity}]) 
-                        .html(function(d){
-                            // let output= "lift: " + round_num(d.metrics[1]) + 
-                            // "<br> Support: " + round_num(d.metrics[0]) + 
-                            // "<br> Confidence(F->S): " + round_num(d.metrics[2]) + 
-                            // "<br> Confidence(S->F): " + round_num(d.metrics[3]) +"";
+            .append("foreignObject")
+            .attr('id','tooltip_foreignObject')
+            .attr("x",function(){
+                return mouseLoc_x + tooltip_location.x;
+            })
+            .attr("y",function(){
+               return mouseLoc_y + tooltip_location.y; 
+            })
+            .attrs({
+                'width':tooltip_width,
+                'height':tooltip_height  
+            })
+            .data([{id:id, expression:expression, metrics:metrics, complexity: complexity}]) 
+            .html(function(d){
+                // let output= "lift: " + round_num(d.metrics[1]) + 
+                // "<br> Support: " + round_num(d.metrics[0]) + 
+                // "<br> Confidence(F->S): " + round_num(d.metrics[2]) + 
+                // "<br> Confidence(S->F): " + round_num(d.metrics[3]) +"";
 
-                            // EXPERIMENT
-                            let output= "Specificity: " + round_num(d.metrics[2]) + 
-                            "<br> Coverage: " + round_num(d.metrics[3]) + 
-                            "<br> Complexity: " + d.complexity;
-                            return output;
-                        }).style("padding","14px")
-                        .style('color','#F7FF55')
-                        .style('word-wrap','break-word');   
+                // EXPERIMENT
+                let output= "Specificity: " + round_num(d.metrics[2]) + 
+                "<br> Coverage: " + round_num(d.metrics[3]) + 
+                "<br> Complexity: " + d.complexity;
+                return output;
+            })
+            .style("padding","14px")
+            .style('color','#F7FF55')
+            .style('word-wrap','break-word');   
 
         if(this.currentFeature){
             if(d.expression === this.currentFeature.expression){
@@ -1589,7 +1606,7 @@ class DataMining{
     update_feature_complexity_range_filter(min, max){
         let that = this;
 
-        if(!d3.select('.feature_complexity_range_filter.minRange').node()){
+        if(!d3.select('.feature_space.interaction.complexityFilter').node()){
             return;
         }
 
@@ -1605,14 +1622,14 @@ class DataMining{
             options.push(min + i);
         }
 
-        let initial_val_min = d3.select('.feature_complexity_range_filter.minRange').select('select').node().value;
-        let initial_val_max = d3.select('.feature_complexity_range_filter.maxRange').select('select').node().value;
+        let initial_val_min = d3.select('.feature_space.interaction.complexityFilter.minRange').select('select').node().value;
+        let initial_val_max = d3.select('.feature_space.interaction.complexityFilter.maxRange').select('select').node().value;
 
-        d3.select('.feature_complexity_range_filter.minRange')
+        d3.select('.feature_space.interaction.complexityFilter.minRange')
             .select('select')
             .on("change", () => {
-                let minThreshold = d3.select('.feature_complexity_range_filter.minRange').select('select').node().value;
-                let maxThreshold = d3.select('.feature_complexity_range_filter.maxRange').select('select').node().value;
+                let minThreshold = d3.select('.feature_space.interaction.complexityFilter.minRange').select('select').node().value;
+                let maxThreshold = d3.select('.feature_space.interaction.complexityFilter.maxRange').select('select').node().value;
                 that.complexityFilterThresholds = [minThreshold, maxThreshold];
                 d3.selectAll('.feature_plot.dot').remove();
                 PubSub.publish(INITIALIZE_FEATURE_APPLICATION, null);
@@ -1638,16 +1655,16 @@ class DataMining{
                 initial_val_min = max
             }
 
-            d3.select('.feature_complexity_range_filter.minRange').select('select').node().value = initial_val_min;
+            d3.select('.feature_space.interaction.complexityFilter.minRange').select('select').node().value = initial_val_min;
         }else{
-            d3.select('.feature_complexity_range_filter.minRange').select('select').node().value = min;
+            d3.select('.feature_space.interaction.complexityFilter.minRange').select('select').node().value = min;
         }
 
-        d3.select('.feature_complexity_range_filter.maxRange')
+        d3.select('.feature_space.interaction.complexityFilter.maxRange')
             .select('select')
             .on("change", () => {
-                let minThreshold = d3.select('.feature_complexity_range_filter.minRange').select('select').node().value;
-                let maxThreshold = d3.select('.feature_complexity_range_filter.maxRange').select('select').node().value;
+                let minThreshold = d3.select('.feature_space.interaction.complexityFilter.minRange').select('select').node().value;
+                let maxThreshold = d3.select('.feature_space.interaction.complexityFilter.maxRange').select('select').node().value;
                 that.complexityFilterThresholds = [minThreshold, maxThreshold];
                 d3.selectAll('.feature_plot.dot').remove();
                 PubSub.publish(INITIALIZE_FEATURE_APPLICATION, null);
@@ -1673,9 +1690,9 @@ class DataMining{
                 initial_val_max = max
             }
 
-            d3.select('.feature_complexity_range_filter.maxRange').select('select').node().value = initial_val_max;
+            d3.select('.feature_space.interaction.complexityFilter.maxRange').select('select').node().value = initial_val_max;
         }else{
-            d3.select('.feature_complexity_range_filter.maxRange').select('select').node().value = max;
+            d3.select('.feature_space.interaction.complexityFilter.maxRange').select('select').node().value = max;
         }
     }
 
@@ -1945,7 +1962,6 @@ class DataMining{
     }
 
     compute_algebraic_complexity_of_features(startInd, endInd){
-
         let features = this.allFeatures;
         if(features.length == 0){
             return null;
@@ -2374,5 +2390,111 @@ class DataMining{
             feature_objectives = remaining_objectives;
         }
     }  
+
+    draw_venn_diagram(recall, precision){
+        let venn_diagram_container = d3.select('.feature_plot.venn_diagram').select('div');
+
+        if(!venn_diagram_container.node()) {
+            return;
+        }
+        
+        venn_diagram_container.select("svg").remove();
+        
+        let svg = venn_diagram_container
+            .append("svg")
+            .style('width','300px')             
+            .style('border-width','3px')
+            .style('height','245px')
+            .style('border-style','solid')
+            .style('border-color','black')
+            .style('border-radius','40px')
+            .style('margin-top','10px')
+            .style('margin-bottom','10px'); 
+
+        let total = this.data.length;
+        let selected = this.selected_archs.length;
+        let intersection = Math.round(recall * selected);
+        let highlighted = Math.round(1 / precision * intersection);
+        
+        // Selection has a fixed radius
+        let r1 = 70;
+        let left_margin = 50;
+        let c1x = 110;
+
+        svg.append("circle")
+            .attr("id","venn_diag_c1")
+            .attr("cx", c1x)
+            .attr("cy", 125)
+            .attr("r", r1)
+            .style("fill", "steelblue")
+            .style("fill-opacity", ".5");
+
+        // Feature 
+        let r2 = Math.sqrt(highlighted / selected) * r1;
+        if(r2 > 105){ // 
+            r2 = 105;
+        }
+
+        let a1 = Math.PI * Math.pow(r1, 2);
+        let a2 = Math.PI * Math.pow(r2, 2);
+
+        let c2x;
+        if (precision > 0.999){
+            c2x = c1x + r2 - r1;
+
+        } else {
+            let dist;
+            // $.ajax({
+            //     url: "/api/ifeed/venn-diagram-distance",
+            //     type: "POST",
+            //     data: {a1: a1,
+            //            a2: a2,
+            //            intersection: intersection},
+            //     async: false,
+            //     success: function (data, textStatus, jqXHR)
+            //     {
+            //         dist = + data;
+            //     },
+            //     error: function (jqXHR, textStatus, errorThrown)
+            //     {alert("error");}
+            // });
+
+            dist = 30;
+
+            c2x = c1x + dist;
+        }
+
+        svg.append("circle")
+            .attr("id","venn_diag_c2")
+            .attr("cx", c2x)
+            .attr("cy", 125)
+            .attr("r", r2)
+            .style("fill", "brown")
+            .style("fill-opacity", ".5");
+        
+        svg.append("text")
+            .attr("id","venn_diag_int_text")
+            .attr("x", left_margin - 14)
+            .attr("y", 20)
+            .attr("font-size","17px")
+            .attr("fill","black")
+            .text("Intersection: " + intersection);
+
+        svg.append("text")
+            .attr("id","venn_diag_c2_text")
+            .attr("x", 185)
+            .attr("y", 230)
+            .attr("font-size","17px")
+            .attr("fill","brown")
+            .text("Features:" + highlighted );
+
+        svg.append("text")
+            .attr("id","venn_diag_c1_text")
+            .attr("x", 20)
+            .attr("y", 230)
+            .attr("font-size", "17px")
+            .attr("fill","steelblue")
+            .text("Selected:" + selected );
+    }
 }
 

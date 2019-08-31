@@ -1,43 +1,34 @@
 
 .feature_plot.figure{
-    float:left;
+  float:left;
 }
 
 #feature_space_display_options_container{
-    float: left;
-    width: 300px;
-    height: 250px;
-    margin-left: 10px;
-    margin-top: 20px;
-    padding: 35px;
-    background-color: #EAEAEA;
+  float: left;
+  width: 100%;
+  height: 50px;
+  border-bottom: solid;
+  border-width: 1px;
+  margin-bottom: 15px;
 }
 
-.feature_space_display_options.container{
-    margin-bottom: 25px;
+.feature_space.interaction.container{
+  float: left;
+  width: 20%; 
 }
 
-.restore_features_button.button{
-    width: 250px;
-    height: 35px;
-    font-size: 16px;
-    margin-top: 25px;
+.feature_space.interaction.textbox{
+  float: left;
+  width: 52%;
+  font-size: 18px;
+  margin-top: 7px;
 }
 
-.feature_space_interaction.container{
-    margin-bottom: 20px;
-}
-
-.feature_space_interaction.textbox{
-  width: 170px;
-  float:left;
-  font-size: 21px;
-}
-
-.feature_space_interaction.toggle {
+.feature_space.interaction.toggle {
   -webkit-appearance: none;
   -moz-appearance: none;
   appearance: none;
+  float: left;
   width: 55px;
   height: 30px;
   display: inline-block;
@@ -51,7 +42,7 @@
   transition: background-color ease 0.3s;
 }
 
-.feature_space_interaction.toggle:before {
+.feature_space.interaction.toggle:before {
   content: " ";
   display: block;
   position: absolute;
@@ -74,42 +65,45 @@
   transition: all cubic-bezier(0.3, 1.5, 0.7, 1) 0.3s;
 }
 
-.feature_space_interaction.toggle:checked {
+.feature_space.interaction.toggle:checked {
   background-color: #4CD964;
   /*background-color: #E36E00;*/
 }
 
-.feature_space_interaction.toggle:checked:before {
+.feature_space.interaction.toggle:checked:before {
   left: 26px;
 }
 
-.feature_complexity_range_filter.minRange{
-    margin-bottom: 20px;
+.feature_space.interaction.complexityFilter.minRange > select{
+    margin-left: 15px;
+    margin-top: 7px;
 }
 
-.feature_complexity_range_filter.minRange > select{
+.feature_space.interaction.complexityFilter.maxRange > select{
     margin-left: 15px;
+    margin-top: 7px;
 }
 
-.feature_complexity_range_filter.maxRange > select{
-    margin-left: 15px;
+.feature_space.interaction.restoreButton.button{
+    width: 80%;
+    height: 35px;
+    font-size: 16px;
 }
 
 .feature_plot.venn_diagram{
     float:left;
     background-color:#E7E7E7;
-    height:350px;
-    width: 320px;
-    margin-left: 50px;
+    height: 280px;
+    width: 310px;
+    margin-left: 80px;
     margin-top: 15px;
     padding:15px;
-    
 }
 
 .feature_plot.venn_daigram > div{
-    font-family:sans-serif;
+    /*font-family:sans-serif;*/
     margin-left: 3px;
-    font-size: 18px;
+    font-size: 17px;
     width:100%;
 }
 
