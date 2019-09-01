@@ -30,8 +30,6 @@ class TradespacePlot{
             "overlap": "rgba(163,64,240,1)",
             "mouseover": "rgba(116,255,110,1)",
             "hidden": "rgba(0, 0, 0, 0.03)",
-            "experimentHiddenTarget": "rgba(25,186,215,0.08)",
-            "experimentHiddenNonTarget": "rgba(0, 0, 0, 0)",
             "cursor": "rgba(0, 0, 0, 1)"
         };
 
@@ -333,11 +331,6 @@ class TradespacePlot{
         }
         else {
             point.drawingColor = this.color.default;
-        }
-
-        // EXPERIMENT
-        if(point.experimentHiddenTarget){
-            point.drawingColor = this.color.experimentHiddenTarget;
         }
     }
 

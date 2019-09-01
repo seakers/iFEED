@@ -54,7 +54,6 @@ class Filter{
         this.initialize();
 
         PubSub.subscribe(APPLY_FEATURE_EXPRESSION, (msg, data) => {
-
             if(this.data !== null){
                 let expression = null;
                 if(data){

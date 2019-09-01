@@ -24,10 +24,6 @@ class EOSSAssigningFilter extends Filter{
                                 {value:"emptyOrbit_except",text:"EmptyOrbit + Exception",input:"emptyOrbit_except", hints:"Selects designs whose orbit [ORBIT] is empty, with an exception"},
                                 {value:"notInOrbit_except",text:"NotInOrbit + Exception",input:"notInOrbit_except", hints:"Selects designs that do NOT assign {[INSTRUMENT]} to [ORBIT], with an exception"},
                                 {value:"separate_except",text:"Separate + Exception",input:"separate_except", hints:"Selects designs that never assign {[INSTRUMENT]} to the same orbit, with an exception"},
-
-                                // {value:"absentExceptInOrbit",text:"absentExceptInOrbit",input:"orbitAndInstInput",hints:""},
-                                // {value:"notInOrbitExceptInstrument",text:"notInOrbitExceptInstrument",input:"orbitAndMultipleInstInput",hints:""},
-                                // {value:"notInOrbitExceptOrbit",text:"notInOrbitExceptOrbit",input:"multipleOrbitAndInstInput",hints:""},
                             ];  
 
         for (let i = 0; i < presetFeaturesInfo.length; i++){
@@ -972,9 +968,19 @@ class EOSSAssigningFilter extends Filter{
                         }
 
                         let newHelpText;
-                        if(instrumentNames.length === 0 || instrumentNames.length === 1){
+                        if(instrumentNames.length === 0){
                             newHelpText = helpText + "<p>(At least two instruments must be selected!)</p>";
                             disableApplyButton();
+
+                        }else if(instrumentNames.length === 1){
+                            // let instrName = instrumentNames[0];
+                            // if(that.label.instrument_relabeled.indexOf(instrName) >= that.label.instrument_list.length){
+                                newHelpText = helpText + "<p>(At least two instruments must be selected!)</p>";
+                                disableApplyButton();
+                            // }else{
+                            //     newHelpText = helpText.replace('[INSTRUMENT]', 'more than one ' + instrName);
+                            //     enableApplyButton();
+                            // }
                         }else{
                             newHelpText = helpText.replace('[INSTRUMENT]', instrumentNames.join(", "));
                             enableApplyButton();

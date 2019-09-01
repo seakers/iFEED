@@ -37,7 +37,7 @@ class EOSSFeatureApplication extends FeatureApplication {
         		return this.get_node_color(d);
         	});
 
-        nodes.selectAll("text")
+        nodes.selectAll("text > tspan")
             .style("fill", (d) => {
                 return this.get_node_color(d);
             });    

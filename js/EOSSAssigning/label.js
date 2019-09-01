@@ -9,10 +9,7 @@
 //{"LEO-600-polar-NA","SSO-600-SSO-AM","SSO-600-SSO-DD","SSO-800-SSO-DD","SSO-800-SSO-PM"};
 
 
-
-
 class EOSSAssigningLabel extends Label{
-
     constructor(disabled){
         super(disabled);        
         
@@ -40,7 +37,9 @@ class EOSSAssigningLabel extends Label{
                             "inOrbit", "together", "present",
                             "numOrbits", "numInstruments", "numInstrumentsInOrbit",
                             "absent_except", "emptyOrbit_except", "notInOrbit_except", "separate_except"];
+
         this.feature_relabeled = null;
+
         // this.feature_relabeled = ["present","absent","assignedTo","notAssignedTo","together","bothAssignedTo","notAssignedTogether","emptySlot","numSlots","AtLeastTwoItemsAssignedTo"];
 
         PubSub.subscribe(DESIGN_PROBLEM_LOADED, (msg, data) => {
@@ -52,6 +51,8 @@ class EOSSAssigningLabel extends Label{
         PubSub.subscribe(GENERALIZED_CONCEPTS_LOADED, (msg, data) => {
             this.orbit_extended_list = data["rightSet"];
             this.instrument_extended_list = data["leftSet"];
+            this.instance_map = data["instanceMap"];
+            this.superclass_map = data["superclassMap"];
 
             this.orbit_relabeled = JSON.parse(JSON.stringify(this.orbit_relabeled_fixed));
             this.instrument_relabeled = JSON.parse(JSON.stringify(this.instrument_relabeled_fixed));
@@ -107,7 +108,6 @@ class EOSSAssigningLabel extends Label{
      * @param {String} type: Type of the variable. Could be either "orbit" or "instrument"
      */
     index2DisplayName(index, type){
-        
         if(this.disabled){
             return this.index2ActualName(index,type);
         }
@@ -229,7 +229,6 @@ class EOSSAssigningLabel extends Label{
     }
     
     pp_feature_type(expression){
-
         if(expression.indexOf('[')==-1){
             return expression;
         }
@@ -299,11 +298,23 @@ class EOSSAssigningLabel extends Label{
                     pporbits.push(this.index2DisplayName(orbits[j], "orbit"));
                 }
             }
+
             for(let j = 0; j < instruments.length; j++){
                 if(instruments[j].length === 0){
                     continue;
                 }else{
-                    ppinstruments.push(this.index2DisplayName(instruments[j], "instrument"));
+                    if(+instruments[j] >= this.instrument_list.length){
+                        ppinstruments.push(this.index2DisplayName(instruments[j], "instrument"));
+                    }
+                }
+            }
+            for(let j = 0; j < instruments.length; j++){
+                if(instruments[j].length === 0){
+                    continue;
+                }else{
+                    if(+instruments[j] < this.instrument_list.length){
+                        ppinstruments.push(this.index2DisplayName(instruments[j], "instrument"));
+                    }
                 }
             }
 
@@ -314,7 +325,6 @@ class EOSSAssigningLabel extends Label{
     }
     
     pp_feature(expression){
-
         let output = '';
 
     //    if(expression.indexOf('{FeatureToBeAdded}')>-1){
@@ -347,88 +357,413 @@ class EOSSAssigningLabel extends Label{
         return output;
     }
 
-    pp_feature_description_single(expression){
+    pp_feature_single_variable_tagged(expression){
+        let exp = expression;
+        if(exp[0] === "{" && exp[exp.length - 1] === "}"){
+            exp = exp.substring(1, exp.length - 1);
+        }
+
+        let numComponents = exp.split("[").length - 1;
+        let names = [];
+        let argSetString = [];
+
+        if(numComponents === 0){
+            if(exp === "paretoFront" || exp === 'FeatureToBeAdded' 
+            || exp === 'AND' || exp === 'OR' 
+            || exp === 'IF_THEN'){
+                return exp;
+            }
+
+        } else {
+            for(let i = 0; i < numComponents; i++){
+                let component = exp.split("]")[i];
+                names.push(component.split("[")[0]);
+                argSetString.push(component.split("[")[1]);
+            }
+
+            let combinedFeatureName = names.join("_");
+            if(combinedFeatureName[0] === '~'){
+                combinedFeatureName = 'NOT '+ combinedFeatureName.substring(1);
+            }
+        }
+
+        let ppExpression = [];
+        for(let i = 0; i < numComponents; i++){
+            let name = names[i];
+            let componentArgs = argSetString[i];
+            let orbits = componentArgs.split(";")[0].split(",");
+            let instruments = componentArgs.split(";")[1].split(",");
+            let numbers = componentArgs.split(";")[2];
+
+            let pporbits = [];
+            let ppinstruments = [];
+
+            // Orbit variables
+            for(let j = 0; j < orbits.length; j++){
+                if(orbits[j].length === 0){
+                    continue;
+                }else{
+                    let varname = this.index2DisplayName(orbits[j], "orbit");
+                    let classname = "";
+                    if(+orbits[j] >= this.orbit_list.length){
+                        // Generalized variable
+                        classname = "baseFeatureComponent generalizedVariable orbit";
+                    } else {
+                        classname = "baseFeatureComponent instanceVariable orbit";
+                    }
+                    pporbits.push("<tspan class=\"" + classname + "\">" + varname + "</tspan>");
+                }
+            }
+
+            // Generalized variables
+            for(let j = 0; j < instruments.length; j++){
+                if(instruments[j].length === 0){
+                    continue;
+                }else{
+                    if(+instruments[j] >= this.instrument_list.length){
+                        let varname = this.index2DisplayName(instruments[j], "instrument");
+                        let classname = "baseFeatureComponent generalizedVariable instrument";
+                        ppinstruments.push("<tspan class=\"" + classname + "\">" + varname + "</tspan>");
+                    }
+                }
+            }
+
+            // Instance variables
+            for(let j = 0; j < instruments.length; j++){
+                if(instruments[j].length === 0){
+                    continue;
+                }else{
+                    if(+instruments[j] < this.instrument_list.length){
+                        let varname = this.index2DisplayName(instruments[j], "instrument");
+                        let classname = "baseFeatureComponent instanceVariable instrument";
+                        ppinstruments.push("<tspan class=\"" + classname + "\">" + varname + "</tspan>");
+                    }
+                }
+            }
+
+            let taggedFeatureName = "<tspan class=\"baseFeatureComponent featureName\">" + this.featureActualName2DisplayName(name) + "</tspan>";
+            let ppComponent = taggedFeatureName + "[" + pporbits.join(", ") + ";  " + ppinstruments.join(", ") + ";  " + numbers + "]";
+            ppExpression.push(ppComponent)
+        }
+        return ppExpression.join(" ");
+    }
     
+    pp_generalization_description(description){
+
+        let cnt = 0;
+        let tempColors = ["#6DA365", "#C9813A", "#3ABEC9", "#9134C9"];
+        for (let classname in this.instance_map){
+            let class_and_instance_found = false;
+            if(description.indexOf(classname) !== -1){
+                let instances = this.instance_map[classname];
+                for(let i = 0; i < instances.length; i++){
+                    if(description.indexOf(instances[i]) !== -1){
+                        class_and_instance_found = true;
+                        break;
+                    }
+                }
+                if(class_and_instance_found){
+                    let regex = new RegExp(classname, 'g');
+                    description = description.replace(regex, "<span style=\"color:"+ tempColors[cnt] +"\">"+ classname +"</span>");
+                    for(let i = 0; i < instances.length; i++){
+                        let regex2 = new RegExp(instances[i], 'g');
+                        description = description.replace(regex2, "<span style=\"color:"+ tempColors[cnt] +"\">"+ instances[i] +"</span>");
+                    }
+                    cnt += 1;
+                }else{
+                    continue;
+                }                
+            }
+        }
+
+        // Replace orbit names
+        for(let i = 0; i < this.orbit_list.length; i++){
+            if(description.indexOf(this.orbit_list[i]) !== -1){
+                let regex = new RegExp(this.orbit_list[i], 'g');
+                description = description.replace(regex, this.orbit_relabeled[i]);
+            }
+        }
+
+        // Replace instrument names
+        for(let i = 0; i < this.instrument_list.length; i++){
+            if(description.indexOf(this.instrument_list[i]) !== -1){
+                let regex = new RegExp(this.instrument_list[i], 'g');
+                description = description.replace(regex, this.instrument_relabeled[i]);
+            }
+        }
+
+        return description;
+    }
+
+    get_feature_description_single(expression){
         let exp = expression;
         if(exp[0] === "{"){
             // Remove the outer curly bracket
             exp = exp.substring(1, exp.length-1);
         }
-        let featureName = exp.split("[")[0];
 
-        if(featureName === "paretoFront" || featureName === 'FeatureToBeAdded' 
-            || featureName === 'AND' || featureName === 'OR' 
-            || featureName === 'IF_THEN'){
+        let numComponents = exp.split("[").length - 1;
+        let names = [];
+        let argSetString = [];
+        for(let i = 0; i < numComponents; i++){
+            let component = exp.split("]")[i];
+            names.push(component.split("[")[0]);
+            argSetString.push(component.split("[")[1]);
+        }
+        let combinedName = names.join("_");
+
+        if(combinedName === "paretoFront" || combinedName === 'FeatureToBeAdded' 
+            || combinedName === 'AND' || combinedName === 'OR' 
+            || combinedName === 'IF_THEN'){
             return exp;
 
-        }else if(this.feature_names.indexOf(exp) !== -1){
+        }else if(this.feature_names.indexOf(combinedName) === -1){
             return exp;
         }
 
-        let featureArg = exp.split("[")[1];
-        featureArg = featureArg.substring(0, featureArg.length-1);
+        let argSets = [];
+        for(let i = 0; i < argSetString.length; i++){ // For each argument set (main + exception)
+            let thisSet = [];
+            let argSetSplit = argSetString[i].split(";");
+            for(let j = 0; j < argSetSplit.length; j++){ // For each argument type (orbit, instrument, numbers)
+                let args;
+                if(argSetSplit[j].indexOf(",") !== -1){
+                    args = argSetSplit[j].split(",");
 
-        let orbits = featureArg.split(";")[0].split(",");
-        let instruments = featureArg.split(";")[1].split(",");
-        let numbers = featureArg.split(";")[2];
+                }else if(argSetSplit[j].indexOf("-") !== -1){ // Number range
+                    args = argSetSplit[j].split("-");
+                
+                }else{
+                    args = [argSetSplit[j]]
+                }
 
-        let orbitList = [];
-        let instrumentList = [];
-        for(let i = 0; i < orbits.length; i++){
-            if(orbits[i].length === 0){
-                continue;
+                for(let k = 0; k < args.length; k++){
+                    if (args[k] === ""){
+                        args[k] = -1;
+                    } else { 
+                        args[k] = +args[k];
+                    }
+                }
+                thisSet.push(args);
             }
-            orbitList.push(this.index2DisplayName(orbits[i], "orbit"));
+            argSets.push(thisSet);
         }
-        for(let i = 0; i < instruments.length; i++){
-            if(instruments[i].length === 0){
-                continue;
+
+        let ppOrbits, ppInstruments, ppNumbers;
+        let ppOrbitExceptions, ppInstrumentExceptions;
+        for(let i = 0; i < argSets.length; i++){ // Main args & args for exceptions
+            let argSet = argSets[i];
+
+            let ppOutput = "";
+            for(let j = 0; j < argSet.length; j++){ // Iterate over different arg types
+                let args = argSet[j];
+                let argType = null;
+                if(j == 0){
+                    argType = "orbit";
+                } else if(j == 1){
+                    argType = "instrument";
+                } else { 
+                    argType = "number";
+                }
+
+                if(argType == "orbit" || argType == "instrument"){
+                    let argNameList = [];
+                    for(let k = 0; k < args.length; k++){
+                        argNameList.push(this.index2DisplayName(args[k], argType));
+                    }
+                    ppOutput = argNameList.join(", ");
+
+                } else {
+                    if(args.length == 1){
+                        ppOutput = "" + args[0];
+                    }else{
+                        ppOutput = "Between " + args[0] + " and " + args[1];
+                    }
+                }
+
+                if(i == 0){
+                    // main feature
+                    if(j == 0){
+                        ppOrbits = ppOutput;
+                    } else if(j == 1) {
+                        ppInstruments = ppOutput;
+                    } else {
+                        ppNumbers = ppOutput;
+                    }
+
+                }else if(i == 1){
+                    // exception
+                    if(j == 0){
+                        ppOrbitExceptions = ppOutput;
+                    } else if(j == 1) {
+                        ppInstrumentExceptions = ppOutput;
+                    } else {
+                        // pass
+                    }
+                }
             }
-            instrumentList.push(this.index2DisplayName(instruments[i], "instrument"));
         }
-        let pporbits = orbitList.join(", ");
-        let ppinstruments = instrumentList.join(", ");
 
         let out = null;
-        if(featureName === "present"){
-            out = ppinstruments + " is used";
+        if(combinedName === "present"){
+            out = ppInstruments + " is used";
 
-        } else if(featureName === "absent"){
-            out = ppinstruments + " is not assigned to any orbit";
+        } else if(combinedName === "absent"){
+            out = ppInstruments + " is not assigned to any orbit";
 
-        } else if(featureName === "inOrbit"){
-            if(instrumentList.length === 1){
-                out = ppinstruments + "is assigned to " + pporbits;
+        } else if(combinedName === "inOrbit"){
+            if(ppInstruments.indexOf(",") === -1){
+                out = ppInstruments + " is assigned to " + ppOrbits;
             }else{
-                out = "{" + ppinstruments + "} are assigned to " + pporbits; 
+                out = "{" + ppInstruments + "} are assigned to " + ppOrbits; 
             }
-        } else if(featureName === "notInOrbit"){
-            if(instrumentList.length === 1){
-                out = ppinstruments + "is not assigned to " + pporbits;
+
+        } else if(combinedName === "notInOrbit"){
+            if(ppInstruments.indexOf(",") === -1){
+                out = ppInstruments + " is not assigned to " + ppOrbits;
             }else{
-                out = "{" + ppinstruments + "} are not assigned to " + pporbits; 
+                out = "{" + ppInstruments + "} are not assigned to " + ppOrbits; 
             }
-        } else if(featureName === "together"){
-            out = "{" + ppinstruments + "} are assigned together in one of the orbits"; 
-
-        } else if(featureName === "separate"){
-            out = "{" + ppinstruments + "} are never assigned together in one of the orbits"; 
-
-        } else if(featureName === "emptyOrbit"){
-            out = pporbits + " is empty"; 
-
-        } else if(featureName === "numOrbits"){
-            out = numbers + " orbits are used"; 
             
-        }  
+        } else if(combinedName === "together"){
+            out = "{" + ppInstruments + "} are assigned together in one of the orbits"; 
 
-        // "present","absent","inOrbit","notInOrbit","together",
-        // "togetherInOrbit","separate","emptyOrbit","numOrbits",
-        // "subsetOfInstruments", "absentExceptInOrbit", "notInOrbitExceptInstrument", "notInOrbitExceptOrbit"
+        } else if(combinedName === "separate"){
+            out = "{" + ppInstruments + "} are never assigned together in one orbit"; 
+
+        } else if(combinedName === "emptyOrbit"){
+            out = ppOrbits + " is empty"; 
+
+        } else if(combinedName === "numOrbits"){
+            out = ppNumbers + " orbits are used"; 
+            
+        } else if(combinedName === "numInstruments"){
+            if(ppOrbits){ // Number of instruments in the specified orbit
+                out = ppNumbers + " instruments are assigned to " + ppOrbits;
+
+            } else if(ppInstruments){ // Number of specific instruments
+                if(ppNumbers === "1"){
+                    if(ppInstruments.indexOf(",") !== -1){
+                        ppInstruments = "instrument out of {" + ppInstruments + "}";
+                    }
+                    out =  "Only one " + ppInstruments + " is used in total";
+                } else {
+                    if(ppInstruments.indexOf(",") !== -1){
+                        ppInstruments = "instruments out of {" + ppInstruments + "}";
+                    }
+                    out = ppNumbers + " " + ppInstruments + " are used in total";
+                }
+
+            } else { // Number of instruments in all orbits
+                out = ppNumbers + " instruments are used in total"
+            }
+
+        } else if(combinedName === "numInstrumentsInOrbit"){
+            if(ppInstruments){ // Number of specific instruments
+                if(ppNumbers === "1"){
+                    if(ppInstruments.indexOf(",") !== -1){
+                        ppInstruments = "instrument out of {" + ppInstruments + "}";
+                    }
+                    out =  "Only one " + ppInstruments + " is used in each orbit";
+                } else {
+                    if(ppInstruments.indexOf(",") !== -1){
+                        ppInstruments = "instruments out of {" + ppInstruments + "}";
+                    }
+                    out = ppNumbers + " " + ppInstruments + " are used in each orbit";
+                }
+            } else { // Number of instruments in all orbits
+                out = ppNumbers + " instruments are used in each orbit"
+            }
+
+        } else if(combinedName === "absent_except"){
+            out = ppInstruments + " is not assigned to any orbit";
+
+            if(ppOrbitExceptions){
+                if(ppOrbitExceptions.indexOf(",") !== -1){
+                    ppOrbitExceptions = "one of the orbits in {" + ppOrbitExceptions + "}";
+                }
+                out += ", except when it is assigned to " + ppOrbitExceptions;
+            }
+
+        } else if(combinedName === "emptyOrbit_except"){
+            out = ppOrbits + " is empty"; 
+
+            if(ppInstrumentExceptions){
+                if(ppInstrumentExceptions.indexOf(",") !== -1){
+                    ppInstrumentExceptions = "instruments in the set {" + ppInstrumentExceptions + "} are ";
+                } else {
+                    ppInstrumentExceptions += " is "
+                }
+
+                out += ", except when "+ ppInstrumentExceptions +" assigned to it";
+            }   
+
+        } else if(combinedName === "notInOrbit_except"){
+            if(ppInstruments.indexOf(",") === -1){
+                out = ppInstruments + " is not assigned to " + ppOrbits;
+            }else{
+                out = "{" + ppInstruments + "} are not assigned to " + ppOrbits; 
+            }
+
+            if(ppInstrumentExceptions){
+                if(ppInstrumentExceptions.indexOf(",") !== -1){
+                    ppInstrumentExceptions = "instruments in the set {" + ppInstrumentExceptions + "} are ";
+                } else {
+                    ppInstrumentExceptions += " is "
+                }
+            }   
+
+            if(ppOrbitExceptions){
+                if(ppOrbitExceptions.indexOf(",") !== -1){
+                    ppOrbitExceptions = "orbits in the set {" + ppOrbitExceptions + "}";
+                }
+            }   
+
+            if(ppInstrumentExceptions && ppOrbitExceptions){
+                out += ", except when "+ ppInstrumentExceptions + " assigned to " + ppOrbitExceptions;
+            }else if(ppInstrumentExceptions){
+                out += ", except when "+ ppInstrumentExceptions + " assigned to " + ppOrbits;
+            }else if(ppOrbitExceptions){
+                out += ", except when they are assigned to " + ppOrbitExceptions;
+            }
+
+        } else if(combinedName === "separate_except"){
+            out = "{" + ppInstruments + "} are never assigned together in one orbit"; 
+
+            if(ppInstrumentExceptions){
+                if(ppInstrumentExceptions.indexOf(",") !== -1){
+                    ppInstrumentExceptions = "instruments in the set {" + ppInstrumentExceptions + "} are ";
+                } else {
+                    ppInstrumentExceptions += " is "
+                }
+            }   
+
+            if(ppOrbitExceptions){
+                if(ppOrbitExceptions.indexOf(",") !== -1){
+                    ppOrbitExceptions = "orbits in the set {" + ppOrbitExceptions + "}";
+                }
+            }   
+
+            if(ppInstrumentExceptions && ppOrbitExceptions){
+                out += ", except when "+ ppInstrumentExceptions + " assigned to " + ppOrbitExceptions;
+            }else if(ppInstrumentExceptions){
+                ppInstrumentExceptions = ppInstrumentExceptions.replace("is", "");
+                ppInstrumentExceptions = ppInstrumentExceptions.replace("are", "");
+                out += ", except for " + ppInstrumentExceptions;
+            }else if(ppOrbitExceptions){
+                out += ", except when they are assigned to " + ppOrbitExceptions;
+            }
+        } 
+
+        // present, absent, inOrbit, notInOrbit
+        // together, separate, emptyOrbit, numOrbits
+        // numInstruments, numInstrumentsInOrbit
+        // absent_except, emptyOrbit_except
+        // notInOrbit_except, separate_except
         return out;
     }
     
-    pp_feature_description(expression){
+    get_feature_description(expression){
         let output = '';
         let save = false;
         let savedString = '';
@@ -441,7 +776,7 @@ class EOSSAssigningLabel extends Label{
                 save = false;
                 savedString = savedString + '}';
                 let feature_expression = savedString;
-                output = output + this.pp_feature_description_single(feature_expression);
+                output = output + this.get_feature_description_single(feature_expression);
             } else {
                 if(save){
                     savedString = savedString + expression[i];

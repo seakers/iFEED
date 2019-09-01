@@ -6,7 +6,6 @@
 }
 
 #feature_expression_panel > div > div{
-    /*height:0px; */
     float:left;
     width: 250px;
     font-size: 22px;
@@ -20,8 +19,8 @@
 #feature_application{
     float:left;
     margin-top: 10px;   
-    width:1120px;
-    padding:20px;
+    width: 1120px;
+    padding: 20px;
     overflow:scroll;  
 }
 

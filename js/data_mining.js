@@ -17,9 +17,9 @@ class DataMining{
         this.confidence_threshold = 0.2;
         this.lift_threshold = 1;
         
-        this.margin = {top: 20, right: 20, bottom: 30, left:65};
-        this.width = 770 - 35 - this.margin.left - this.margin.right;
-        this.height = 400 - 20 - this.margin.top - this.margin.bottom;
+        this.margin = {top: 20, right: 20, bottom: 30, left:35};
+        this.width = 710 - 35 - this.margin.left - this.margin.right;
+        this.height = 370 - 20 - this.margin.top - this.margin.bottom;
 
         // Parameters specific to each feature space plot
         this.xAxis = null;
@@ -34,8 +34,10 @@ class DataMining{
         this.stashedFeatures = [];
         this.recentlyAddedFeatureIDs = [];
 
-        this.localSearchOn = true;
-        this.generalizationOn = true;
+        this.localSearchInitiatedFromGeneralization = false;
+        this.localSearchOn = false;
+        this.generalizationOn = false;
+
         this.complexityFilterThresholds = null;
 
         this.currentFeature = null;
@@ -122,7 +124,7 @@ class DataMining{
                             if(content.searchMethod === "localSearch"){
                                 that.add_and_remove_features(content.features);
 
-                                if(that.generalizationOn){
+                                if(that.generalizationOn && !that.localSearchInitiatedFromGeneralization){
                                     //Start new generalization search
                                     that.generalize_feature(that.currentFeature.name);
                                 }
@@ -153,11 +155,9 @@ class DataMining{
                     }
                 
                 } else if(content.type === "data.mining.problem.entities"){
-
                     let entities = {};
                     if(that.metadata.problem === "ClimateCentric"){
                         entities = {leftSet: content.leftSet, rightSet: content.rightSet};
-
                         if(content.rightSet.length > that.metadata.problem_specific_params.orbit_list.length 
                             ||content.leftSet.length > that.metadata.problem_specific_params.instrument_list.length
                         ){
@@ -341,6 +341,8 @@ class DataMining{
         this.get_marginal_driving_features(selected, non_selected, baseline_feature, logic);
 
         PubSub.publish(CANCEL_ADD_FEATURE, null);   
+
+        this.localSearchInitiatedFromGeneralization = false;
     }
 
     get_driving_features_with_generalization(selected, non_selected){
@@ -527,78 +529,82 @@ class DataMining{
         let tab = d3.select('#view3').append('g');
 
         // Create feature space display options
-        let feature_space_display_options_container = tab.append('div')
-                .attr('id', 'feature_space_display_options_container');
+        let feature_space_display_options_container = tab.append('div').attr('id', 'feature_space_display_options_container');
 
-        // Add optiomn to turn on local search and generalization
+        // Add optiomn to turn on local search 
         let local_search_option = feature_space_display_options_container.append('div')
-                .attr('class','feature_space_interaction localSearch container');
+                .attr('class','feature_space interaction localSearch container');
 
         local_search_option.append('div')
-                .attr('class','feature_space_interaction localSearch textbox')
+                .attr('class','feature_space interaction localSearch textbox')
                 .text("Auto search: ");
 
         local_search_option.append('input')
-                .attr('class','feature_space_interaction localSearch toggle')
+                .attr('class','feature_space interaction localSearch toggle')
                 .attr('type','checkbox')
                 .on("click", () => {
-                    this.localSearchOn = d3.select('.feature_space_interaction.localSearch.toggle').node().checked;
+                    this.localSearchOn = d3.select('.feature_space.interaction.localSearch.toggle').node().checked;
                     if(this.localSearchOn && this.currentFeature){
                         this.run_local_search("BOTH");
                     }
                 });
 
-        // Add optiomn to turn on local search and generalization
+        // Add option to turn on generalization
         let generalization_option = feature_space_display_options_container.append('div')
-                .attr('class','feature_space_interaction generalization container');
+                .attr('class','feature_space interaction generalization container');
 
         generalization_option.append('div')
-                .attr('class','feature_space_interaction generalization textbox')
-                .text("Generalization suggestions: ");
+                .attr('class','feature_space interaction generalization textbox')
+                .text("Generalization suggestions: ")
+                .style("margin-top","0px");
 
         generalization_option.append('input')
-                .attr('class','feature_space_interaction generalization toggle')
+                .attr('class','feature_space interaction generalization toggle')
                 .attr('type','checkbox')
                 .on("click", () => {
-                    this.generalizationOn = d3.select('.feature_space_interaction.generalization.toggle').node().checked;
+                    this.generalizationOn = d3.select('.feature_space.interaction.generalization.toggle').node().checked;
                     if(this.generalizationOn && this.currentFeature){
                         this.generalize_feature(this.currentFeature.name);
                     }
                 });
 
-        this.localSearchOn = true;
-        this.generalizationOn = true;
-        d3.select('.feature_space_interaction.localSearch.toggle').node().checked = true;
-        d3.select('.feature_space_interaction.generalization.toggle').node().checked = true;
+        this.localSearchOn = false;
+        this.generalizationOn = false;
+        d3.select('.feature_space.interaction.localSearch.toggle').node().checked = false;
+        d3.select('.feature_space.interaction.generalization.toggle').node().checked = false;
 
-        // let feature_complexity_range_filter = feature_space_display_options_container.append('div')
-        //         .attr('class', 'feature_complexity_range_filter container')
-        // feature_complexity_range_filter.append('div')
-        //         .attr('class', 'feature_complexity_range_filter minRange')
-        //         .text('Min complexity: ')
-        //         .append('select');
-        // feature_complexity_range_filter.append('div')
-        //         .attr('class', 'feature_complexity_range_filter maxRange')        
-        //         .text('Max complexity: ')
-        //         .append('select');
-        // this.complexityFilterThresholds = null;
+        // Range filter for feature complexity 
+        let feature_complexity_range_filter_min = feature_space_display_options_container.append('div')
+                .attr('class', 'feature_space interaction complexityFilter container minRange');
+        feature_complexity_range_filter_min.append('div')
+                .attr('class', 'feature_space interaction complexityFilter textbox minRange')
+                .text('Min complexity: ');
+        feature_complexity_range_filter_min.append('select');
+        
+        let feature_complexity_range_filter_max = feature_space_display_options_container.append('div')
+                .attr('class', 'feature_space interaction complexityFilter container maxRange');
+        feature_complexity_range_filter_max.append('div')
+                .attr('class', 'feature_space interaction complexityFilter textbox maxRange')
+                .text('Min complexity: ');
+        feature_complexity_range_filter_max.append('select');
+        this.complexityFilterThresholds = null;
 
         // Button for restoring the initial set of features
         feature_space_display_options_container.append('div')
-                .attr('class','restore_features_button container')
-                .append('button')
-                .attr('class','restore_features_button button')
-                .on("click", () => {
-                    that.allFeatures = JSON.parse(JSON.stringify(that.stashedFeatures));
-                    that.display_features(that.allFeatures);
+            .attr('class','feature_space interaction restoreButton container')
+            .append('button')
+            .attr('class','feature_space interaction restoreButton button')
+            .on("click", () => {
+                that.allFeatures = JSON.parse(JSON.stringify(that.stashedFeatures));
+                that.display_features(that.allFeatures);
 
-                    // Clear the feature application
-                    PubSub.publish(INITIALIZE_FEATURE_APPLICATION, null);
+                // Clear the feature application
+                PubSub.publish(INITIALIZE_FEATURE_APPLICATION, null);
 
-                    // Remove all highlights in the scatter plot (retain target solutions)
-                    PubSub.publish(APPLY_FEATURE_EXPRESSION, null);
-                })
-                .text("Restore initial features");
+                // Remove all highlights in the scatter plot (retain target solutions)
+                PubSub.publish(APPLY_FEATURE_EXPRESSION, null);
+            })
+            .text("Restore initial features");
 
         // Create plot div's
         let feature_plot = tab.append('div')
@@ -620,15 +626,13 @@ class DataMining{
                 .attr("height", this.height)
                 .style('margin-bottom','30px');
 
+        feature_plot.append('div')
+            .attr('class','feature_plot venn_diagram')
+            .append('div')
+            .text('Total number of designs: ' + this.data.length);
+
         if(typeof features === 'undefined' || features == null){
             return;
-        }
-
-        // EXPERIMENT
-        if(this.treatment_condition){
-            if(this.treatment_condition.indexOf("interactive_generalization") === -1){
-                d3.select("#feature_space_display_options_container").remove();
-            }
         }
 
         // Initialize the location of each feature
@@ -1089,7 +1093,7 @@ class DataMining{
             }
 
             // Set the location of the utopia point
-            this.utopiaPoint.metrics = [maxLift, maxSupp, maxConf, maxConf];
+            this.utopiaPoint.metrics = [maxLift, maxSupp, 1.0, 1.0];
 
             // Needed to map the values of the dataset to the color scale
             this.colorInterpolateRainbow = d3.scaleLinear()
@@ -1117,10 +1121,12 @@ class DataMining{
             if(currentFeature){
                 this.currentFeature = currentFeature;
                 cursorFeature = JSON.parse(JSON.stringify(currentFeature));
+                this.draw_venn_diagram(currentFeature.metrics[3], currentFeature.metrics[2]);
                 
             }else{
                 this.currentFeature = null;
                 cursorFeature = JSON.parse(JSON.stringify(this.utopiaPoint));
+                this.draw_venn_diagram(null, null);
                 
             }
             cursorFeature.cursor = true;
@@ -1197,31 +1203,39 @@ class DataMining{
             
             // x-axis
             this.gX = svg.append("g")
-                .attr("class", "axis axis-x objects feature_plot")
+                .attr("class", "axis axis-x axisObjects feature_plot")
                 .attr("transform", "translate(0, " + height + ")")
                 .call(this.xAxis);
 
             svg.append("text")
                 .attr("transform", "translate(" + width + ", " + height + ")")
-                .attr("class", "label")
+                .attr("class", "axisLabel axisObjects axis-x")
                 .attr("y", -6)
                 .style("text-anchor", "end")
                 .text('Specificity')
-                .style('font-size','15px');
+                .style('font-size','17px');
 
             // y-axis
             this.gY = svg.append("g")
-                .attr("class", "axis axis-y objects feature_plot")
+                .attr("class", "axis axis-y axisObjects feature_plot")
                 .call(this.yAxis);
             
             svg.append("text")
-                .attr("class", "label")
+                .attr("class", "axisLabel axisObjects axis-y")
                 .attr("transform", "rotate(-90)")
                 .attr("y", 6)
                 .attr("dy", ".71em")
                 .style("text-anchor", "end")
                 .text('Coverage')
-                .style('font-size','15px');
+                .style('font-size','17px');
+
+            d3.selectAll(".feature_plot.figure").selectAll(".axisObjects")
+                .on("mouseover", function(){
+                    that.axis_label_mouseover(this);
+                })
+                .on("mouseout", function(){
+                    that.axis_label_mouseout(this);
+                });
         }
 
         if(this.complexityFilterThresholds){
@@ -1405,6 +1419,10 @@ class DataMining{
         let metrics = d.metrics;
         let conf = d.metrics[2];
         let conf2 = d.metrics[3];
+        let complexity = d.complexity;
+
+        // Draw Venn diagram
+        this.draw_venn_diagram(conf2, conf);
 
         // Set variables
         let margin = this.margin;
@@ -1415,8 +1433,8 @@ class DataMining{
         let mouseLoc_y = d3.mouse(d3.select(".objects.feature_plot").node())[1];
 
         let tooltip_location = {x:0,y:0};
-        let tooltip_width = 250;
-        let tooltip_height = 120;
+        let tooltip_width = 170;
+        let tooltip_height = 92;
 
         let h_threshold = (width + margin.left + margin.right)*0.5;
         let v_threshold = (height + margin.top + margin.bottom)*0.55;
@@ -1437,43 +1455,40 @@ class DataMining{
                         .attr("id","tooltip_g");
 
         tooltip.append("rect")
-                    .attr("id","tooltip_rect")
-                    .attr("transform", function(){
-                        let x = mouseLoc_x + tooltip_location.x;
-                        let y = mouseLoc_y + tooltip_location.y;
-                        return "translate(" + x + "," + y + ")";
-                     })
-                    .attr("width",tooltip_width)
-                    .attr("height",tooltip_height)
-                    .style("fill","#4B4B4B")
-                    .style("opacity", 0.92);    
+            .attr("id","tooltip_rect")
+            .attr("transform", function(){
+                let x = mouseLoc_x + tooltip_location.x;
+                let y = mouseLoc_y + tooltip_location.y;
+                return "translate(" + x + "," + y + ")";
+             })
+            .attr("width",tooltip_width)
+            .attr("height",tooltip_height)
+            .style("fill","#4B4B4B")
+            .style("opacity", 0.92);    
 
         let fo = tooltip
-                        .append("foreignObject")
-                        .attr('id','tooltip_foreignObject')
-                        .attr("x",function(){
-                            return mouseLoc_x + tooltip_location.x;
-                        })
-                        .attr("y",function(){
-                           return mouseLoc_y + tooltip_location.y; 
-                        })
-                        .attrs({
-                            'width':tooltip_width,
-                            'height':tooltip_height  
-                        })
-                        .data([{id:id, expression:expression, metrics:metrics}]) 
-                        .html(function(d){
-                            // let output= "lift: " + round_num(d.metrics[1]) + 
-                            // "<br> Support: " + round_num(d.metrics[0]) + 
-                            // "<br> Confidence(F->S): " + round_num(d.metrics[2]) + 
-                            // "<br> Confidence(S->F): " + round_num(d.metrics[3]) +"";
-
-                            let output= "Specificity: " + round_num(d.metrics[2]) + 
-                            "<br> Coverage: " + round_num(d.metrics[3]) + "";
-                            return output;
-                        }).style("padding","14px")
-                        .style('color','#F7FF55')
-                        .style('word-wrap','break-word');   
+            .append("foreignObject")
+            .attr('id','tooltip_foreignObject')
+            .attr("x",function(){
+                return mouseLoc_x + tooltip_location.x;
+            })
+            .attr("y",function(){
+               return mouseLoc_y + tooltip_location.y; 
+            })
+            .attrs({
+                'width':tooltip_width,
+                'height':tooltip_height  
+            })
+            .data([{id:id, expression:expression, metrics:metrics, complexity: complexity}]) 
+            .html(function(d){
+                let output= "Specificity: " + round_num(d.metrics[2]) + 
+                "<br> Coverage: " + round_num(d.metrics[3]) + 
+                "<br> Complexity: " + d.complexity;
+                return output;
+            })
+            .style("padding","14px")
+            .style('color','#F7FF55')
+            .style('word-wrap','break-word');   
 
         if(this.currentFeature){
             if(d.expression === this.currentFeature.expression){
@@ -1490,25 +1505,96 @@ class DataMining{
     }
 
     feature_mouseout(d){
+        // Restore the venn diagram
+        if(this.currentFeature){
+            let precision = this.currentFeature.metrics[2];
+            let recall = this.currentFeature.metrics[3];
+            this.draw_venn_diagram(recall, precision);
+        } else {
+            this.draw_venn_diagram(null, null);
+        }
+
         // Remove the tooltip
         d3.selectAll("#tooltip_g").remove();
 
         // Bring back the previously stored feature expression
-        this.feature_application.update_feature_application('restore');        
+        this.feature_application.update_feature_application('restore');       
+    }
+
+    axis_label_mouseout(axisLabelNode){
+        d3.select("#axis_label_tooltip_g").remove();
+    }
+
+    axis_label_mouseover(axisLabelNode){
+        let mouseLoc_x = d3.mouse(d3.select(".objects.feature_plot").node())[0];
+        let mouseLoc_y = d3.mouse(d3.select(".objects.feature_plot").node())[1];
+        let tooltip_location = {x:0, y:0};
+        let tooltip_width = 380;
+        let tooltip_height = 110;
+
+        let is_x_axis = false;
+
+        if(d3.select(axisLabelNode).classed("axis-x")){
+            tooltip_location.x = -10 - tooltip_width;
+            tooltip_location.y = -10 - tooltip_height;
+            is_x_axis = true;
+        
+        } else if(d3.select(axisLabelNode).classed("axis-y")){
+            tooltip_location.y = 10;
+            tooltip_location.x = 10;
+        }
+
+        let svg = d3.select(".objects.feature_plot");
+        let tooltip = svg.append("g")
+                        .attr("id","axis_label_tooltip_g");
+
+        tooltip.append("rect")
+            .attr("id","tooltip_rect")
+            .attr("transform", function(){
+                let x = mouseLoc_x + tooltip_location.x;
+                let y = mouseLoc_y + tooltip_location.y;
+                return "translate(" + x + "," + y + ")";
+             })
+            .attr("width",tooltip_width)
+            .attr("height",tooltip_height)
+            .style("fill","#4B4B4B")
+            .style("opacity", 0.92);    
+
+        let fo = tooltip
+            .append("foreignObject")
+            .attr('id','tooltip_foreignObject')
+            .attr("x",function(){
+                return mouseLoc_x + tooltip_location.x;
+            })
+            .attr("y",function(){
+               return mouseLoc_y + tooltip_location.y; 
+            })
+            .attrs({
+                'width':tooltip_width,
+                'height':tooltip_height  
+            })
+            .html(() => {
+                let out = null;
+                if(is_x_axis){
+                    out = "<p>X axis: Specificity</p>"
+                    +"<p>specificity = (# of purple dots) / (# of pink dots)</p>";
+                    
+                }else{
+                    out = "<p>Y axis: Coverage</p>"
+                    +"<p>coverage = (# of purple dots) / (# of blue dots)</p>";
+                }
+                return out;
+            })
+            .style("padding","14px")
+            .style('color','#F7FF55')
+            .style('word-wrap','break-word');   
     }
 
     update_feature_complexity_range_filter(min, max){
         let that = this;
 
-        if(!d3.select('.feature_complexity_range_filter.minRange').node()){
+        if(!d3.select('.feature_space.interaction.complexityFilter').node()){
             return;
-        }
-
-        // EXPERIMENT
-        if(this.treatment_condition){
-            if(this.treatment_condition.indexOf("interactive_generalization") === -1){
-                return;
-            }
         }
 
         let options = [];
@@ -1516,14 +1602,14 @@ class DataMining{
             options.push(min + i);
         }
 
-        let initial_val_min = d3.select('.feature_complexity_range_filter.minRange').select('select').node().value;
-        let initial_val_max = d3.select('.feature_complexity_range_filter.maxRange').select('select').node().value;
+        let initial_val_min = d3.select('.feature_space.interaction.complexityFilter.minRange').select('select').node().value;
+        let initial_val_max = d3.select('.feature_space.interaction.complexityFilter.maxRange').select('select').node().value;
 
-        d3.select('.feature_complexity_range_filter.minRange')
+        d3.select('.feature_space.interaction.complexityFilter.minRange')
             .select('select')
             .on("change", () => {
-                let minThreshold = d3.select('.feature_complexity_range_filter.minRange').select('select').node().value;
-                let maxThreshold = d3.select('.feature_complexity_range_filter.maxRange').select('select').node().value;
+                let minThreshold = d3.select('.feature_space.interaction.complexityFilter.minRange').select('select').node().value;
+                let maxThreshold = d3.select('.feature_space.interaction.complexityFilter.maxRange').select('select').node().value;
                 that.complexityFilterThresholds = [minThreshold, maxThreshold];
                 d3.selectAll('.feature_plot.dot').remove();
                 PubSub.publish(INITIALIZE_FEATURE_APPLICATION, null);
@@ -1549,16 +1635,16 @@ class DataMining{
                 initial_val_min = max
             }
 
-            d3.select('.feature_complexity_range_filter.minRange').select('select').node().value = initial_val_min;
+            d3.select('.feature_space.interaction.complexityFilter.minRange').select('select').node().value = initial_val_min;
         }else{
-            d3.select('.feature_complexity_range_filter.minRange').select('select').node().value = min;
+            d3.select('.feature_space.interaction.complexityFilter.minRange').select('select').node().value = min;
         }
 
-        d3.select('.feature_complexity_range_filter.maxRange')
+        d3.select('.feature_space.interaction.complexityFilter.maxRange')
             .select('select')
             .on("change", () => {
-                let minThreshold = d3.select('.feature_complexity_range_filter.minRange').select('select').node().value;
-                let maxThreshold = d3.select('.feature_complexity_range_filter.maxRange').select('select').node().value;
+                let minThreshold = d3.select('.feature_space.interaction.complexityFilter.minRange').select('select').node().value;
+                let maxThreshold = d3.select('.feature_space.interaction.complexityFilter.maxRange').select('select').node().value;
                 that.complexityFilterThresholds = [minThreshold, maxThreshold];
                 d3.selectAll('.feature_plot.dot').remove();
                 PubSub.publish(INITIALIZE_FEATURE_APPLICATION, null);
@@ -1584,9 +1670,9 @@ class DataMining{
                 initial_val_max = max
             }
 
-            d3.select('.feature_complexity_range_filter.maxRange').select('select').node().value = initial_val_max;
+            d3.select('.feature_space.interaction.complexityFilter.maxRange').select('select').node().value = initial_val_max;
         }else{
-            d3.select('.feature_complexity_range_filter.maxRange').select('select').node().value = max;
+            d3.select('.feature_space.interaction.complexityFilter.maxRange').select('select').node().value = max;
         }
     }
 
@@ -1856,7 +1942,6 @@ class DataMining{
     }
 
     compute_algebraic_complexity_of_features(startInd, endInd){
-
         let features = this.allFeatures;
         if(features.length == 0){
             return null;
@@ -2103,10 +2188,13 @@ class DataMining{
                 // Remove all highlights in the scatter plot (retain target solutions)
                 PubSub.publish(APPLY_FEATURE_EXPRESSION, null);
 
-                if(imported_features.length === 0){ // If there is no driving feature returned
+                if(!imported_features){ // If there is no driving feature returned
+                    return;
+                }else if(imported_features.length === 0){
                     return;
                 }
 
+                this.allFeatures = [];
                 that.stashedFeatures = JSON.parse(JSON.stringify(imported_features));
                 that.display_features(imported_features);  
 
@@ -2126,37 +2214,13 @@ class DataMining{
         });
     }
 
-    relabel_generalization_description(message){
-        let instrument_original_names = this.label.instrument_list;
-        let instrument_relabeled_names = this.label.instrument_relabeled;
-        let orbit_original_names = this.label.orbit_list;
-        let orbit_relabeled_names = this.label.orbit_relabeled;
-
-        for(let i = 0; i < instrument_original_names.length; i++){
-            let instr_original = instrument_original_names[i];  
-            if(message.indexOf(instr_original) !== -1){
-                let instr_relabeled = instrument_relabeled_names[i];
-                message = message.replace(new RegExp(instr_original, 'g'), instr_relabeled);
-            }
-        }
-
-        for(let i = 0; i < orbit_original_names.length; i++){
-            let orb_original = orbit_original_names[i];            
-            if(message.indexOf(orb_original) !== -1){
-                let orb_relabeled = orbit_relabeled_names[i];
-                message = message.replace(new RegExp(orb_original, 'g'), orb_relabeled);
-            }
-        }
-
-        return message;
-    }
-
     show_generalization_suggestion(features){
         let that = this;
         iziToast.destroy();
 
         let timeout = 20000;
         let numMaxFeatures = 4;
+        iziToast.destroy();
 
         let message = "";
         if(this.currentFeature){
@@ -2195,14 +2259,21 @@ class DataMining{
         let buttonsStyle = "width: 80%; float: left; margin-top: 20px; margin-bottom: 20px; font-size: 17px;";
         let buttonsList = [];
         for(let i = 0; i < features.length; i++){
-
             let description = features[i].description;
+            description = that.label.pp_generalization_description(description);
             description = description.replace("\" to \"", "\"</p> <p>to</p> <p>\"")
             description = "<p>" + description + "</p>";
             description += "<p>(coverage: "+ round_num(features[i].metrics[3]) + ", specificity: " + round_num(features[i].metrics[2]) +")</p>";
-            let button = ['<button style="'+ buttonsStyle +'"><b>'+ description +'</b></button>', function (instance, toast) {
+            
+            let button = ['<button style="'+ buttonsStyle +'"><b>'+ description +'</b></button>', function (instance, toast) { 
+
                     that.feature_application.update_feature_application('direct-update', features[i].name);
                     that.add_new_features(features[i], true);
+
+                    if(that.localSearchOn){
+                        that.run_local_search("BOTH");
+                        that.localSearchInitiatedFromGeneralization = true;
+                    }
 
                     instance.hide({transitionOut: 'fadeOutUp',}, toast, 'buttonName');
                 }, true];
@@ -2290,5 +2361,133 @@ class DataMining{
             feature_objectives = remaining_objectives;
         }
     }  
+
+    remove_venn_diagram(){
+        d3.select('.feature_plot.venn_diagram').select('div').select('svg').remove();
+    }
+
+    draw_venn_diagram(recall, precision){
+        let venn_diagram_container = d3.select('.feature_plot.venn_diagram').select('div');
+
+        if(!venn_diagram_container.node()) {
+            return;
+        }
+
+        let total = this.data.length;
+        let selected = this.selected_archs.length;
+        let highlighted = null;
+        let intersection = null;
+        if(recall){
+            intersection = Math.round(recall * selected);
+        } else {
+            intersection = 0;
+        }
+        if(precision && intersection){
+            highlighted = Math.round(1 / precision * intersection);
+        } else {
+            highlighted = 0;
+        }
+
+        // Selection has a fixed radius and location
+        let r1 = 70;
+        let left_margin = 50;
+        let c1x = 110;
+
+        let svg = venn_diagram_container.select('svg');
+        if(!svg.node()){
+            svg = venn_diagram_container
+                .append("svg")
+                .style('width','300px')             
+                .style('border-width','3px')
+                .style('height','245px')
+                .style('border-style','solid')
+                .style('border-color','black')
+                .style('border-radius','40px')
+                .style('margin-top','10px')
+                .style('margin-bottom','10px'); 
+
+            svg.append("circle")
+                .attr("id","venn_diag_c1")
+                .attr("cx", c1x)
+                .attr("cy", 125)
+                .attr("r", r1)
+                .style("fill", "steelblue")
+                .style("fill-opacity", ".5");
+
+            svg.append("text")
+                .attr("id","venn_diag_c1_text")
+                .attr("x", 20)
+                .attr("y", 230)
+                .attr("font-size", "17px")
+                .attr("fill","steelblue")
+                .text("Target:" + selected );
+        }
+
+        d3.select("#venn_diag_c2").remove();
+        d3.select("#venn_diag_c2_text").remove();
+        d3.select("#venn_diag_int_text").remove();
+
+        if(!highlighted && !intersection){
+            return;
+        }
+
+        // Feature 
+        let r2 = Math.sqrt(highlighted / selected) * r1;
+        if(r2 > 100){ // Cap the size of the circle at r=100
+            r2 = 100;
+        }
+
+        let c2x;
+        if (precision > 0.999){
+            c2x = c1x + r2 - r1;
+
+        } else {
+            let dist;
+            if(selected > highlighted){
+                if(intersection == 0){
+                    dist = r1 + r2;
+                } else if(intersection === highlighted){
+                    dist = r1 - r2;
+                } else { // Linear mapping from r1-r2 to r1+r2, as intersection changes from 0 to highlighted
+                    dist = -2 * r2 * intersection / highlighted + r1 + r2;
+                }
+            } else {
+                if(intersection == 0){
+                    dist = r1 + r2;
+                } else if(intersection === selected){
+                    dist = r2 - r1;
+                } else { // Linear mapping from r2-r1 to r1+r2, as intersection changes from 0 to selected
+                    dist = -2 * r1 * intersection / selected + r1 + r2;
+                }
+            }
+
+  
+            c2x = c1x + dist;
+        }
+
+        svg.append("circle")
+            .attr("id","venn_diag_c2")
+            .attr("cx", c2x)
+            .attr("cy", 125)
+            .attr("r", r2)
+            .style("fill", "brown")
+            .style("fill-opacity", ".5");
+
+        svg.append("text")
+            .attr("id","venn_diag_c2_text")
+            .attr("x", 185)
+            .attr("y", 230)
+            .attr("font-size","17px")
+            .attr("fill","brown")
+            .text("Features:" + highlighted );
+
+        svg.append("text")
+            .attr("id","venn_diag_int_text")
+            .attr("x", left_margin - 14)
+            .attr("y", 20)
+            .attr("font-size","17px")
+            .attr("fill","#4E1499")
+            .text("Intersection: " + intersection);
+    }
 }
 
