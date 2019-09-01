@@ -16,7 +16,7 @@ function loadTutorialContent(){
         {
             name: "tutorial-intro-opening-design-inspection-only",
             object: null, 
-            content: "<p>In this experiment, you will first go through a short tutorial about a design problem and the task.</p>"
+            content: "<p>In this experiment, you will first go through a short tutorial about a design problem and the task you have to perform.</p>"
                     +"<p>The main task in this experiment is to analyze and finding patterns in a dataset "
                     +"containing various design alternatives.</p>"
                     +"Then, you will be asked to answer a series of questions to test how much you have learned from analyzing the data. </p>", 
@@ -805,7 +805,7 @@ function loadTutorialContent(){
             object: undefined, 
             content: "<p>Participant ID: "+ experiment.participantID +"</p>" ,
             callback: function(currentStep){
-                window.open("https://www.selva-research.com/ifeed-experiment-conceptmap/");
+                window.open("https://www.selva-research.com/ifeed-experiment-conceptmap/", '_blank');
             }
         },
 
@@ -844,7 +844,7 @@ function loadTutorialContent(){
                     +"(separate window), and you will not be able to use iFEED.</p>"
                     +"<p>Therefore, try to record as much information as possible on the interactive graph.</p>",
             callback: function(){
-                window.open("https://cornell.qualtrics.com/jfe/form/SV_bvZxj19eEYDWr5j");
+                window.open("https://cornell.qualtrics.com/jfe/form/SV_bvZxj19eEYDWr5j", '_blank');
             }
         },
         { 
@@ -854,7 +854,7 @@ function loadTutorialContent(){
                     +"and you will not have any access to the actual data.</p>"
                     +"<p>Therefore, try to record as much information as possible during this task.</p>",
             callback: function(){
-                window.open("https://cornell.qualtrics.com/jfe/form/SV_bvZxj19eEYDWr5j");
+                window.open("https://cornell.qualtrics.com/jfe/form/SV_bvZxj19eEYDWr5j", '_blank');
             }
         },
         { 

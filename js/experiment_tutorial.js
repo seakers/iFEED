@@ -217,7 +217,7 @@ class ExperimentTutorial{
 
             }else if(stage === "learning_end"){
                 that.intro.exit();
-                window.open("https://cornell.qualtrics.com/jfe/form/SV_ezaKpYsMD5Crggd");
+                window.open("https://cornell.qualtrics.com/jfe/form/SV_ezaKpYsMD5Crggd", '_blank');
 
                 //Move onto the next stage
                 that.experiment.generateSignInMessage(() => {

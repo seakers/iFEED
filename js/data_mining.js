@@ -360,6 +360,7 @@ class DataMining{
         
         if(!this.feature_application.data){
             alert("The baseline feature must be selected to run local search!");
+            return;
         }
 
         // Store the id's of all samples
@@ -494,7 +495,7 @@ class DataMining{
     */  
     get_marginal_driving_features(selected,non_selected,featureExpression,logical_connective){
         this.stop_search();
-        
+
         let output;
         $.ajax({
             url: "/api/data-mining/get-marginal-driving-features",
@@ -508,7 +509,11 @@ class DataMining{
                     logical_connective:logical_connective,
                   },
             async: true,
-            success: function (data, textStatus, jqXHR){},
+            success: function (data, textStatus, jqXHR){
+
+                // EXPERIMENT
+                PubSub.publish(EXPERIMENT_EVENT, {key:"local_search_run"});
+            },
             error: function (jqXHR, textStatus, errorThrown)
             {alert("Error in calling get_marginal_driving_features()");}
         });
@@ -2366,6 +2371,9 @@ class DataMining{
             features = sortedFeatureList.splice(0, numMaxFeatures);
         }
 
+        // EXPERIMENT
+        PubSub.publish(EXPERIMENT_EVENT, {key:"generalization_run"});
+
         let buttonsStyle = "width: 80%; float: left; margin-top: 20px; margin-bottom: 20px; font-size: 17px;";
         let buttonsList = [];
         for(let i = 0; i < features.length; i++){
@@ -2379,6 +2387,9 @@ class DataMining{
 
                     // EXPERIMENT 
                     PubSub.publish(EXPERIMENT_TUTORIAL_EVENT, "generalization_selected");    
+
+                    // EXPERIMENT
+                    PubSub.publish(EXPERIMENT_EVENT, {key:"generalization_selected"});
 
                     that.feature_application.update_feature_application('direct-update', features[i].name);
                     that.add_new_features(features[i], true);
@@ -2573,8 +2584,6 @@ class DataMining{
                     dist = -2 * r1 * intersection / selected + r1 + r2;
                 }
             }
-
-  
             c2x = c1x + dist;
         }
 

@@ -50,12 +50,6 @@
             <div class="status_display value" id="num_of_selected_archs"></div> 
         </div>
         <div id="timer"></div>
-        
-        <!-- EXPERIMENT -->
-        <div id="experimentHelpMessageContainer"> 
-            <button id='experimentHelpMessage'>View help message</button>
-        </div>
-
     </div>
     <div class='column c1'>
         <div class='row c1 r1'>
@@ -67,11 +61,13 @@
                     <li><a id="tab1" href="#view1">Inspect Design</a></li>
                     <li><a id="tab2" href="#view2">Filter Setting</a></li>
                     <li><a id="tab3" href="#view3">Feature Analysis</a></li>
+                    <li><a id="tab4" href="#view4">Resources</a></li>
                 </ul>
                 <div class="tabcontents">
                     <div id="view1"></div>
                     <div id="view2"></div>
                     <div id="view3"></div>
+                    <div id="view4"></div>
                 </div>
             </div>
         </div>
@@ -181,7 +177,6 @@
  
 
     PubSub.publish(LOAD_DATA, null);
-
 
     // function select_fuzzy_pareto_front(rank){
     //     problem.calculate_pareto_ranking([],20);

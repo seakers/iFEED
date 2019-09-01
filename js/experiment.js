@@ -76,6 +76,15 @@ class Experiment{
 
                 }else if(data.key === "filter_applied"){
                     that.counter_filter_used++;
+
+                } else if (data.key === "local_search_run"){
+                    that.counter_local_search_run++;
+                
+                } else if (data.key === "generalization_run") {
+                    that.counter_generalization_run++;
+                
+                } else if (data.key === "generalization_selected") {
+                    that.counter_generalization_selected++;
                 }
 
             }else if(that.stage === "design_synthesis"){
@@ -124,6 +133,9 @@ class Experiment{
         this.counter_design_viewed = 0;
         this.counter_feature_viewed = 0;
         this.counter_filter_used = 0;
+        this.counter_local_search_run = 0;
+        this.counter_generalization_run = 0;
+        this.counter_generalization_selected = 0;
         this.features_tested = [];
     }
 
@@ -202,6 +214,9 @@ class Experiment{
         //  - counter_design_viewed
         //  - counter_feature_viewed
         //  - counter_filter_used
+        //  - counter_local_search_run
+        //  - counter_generalization_run
+        //  - counter_generalization_selected
         //  - features_tested
 
         this.clock.stop();
@@ -224,6 +239,9 @@ class Experiment{
             "counter_design_viewed": this.counter_design_viewed,
             "counter_feature_viewed": this.counter_feature_viewed,
             "counter_filter_used": this.counter_filter_used,
+            "counter_local_search_run": this.counter_local_search_run,
+            "counter_generalization_run": this.counter_generalization_run,
+            "counter_generalization_selected": this.counter_generalization_selected,
             "features_tested": this.features_tested,
         }
         console.log(learning_task_data);

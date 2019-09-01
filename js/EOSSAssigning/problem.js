@@ -126,6 +126,8 @@ class EOSSAssigning extends Problem{
             }
         });
 
+        this.load_resources_tab();
+
         this.orbit_num = this.orbit_list.length;
         this.instrument_num = this.instrument_list.length; 
 
@@ -641,5 +643,51 @@ class EOSSAssigning extends Problem{
                 alert("error");
             }
         });        
-    }   
+    } 
+
+    load_resources_tab(){
+
+        d3.select("#view4").select("g").remove();
+
+        let tab = d3.select('#view4').append('g');
+
+        let helpButtonsContainer = tab.append('div')
+            .style("width","100%")
+            .style("padding","10px");
+
+        helpButtonsContainer
+            .append("div")
+            .append("button")
+            .on("click", () => {
+                //window.open('instruments_and_orbits_resource.html', '_blank');
+            })
+            .text("View task goal");
+
+        helpButtonsContainer
+            .append("div")
+            .append("button")
+            .on("click", () => {
+                window.open('instruments_and_orbits_resource.html', '_blank');
+            })
+            .text("Open variable information");
+
+        helpButtonsContainer
+            .append("div")
+            .append("button")
+            .on("click", () => {
+                window.open("https://cornell.qualtrics.com/jfe/form/SV_bvZxj19eEYDWr5j", '_blank');
+            })
+            .text("View sample questions");
+
+        helpButtonsContainer.selectAll("div")
+            .style("float", "left")
+            .style("margin-right", "25px")
+            .style("margin-top", "20px");
+
+        helpButtonsContainer.selectAll("button")
+            .style("width", "350px")
+            .style("height", "70px")
+            .style("font-size", "22px")
+            .style("font-weight", "bold");
+    }  
 }
