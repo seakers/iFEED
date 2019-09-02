@@ -17,7 +17,7 @@ function loadTutorialContent(){
             name: "tutorial-intro-opening-design-inspection-only",
             object: null, 
             content: "<p>In this experiment, you will first go through a short tutorial about a design problem and the task you have to perform.</p>"
-                    +"<p>The main task in this experiment is to analyze and finding patterns in a dataset "
+                    +"<p>The main task in this experiment is to analyze and find patterns in a dataset "
                     +"containing various design alternatives.</p>"
                     +"Then, you will be asked to answer a series of questions to test how much you have learned from analyzing the data. </p>", 
             callback: null,
@@ -37,14 +37,15 @@ function loadTutorialContent(){
             name: "tutorial-intro-task",
             object: undefined,
             content: "<p>The design problem at hand is architecting a constellation of satellites for Earth observation.</p>"
-                    +"<p>Each design consists of multiple satellites carrying different sensors "
+                    +"<p>Each architecture (we will use the term \"architecture\" and \"design\" interchangeably in this experiment) "
+                    +"consists of multiple satellites carrying different sensors "
                     +"working together to satisfy some measurement requirements related to climate monitoring.</p>",
             callback: null,
         },
         { 
             name: "tutorial-problem-formulation",
             object: d3.select('#support_panel').node(),
-            content: "<p>The diagram here shows how each design is defined. </p>"
+            content: "<p>The diagram here shows how each architecture is defined. </p>"
                     +"<p>The architecture is defined by assigning a set of remote-sensing instruments "
                     +"(e.g. altimeter, radiometer, spectrometers, etc.) to spacecraft, "
                     +"which will fly in different orbits (determined by the altitude above the Earth, inclination with respect to the Equator, etc.).</p>"
@@ -67,12 +68,12 @@ function loadTutorialContent(){
                     +'</table>'
                     +"<p>(LEO = Low Earth Orbit, SSO = Sun-Synchronous Orbit, AM = morning, PM = afternoonm, DD = dawn-dusk, "
                     +"LTAN = Local Time of the Ascending Node)</p>"
-                    +"<p>You can hover the mouse over the each orbit box to review these descriptions later.</p>",
+                    +"<p>These descriptions can be viewed anytime by hovering the mouse over the each orbit box.</p>",
             callback: null,
         },
         {
             name: "tutorial-problem-formulation-candidate-instruments",
-            object: null,
+            object: d3.select('#support_panel').node(),
             content: "<p>The following is the list of 12 candidate instruments considered in this problem. "
                     +"The instruments have been adapted from the NRC 2007 Earth Science Decadal Survey.</p>"
                     +'<table class="tg">'
@@ -92,19 +93,43 @@ function loadTutorialContent(){
                     +'</table>'
                     +"<p>(SAR = Synthetic Aperture Radar, UV = Ultra Violet, VIS = VISible, SWIR = Short Wave InfraRed, "
                     +"TIR = Thermal InfraRed, IR = InfraRed)</p>"
-                    +"<p>You can hover the mouse over the each instrument box to review these descriptions later.</p>",
-            callback: null,
+                    +"<p>These descriptions can be viewed anytime by hovering the mouse over the each instrument box.</p>",
+            callback: function(currentStep){
+                document.getElementById('tab1').click();
+            },
+        },
+        {
+            name: "tutorial-problem-formulation-variable-detail-information",
+            object: d3.select("#variable_description_material_link").node(),
+            content: "<p>More detailed information about each instrument is provided in a separate page.</p>"
+                        +"<p>To continue, try clicking the button \"Open instruments and orbits information\"</p>",
+            callback: function(currentStep){
+                document.getElementById('tab4').click();
+                tutorial.start_tutorial_event_listener("variable_description_material_opened", currentStep);
+            },
+        },
+        {
+            name: "tutorial-problem-formulation-variable-detail-information-2",
+            object: d3.select("#variable_description_material_link").node(),
+            content: "<p>You will have an access to this information anytime during the experiment</p>",
+            callback: function(currentStep){
+                document.getElementById('tab4').click();
+            },
         },
         {
             name: "tutorial-problem-formulation-objectives",
             object: d3.select('#support_panel').node(),
-            content: "<p>Each design has corresponding science benefit score and cost. The science benefit score "
-                    +"is a number that tells us how much value each design brings to the climate monitoring community. </p>"
+            content: "<p>Each architecture, defined by different instrument-to-orbit assignemnts, "
+                    +"has corresponding science benefit score and cost. "
+                    +"The science benefit score "
+                    +"is a number that tells us how much value each architecture brings to the climate monitoring community. </p>"
                     +"<p>The cost is a measure of how much it is going to cost (in million dollars) to design, implement, launch and operate "
                     +"those systems.</p>"
                     +"<p>Naturally, low-cost and high-science designs are desirable. Note that, depending on how instruments are assigned "
                     +"to different orbits, the science score and the cost may vary significantly.</p>",
-            callback: null,
+            callback: function(currentStep){
+                document.getElementById('tab1').click();
+            },
         },
 
 //////////// iFEED ///////////////////////////////////////////////////////////////////////////
@@ -134,9 +159,9 @@ function loadTutorialContent(){
             name: "tutorial-ifeed-target-region",
             object: null,
             content: "<p>In a given task, a group of dots will be highlighted in a light blue color. "
-                    +"These dots represent the target architectures that you need to investigate. </p>"
+                    +"These dots represent the target designs that you need to investigate. </p>"
                     +"<p>The goal here is to find patterns that are shared uniquely by these architectures. </p>"
-                    +"<p>Learning what constitutes good designs is useful, as you can learn more about the design problem and "
+                    +"<p>Learning what constitutes good architectures is useful, as you can learn more about the design problem and "
                     +"the model used to evaluate the architectures.</p>",
             callback: function(currentStep){},
         },
@@ -298,7 +323,7 @@ function loadTutorialContent(){
         { 
             name: "tutorial-ifeed-feature-intro-v2",
             object: undefined,
-            content: "<p>Now, we introduce the term \"feature\". Feature is a description of a pattern that can be found "
+            content: "<p>Now we introduce the term \"feature\". Feature is a description of a pattern that can be found "
                     +"among the target designs (highlighted in blue). Below are some examples of what features might look like:</p>"
                     +"<ul><li>OCE_SPEC is assigned to LEO-600-polar</li>"
                     +"<li>AERO_LID and CHEM_UVSPEC are assigned together in the same orbit</li>"
@@ -815,17 +840,21 @@ function loadTutorialContent(){
         { 
             name: "learning-task-intro-1-general-condition",
             object: undefined,
-            content: "<p>In this step, you are given 30 minutes to analyze a dataset which is generated from running a "
-                    +"multi-objective optimization algorithm.</p>"
-                    +"<p>Your goal is to identify and record as many features as possible that are shared by the target designs.</p>" // 0
+            content: "<p>In this step, you are given 30 minutes to analyze a dataset which contains 6,655 alternative architectures "
+                    +"of an Earth-observing satellite system.</p>"
+                    +"<p>Your goal is to identify and record as many features as possible that: "
+                    +"<br> (1) are shared by <b>at least 70% of the target designs (coverage of 0.7 or higher)</b>"
+                    +"<br> (2) and <b>maximizes both coverage and specificity.</b></p>" 
                     +"<p>Use the interactive concept graph provided in a separate window to record any interesting features that you find.</p>",
         }, 
         { 
             name: "learning-task-intro-1-design-inspection-only",
             object: undefined,
-            content: "<p>In this step, you are given 30 minutes to analyze a dataset which is generated from running a "
-                    +"multi-objective optimization algorithm.</p>"
-                    +"<p>Your goal is to identify and record as many features as possible that are shared by the target designs.</p>" // 0
+            content: "<p>In this step, you are given 30 minutes to analyze a dataset which contains 6,655 alternative architectures "
+                    +"of an Earth-observing satellite system.</p>"
+                    +"<p>Your goal is to identify and record as many features as possible that: "
+                    +"<br> (1) are shared by <b>at least 70% of the target designs (coverage of 0.7 or higher)</b>"
+                    +"<br> (2) and <b>maximizes both coverage and specificity.</b></p>" 
                     +"<p>You can write down any notes on the paper provided by the experimenter.</p>"
                     +"<p>If you haven't received a piece of paper, please ask the experiment to provide one.</p>",
         }, 
@@ -834,8 +863,7 @@ function loadTutorialContent(){
             object: undefined,
             content: "<p>After the 30-minute data analysis session, you will be asked to answer a series of questions about "
                     +"the given design problem and the dataset.</p>"
-                    +"<p>Your answer to these questions will be used as a measure of how much you have learned during the data analysis session.</p>"
-                    +"<p>Few sample questions are provided in a separate window (will be loaded automatically when you click next)</p>",
+                    +"<p>Your answer to these questions will be used as a measure of how much you have learned during the data analysis session.</p>",
         },
         { 
             name: "learning-task-intro-3-general-condition",
@@ -843,9 +871,7 @@ function loadTutorialContent(){
             content: "<p>As you answer the questions, you will only have access to the information you record in the interactive graph "
                     +"(separate window), and you will not be able to use iFEED.</p>"
                     +"<p>Therefore, try to record as much information as possible on the interactive graph.</p>",
-            callback: function(){
-                window.open("https://cornell.qualtrics.com/jfe/form/SV_bvZxj19eEYDWr5j", '_blank');
-            }
+            callback: null,
         },
         { 
             name: "learning-task-intro-3-design-inspection-only",
@@ -853,8 +879,19 @@ function loadTutorialContent(){
             content: "<p>As you answer the questions, you will only have access to the note you write on the paper, "
                     +"and you will not have any access to the actual data.</p>"
                     +"<p>Therefore, try to record as much information as possible during this task.</p>",
-            callback: function(){
-                window.open("https://cornell.qualtrics.com/jfe/form/SV_bvZxj19eEYDWr5j", '_blank');
+            callback: null,
+        },
+        { 
+            name: "learning-task-intro-4-resource_tab",
+            object: d3.select('#support_panel').node(),
+            content: "<p>The Resources tab contains several resources that you can utilize throughout the data analysis task.</p>"
+                +"<p>You can use \"View task goal\" option to review what you are asked to do in a given step.</p>"
+                +"<p>You can use \"Open instruments and orbits information\" option to view detailed descriptions and other information about the "
+                +"candidate instruments and orbits.</p>"
+                +"<p>You can use \"View sample questions\" option to view some sample questions. This will be useful for "
+                +"getting some idea of what might be asked in the problemset given after the data analysis step.</p>",
+            callback: function(currentStep){
+                document.getElementById('tab4').click();
             }
         },
         { 

@@ -154,6 +154,18 @@ class Experiment{
         let that = this;
         this.stage = "learning";
 
+        d3.select("#task_goal_view_button")
+            .on("click", () => {
+                let title = "Data Analysis Task";
+                let message = "<p>Try to identify and record as many features as possible that "
+                    +"are shared by the target designs (highlighted in blue)</p>"
+                    +"<p> </p>"
+                    +"<p>Look for the features that: </p>"
+                    +"<p> (1) are shared by <b>at least 70% of the target designs (coverage of 0.7 or higher)</p>"
+                    +"<p> (2) and <b>maximizes both coverage and specificity.</p>" 
+                that.display_task_goal(title, message);
+            });
+
         // Reset features
         this.filter.initialize();
         this.data_mining.initialize();
@@ -658,6 +670,21 @@ class Experiment{
         this.tradespace_plot.update(true);
         PubSub.publish(SELECTION_UPDATED, selected_data);  
     }
+
+    display_task_goal(title, message){
+        iziToast.info({
+            drag: true,
+            timeout: true,
+            close: true,
+            title: title,
+            titleSize: 28,
+            message: message,
+            messageSize: 22,
+            position: 'topCenter',
+            timeout: 60000,
+        });
+    }
+
 }
 
 

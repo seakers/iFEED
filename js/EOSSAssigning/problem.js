@@ -658,26 +658,57 @@ class EOSSAssigning extends Problem{
         helpButtonsContainer
             .append("div")
             .append("button")
+            .attr("id", "task_goal_view_button")
             .on("click", () => {
-                //window.open('instruments_and_orbits_resource.html', '_blank');
+                iziToast.info({
+                    drag: true,
+                    timeout: true,
+                    close: true,
+                    title: "Tutorial",
+                    titleSize: 28,
+                    message: "<p>Tutorial is in progress. During the actual tasks, the main goal of each task will be displayed here.</p>"
+                            +"<p></p>",
+                    messageSize: 22,
+                    position: 'topCenter',
+                    timeout: 60000,
+                });
             })
             .text("View task goal");
 
         helpButtonsContainer
             .append("div")
             .append("button")
+            .attr("id","variable_description_material_link")
             .on("click", () => {
+
+                // EXPERIMENT
+                PubSub.publish(EXPERIMENT_TUTORIAL_EVENT, "variable_description_material_opened");
+
                 window.open('instruments_and_orbits_resource.html', '_blank');
             })
-            .text("Open variable information");
+            .text("View instruments and orbits information");
 
         helpButtonsContainer
             .append("div")
             .append("button")
+            .attr("id", "sample_questions_link")
             .on("click", () => {
+
+                // EXPERIMENT
+                PubSub.publish(EXPERIMENT_TUTORIAL_EVENT, "sample_questions_opened");
+
                 window.open("https://cornell.qualtrics.com/jfe/form/SV_bvZxj19eEYDWr5j", '_blank');
             })
             .text("View sample questions");
+
+        helpButtonsContainer
+            .append("div")
+            .append("button")
+            .attr("id", "coverage_and_specificity_explanation_link")
+            .on("click", () => {
+                window.open('coverage_and_specificity.html', '_blank'); 
+            })
+            .text("View feature definition (coverage and specificity)");
 
         helpButtonsContainer.selectAll("div")
             .style("float", "left")
@@ -686,8 +717,9 @@ class EOSSAssigning extends Problem{
 
         helpButtonsContainer.selectAll("button")
             .style("width", "350px")
-            .style("height", "70px")
-            .style("font-size", "22px")
+            .style("height", "80px")
+            .style("padding", "15px")
+            .style("font-size", "21px")
             .style("font-weight", "bold");
     }  
 }
