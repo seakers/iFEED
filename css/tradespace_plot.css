@@ -76,10 +76,14 @@
     border-width: 1px;
 }
 
+.tradespace_plot.axisLabel{
+    font-size: 0.9vw;
+}
 
 
-
-
+.tradespace_plot.axis > .tick{
+    font-size: 0.8vw;
+}
 
 
 
@@ -93,13 +97,6 @@
     height:120px;
     float:left;
     margin-bottom: 5px;
-}
-
-#run_design_local_search{
-    float:left;
-    font-size:18px;
-    margin-right: 660px;
-    margin-bottom: 10px;
 }
 
 #evaluate_architecture_button{
@@ -154,7 +151,6 @@
 
 .axis path,
 .axis line {
-    
     fill: none;
     stroke: #000;
     shape-rendering: crispEdges;
@@ -164,6 +160,9 @@
     stroke: #000;
     stroke-width: 0;
 }
+
+
+
 
 
 /* Tooltip container */
