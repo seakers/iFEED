@@ -557,7 +557,29 @@ class Experiment{
 
     save_data(data){
         let filename = this.participantID + "-" + this.stage + ".json";;        
-        this.saveTextAsFile(filename, JSON.stringify(data));
+        this.saveTextAsFile2(filename, JSON.stringify(data));
+    }
+
+    saveTextAsFile2(filename, inputText){
+//         $(document).ready(function() {
+//     saveFile("Example.txt", "data:attachment/text", "Hello, world.");
+// });  
+        
+        let name = filename;
+        let type = "application/json";
+        let data = inputText;
+
+        if (data !== null && navigator.msSaveBlob)
+            return navigator.msSaveBlob(new Blob([data], { type: type }), name);
+
+        let a = $("<a style='display: none;'/>");
+        let url = window.URL.createObjectURL(new Blob([data], {type: type}));
+        a.attr("href", url);
+        a.attr("download", name);
+        $("body").append(a);
+        a[0].click();
+        window.URL.revokeObjectURL(url);
+        a.remove();
     }
 
     saveTextAsFile(filename, inputText){
