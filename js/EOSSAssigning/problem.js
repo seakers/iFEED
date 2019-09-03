@@ -670,7 +670,7 @@ class EOSSAssigning extends Problem{
                             +"<p></p>",
                     messageSize: 22,
                     position: 'topCenter',
-                    timeout: 60000,
+                    timeout: 45000,
                 });
             })
             .text("View task goal");

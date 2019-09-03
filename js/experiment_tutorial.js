@@ -439,6 +439,8 @@ class ExperimentTutorial{
 
         // Update the target object
         this.updateContentObject(stageContent, "tutorial-ifeed-filter-options", d3.select('.filter.options.dropdown').node());
+        this.updateContentObject(stageContent, "tutorial-ifeed-feature-space-plot-2", d3.select('.feature_plot.figure').node());
+        this.updateContentObject(stageContent, "tutorial-ifeed-feature-space-plot-mouse-over-3", d3.select('.feature_plot.venn_diagram').node());
         this.updateContentObject(stageContent, "tutorial-ifeed-feature-interactive-intro", d3.select('#feature_space_display_options_container').node());
         this.updateContentObject(stageContent, "tutorial-ifeed-feature-interactive-local-search-1", d3.select('.feature_space_interaction.localSearch.container').node());
         this.updateContentObject(stageContent, "tutorial-ifeed-feature-interactive-generalization-1", d3.select('.feature_space_interaction.generalization.container').node());

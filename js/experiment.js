@@ -161,8 +161,8 @@ class Experiment{
                     +"are shared by the target designs (highlighted in blue)</p>"
                     +"<p> </p>"
                     +"<p>Look for the features that: </p>"
-                    +"<p> (1) are shared by <b>at least 70% of the target designs (coverage of 0.7 or higher)</p>"
-                    +"<p> (2) and <b>maximizes both coverage and specificity.</p>" 
+                    +"<p><b>(1) are shared by <b>at least 70% of the target designs (coverage of 0.7 or higher)</b></p>"
+                    +"<p><b>(2) and <b>maximizes both coverage and specificity.</b></p>" 
                 that.display_task_goal(title, message);
             });
 
@@ -264,7 +264,20 @@ class Experiment{
     }
 
     load_feature_synthesis_task(){
+        let that = this;
         this.stage = "feature_synthesis";
+
+        d3.select("#task_goal_view_button")
+            .on("click", () => {
+                let title = "Feature Synthesis Task";
+                let message = "<p>Try to define as many features as possible that: "
+                    +"<p><b>(1) are shared by <b>at least 70% of the target designs (coverage of 0.7 or higher)</b></p>"
+                    +"<p><b>(2) and <b>maximizes both coverage and specificity.</b></p>"
+
+                    +"<p>You can define new features using the Filter Setting tab. </p>";
+                that.display_task_goal(title, message);
+            });
+
         d3.select("#tab1").text('-');
         d3.select("#view1").selectAll('g').remove();
 
@@ -366,7 +379,17 @@ class Experiment{
     }
 
     load_design_synthesis_task(){
+        let that = this;
         this.stage = "design_synthesis";
+
+        d3.select("#task_goal_view_button")
+            .on("click", () => {
+                let title = "Design Synthesis Task";
+                let message = "<p>Try to create as many architectures as possible that are close "
+                    +"to, or inside the target region (highlighted in light blue color).";
+                that.display_task_goal(title, message);
+            });
+
         d3.select("#tab1").text('Inspect Design');
         this.tradespace_plot.initialize();
 
@@ -681,7 +704,7 @@ class Experiment{
             message: message,
             messageSize: 22,
             position: 'topCenter',
-            timeout: 60000,
+            timeout: 45000,
         });
     }
 

@@ -1151,11 +1151,12 @@ class DataMining{
                     this.utopiaPoint.metrics[3] < currentFeature.metrics[3])
                 {
                     rescalePoints = true;
-
                 }else if(!this.utopiaPoint.metrics[0]){
                     rescalePoints = true;
                 }
             }
+
+            
         }
 
         // Check if 
@@ -1174,7 +1175,7 @@ class DataMining{
             }
 
             // Set the location of the utopia point
-            this.utopiaPoint.metrics = [maxLift, maxSupp, 1.0, 1.0];
+            this.utopiaPoint.metrics = [maxSupp, maxLift, 1.0, 1.0];
 
             // Needed to map the values of the dataset to the color scale
             this.colorInterpolateRainbow = d3.scaleLinear()
@@ -1734,21 +1735,7 @@ class DataMining{
             .text((d) => {
                 return d;
             });
-
-        if(initial_val_min){
-            initial_val_min = +initial_val_min;
-
-            if(initial_val_min < min){
-                initial_val_min = min;
-            }else if(initial_val_min > max){
-                initial_val_min = max
-            }
-
-            d3.select('.feature_space.interaction.complexityFilter.minRange').select('select').node().value = initial_val_min;
-        }else{
-            d3.select('.feature_space.interaction.complexityFilter.minRange').select('select').node().value = min;
-        }
-
+        
         d3.select('.feature_space.interaction.complexityFilter.maxRange')
             .select('select')
             .on("change", () => {
@@ -1770,19 +1757,9 @@ class DataMining{
                 return d;
             });
 
-        if(initial_val_max){
-            initial_val_max = +initial_val_max;
-
-            if(initial_val_max < min){
-                initial_val_max = min;
-            }else if(initial_val_max > max){
-                initial_val_max = max
-            }
-
-            d3.select('.feature_space.interaction.complexityFilter.maxRange').select('select').node().value = initial_val_max;
-        }else{
-            d3.select('.feature_space.interaction.complexityFilter.maxRange').select('select').node().value = max;
-        }
+        d3.select('.feature_space.interaction.complexityFilter.minRange').select('select').node().value = min;
+        d3.select('.feature_space.interaction.complexityFilter.maxRange').select('select').node().value = max; 
+        that.complexityFilterThresholds = [min, max];       
     }
 
     check_if_non_dominated(testFeature, otherFeatures, objective_indices){  

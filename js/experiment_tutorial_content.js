@@ -38,8 +38,8 @@ function loadTutorialContent(){
             object: undefined,
             content: "<p>The design problem at hand is architecting a constellation of satellites for Earth observation.</p>"
                     +"<p>Each architecture (we will use the term \"architecture\" and \"design\" interchangeably in this experiment) "
-                    +"consists of multiple satellites carrying different sensors "
-                    +"working together to satisfy some measurement requirements related to climate monitoring.</p>",
+                    +"consists of multiple satellites carrying different payload to satisfy some "
+                    +"measurement requirements related to climate monitoring.</p>",
             callback: null,
         },
         { 
@@ -413,6 +413,18 @@ function loadTutorialContent(){
 
 //////////// Feature space plot ///////////////////////////////////////////////////////////////////////////
         { 
+            name: "tutorial-ifeed-feature-space-plot_delay_",
+            object: null,
+            content: "",
+            callback: function(currentStep){
+                setTimeout(function() {
+                    tutorial.intro.exit();
+                    tutorial.set_tutorial_content("tutorial", "tutorial-ifeed-feature-space-plot");
+                }, 500);
+                return;
+            }
+        },
+        { 
             name: "tutorial-ifeed-feature-space-plot",
             object: d3.selectAll('#support_panel').node(),
             content: "<p>Feature Analysis tab provides a visualization that shows how much coverage and specificity different features have.</p>", 
@@ -423,7 +435,7 @@ function loadTutorialContent(){
         }, 
         { 
             name: "tutorial-ifeed-feature-space-plot-2",
-            object: null,
+            object: d3.select('.feature_plot.figure').node(),
             content: "<p>In this plot, each feature is represented as a triangle.</p>"
                     +"<p>The horizontal axis corresponds to the specificity, and the vertical axis corresponds to the coverage of a feature.</p>"
                     +"<p>The color of a triangle represents how complex a feature is. Features that are blue are the simplest, "
@@ -437,7 +449,7 @@ function loadTutorialContent(){
         { 
             name: "tutorial-ifeed-feature-space-plot-mouse-over",
             object: d3.select('#content').node(),
-            content: "<p>As you hover the mouse over each feature, you can notice two changes occurring in the interface.</p>"
+            content: "<p>As you hover the mouse over each feature, you can notice three changes occurring in the interface.</p>"
                     +"<p>(Try hovering the mouse over a feature before continuing)</p>", 
             callback: function(currentStep){
                 tutorial.start_tutorial_event_listener("feature_mouse_hover", currentStep, null);
@@ -455,9 +467,24 @@ function loadTutorialContent(){
         }, 
         { 
             name: "tutorial-ifeed-feature-space-plot-mouse-over-3",
+            object: d3.select('.feature_plot.venn_diagram').node(),
+            content: "<p>Second, there appears a pink circle in the Venn diagram.</p>"
+                    +"<p>The Venn diagram shows the relative sizes of different sets of designs: "
+                    +"target designs (blue circle), and the designs with the selected feature (pink circle)</p>", 
+            callback: function(currentStep){
+                document.getElementById('tab3').click();
+                experiment.feature_application.update_feature_application("direct-update", tutorial_feature_example_f);
+            }
+        }, 
+        { 
+            name: "tutorial-ifeed-feature-space-plot-mouse-over-4",
             object: d3.select('.column.c2').node(),
-            content: "<p>Second, a graphical representation of the feature will appear in the Feature Application panel.</p>"
+            content: "<p>Third, a graphical representation of the feature will appear in the Feature Application panel.</p>"
                     +"<p>The Feature Application panel shows the current feature that is applied.</p>", 
+            callback: function(currentStep){
+                document.getElementById('tab3').click();
+                experiment.feature_application.update_feature_application("temp", tutorial_feature_example_f);
+            }
         }, 
         {  
             name: "tutorial-ifeed-feature-space-plot-mouse-click",
@@ -475,7 +502,7 @@ function loadTutorialContent(){
         { 
             name: "tutorial-ifeed-feature-space-plot-mouse-click-cursor",
             object: null, 
-            content: "Once a feature is clicked, you will see that a cursor appears. "
+            content: "Once a feature is clicked, you will see that a cursor (blinking triangle) appears. "
                     +"The cursor shows where the currently selected feature is located.", 
         }, 
 
@@ -557,13 +584,13 @@ function loadTutorialContent(){
         { 
             name: "tutorial-ifeed-feature-application-interaction-context-menu-add-child-2",
             object: null,
-            content: "<p>Note that the color of the logical connective node turned red. This indicates when you add a condition, "
+            content: "<p>Note that the color of the logical connective node turned orange. This indicates when you add a condition, "
                     +"it will be added under this parent node.</p>",
         }, 
         { 
             name: "tutorial-ifeed-feature-application-interaction-context-menu-add-child-3",
             object: d3.selectAll('#support_panel').node(),
-            content: "<p>Note that the title of the tab (highlighted in red) changed to \"Feature addition mode\". This indicates that when you apply a filter, "
+            content: "<p>Note that the title of the tab (highlighted in orange) changed to \"Feature addition mode\". This indicates that when you apply a filter, "
                     +"it will be added as a condition under the selected logical connective node. </p>"
                     +"<p>To add a new condition, simply define a filter and click the button \"Add new condition\".</p>"
                     +"<p>(To continue, define a new filter by clicking \"Add new condition\" button)</p>",
@@ -599,13 +626,13 @@ function loadTutorialContent(){
         { 
             name: "tutorial-ifeed-feature-application-interaction-context-menu-modify-feature-2",
             object: null, 
-            content: "<p>Similarly as before, the color of the node and its connection to the parent node changed to red. "
+            content: "<p>Similarly as before, the color of the node and its connection to the parent node changed to orange. "
                     +"This indicates that when you test a new condition, it will replace the current node.</p>",
         }, 
         { 
             name: "tutorial-ifeed-feature-application-interaction-context-menu-modify-feature-3",
             object: d3.selectAll('#support_panel').node(),
-            content: "<p>Again, the title text (highlighted in red) indicates that you are currently in \"Feature modification mode\". "
+            content: "<p>Again, the title text (highlighted in orange) indicates that you are currently in \"Feature modification mode\". "
                     +"<p>This time, the arguments of the selected condition have been copied to the filter setting tab. This "
                     +"makes it easier to make modifications to the currently selected condition.</p>"
                     +"<p>(To continue, try making a change to the current condition and apply it by clicking \"Modify the condition\" button)</p>",
@@ -889,7 +916,9 @@ function loadTutorialContent(){
                 +"<p>You can use \"Open instruments and orbits information\" option to view detailed descriptions and other information about the "
                 +"candidate instruments and orbits.</p>"
                 +"<p>You can use \"View sample questions\" option to view some sample questions. This will be useful for "
-                +"getting some idea of what might be asked in the problemset given after the data analysis step.</p>",
+                +"getting some idea of what might be asked in the problemset given after the data analysis step.</p>"
+                +"<p>You can use \"View feature definition\" option to review the definition of features, as well as the concepts of "
+                +"coverage and specificity.</p>",
             callback: function(currentStep){
                 document.getElementById('tab4').click();
             }
@@ -931,9 +960,10 @@ function loadTutorialContent(){
         }, 
         { 
             name: "feature-synthesis-intro-2",
-            object: d3.selectAll('#support_panel').node(),
-            content: "<p>The goal in this part of the experiment is to define the feature that has good coverage and good specificity.</p>"
-                    +"<p>In other words, try to reach the top-right corner of this plot by adding new features.</p>",
+            object: undefined,
+            content: "<p>The goal in this part of the experiment is to define as many features as possible that: </p>"
+                    +"<p><b>(1) are shared by <b>at least 70% of the target designs (coverage of 0.7 or higher)</b></p>"
+                    +"<p><b>(2) and <b>maximizes both coverage and specificity.</b></p>",
             callback: function(){
                 document.getElementById('tab3').click();
             }
