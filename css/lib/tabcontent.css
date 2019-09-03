@@ -17,7 +17,7 @@ ul.tabs li
         
 ul.tabs li a
 {
-    font: normal 12px Verdana;
+    font: normal 0.7vw Verdana;
     text-decoration: none;
     position: relative;
     padding: 6px 14px;

@@ -39,8 +39,8 @@
 
 <body>
 
-<div id='content'>
-    <div id='status_display'>
+<div id="content">
+    <div id='status_display_bar'>
         <div>
             <div class="status_display key">Number of designs:</div>
             <div class="status_display value" id="num_of_archs"></div>
@@ -51,28 +51,27 @@
         </div>
         <div id="timer"></div>
     </div>
-    <div class='column c1'>
-        <div class='row c1 r1'>
-            <div class='tradespace_plot figure'></div>
+
+    <div id="tradespace_plot_container">
+        <div class='tradespace_plot figure'></div>
+    </div>
+
+    <div id="support_panel"> 
+        <ul class="tabs" data-persist="true">
+            <li><a id="tab1" href="#view1">Inspect Design</a></li>
+            <li><a id="tab2" href="#view2">Filter Setting</a></li>
+            <li><a id="tab3" href="#view3">Feature Analysis</a></li>
+            <li><a id="tab4" href="#view4">Resources</a></li>
+        </ul>
+        <div class="tabcontents">
+            <div id="view1"></div>
+            <div id="view2"></div>
+            <div id="view3"></div>
+            <div id="view4"></div>
         </div>
-        <div class="row c1 r2">
-            <div id="support_panel"> 
-                <ul class="tabs" data-persist="true">
-                    <li><a id="tab1" href="#view1">Inspect Design</a></li>
-                    <li><a id="tab2" href="#view2">Filter Setting</a></li>
-                    <li><a id="tab3" href="#view3">Feature Analysis</a></li>
-                    <li><a id="tab4" href="#view4">Resources</a></li>
-                </ul>
-                <div class="tabcontents">
-                    <div id="view1"></div>
-                    <div id="view2"></div>
-                    <div id="view3"></div>
-                    <div id="view4"></div>
-                </div>
-            </div>
-        </div>
-    </div>   
-    <div class='column c2'>
+    </div>
+
+    <div id='feature_interactive_panel'>
         <div>
             <div id='feature_expression_panel'>
                 <div>
@@ -165,7 +164,6 @@
         filter = new EOSSPartitioningAndAssigningFilter(label);
         tradespace_plot = new TradespacePlot();
     }
-    
     
     if(problem_name === "ClimateCentric"){
         data_mining = new DataMining(filter, label);

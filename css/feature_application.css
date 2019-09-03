@@ -1,14 +1,13 @@
 
 #feature_expression_panel{
     float:left;
-    width: 100%;
-    padding: 30px;
+    width: 95%;
+    padding: 0.6vw;
 }
 
 #feature_expression_panel > div > div{
     float:left;
-    width: 250px;
-    font-size: 22px;
+    font-size: 1.3vw;
 }
 
 #feature_application_panel{
@@ -19,15 +18,15 @@
 #feature_application{
     float:left;
     margin-top: 10px;   
-    width: 1120px;
+    width: 100%;
     padding: 20px;
     overflow:scroll;  
 }
 
 .feature_application_options_button{
-    float:left;
-    margin-left: 20px;
-    font-size: 17px;
+    float:right;
+    margin-left: 5vw;
+    font-size: 0.9vw;
 }
 
 .img-hor-vert {
