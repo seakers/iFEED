@@ -287,8 +287,6 @@ class Experiment{
         d3.select("#tab3").text('Feature Analysis');
         this.data_mining.initialize();
 
-        d3.select("#feature_space_display_options_container").remove();
-
         this.select_archs_using_ids(fuzzy_pareto_front_8_mid_538);
 
         let mode = {condition: this.treatmentConditionName, stage: this.stage, generalization: this.generalizationEnabled};

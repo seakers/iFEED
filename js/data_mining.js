@@ -144,6 +144,9 @@ class DataMining{
                 this.allFeatures = [];
                 this.display_features([]);
                 
+                // Remove feature display options
+                d3.select("#feature_space_display_options_container").remove();
+
             } else if(this.experimentStage === "design_synthesis"){
                 this.initialize = function(){
                     d3.select("#support_panel").select("#view3").select("g").remove();
