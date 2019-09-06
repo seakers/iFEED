@@ -158,7 +158,7 @@ class ExperimentTutorial{
                 }else if(stage === "learning"){
                     return "START DATA ANALYSIS TASK";
                 }else if(stage === "learning_end"){
-                    return "LOAD PROBLEM SET";
+                    return "NEXT";
                 }else if(stage === "feature_synthesis"){
                     return "START FEATURE SYNTHESIS TASK";
                 }else if(stage === "design_synthesis"){
@@ -184,7 +184,7 @@ class ExperimentTutorial{
                         }else if(stage === "learning"){
                             return "START DATA ANALYSIS TASK";
                         }else if(stage === "learning_end"){
-                            return "LOAD PROBLEM SET";
+                            return "NEXT";
                         }else if(stage === "feature_synthesis"){
                             return "START FEATURE SYNTHESIS TASK";
                         }else if(stage === "design_synthesis"){
@@ -217,7 +217,7 @@ class ExperimentTutorial{
 
             }else if(stage === "learning_end"){
                 that.intro.exit();
-                window.open("https://cornell.qualtrics.com/jfe/form/SV_ezaKpYsMD5Crggd", '_blank');
+                window.open("https://cornell.qualtrics.com/jfe/form/SV_9vJTd6y3Pzri3s1", '_blank');
 
                 //Move onto the next stage
                 that.experiment.generateSignInMessage(() => {

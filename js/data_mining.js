@@ -161,8 +161,8 @@ class DataMining{
     openWebsocketConnection(){
         // Make a new websocket connection
         let that = this;
-        this.ws = new WebSocket("ws://localhost:8080/api/daphne");
-        // this.ws = new WebSocket("wss://www.selva-research.com/api/daphne")
+        // this.ws = new WebSocket("ws://localhost:8080/api/daphne");
+        this.ws = new WebSocket("wss://www.selva-research.com/api/daphne")
         
         this.ws.onmessage = (event) => {
             if(event.data === ""){
@@ -713,6 +713,14 @@ class DataMining{
         if(typeof features === 'undefined' || features == null){
             return;
         }
+
+
+        // EXPERIMENT
+        if(this.experimentStage === "feature_synthesis"){            
+            // Remove feature display options
+            d3.select("#feature_space_display_options_container").remove();
+        }
+
 
         // Initialize the location of each feature
         this.featureID = 1;

@@ -858,6 +858,7 @@ function loadTutorialContent(){
             content: "<p>Participant ID: "+ experiment.participantID +"</p>" ,
             callback: function(currentStep){
                 window.open("https://www.selva-research.com/ifeed-experiment-conceptmap/", '_blank');
+                experiment.clock.stop();
             }
         },
 
@@ -867,7 +868,7 @@ function loadTutorialContent(){
         { 
             name: "learning-task-intro-1-general-condition",
             object: undefined,
-            content: "<p>In this step, you are given 30 minutes to analyze a dataset which contains 6,655 alternative architectures "
+            content: "<p>In this step, you are given 25 minutes to analyze a dataset which contains 6,655 alternative architectures "
                     +"of an Earth-observing satellite system.</p>"
                     +"<p>Your goal is to identify and record as many features as possible that: "
                     +"<br> (1) are shared by <b>at least 70% of the target designs (coverage of 0.7 or higher)</b>"
@@ -877,7 +878,7 @@ function loadTutorialContent(){
         { 
             name: "learning-task-intro-1-design-inspection-only",
             object: undefined,
-            content: "<p>In this step, you are given 30 minutes to analyze a dataset which contains 6,655 alternative architectures "
+            content: "<p>In this step, you are given 25 minutes to analyze a dataset which contains 6,655 alternative architectures "
                     +"of an Earth-observing satellite system.</p>"
                     +"<p>Your goal is to identify and record as many features as possible that: "
                     +"<br> (1) are shared by <b>at least 70% of the target designs (coverage of 0.7 or higher)</b>"
@@ -888,7 +889,7 @@ function loadTutorialContent(){
         { 
             name: "learning-task-intro-2",
             object: undefined,
-            content: "<p>After the 30-minute data analysis session, you will be asked to answer a series of questions about "
+            content: "<p>After the 25-minute data analysis session, you will be asked to answer a series of questions about "
                     +"the given design problem and the dataset.</p>"
                     +"<p>Your answer to these questions will be used as a measure of how much you have learned during the data analysis session.</p>",
         },
@@ -926,7 +927,7 @@ function loadTutorialContent(){
         { 
             name: "learning-task-intro-4",
             object: undefined,
-            content: "<p>The 30-minute data analysis session will begin now.</p>"
+            content: "<p>The 25-minute data analysis session will begin now.</p>"
                     +"<p>If you have any question, please ask the experimenter before closing this window.</p>"
         },
         { 
