@@ -664,7 +664,7 @@ class DataMining{
                 .attr('class', 'feature_space interaction complexityFilter container maxRange');
         feature_complexity_range_filter_max.append('div')
                 .attr('class', 'feature_space interaction complexityFilter textbox maxRange')
-                .text('Min complexity: ');
+                .text('Max complexity: ');
         feature_complexity_range_filter_max.append('select');
         this.complexityFilterThresholds = null;
 
