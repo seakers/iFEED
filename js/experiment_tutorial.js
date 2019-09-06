@@ -113,7 +113,7 @@ class ExperimentTutorial{
         }
 
         this.intro.setOption('showButtons', true)
-                    .setOption('showBullets', true)
+                    .setOption('showBullets', false)
                     .setOption('keyboardNavigation', false);
         
         if(!classname){
