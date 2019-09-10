@@ -547,6 +547,17 @@ class ExperimentTutorial{
         }
     }
 
+    move_to_step(stepNum){
+        let that = this;
+
+        this.start_tutorial();
+
+        if(!this.max_visited_step || this.max_visited_step < stepNum){
+            this.max_visited_step = stepNum;
+        }
+        this.intro.goToStepNumber(stepNum + 1);
+    }
+
     filterContentByKeyword(content, keyword){
         let out = [];
         if(Array.isArray(keyword)){

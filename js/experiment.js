@@ -23,6 +23,9 @@ class Experiment{
             alert("No action set up!");
         };
 
+        // Experiment interaction logging data
+        this.experimentLogData = {};
+
         // Set tutorial as the first stage by default
         this.stage = "tutorial";
 
@@ -554,15 +557,13 @@ class Experiment{
     }
 
     save_data(data){
-        let filename = this.participantID + "-" + this.stage + ".json";;        
+        this.experimentLogData[this.stage] = data;
+
+        let filename = this.participantID + "-" + this.stage + ".json";     
         this.saveTextAsFile2(filename, JSON.stringify(data));
     }
 
     saveTextAsFile2(filename, inputText){
-//         $(document).ready(function() {
-//     saveFile("Example.txt", "data:attachment/text", "Hello, world.");
-// });  
-        
         let name = filename;
         let type = "application/json";
         let data = inputText;
