@@ -1,12 +1,12 @@
 
 
-
 #content {
     display: grid;
-    grid-template-columns: [c1] 55% [c2] 45% [c3];
-    grid-template-rows: [r1] 4vh [r2] 50vh [r3] 45vh [r4];
-    grid-column-gap: 5px;
-    grid-row-gap: 5px;
+    grid-template-columns: [c1] 54% [c2] 44% [c3];
+    grid-template-rows: [r1] 3vh [r2] 49vh [r3] 44vh [r4];
+    grid-column-gap: 10px;
+    /*grid-template-columns: 100px 50px 100px;*/
+    grid-row-gap: 12px;
 }
 
 #status_display_bar{
@@ -85,35 +85,52 @@
     font-size: 0.8vw;
 }
 
-
-
-
-
-
-
-
-#arch_info_display_outputs{
-    width:70%;
-    height:120px;
-    float:left;
-    margin-bottom: 5px;
+.axis path,
+.axis line {
+    fill: none;
+    stroke: #000;
+    shape-rendering: crispEdges;
 }
 
-#evaluate_architecture_button{
-    float:left;
-    font-size:18px;
+.dot {
+    stroke: #000;
+    stroke-width: 0;
+}
+
+#arch_info_display_outputs{
+    width: 70%;
+    height: 6vh;
+    float: left;
+    margin-bottom: 3vh;
 }
 
 #arch_info_display_table_div{
     float:left;
-    width:95%;
+    width: 100%;
 }
 
-.arch_info_display_cell{
+.arch_info_display_cell:not(.header){
     border: 1px solid black;
-    padding: 10px;
+    padding: 0.7vh;
     vertical-align: central;
-    font-size:15px;
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+#evaluate_architecture_button{
+    float: left;
+    font-size: 18px;
 }
 
 .arch_info_display_cell.instrument:hover{
@@ -145,24 +162,6 @@
     height:125px;
     background-color: #FF8B8B;
 }
-
-
-
-
-.axis path,
-.axis line {
-    fill: none;
-    stroke: #000;
-    shape-rendering: crispEdges;
-}
-
-.dot {
-    stroke: #000;
-    stroke-width: 0;
-}
-
-
-
 
 
 /* Tooltip container */

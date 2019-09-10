@@ -116,11 +116,11 @@ class TradespacePlot{
         d3.select("#support_panel").select("#view1").select("g").remove();
         d3.select("#support_panel").select("#view1").append("g")
                 .append("div")
-                .style("width","900px")
+                .style("width","85%")
                 .style("margin","auto")
                 .append("div")
                 .style("width","100%")
-                .style("font-size","21px")
+                .style("font-size","1.2vw")
                 .text("If you hover the mouse over a design, relevant information will be displayed here.");
 
         d3.select('#plot_options').selectAll('div').remove();
@@ -173,8 +173,14 @@ class TradespacePlot{
     */    
     drawPlot(xIndex, yIndex){
         this.reset_tradespace_plot();
-            
-        let margin = {top: 10, right:10, bottom: 15, left:30};
+
+        let tradespacePlotBoundingRec = d3.select(".tradespace_plot.figure").node().getBoundingClientRect();
+
+        let margin = {top: tradespacePlotBoundingRec.height / 30, 
+                        bottom: tradespacePlotBoundingRec.width / 27, 
+                        right: tradespacePlotBoundingRec.height / 40, 
+                        left: tradespacePlotBoundingRec.width / 15};
+
         this.width = d3.select(".tradespace_plot.figure").node().clientWidth - margin.left - margin.right;
         this.height = d3.select(".tradespace_plot.figure").node().clientHeight - margin.top - margin.bottom;
 
@@ -212,18 +218,20 @@ class TradespacePlot{
         // Create svg
         let svg = d3.select('.tradespace_plot.figure')
             .append("svg")
-            // .style("position","absolute")
+            .style("position","absolute")
             .attr("width", this.width + margin.left + margin.right)
             .attr("height", this.height + margin.top + margin.bottom)
             .call(this.zoom)
             .append("g")
             .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
 
+        let svgBoundingRec = svg.node().getBoundingClientRect();
+
         let canvas = d3.select(".tradespace_plot.figure")
             .append("canvas")
             .style("position","absolute")
-            .style("top", "0px")
-            .style("left", "0px")
+            .style("top", svgBoundingRec.top + window.pageYOffset + "px")
+            .style("left", svgBoundingRec.left + window.pageXOffset + "px")
             .attr("width", this.width)
             .attr("height", this.height)
             .call(this.zoom);
@@ -233,8 +241,8 @@ class TradespacePlot{
         let hiddenCanvas = d3.select('.tradespace_plot.figure')
             .append("canvas")
             .style("position", "absolute")
-            .style("top", margin.top + "px")
-            .style("left", margin.left + "px")
+            .style("top", svgBoundingRec.top + window.pageYOffset + "px")
+            .style("left", svgBoundingRec.left + window.pageXOffset + "px")
             .style("display", "none")
             .attr("width", this.width)
             .attr("height", this.height);
@@ -358,6 +366,14 @@ class TradespacePlot{
     drawPoints(context, hidden) {
         context.clearRect(0, 0, this.width, this.height);
         context.save();
+
+        let tradespacePlotBoundingRec = d3.select(".tradespace_plot.figure").node().getBoundingClientRect();
+        let r = tradespacePlotBoundingRec.height / 160;
+
+        if(hidden){
+            r = tradespacePlotBoundingRec.height / 100;
+        }
+
         this.data.forEach(point => {
             let tx = this.transform.applyX(this.xMap(point));
             let ty = this.transform.applyY(this.yMap(point));
@@ -367,7 +383,7 @@ class TradespacePlot{
             }else{
                 context.fillStyle = hidden ? point.interactColor : point.drawingColor;
             }
-            context.arc(tx, ty, 3.3, 0, 2 * Math.PI);
+            context.arc(tx, ty, r, 0, 2 * Math.PI);
             context.fill();
         });
 
@@ -842,7 +858,6 @@ class TradespacePlot{
     show_hidden_archs(){
 
         this.data.forEach( (point) => {
-
             if(point.hidden){
                 point.hidden = false;
             }

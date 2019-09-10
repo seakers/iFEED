@@ -166,7 +166,7 @@ class EOSSAssigning extends Problem{
                 d3.select('#arch_info_display_outputs')
                     .append("p")
                     .text("Drag instruments to empty orbit slots to build and evaluate new designs")
-                    .style('font-size','20px');
+                    .style('font-size','1.2vw');
             
             }else if(data.stage === "feature_synthesis"){
                 this.experimentStage = data.stage;
@@ -208,6 +208,8 @@ class EOSSAssigning extends Problem{
             return;
         }
 
+        let that = this;
+
         // Remove previously-added content
         d3.select('#view1').selectAll('g').remove();
 
@@ -239,7 +241,7 @@ class EOSSAssigning extends Problem{
                         }
                         return out + val;
                     })
-                    .style('font-size','20px');
+                    .style('font-size','1.8vh');
             }
             bitString = this.booleanArray2String(data.inputs);
         }
@@ -257,7 +259,7 @@ class EOSSAssigning extends Problem{
                 }
             }
             // Store the name of the orbit and the assigned instruments
-            json_arch.push({"orbit":orbit,"children":assigned});
+            json_arch.push({"orbit":orbit, "children":assigned});
         }        
     
         let norb = json_arch.length;
@@ -279,44 +281,43 @@ class EOSSAssigning extends Problem{
         let table = supportPanel.append('div')
                                 .attr('id','arch_info_display_table_div')
                                 .append("table")
-                                .attr("id", "arch_info_display_table");
+                                .attr("id", "arch_info_display_table")
+                                .style("table-layout", "fixed")
+                                .style("width","100%");
+
+        let panelBoundingRect = d3.select("#support_panel").node().getBoundingClientRect();
 
         let columns = [];
         columns.push({columnName: "Orbit"});
-        
         for (let i = 0; i < maxNInst; i++) {
             let tmp = i + 1;
             columns.push({columnName: "Instrument " + tmp});
         }
 
         // create table header
-        table.append('thead').append('tr')
+        table.append('thead')
+            .append('tr')
             .selectAll('th')
-            .data(columns).enter()
+            .data(columns)
+            .enter()
             .append('th')
-            .attr("width", function (d) {
-                if (d.columnName == "orbit") {
-                    return "120px";
-                } else {
-                    return "70px";
-                }
-            })
+            .attr('class', 'arch_info_display_cell header')
             .text(function (d) {
                 return d.columnName;
-            })
-            .style("font-size", "13px");
-
-        let that = this;
+            });
 
         // create table body
         table.append('tbody')
             .selectAll('tr')
-            .data(json_arch).enter()
+            .data(json_arch)
+            .enter()
             .append('tr')
             .attr('class','arch_info_display_cell_container')
             .attr("name", function (d) {
                 return d.orbit;
-            })
+            });
+
+        table.select('tbody').selectAll('tr')
             .selectAll('td')
             .data(function (row, i) {
                 let thisRow = [];
@@ -327,7 +328,8 @@ class EOSSAssigning extends Problem{
                     thisRow.push(instObj);
                 }
                 return thisRow;
-            }).enter()
+            })
+            .enter()
             .append('td')
             .attr("name", function (d) {
                 return d.content;
@@ -342,13 +344,6 @@ class EOSSAssigning extends Problem{
                     return "arch_info_display_cell orbit not_draggable";
                 }else{
                     return "arch_info_display_cell instrument";
-                }
-            })
-            .attr("width", function (d, i) {
-                if (d.type === "orbit") {
-                    return "120px";
-                } else {
-                    return "70px";
                 }
             })
             .text((d) => {
@@ -371,6 +366,31 @@ class EOSSAssigning extends Problem{
                     return "up";
                 }
             });
+
+        table.selectAll('.arch_info_display_cell')
+            .style("height", () => {
+                return (panelBoundingRect.height / 12) + "px";
+            })
+            .style("font-size", "0.7vw");
+
+        // table.selectAll('.arch_info_display_cell:not(.header)')
+        //     .style("width", function (d, i) {
+        //         let out = null;
+        //         if (d.type === "orbit") {
+        //             out = panelBoundingRect.width / 9;
+        //         } else {
+        //             out = panelBoundingRect.width / 9;
+        //         }
+
+        //         console.log(out);
+
+
+        //         return out + "px";
+        //     });     
+
+
+
+
 
         // EXPERIMENT
         if(typeof this.experimentStage !== "undefined" && this.experimentStage !== null){
@@ -489,7 +509,6 @@ class EOSSAssigning extends Problem{
     }
     
     display_instrument_options(){
-
         let that = this;
 
         let container = d3.select('.column.c2').select('div');
@@ -653,7 +672,7 @@ class EOSSAssigning extends Problem{
 
         let helpButtonsContainer = tab.append('div')
             .style("width","100%")
-            .style("padding","10px");
+            .style("padding","1vw");
 
         helpButtonsContainer
             .append("div")
@@ -712,14 +731,14 @@ class EOSSAssigning extends Problem{
 
         helpButtonsContainer.selectAll("div")
             .style("float", "left")
-            .style("margin-right", "25px")
-            .style("margin-top", "20px");
+            .style("margin-right", "2vh")
+            .style("margin-top", "2vh");
 
         helpButtonsContainer.selectAll("button")
-            .style("width", "350px")
-            .style("height", "80px")
-            .style("padding", "15px")
-            .style("font-size", "21px")
+            .style("width", "15vw")
+            .style("height", "8vh")
+            .style("padding", "1vh")
+            .style("font-size", "1.8vh")
             .style("font-weight", "bold");
     }  
 }
