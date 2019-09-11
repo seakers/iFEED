@@ -17,9 +17,9 @@ class DataMining{
         this.confidence_threshold = 0.2;
         this.lift_threshold = 1;
         
-        this.margin = {top: 20, right: 20, bottom: 30, left:35};
-        this.width = 710 - 35 - this.margin.left - this.margin.right;
-        this.height = 370 - 20 - this.margin.top - this.margin.bottom;
+        this.margin = null;
+        this.width = null;
+        this.height = null;
 
         // Parameters specific to each feature space plot
         this.xAxis = null;
@@ -263,12 +263,13 @@ class DataMining{
         let guideline = d3.select("#support_panel").select("#view3")
                 .append("g")
                 .append("div")
-                .style("width","900px")
+                .style("width","80%")
                 .style("margin","auto")
+                .style("padding","2vw");
 
         guideline.append("div")
                 .style("width","100%")
-                .style("font-size","21px")
+                .style("font-size","2vh")
                 .text("To run data mining, select target solutions on the scatter plot. Then click the button below.");
 
         guideline.append("div")
@@ -276,9 +277,9 @@ class DataMining{
                 .style("margin","auto")
                 .append("button")
                 .attr("id","run_data_mining_button")
-                .style("margin-top","30px")
-                .style("width","200px")
-                .style("font-size","19px")
+                .style("margin-top","5vh")
+                .style("width","23vh")
+                .style("font-size","2vh")
                 .text("Run data mining");
         
         d3.selectAll("#run_data_mining_button").on("click", () => {this.run();});
@@ -582,11 +583,21 @@ class DataMining{
 
     display_features(features){
         let that = this;
-        
+
         // Remove previous plot
         d3.select("#view3").select("g").remove();
 
         let tab = d3.select('#view3').append('g');
+
+        let panelBoundingRect = d3.select("#support_panel").node().getBoundingClientRect();
+        this.margin = {top: panelBoundingRect.height / 30, 
+                        bottom: panelBoundingRect.height / 12, 
+                        right: panelBoundingRect.width / 30, 
+                        left: panelBoundingRect.width / 27};
+
+        // this.margin = {top: 20, right: 20, bottom: 30, left:35};
+        this.width = panelBoundingRect.width / 1.7 - this.margin.left - this.margin.right;
+        this.height = panelBoundingRect.height / 1.65 - this.margin.top - this.margin.bottom;
 
         // Create feature space display options
         let feature_space_display_options_container = tab.append('div').attr('id', 'feature_space_display_options_container');
@@ -1295,7 +1306,7 @@ class DataMining{
                 .attr("y", -6)
                 .style("text-anchor", "end")
                 .text('Specificity')
-                .style('font-size','17px');
+                .style('font-size','1.7vh');
 
             // y-axis
             this.gY = svg.append("g")
@@ -1309,7 +1320,7 @@ class DataMining{
                 .attr("dy", ".71em")
                 .style("text-anchor", "end")
                 .text('Coverage')
-                .style('font-size','17px');
+                .style('font-size','1.7vh');
 
             d3.selectAll(".feature_plot.figure").selectAll(".axisObjects")
                 .on("mouseover", function(){
@@ -1354,6 +1365,8 @@ class DataMining{
 
         let objects = d3.select(".objects.feature_plot")
 
+        let symbolSize = d3.select("#support_panel").node().getBoundingClientRect().height / 6;
+
         // Remove unnecessary points
         d3.select(".objects.feature_plot")
                 .selectAll('.dot.feature_plot')
@@ -1370,10 +1383,10 @@ class DataMining{
                 .attr("transform", function (d) {
                     return "translate(" + d.x0 + "," + d.y0 + ")";
                 })
-                .style("stroke-width",1);
+                .style("stroke-width", 0.6);
 
         d3.selectAll(".point.dot.feature_plot")
-            .attr("d", d3.symbol().type((d) => {return d3.symbolTriangle;}).size(120));
+            .attr("d", d3.symbol().type((d) => {return d3.symbolTriangle;}).size(symbolSize));
 
         // Modify the shape of all features that were added recently, to crosses
         if(this.recentlyAddedFeatureIDs.length !== 0){
@@ -1384,18 +1397,18 @@ class DataMining{
                     return false;
                 }
             })
-            .attr('d',d3.symbol().type(d3.symbolCross).size(120));
+            .attr('d',d3.symbol().type(d3.symbolCross).size(symbolSize));
 
             if(typeof cursorFeature !== 'undefined' && cursorFeature != null){
                 // Modify the shape of the cursor to cross
                 if(that.recentlyAddedFeatureIDs.indexOf(cursorFeature.id) !== -1){
-                    get_cursor().attr('d',d3.symbol().type(d3.symbolCross).size(120));
+                    get_cursor().attr('d',d3.symbol().type(d3.symbolCross).size(symbolSize));
                 }
             }
         }
 
         // Utopia point: modify the shape to a star
-        get_utopia_point().attr('d',d3.symbol().type(d3.symbolStar).size(120));        
+        get_utopia_point().attr('d',d3.symbol().type(d3.symbolStar).size(symbolSize));        
 
         d3.selectAll('.dot.feature_plot').filter((d) => {
                 if (d.utopiaPoint) {
@@ -1527,14 +1540,14 @@ class DataMining{
 
         let tooltip_location = {x:0,y:0};
 
-        // EXPERIMENT
-        let tooltip_width = 170;
-        let tooltip_height = 92;
-        // let tooltip_width = 250;
-        // let tooltip_height = 120;
+        let boundingRect = d3.select("#support_panel").node().getBoundingClientRect();
 
-        let h_threshold = (width + margin.left + margin.right)*0.5;
-        let v_threshold = (height + margin.top + margin.bottom)*0.55;
+        // EXPERIMENT
+        let tooltip_width = boundingRect.width / 5.82;
+        let tooltip_height = boundingRect.height / 4.6;
+
+        let h_threshold = (width + margin.left + margin.right) * 0.5;
+        let v_threshold = (height + margin.top + margin.bottom) * 0.55;
 
         if(mouseLoc_x >= h_threshold){
             tooltip_location.x = -10 - tooltip_width;
@@ -1589,9 +1602,14 @@ class DataMining{
                 "<br> Complexity: " + d.complexity;
                 return output;
             })
-            .style("padding","14px")
+            .style("padding", () => {
+                return boundingRect.height / 32.5 + "px"; 
+            })
             .style('color','#F7FF55')
-            .style('word-wrap','break-word');   
+            .style('word-wrap','break-word')
+            .style('font-size', ()=> {
+                return boundingRect.height / 27.1;
+            });   
 
         if(this.currentFeature){
             if(d.expression === this.currentFeature.expression){
@@ -1629,11 +1647,14 @@ class DataMining{
     }
 
     axis_label_mouseover(axisLabelNode){
+        let boundingRect = d3.select("#support_panel").node().getBoundingClientRect();
+
+        let tooltip_width = boundingRect.width / 2.46;
+        let tooltip_height = boundingRect.height / 3.61;
+
         let mouseLoc_x = d3.mouse(d3.select(".objects.feature_plot").node())[0];
         let mouseLoc_y = d3.mouse(d3.select(".objects.feature_plot").node())[1];
         let tooltip_location = {x:0, y:0};
-        let tooltip_width = 380;
-        let tooltip_height = 110;
 
         let is_x_axis = false;
 
@@ -1688,9 +1709,14 @@ class DataMining{
                 }
                 return out;
             })
-            .style("padding","14px")
+            .style("padding", () => {
+                return boundingRect.height / 32.5 + "px"; 
+            })
             .style('color','#F7FF55')
-            .style('word-wrap','break-word');   
+            .style('word-wrap','break-word')
+            .style('font-size', ()=> {
+                return boundingRect.height / 27.1;
+            }); 
     }
 
     update_feature_complexity_range_filter(min, max){
@@ -2489,37 +2515,39 @@ class DataMining{
             highlighted = 0;
         }
 
+        let vennDiagramBoundingRect = d3.select(".feature_plot.venn_diagram").node().getBoundingClientRect();
+
         // Selection has a fixed radius and location
-        let r1 = 70;
-        let left_margin = 50;
-        let c1x = 110;
+        let r1 = vennDiagramBoundingRect.height / 3.9;
+        let c1x = vennDiagramBoundingRect.width / 3.27;
+        let c1y = vennDiagramBoundingRect.height / 2.48;
 
         let svg = venn_diagram_container.select('svg');
         if(!svg.node()){
             svg = venn_diagram_container
                 .append("svg")
-                .style('width','300px')             
+                .style('width','13.5vw')             
                 .style('border-width','3px')
-                .style('height','245px')
+                .style('height','19vh')
                 .style('border-style','solid')
                 .style('border-color','black')
                 .style('border-radius','40px')
-                .style('margin-top','10px')
-                .style('margin-bottom','10px'); 
+                .style('margin-top','1vh')
+                .style('margin-bottom','1vh'); 
 
             svg.append("circle")
                 .attr("id","venn_diag_c1")
                 .attr("cx", c1x)
-                .attr("cy", 125)
+                .attr("cy", c1y)
                 .attr("r", r1)
                 .style("fill", "steelblue")
                 .style("fill-opacity", ".5");
 
             svg.append("text")
                 .attr("id","venn_diag_c1_text")
-                .attr("x", 20)
-                .attr("y", 230)
-                .attr("font-size", "17px")
+                .attr("x", vennDiagramBoundingRect.width / 11.28)
+                .attr("y", vennDiagramBoundingRect.height / 1.4)
+                .attr("font-size", vennDiagramBoundingRect.height / 14.5 + "px")
                 .attr("fill","steelblue")
                 .text("Target:" + selected );
         }
@@ -2534,8 +2562,8 @@ class DataMining{
 
         // Feature 
         let r2 = Math.sqrt(highlighted / selected) * r1;
-        if(r2 > 100){ // Cap the size of the circle at r=100
-            r2 = 100;
+        if(r2 > vennDiagramBoundingRect.height / 2.9){ // Cap the size of the circle at r= vennDiagramBoundingRect.height / 2.9
+            r2 = vennDiagramBoundingRect.height / 2.9;
         }
 
         let c2x;
@@ -2567,24 +2595,24 @@ class DataMining{
         svg.append("circle")
             .attr("id","venn_diag_c2")
             .attr("cx", c2x)
-            .attr("cy", 125)
+            .attr("cy", c1y)
             .attr("r", r2)
             .style("fill", "brown")
             .style("fill-opacity", ".5");
 
         svg.append("text")
             .attr("id","venn_diag_c2_text")
-            .attr("x", 185)
-            .attr("y", 230)
-            .attr("font-size","17px")
+            .attr("x", vennDiagramBoundingRect.width / 2.25)
+            .attr("y", vennDiagramBoundingRect.height / 1.4)
+            .attr("font-size", vennDiagramBoundingRect.height / 14.5 + "px")
             .attr("fill","brown")
             .text("Features:" + highlighted );
 
         svg.append("text")
             .attr("id","venn_diag_int_text")
-            .attr("x", left_margin - 14)
-            .attr("y", 20)
-            .attr("font-size","17px")
+            .attr("x", vennDiagramBoundingRect.width / 6)
+            .attr("y", vennDiagramBoundingRect.height / 11.6)
+            .attr("font-size", vennDiagramBoundingRect.height / 14.5 + "px")
             .attr("fill","#4E1499")
             .text("Intersection: " + intersection);
     }

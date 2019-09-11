@@ -1,17 +1,15 @@
 
 .filter.title.div{
     width: 90%;
-    margin-bottom: 15px;
-    margin-left: 2px;
+    margin-bottom: 1vh;
+    margin-left: 1vh;
     float: left;
-    font-size: 18px;    
 }
 
 .filter.title.div > p{
-    float:left;
-    font-size:18px;
+    float: left;
+    font-size: 2.2vh;
 }
-
 
 .filter.options.div{
     width: 100%;
@@ -21,45 +19,39 @@
 .filter.inputs.div{
     width:100%;
     float:left;
-    margin-top:15px;
+    margin-top: 2vh;
 }
 
 .filter.hints.div{
     width:100%;
     float:left;
-    font-size: 20px;
-    margin-top: 10px;
+    font-size: 2vh;
+    margin-top: 1vh;
 }
+
 .filter.buttons.div{
     width:100%;
     float:left;
-    margin-top: 15px;
-    margin-bottom: 50px;
+    margin-top: 0.5vh;
+    margin-bottom: 3vh;
 }
 
 .filter.options.dropdown{
-    width: 200px;
+    width: 20vh;
+    height: 2.5vh;
     float:left;
-    height:24px;
-    margin-left: 3px;
-}
-
-.filter.inputs.text{
-    width:180px;
-    margin-left:7px;
-    margin-right:7px;
-	float:left;
+    margin-left: 1vh;
 }
 
 .filterInputDiv{
-    font-size: 20px;
-    margin-top: 7px;
+    font-size: 2vh;
+    margin-top: 1vh;
 }
 
 .filterInputDiv > select {
-    margin-left: 10px;
+    margin-left: 2vh;
 }
 
 .filterInputDiv.numInput > input {
-    margin-left: 10px;
+    margin-left: 2vh;
 }

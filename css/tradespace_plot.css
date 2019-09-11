@@ -3,7 +3,7 @@
 #content {
     display: grid;
     grid-template-columns: [c1] 54% [c2] 44% [c3];
-    grid-template-rows: [r1] 3vh [r2] 49vh [r3] 44vh [r4];
+    grid-template-rows: [r1] 3vh [r2] 47vh [r3] 46vh [r4];
     grid-column-gap: 10px;
     /*grid-template-columns: 100px 50px 100px;*/
     grid-row-gap: 12px;

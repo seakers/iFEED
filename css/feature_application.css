@@ -17,10 +17,9 @@
 
 #feature_application{
     float:left;
-    margin-top: 10px;   
+    margin-top: 1vh;   
     width: 100%;
-    padding: 20px;
-    overflow:scroll;  
+    overflow: scroll;  
 }
 
 .feature_application_options_button{
@@ -28,6 +27,12 @@
     margin-left: 5vw;
     font-size: 0.9vw;
 }
+
+
+
+
+
+
 
 .img-hor-vert {
     -moz-transform: scale(-1, -1);

@@ -226,12 +226,23 @@ class TradespacePlot{
             .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
 
         let svgBoundingRec = svg.node().getBoundingClientRect();
-
         let canvas = d3.select(".tradespace_plot.figure")
             .append("canvas")
             .style("position","absolute")
-            .style("top", svgBoundingRec.top + window.pageYOffset + "px")
-            .style("left", svgBoundingRec.left + window.pageXOffset + "px")
+            .style("top", ()=>{
+                if(isFirefox){
+                    return svgBoundingRec.top + window.pageYOffset + margin.top + "px";
+                } else {
+                    return svgBoundingRec.top + window.pageYOffset + "px";
+                }
+            })
+            .style("left", ()=>{
+                if(isFirefox){
+                    return svgBoundingRec.left + window.pageXOffset + margin.left + "px";
+                }else{
+                    return svgBoundingRec.left + window.pageXOffset + "px";
+                }
+            })
             .attr("width", this.width)
             .attr("height", this.height)
             .call(this.zoom);
@@ -241,8 +252,20 @@ class TradespacePlot{
         let hiddenCanvas = d3.select('.tradespace_plot.figure')
             .append("canvas")
             .style("position", "absolute")
-            .style("top", svgBoundingRec.top + window.pageYOffset + "px")
-            .style("left", svgBoundingRec.left + window.pageXOffset + "px")
+            .style("top", ()=>{
+                if(isFirefox){
+                    return svgBoundingRec.top + window.pageYOffset + margin.top + "px";
+                } else {
+                    return svgBoundingRec.top + window.pageYOffset + "px";
+                }
+            })
+            .style("left", ()=>{
+                if(isFirefox){
+                    return svgBoundingRec.left + window.pageXOffset + margin.left + "px";
+                }else{
+                    return svgBoundingRec.left + window.pageXOffset + "px";
+                }
+            })
             .style("display", "none")
             .attr("width", this.width)
             .attr("height", this.height);
