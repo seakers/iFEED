@@ -22,7 +22,7 @@ class ContextMenu {
             }, 
             'text': {
                 'fill': 'steelblue', 
-                'font-size': '17'
+                'font-size': null,
             }
         };      
         
@@ -55,7 +55,6 @@ class ContextMenu {
         };
 
         this.contextMenuSize = {
-            
             'logic':{'height':null,
                     'width':null,
                     'margin':0.15,
@@ -89,6 +88,9 @@ class ContextMenu {
         let logic = context.name;
         let depth = context.depth;    
         let deactivated = context.deactivated;
+
+        let boundingRect = d3.select('#feature_interactive_panel').node().getBoundingClientRect();
+        this.style.text['font-size'] = boundingRect.height / 51.2 + "";
 
         let hasChildren = null;
         if(context.children){
@@ -129,16 +131,13 @@ class ContextMenu {
         items = items.concat(this.contextItems['default']);
         
         let x,y;
-        let containerHeight = parseInt(d3.select("#feature_application_panel").select("svg").style("height"), 10);
-        let containerWidth = parseInt(d3.select("#feature_application_panel").style("width"), 10);
-
-        if(coord[0] < containerWidth * 1.00){
+        if(coord[0] < boundingRect.width * 1.00){
             x = coord[0] + 90;
         } else{
             x = coord[0] - 200;
         }
     
-        if(coord[1] < containerHeight * 0.6){
+        if(coord[1] < boundingRect.height * 0.6){
             y = coord[1] + 40;
         } else{
             if(type === "logic"){

@@ -18,12 +18,6 @@ class TradespacePlot{
 
         this.cursor_blink_interval = null;
 
-        this.tradespace_plot_params = {
-            "margin":{top: 20, right: 20, bottom: 30, left: 60},
-            "width": 1213,
-            "height": 540,
-        };
-
         this.color = {
             "default": "rgba(110,110,110,1)",
             "selected": "rgba(25,186,215,1)",
@@ -122,11 +116,11 @@ class TradespacePlot{
         d3.select("#support_panel").select("#view1").select("g").remove();
         d3.select("#support_panel").select("#view1").append("g")
                 .append("div")
-                .style("width","900px")
+                .style("width","85%")
                 .style("margin","auto")
                 .append("div")
                 .style("width","100%")
-                .style("font-size","21px")
+                .style("font-size","1.2vw")
                 .text("If you hover the mouse over a design, relevant information will be displayed here.");
 
         d3.select('#plot_options').selectAll('div').remove();
@@ -179,10 +173,16 @@ class TradespacePlot{
     */    
     drawPlot(xIndex, yIndex){
         this.reset_tradespace_plot();
-        
-        let margin = this.tradespace_plot_params.margin;
-        this.width = this.tradespace_plot_params.width - margin.right - margin.left;
-        this.height = this.tradespace_plot_params.height - margin.top - margin.bottom;
+
+        let tradespacePlotBoundingRec = d3.select(".tradespace_plot.figure").node().getBoundingClientRect();
+
+        let margin = {top: tradespacePlotBoundingRec.height / 30, 
+                        bottom: tradespacePlotBoundingRec.width / 27, 
+                        right: tradespacePlotBoundingRec.height / 40, 
+                        left: tradespacePlotBoundingRec.width / 15};
+
+        this.width = d3.select(".tradespace_plot.figure").node().clientWidth - margin.left - margin.right;
+        this.height = d3.select(".tradespace_plot.figure").node().clientHeight - margin.top - margin.bottom;
 
         // setup x 
         this.xValue = d => d.outputs[xIndex]; // data -> value
@@ -206,10 +206,6 @@ class TradespacePlot{
         this.yMap = d => this.yScale(this.yValue(d)); // data -> display
         let yAxis = d3.axisLeft(this.yScale);
 
-        d3.select(".tradespace_plot.figure")
-            .style("width", this.tradespace_plot_params.width + "px")
-            .style("height", this.tradespace_plot_params.height + "px");
-
         this.zoom = d3.zoom()
             .scaleExtent([0.4, 25])
             .on("zoom", d => {
@@ -232,8 +228,12 @@ class TradespacePlot{
         let canvas = d3.select(".tradespace_plot.figure")
             .append("canvas")
             .style("position","absolute")
-            .style("top", margin.top + "px")
-            .style("left", margin.left + "px")
+            .style("top", ()=>{
+                return margin.top + "px";
+            })
+            .style("left", ()=>{
+                return margin.left + "px";
+            })
             .attr("width", this.width)
             .attr("height", this.height)
             .call(this.zoom);
@@ -243,34 +243,37 @@ class TradespacePlot{
         let hiddenCanvas = d3.select('.tradespace_plot.figure')
             .append("canvas")
             .style("position", "absolute")
-            .style("top", margin.top + "px")
-            .style("left", margin.left + "px")
+            .style("top", ()=>{
+                return margin.top + "px";
+            })
+            .style("left", ()=>{
+                return margin.left + "px";
+            })
             .style("display", "none")
             .attr("width", this.width)
             .attr("height", this.height);
-
         this.hiddenContext = hiddenCanvas.node().getContext("2d");
 
         // x-axis
         let gX = svg.append("g")
-            .attr("class", "axis axis-x")
+            .attr("class", "tradespace_plot axis axis-x")
             .attr("transform", "translate(0, " + this.height + ")")
             .call(xAxis);
             
         svg.append("text")
             .attr("transform", "translate(" + this.width + ", " + this.height + ")")
-            .attr("class", "label")
+            .attr("class", "tradespace_plot axisLabel")
             .attr("y", -6)
             .style("text-anchor", "end")
             .text(this.output_list[xIndex]);
 
         // y-axis
         let gY = svg.append("g")
-            .attr("class", "axis axis-y")
+            .attr("class", "tradespace_plot axis axis-y")
             .call(yAxis);
         
         svg.append("text")
-            .attr("class", "label")
+            .attr("class", "tradespace_plot axisLabel")
             .attr("transform", "rotate(-90)")
             .attr("y", 6)
             .attr("dy", ".71em")
@@ -369,6 +372,14 @@ class TradespacePlot{
     drawPoints(context, hidden) {
         context.clearRect(0, 0, this.width, this.height);
         context.save();
+
+        let tradespacePlotBoundingRec = d3.select(".tradespace_plot.figure").node().getBoundingClientRect();
+        let r = tradespacePlotBoundingRec.height / 160;
+
+        if(hidden){
+            r = tradespacePlotBoundingRec.height / 100;
+        }
+
         this.data.forEach(point => {
             let tx = this.transform.applyX(this.xMap(point));
             let ty = this.transform.applyY(this.yMap(point));
@@ -378,7 +389,7 @@ class TradespacePlot{
             }else{
                 context.fillStyle = hidden ? point.interactColor : point.drawingColor;
             }
-            context.arc(tx, ty, 3.3, 0, 2 * Math.PI);
+            context.arc(tx, ty, r, 0, 2 * Math.PI);
             context.fill();
         });
 
@@ -592,8 +603,8 @@ class TradespacePlot{
         }
 
         let margin = this.tradespace_plot_params.margin;
-        let width  = this.tradespace_plot_params.width;
-        let height = this.tradespace_plot_params.height;
+        let width  = this.width;
+        let height = this.height;
 
         if (option === "zoom-pan") { // Zoom
             d3.select(".tradespace_plot.figure").select("svg")
@@ -853,7 +864,6 @@ class TradespacePlot{
     show_hidden_archs(){
 
         this.data.forEach( (point) => {
-
             if(point.hidden){
                 point.hidden = false;
             }
