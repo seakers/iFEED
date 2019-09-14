@@ -31,28 +31,30 @@
 
 #status_display_bar > div{
     float:left;
-    width: 20%;
+    width: 23%;
     height: 100%;
 }
 
 .status_display.key {
-    font-size: 0.9vw; 
+    font-size: 1.1vw; 
     margin-left: 1vw;
     margin-top: 0.3vw;
     float:left;
 }
 
 .status_display.value {
-    width: 30%;
-    text-align: center;
+    width: 25%;
+    /*text-align: center;*/
     margin-left: 1vw;
-    font-size: 1vw; 
+    font-size: 1.1vw; 
     height: 100%;
+    padding: 0.5vh;
     float:left;
     background-color: #D5D5D5;
 }
 
 .tradespace_plot.figure{
+    position: relative;
     border-style:solid;
     border-width:1.7px;
     width: 100%;
@@ -111,18 +113,9 @@
 
 .arch_info_display_cell:not(.header){
     border: 1px solid black;
-    padding: 0.7vh;
+    padding: 0.6vh;
     vertical-align: central;
 }
-
-
-
-
-
-
-
-
-
 
 
 

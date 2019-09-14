@@ -1810,7 +1810,7 @@ class FeatureApplication{
             .style('fill','none')
             .style('stroke','red')
             .style("stroke-width",function(d){
-                return boundingRect.height / 95;
+                return boundingRect.height / 125;
             });
 
         // Transition nodes to their new position.

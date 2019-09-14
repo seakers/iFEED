@@ -153,7 +153,7 @@ function loadTutorialContent(){
             object: d3.select('.tradespace_plot.figure').node(),
             content: "The main display is a scatter plot of different architectures of a satellite system. "
                     +"Each dot corresponds to one architecture, and its location indicates the corresponding cost and the scientific benefit.", 
-            callback: null,
+            callback: function(){},
         },
         {
             name: "tutorial-ifeed-target-region",
@@ -167,7 +167,7 @@ function loadTutorialContent(){
         },
         {
             name: "tutorial-ifeed-inspecting-design",
-            object: d3.select('.column.c1').node(),
+            object: null,
             content: "If you hover the mouse over an architecture on the scatter plot, "
                     +"the relevant information will be displayed on the \"Inspect Design\" tab.", 
             callback: function(currentStep){
@@ -478,7 +478,7 @@ function loadTutorialContent(){
         }, 
         { 
             name: "tutorial-ifeed-feature-space-plot-mouse-over-4",
-            object: d3.select('.column.c2').node(),
+            object: d3.select('#feature_interactive_panel').node(),
             content: "<p>Third, a graphical representation of the feature will appear in the Feature Application panel.</p>"
                     +"<p>The Feature Application panel shows the current feature that is applied.</p>", 
             callback: function(currentStep){
@@ -553,7 +553,7 @@ function loadTutorialContent(){
         }, 
         { 
             name: "tutorial-ifeed-feature-application-interaction-changes-reflected",
-            object: d3.select('.column.c1').node(),
+            object: d3.select('#tradespace_plot_container').node(),
             content: "<p>Note that, as you make changes in the feature graph, the main scatter plot and the feature analysis "
                     +"tab reflect the changes in real time.</p>",
         }, 
@@ -643,7 +643,7 @@ function loadTutorialContent(){
         }, 
         { 
             name: "tutorial-ifeed-feature-application-interaction-context-menu-modify-feature-4",
-            object: d3.select('.column.c2').node(),
+            object: d3.select('#feature_interactive_panel').node(),
             content: "<p>The selected node has been replaced by the new condition.</p>",
             callback: function(currentStep){
                 document.getElementById('tab2').click();
@@ -1012,7 +1012,7 @@ function loadTutorialContent(){
         },
         { 
             name: "feature-synthesis-extra-filter-outcome",
-            object: d3.select('.column.c2').node(),
+            object: d3.select('#feature_interactive_panel').node(),
             content: "<p>Once you use a filter, the corresponding feature will appear in the Feature Application Panel.</p>",
             callback: function(){
                 document.getElementById('tab3').click();

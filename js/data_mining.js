@@ -2342,6 +2342,13 @@ class DataMining{
             message = "(current feature - coverage: " + round_num(this.currentFeature.metrics[3]) + ", specificity: " + round_num(this.currentFeature.metrics[2]) + ")";
         }
 
+        let referenceBoundingRect = d3.select("#tradespace_plot_container").node().getBoundingClientRect();
+
+        let titleSize = referenceBoundingRect.height / 20;
+        let messageSize = referenceBoundingRect.height / 23;
+        let messageLineHeight = referenceBoundingRect.height / 11;
+        let buttonMargin = referenceBoundingRect.height / 25;
+
         // EXPERIMENT 
         PubSub.publish(EXPERIMENT_TUTORIAL_EVENT, "generalization_suggestion");    
 
@@ -2377,7 +2384,7 @@ class DataMining{
         // EXPERIMENT
         PubSub.publish(EXPERIMENT_EVENT, {key:"generalization_run"});
 
-        let buttonsStyle = "width: 80%; float: left; margin-top: 20px; margin-bottom: 20px; font-size: 17px;";
+        let buttonsStyle = "width: 80%; float: left; margin-top: "+ buttonMargin +"px; margin-bottom: "+ buttonMargin +"px; font-size: "+ (messageSize - 2) +"px;";
         let buttonsList = [];
         for(let i = 0; i < features.length; i++){
             let description = features[i].description;
@@ -2417,11 +2424,11 @@ class DataMining{
             theme: 'dark',
             icon: 'icon-person',
             title: 'Following generalizations may simply the current feature. Which generalization would you like to make?',
-            titleSize: 22,
+            titleSize: titleSize,
             close: false,
             message: message,
-            messageSize: 18,
-            messageLineHeight: 30,
+            messageSize: messageSize,
+            messageLineHeight: messageLineHeight,
             position: 'topCenter', // bottomRight, bottomLeft, topRight, topLeft, topCenter, bottomCenter
             progressBarColor: 'rgb(0, 255, 184)',
             buttons: buttonsList,

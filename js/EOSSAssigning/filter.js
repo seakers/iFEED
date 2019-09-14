@@ -75,8 +75,8 @@ class EOSSAssigningFilter extends Filter{
                 });
 
             d3.select(".filter.title.div").select("p")
-                .style("color", "#FF5C5C")
-                .style("font-size", "23px")
+                .style("color", "#FF7400")
+                .style("font-size", "2.2vh")
                 .text(() => {
                     if(addition){
                         return "Feature addition mode";
@@ -86,7 +86,7 @@ class EOSSAssigningFilter extends Filter{
                 });
 
             d3.select('#apply_filter_button')
-                .style('color', '#FF5C5C')
+                .style('color', '#FF7400')
                 .text(() => {
                     if(addition){
                         return "Add new condition";
@@ -127,7 +127,7 @@ class EOSSAssigningFilter extends Filter{
 
             d3.select(".filter.title.div").select("p")
                 .style("color", "black")
-                .style("font-size", "18px")
+                .style("font-size", "2.2vh")
                 .text("Filter Setting");
 
             d3.select('#apply_filter_button')

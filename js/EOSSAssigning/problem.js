@@ -369,28 +369,17 @@ class EOSSAssigning extends Problem{
 
         table.selectAll('.arch_info_display_cell')
             .style("height", () => {
-                return (panelBoundingRect.height / 12) + "px";
+                return (panelBoundingRect.height / 21.6) + "px";
             })
-            .style("font-size", "0.7vw");
-
-        // table.selectAll('.arch_info_display_cell:not(.header)')
-        //     .style("width", function (d, i) {
-        //         let out = null;
-        //         if (d.type === "orbit") {
-        //             out = panelBoundingRect.width / 9;
-        //         } else {
-        //             out = panelBoundingRect.width / 9;
-        //         }
-
-        //         console.log(out);
-
-
-        //         return out + "px";
-        //     });     
-
-
-
-
+            .style("font-size", () => {
+                if(maxNInst <= 6){
+                    return "0.7vw";
+                }else if(maxNInst <= 8){
+                    return "0.6vw";
+                }else{
+                    return "0.5vw";
+                }
+            });
 
         // EXPERIMENT
         if(typeof this.experimentStage !== "undefined" && this.experimentStage !== null){

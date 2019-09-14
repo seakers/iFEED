@@ -80,8 +80,8 @@ class ExperimentTutorial{
                 let diff = that.intro._introItems.length - that.intro._currentStep - 1;
                 alert("15 minutes passed! This is just a friendly reminder that there are " + diff + " more pages in this tutorial.");
                 d3.select("#timer")
-                    .style("font-size","30px")
-                    .style("width", "350px");
+                    .style("font-size","3.1vh")
+                    .style("width", "26vw");
             };
             let a2 = function(){
                 alert("20 minutes passed! Please try to wrap up the tutorial as quickly as possible. If you have any question, please let the experimenter know.");
