@@ -181,7 +181,7 @@ class Filter{
         PubSub.publish(EXPERIMENT_TUTORIAL_EVENT, "filter_applied");
 
         // EXPERIMENT
-        PubSub.publish(EXPERIMENT_EVENT, "filter_applied");
+        PubSub.publish(EXPERIMENT_EVENT, {key:"filter_applied"});
 
         return true;
     }

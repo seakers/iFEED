@@ -515,7 +515,9 @@ class ExperimentTutorial{
     enable_introjs_nextButton(){
         if(this.introjs_nextButton_callback){
             $('.introjs-nextbutton').removeClass('introjs-disabled');
-            $('.introjs-nextbutton').get(0).onclick = this.introjs_nextButton_callback;
+            if($('.introjs-nextbutton').get(0)){
+                $('.introjs-nextbutton').get(0).onclick = this.introjs_nextButton_callback;
+            }
             d3.select('.introjs-nextbutton').style('opacity','1.0');
             this.introjs_nextButton_callback = null;
         }

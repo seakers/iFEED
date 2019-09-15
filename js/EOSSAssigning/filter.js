@@ -16,7 +16,7 @@ class EOSSAssigningFilter extends Filter{
                                 {value:"numInstruments",text:"# of instruments",input:"numInstruments",hints:"Selects all the designs with the specified "
                                 +"number of instruments. If you specify an instrument name, only those instruments will be counted across all orbits. "},
 
-                                {value:"numInstrumentsInOrbit",text:"# of instruments in each orbit",input:"numInstrumentsInOrbit",hints:"Selects all the designs with the specified "
+                                {value:"numInstrumentsInOrbit",text:"# of instruments in orbit",input:"numInstrumentsInOrbit",hints:"Selects all the designs with the specified "
                                 +"number of instruments in each orbit. If you specify an orbit, only those orbits will be considered. "
                                 +"If you specify an instrument name, and only those instruments will be counted in each orbit. "},
                                
@@ -109,7 +109,7 @@ class EOSSAssigningFilter extends Filter{
                 PubSub.publish(EXPERIMENT_TUTORIAL_EVENT, "filter_modification");
 
                 // EXPERIMENT
-                PubSub.publish(EXPERIMENT_EVENT, "filter_applied");
+                PubSub.publish(EXPERIMENT_EVENT, {key:"filter_applied"});
             }
 
             if(addition){
@@ -2240,7 +2240,7 @@ class EOSSAssigningFilter extends Filter{
                     }
                     
                     instantiatedArgs[0][0] = [instance_list[i]];
-                    if(!this.emptyOrbit(instantiatedArgs, inputs)){
+                    if(!this.emptyOrbitExcept(instantiatedArgs, inputs)){
                         out = false;
                         break;
                     }

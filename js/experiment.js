@@ -89,14 +89,34 @@ class Experiment{
                 } else if (data.key === "generalization_selected") {
                     that.counter_generalization_selected++;
                 }
+            } else if(that.stage === "feature_synthesis"){
+                if(data.key === "feature_viewed"){
+                    that.counter_feature_viewed++;
+
+                }else if(data.key === "filter_applied"){
+                    that.counter_filter_used++;
+
+                }
 
             }else if(that.stage === "design_synthesis"){
                 if(data.key === "design_viewed"){
                     that.counter_design_viewed++;
 
                 } else if(data.key === "design_evaluated"){
+
+                    that.counter_design_evaluated++;
+                    
                     let arch = data.data;
-                    let archCopy = {id: arch.id, inputs: arch.inputs, outputs: arch.outputs};
+                    let inputs = arch.inputs;
+                    let inputsString = "";
+                    for(let i = 0; i < inputs.length; i++){
+                        if(inputs[i]){
+                            inputsString += "1";
+                        } else {
+                            inputsString += "0";
+                        }
+                    }
+                    let archCopy = {id: arch.id, inputs: inputsString, outputs: arch.outputs};
                     that.designs_evaluated.push(archCopy);
                 }
 
@@ -139,18 +159,19 @@ class Experiment{
         this.counter_local_search_run = 0;
         this.counter_generalization_run = 0;
         this.counter_generalization_selected = 0;
-        this.features_tested = [];
+        this.features_found = [];
     }
 
     initialize_design_synthesis_task_measurements(){
         this.counter_design_viewed = 0;
+        this.counter_design_evaluated = 0;
         this.designs_evaluated = [];
     }
 
     initialize_feature_synthesis_task_measurements(){
         this.counter_feature_viewed = 0;
         this.counter_filter_used = 0;
-        this.features_tested = [];
+        this.features_found = [];
     }
 
     load_learning_task(){
@@ -166,7 +187,7 @@ class Experiment{
                     +"<p>Specifically, look for the feature that: </p>"
                     +"<br> (1) is shared by <b>at least 70% of the target designs (coverage of 0.7 or higher)</b>"
                     +"<br> (2) and <b>maximizes both coverage and specificity.</b></p>" 
-                    +"<p>Use the concept map page provided in a separate window to record the feature that you find.</p>",
+                    +"<p>Use the concept map page provided in a separate window to record the feature that you find.</p>";
                 that.display_task_goal(title, message);
             });
 
@@ -198,13 +219,13 @@ class Experiment{
 
         // Set alert message given at the beginning of each task
         // Set stopwatch callback functions
-        let d1 = 20 * 60 * 1000;
+        let d1 = 2 * 60 * 1000;
         let a1 = function(){
             that.highlight_timer();
             alert("20 minutes passed! You have 5 more minutes to finish the task.");
         };
 
-        let d2 = 25 * 60 * 1000;
+        let d2 = 3 * 60 * 1000;
         let a2 = () => {
             alert("End of the session");
             that.unhighlight_timer();
@@ -233,17 +254,23 @@ class Experiment{
         //  - counter_local_search_run
         //  - counter_generalization_run
         //  - counter_generalization_selected
-        //  - features_tested
+        //  - features_found
 
         this.clock.stop();
         let durationInSeconds = this.clock.getTimeElapsed() / 1000;
 
-        this.features_tested = [];
+        this.features_found = [];
         let allFeatures = this.data_mining.allFeatures;
         for(let i = 0; i < allFeatures.length; i++){
             let feature = allFeatures[i];
-            if(this.data_mining.algorithmGeneratedFeatureIDs.indexOf(feature.id) === -1){
-                this.features_tested.push(feature);
+            if(feature.pareto_ranking === 0){
+                let featureCopy = JSON.parse(JSON.stringify(feature));
+                featureCopy.name = null;
+                featureCopy.x = null;
+                featureCopy.y = null;
+                featureCopy.x0 = null;
+                featureCopy.y0 = null;
+                this.features_found.push(featureCopy);
             }
         }
 
@@ -258,7 +285,7 @@ class Experiment{
             "counter_local_search_run": this.counter_local_search_run,
             "counter_generalization_run": this.counter_generalization_run,
             "counter_generalization_selected": this.counter_generalization_selected,
-            "features_tested": this.features_tested,
+            "features_found": this.features_found,
         }
         console.log(learning_task_data);
         this.save_data(learning_task_data);
@@ -275,7 +302,7 @@ class Experiment{
             .on("click", () => {
                 let title = "Feature Synthesis Task";
                 let message = "<p>Try to define a feature that: "
-                    +"<p><b>(1) are shared by <b>at least 70% of the target designs (coverage of 0.7 or higher)</b></p>"
+                    +"<p><b>(1) is shared by <b>at least 70% of the target designs (coverage of 0.7 or higher)</b></p>"
                     +"<p><b>(2) and <b>maximizes both coverage and specificity.</b></p>"
 
                     +"<p>You can define new features using the Filter Setting tab. </p>";
@@ -315,12 +342,12 @@ class Experiment{
 
         // Set alert message given at the beginning of each task
         // Set stopwatch callback functions
-        let d1 = 5 * 60 * 1000;
+        let d1 = 2 * 60 * 1000;
         let a1 = function(){
             alert("5 minutes passed! You have 2 more minutes to finish the task.");
             that.highlight_timer();
         };
-        let d2 = 7 * 60 * 1000;
+        let d2 = 3 * 60 * 1000;
         let a2 = function(){
             alert("End of the session");
             that.unhighlight_timer();
@@ -345,18 +372,21 @@ class Experiment{
         //  - duration
         //  - counter_feature_viewed
         //  - counter_filter_used
-        //  - features_tested
+        //  - features_found
 
         this.clock.stop();
         let durationInSeconds = this.clock.getTimeElapsed() / 1000;
 
-        this.features_tested = [];
+        this.features_found = [];
         let allFeatures = this.data_mining.allFeatures;
         for(let i = 0; i < allFeatures.length; i++){
-            let feature = allFeatures[i];
-            if(this.data_mining.algorithmGeneratedFeatureIDs.indexOf(feature.id) === -1){
-                this.features_tested.push(feature);
-            }
+            let featureCopy = JSON.parse(JSON.stringify(allFeatures[i]));
+            featureCopy.name = null;
+            featureCopy.x = null;
+            featureCopy.y = null;
+            featureCopy.x0 = null;
+            featureCopy.y0 = null;
+            this.features_found.push(featureCopy);
         }
 
         let feature_synthesis_task_data = {
@@ -366,7 +396,7 @@ class Experiment{
             "duration": durationInSeconds,
             "counter_feature_viewed": this.counter_feature_viewed,
             "counter_filter_used": this.counter_filter_used,
-            "features_tested": this.features_tested,
+            "features_found": this.features_found,
         }
 
         console.log(feature_synthesis_task_data);
@@ -418,12 +448,12 @@ class Experiment{
 
         // Set alert message given at the beginning of each task
         // Set stopwatch callback functions
-        let d1 = 5 * 60 * 1000;
+        let d1 = 2 * 60 * 1000;
         let a1 = function(){
             alert("5 minutes passed! You have 2 more minutes to finish the task.");
             that.highlight_timer();
         };
-        let d2 = 7 * 60 * 1000;
+        let d2 = 3 * 60 * 1000;
         let a2 = function(){
             alert("End of the session");
             that.unhighlight_timer();
@@ -446,6 +476,7 @@ class Experiment{
         //  - stage
         //  - duration
         //  - counter_design_viewed
+        //  - counter_design_evaluated
         //  - designs_evaluated
 
         this.clock.stop();
@@ -457,6 +488,7 @@ class Experiment{
             "stage": this.stage,
             "duration": durationInSeconds,
             "counter_design_viewed": this.counter_design_viewed,
+            "counter_design_evaluated": this.counter_design_evaluated,
             "designs_evaluated": this.designs_evaluated,
         }
         console.log(design_synthesis_task_data);
@@ -495,14 +527,14 @@ class Experiment{
     unhighlight_timer(){
         d3.select("#timer")
             .style("color","black")
-            .style("font-size","19px")
-            .style("width", "300px");
+            .style("font-size","1.2vw")
+            .style('margin-top', '0.5vh');
     }
 
     highlight_timer(){
         d3.select("#timer")     
-            .style("font-size","30px")
-            .style("width", "350px")
+            .style("font-size","3.3vh")
+            .style('margin-top','0.1vh')
             .style("color","red"); 
     }
 

@@ -179,6 +179,10 @@ class DataMining{
 
                         if(content.searchMethod){
                             if(content.searchMethod === "localSearch"){
+
+                                // EXPERIMENT
+                                PubSub.publish(EXPERIMENT_EVENT, {key:"local_search_run"});
+
                                 that.add_and_remove_features(content.features);
 
                                 if(that.generalizationOn && !that.localSearchInitiatedFromGeneralization){
@@ -187,6 +191,10 @@ class DataMining{
                                 }
 
                             }else if(content.searchMethod === "generalization"){
+
+                                // EXPERIMENT
+                                PubSub.publish(EXPERIMENT_EVENT, {key:"generalization_run"});
+                                
                                 this.feature_application.end_loading_animation();
                                 this.show_generalization_suggestion(content.features);
                             }
@@ -513,11 +521,7 @@ class DataMining{
                     logical_connective:logical_connective,
                   },
             async: true,
-            success: function (data, textStatus, jqXHR){
-
-                // EXPERIMENT
-                PubSub.publish(EXPERIMENT_EVENT, {key:"local_search_run"});
-            },
+            success: function (data, textStatus, jqXHR){},
             error: function (jqXHR, textStatus, errorThrown)
             {alert("Error in calling get_marginal_driving_features()");}
         });
@@ -2340,6 +2344,8 @@ class DataMining{
     show_generalization_suggestion(features){
         let that = this;
 
+        let buttonClicked = false;
+
         let timeout = 20000;
         let numMaxFeatures = 4;
         iziToast.destroy();
@@ -2392,9 +2398,6 @@ class DataMining{
             features = sortedFeatureList.splice(0, numMaxFeatures);
         }
 
-        // EXPERIMENT
-        PubSub.publish(EXPERIMENT_EVENT, {key:"generalization_run"});
-
         let buttonsStyle = "width: 84%; float: left; margin-top: "+ buttonMargin +"px; margin-bottom: "+ buttonMargin +"px; font-size: "+ (messageSize - 2) +"px;";
         let buttonsList = [];
         for(let i = 0; i < features.length; i++){
@@ -2405,6 +2408,8 @@ class DataMining{
             description += "<p>(coverage: "+ round_num(features[i].metrics[3]) + ", specificity: " + round_num(features[i].metrics[2]) +")</p>";
             
             let button = ['<button style="'+ buttonsStyle +'"><b>'+ description +'</b></button>', function (instance, toast) {
+
+                    buttonClicked = true;
 
                     // EXPERIMENT 
                     PubSub.publish(EXPERIMENT_TUTORIAL_EVENT, "generalization_selected");    
@@ -2427,6 +2432,8 @@ class DataMining{
 
         let cancelButton = ['<button style="'+ buttonsStyle +'"><b>Cancel</b></button>', function (instance, toast) {
             instance.hide({transitionOut: 'fadeOutUp'}, toast, 'buttonName');
+
+            buttonClicked = true;
             that.feature_application.update_feature_application('restore', null);
         }, true];
         buttonsList.push(cancelButton);
@@ -2444,6 +2451,11 @@ class DataMining{
             progressBarColor: 'rgb(0, 255, 184)',
             buttons: buttonsList,
             timeout: timeout,
+            onClosing: function(){
+                if(!buttonClicked){
+                    that.feature_application.update_feature_application('restore', null);
+                }
+            },
         });
     }
 
