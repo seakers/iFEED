@@ -105,7 +105,7 @@ class Experiment{
                 } else if(data.key === "design_evaluated"){
 
                     that.counter_design_evaluated++;
-                    
+
                     let arch = data.data;
                     let inputs = arch.inputs;
                     let inputsString = "";
@@ -274,6 +274,13 @@ class Experiment{
             }
         }
 
+        let paramsInfo = {};
+        paramsInfo.orbit_extended_list = this.filter.orbit_extended_list;
+        paramsInfo.instrument_extended_list = this.filter.instrument_extended_list;
+        paramsInfo.instance_map = this.filter.instance_map;
+        paramsInfo.superclass_map = this.filter.superclass_map;
+        paramsInfo.instance_index_map = this.filter.instance_index_map;
+
         let learning_task_data = {
             "participantID": this.participantID,
             "treatmentCondition": this.treatmentCondition,
@@ -286,6 +293,7 @@ class Experiment{
             "counter_generalization_run": this.counter_generalization_run,
             "counter_generalization_selected": this.counter_generalization_selected,
             "features_found": this.features_found,
+            "paramsInfo": paramsInfo,
         }
         console.log(learning_task_data);
         this.save_data(learning_task_data);
