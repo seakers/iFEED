@@ -219,13 +219,13 @@ class Experiment{
 
         // Set alert message given at the beginning of each task
         // Set stopwatch callback functions
-        let d1 = 2 * 60 * 1000;
+        let d1 = 20 * 60 * 1000;
         let a1 = function(){
             that.highlight_timer();
             alert("20 minutes passed! You have 5 more minutes to finish the task.");
         };
 
-        let d2 = 3 * 60 * 1000;
+        let d2 = 25 * 60 * 1000;
         let a2 = () => {
             alert("End of the session");
             that.unhighlight_timer();
@@ -350,12 +350,12 @@ class Experiment{
 
         // Set alert message given at the beginning of each task
         // Set stopwatch callback functions
-        let d1 = 2 * 60 * 1000;
+        let d1 = 5 * 60 * 1000;
         let a1 = function(){
             alert("5 minutes passed! You have 2 more minutes to finish the task.");
             that.highlight_timer();
         };
-        let d2 = 3 * 60 * 1000;
+        let d2 = 7 * 60 * 1000;
         let a2 = function(){
             alert("End of the session");
             that.unhighlight_timer();
@@ -456,12 +456,12 @@ class Experiment{
 
         // Set alert message given at the beginning of each task
         // Set stopwatch callback functions
-        let d1 = 2 * 60 * 1000;
+        let d1 = 5 * 60 * 1000;
         let a1 = function(){
             alert("5 minutes passed! You have 2 more minutes to finish the task.");
             that.highlight_timer();
         };
-        let d2 = 3 * 60 * 1000;
+        let d2 = 7 * 60 * 1000;
         let a2 = function(){
             alert("End of the session");
             that.unhighlight_timer();

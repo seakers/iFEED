@@ -64,7 +64,7 @@ function loadTutorialContent(){
                     +'<tr><td class="tg-0pky">SSO-600-AM<br></td><td class="tg-0pky">SSO with morning LTAN at 600km altitude</td></tr>'
                     +'<tr><td class="tg-0pky">SSO-600-DD</td><td class="tg-0pky">SSO with dawn-dusk LTAN at 600km altitude</td></tr>'
                     +'<tr><td class="tg-0lax">SSO-800-DD</td><td class="tg-0lax">SSO with dawn-dusk LTAN at 800km altitude</td></tr>'
-                    +'<tr><td class="tg-0lax">SSO-800-PM</td><td class="tg-0lax">SSO with afternoon LTAN at 600km altitude</td></tr>'
+                    +'<tr><td class="tg-0lax">SSO-800-PM</td><td class="tg-0lax">SSO with afternoon LTAN at 800km altitude</td></tr>'
                     +'</table>'
                     +"<p>(LEO = Low Earth Orbit, SSO = Sun-Synchronous Orbit, AM = morning, PM = afternoonm, DD = dawn-dusk, "
                     +"LTAN = Local Time of the Ascending Node)</p>"
@@ -796,7 +796,7 @@ function loadTutorialContent(){
             object: d3.selectAll('#support_panel').node(),
             content: "<p>Note that some crosses appeared in the plot. These crosses represent new features "
                     +"that are obtained by adding a new condition to the selected feature.</p>"
-                    +"<p>You can use the auto search iteratively, to explore the feature space quickly. </p>",
+                    +"<p>You can use the auto search iteratively to explore the feature space quickly. </p>",
             callback: function(currentStep){
                 document.getElementById('tab3').click();
             }
