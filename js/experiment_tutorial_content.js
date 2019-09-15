@@ -7,7 +7,7 @@ function loadTutorialContent(){
             name: "tutorial-intro-opening-general-condition",
             object: null, 
             content: "<p>In this experiment, you will use a web-based data analysis tool called iFEED. "
-                    +"It is a program developed to help engineers solve complex system architecting problems. </p>"
+                    +"It is a program developed to help engineers extract and learn useful information during tradespace exploration. </p>"
                     +"<p>This tutorial will walk you through the capabilities of iFEED and explain how you can use them to analyze data.</p>"
                     +"<p>After this tutorial is finished, you will use the tool to analyze a given dataset. "
                     +"Then, you will be asked to answer a series of questions to test how much you have learned from analyzing the data. </p>", 
@@ -101,7 +101,7 @@ function loadTutorialContent(){
         {
             name: "tutorial-problem-formulation-variable-detail-information",
             object: d3.select("#variable_description_material_link").node(),
-            content: "<p>More detailed information about each instrument is provided in a separate page.</p>"
+            content: "<p>More detailed information about each instrument can be viewed on a separate page.</p>"
                         +"<p>To continue, try clicking the button \"Open instruments and orbits information\"</p>",
             callback: function(currentStep){
                 document.getElementById('tab4').click();
@@ -111,7 +111,7 @@ function loadTutorialContent(){
         {
             name: "tutorial-problem-formulation-variable-detail-information-2",
             object: d3.select("#variable_description_material_link").node(),
-            content: "<p>You will have an access to this information anytime during the experiment</p>",
+            content: "<p>You will have an access to this information anytime during the experiment.</p>",
             callback: function(currentStep){
                 document.getElementById('tab4').click();
             },
@@ -119,14 +119,12 @@ function loadTutorialContent(){
         {
             name: "tutorial-problem-formulation-objectives",
             object: d3.select('#support_panel').node(),
-            content: "<p>Each architecture, defined by different instrument-to-orbit assignemnts, "
-                    +"has corresponding science benefit score and cost. "
+            content: "<p>Each architecture has corresponding science benefit score and cost. "
                     +"The science benefit score "
                     +"is a number that tells us how much value each architecture brings to the climate monitoring community. </p>"
                     +"<p>The cost is a measure of how much it is going to cost (in million dollars) to design, implement, launch and operate "
                     +"those systems.</p>"
-                    +"<p>Naturally, low-cost and high-science designs are desirable. Note that, depending on how instruments are assigned "
-                    +"to different orbits, the science score and the cost may vary significantly.</p>",
+                    +"<p>Naturally, low-cost and high-science designs are desirable.</p>",
             callback: function(currentStep){
                 document.getElementById('tab1').click();
             },
@@ -802,7 +800,7 @@ function loadTutorialContent(){
             object: d3.selectAll('#support_panel').node(),
             content: "<p>Note that some crosses appeared in the plot. These crosses represent new features "
                     +"that are obtained by adding a new condition to the selected feature.</p>"
-                    +"<p>You can use the auto search in iterative manner, in order to explore the feature space quickly. </p>",
+                    +"<p>You can use the auto search iteratively, to explore the feature space quickly. </p>",
             callback: function(currentStep){
                 document.getElementById('tab3').click();
             }
@@ -814,7 +812,7 @@ function loadTutorialContent(){
                     +"that can be achieved using this approach is limited."
                     +"<p>A recommended strategy is to start from a feature with good coverage, and progressively improve specificity"
                     +" using the auto search.</p>"
-                    +"<p>Note that as you run auto search iteratively, old features will become faint or deleted to prevent "
+                    +"<p>Note that as you run auto search repeatedly, old features will become faint or deleted to prevent "
                     +"the plot from being too cluttered.</p>",
             callback: function(currentStep){
                 document.getElementById('tab3').click();

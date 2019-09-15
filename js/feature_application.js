@@ -508,14 +508,14 @@ class FeatureApplication{
                 }
 
                 let tooltip_width, tooltip_height;
-                if(is_feature_name){
+                if(is_feature_name){ // Feature
                     tooltip_width = boundingRect.width / 1.6;
                     tooltip_height = boundingRect.width / 6.6;
 
                 } else {
-                    if(is_generalized_variable){
+                    if(is_generalized_variable){ // Generalized variable
                         tooltip_width = boundingRect.width / 1.74;;
-                        tooltip_height = boundingRect.width / 11;
+                        tooltip_height = boundingRect.width / 6.0;
                     } else {
                         tooltip_width = boundingRect.width / 1.74;;
                         tooltip_height = boundingRect.width / 11;

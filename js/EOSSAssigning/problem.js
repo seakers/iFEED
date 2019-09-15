@@ -226,23 +226,26 @@ class EOSSAssigning extends Problem{
             bitString = data;
 
         }else{
+            let output_display_text = [];
             for(let i = 0; i < this.metadata.output_list.length; i++){
-                arch_info_display_outputs.append("p")
-                    .text((d) => {
-                        let out = this.metadata.output_list[i] + ": ";
-                        let val = data.outputs[i];    
-                        if (typeof val == "number"){
-                            if (val > 100){ 
-                                val = val.toFixed(2);
-                            }
-                            else{ 
-                                val = val.toFixed(4); 
-                            }
-                        }
-                        return out + val;
-                    })
-                    .style('font-size','1.8vh');
+                let out = this.metadata.output_list[i] + ": ";
+                let val = data.outputs[i];    
+                if (typeof val == "number"){
+                    if (val > 100){ 
+                        val = val.toFixed(2);
+                    }
+                    else{ 
+                        val = val.toFixed(4); 
+                    }
+                }
+                output_display_text.push(out + val);
             }
+
+            arch_info_display_outputs.append("p")
+                .html((d) => {
+                    return output_display_text.join("&nbsp&nbsp | &nbsp&nbsp");
+                });
+
             bitString = this.booleanArray2String(data.inputs);
         }
         this.current_bitString = bitString;
@@ -500,24 +503,24 @@ class EOSSAssigning extends Problem{
     display_instrument_options(){
         let that = this;
 
-        let container = d3.select('.column.c2').select('div');
+        // Remove feature interactive panel
+        d3.select('#feature_interactive_panel').remove();
 
-        container.selectAll('div').remove();
-        container.style('width','500px')
-                    .style('border-width','0px');
+        let variableOptionsPanel = d3.select('#content')
+            .append('div')   
+            .attr('id','variable_options_panel');
 
-        let instrOptions = container.insert("div", "#arch_info_display_outputs + *")
-                                        .attr('id','instr_options_display');
+        let panelBoundingRect = d3.select("#variable_options_panel").node().getBoundingClientRect();
+
+        variableOptionsPanel.append('p')
+                .text('Candidate Instruments');
         
-        instrOptions.append('p')
-                .text('Candidate Instruments')
-                .style('margin','auto')
-                .style('font-weight','bold')
-                .style('font-size','16px');
-        
-        let table = instrOptions
+        let table = variableOptionsPanel
                 .append("table")
-                .attr("id", "instr_options_table");
+                .attr("id", "instr_options_table")
+                .style("width", () => {
+                    return panelBoundingRect.width * 0.85 + "px";
+                });
 
         let candidate_instruments = [];
         for(let i = 0; i < Math.round(this.instrument_num / 2); i++){
@@ -543,11 +546,11 @@ class EOSSAssigning extends Problem{
                 })
                 .enter()
                 .append('td')
+                .attr("width", () => {
+                    return panelBoundingRect.width * 0.38 + "px";
+                })
                 .attr("name", function (d) {
                     return d;
-                })
-                .attr("width", function (d, i) {
-                    return "150px";
                 })
                 .attr('class',function(d){
                     return 'arch_info_display_cell candidates';
@@ -556,21 +559,19 @@ class EOSSAssigning extends Problem{
                     return that.label.actualName2DisplayName(d,"instrument")
                 });    
         
-
         $('.arch_info_display_cell.candidates').draggable({
             connectWith: '.arch_info_display_cell.orbit',
             helper: 'clone',
             cursor: 'pointer'
         });    
 
-        instrOptions.append('div')
+        variableOptionsPanel.append('div')
                 .attr('id','instr_options_trash')
+                .style('width', ()=> {
+                    return panelBoundingRect.width * 0.85 + "px";
+                })
                 .append('p')
-                .style('margin','auto')
-                .style('padding','40px')
-                .text('Drag here to remove')
-                .style('font-size','23px')
-                .style('font-weight','bold');
+                .text('Drag here to remove');
 
         $('#instr_options_trash').droppable({
             accept: '.arch_info_display_cell.instrument',

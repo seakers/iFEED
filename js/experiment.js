@@ -323,7 +323,7 @@ class Experiment{
         let a2 = function(){
             alert("End of the session");
             that.unhighlight_timer();
-            that.end_design_synthesis_task();
+            that.end_feature_synthesis_task();
         };
         
         // Set callback functions
@@ -563,6 +563,11 @@ class Experiment{
         this.saveTextAsFile2(filename, JSON.stringify(data));
     }
 
+    saveExperimentLogData(){
+        let filename = this.participantID + "-combinedLogData.json";     
+        this.saveTextAsFile2(filename, JSON.stringify(this.experimentLogData));
+    }
+
     saveTextAsFile2(filename, inputText){
         let name = filename;
         let type = "application/json";
@@ -643,7 +648,7 @@ class Experiment{
         let submitCallback = function (instance, toast, button, event, inputs) {
 
             let input = inputs[0].value;
-            if(input === "goseakers"){
+            if(input === passcode){
                 callback();
                 instance.hide({ transitionOut: 'fadeOut' }, toast, 'button');
 
@@ -721,9 +726,9 @@ class Experiment{
             timeout: true,
             close: true,
             title: title,
-            titleSize: 28,
+            // titleSize: 28,
             message: message,
-            messageSize: 22,
+            // messageSize: 22,
             position: 'topCenter',
             timeout: 45000,
         });
@@ -962,7 +967,7 @@ class Clock{
     }
 }
 
-let passcode = "goseakers";
+let passcode = "ifeedexperiment";
 
 let fuzzy_pareto_front_8_mid_538 = "559,591,602,614,633,674,688,716,746,757,770,802,820,827,830,1083,1084,1085,1089,1090,1091,1093,"
 +"1095,1097,1102,1104,1106,1108,1110,1112,1113,1114,1116,1117,1118,1121,1122,1123,1126,1127,1128,1129,1130,1131,1132,1133,1134,1135,"

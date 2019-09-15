@@ -29,6 +29,13 @@
     grid-row: r2 / r4;
 }
 
+/* --- Experiment - design synthesis task ---*/
+#variable_options_panel{  
+    grid-column: c2 / c3;
+    grid-row: r3 / r4;
+}
+/*------------------------------------------*/
+
 #status_display_bar > div{
     float:left;
     width: 23%;
@@ -106,6 +113,10 @@
     margin-bottom: 3vh;
 }
 
+#arch_info_display_outputs > p {
+    font-size: 2.0vh;
+}
+
 #arch_info_display_table_div{
     float:left;
     width: 100%;
@@ -117,20 +128,25 @@
     vertical-align: central;
 }
 
-
-
-
-
-#evaluate_architecture_button{
-    float: left;
-    font-size: 18px;
-}
-
 .arch_info_display_cell.instrument:hover{
     background-color: #EEEEEE;
 }
 
-#instr_options_display{
+
+
+
+
+
+
+
+#variable_options_panel{
+    width: 46%;
+    height: 90%;
+    background-color: #E6E6E6;
+    position: relative;
+}
+
+/*#instr_options_display{
     float:left;
     width:360px;
     margin-left: 0%;
@@ -138,32 +154,70 @@
     margin-bottom: 10px;
     background-color: #E6E6E6;
     padding:20px;
+}*/
+
+#variable_options_panel > p {
+    width: 80%;
+    margin-left: 2vh;
+    margin-top: 2vh;
+    margin-bottom: 1vh;
+    font-size: 2.4vh
+    font-weight: bold;
+    float: left;
 }
 
 #instr_options_table{
-    width:340px;
-    float:left;
-    margin-top:20px;
-    border-spacing: 10px;
+    width: 0px;
+    float: left;
+    margin-top: 0vh;
+    margin-left: 1vh;
+    border-spacing: 1.1vh;
+    table-layout: fixed;
+}
+
+.arch_info_display_cell.candidates{
+    font-size: 1.4vh;
 }
 
 #instr_options_trash{
     float:left;
-    width:320px;
-    margin-top:10px;
-    margin-left:10px;
-    height:125px;
+    margin-left: 2vh;
+    margin-top: 1.6vh;
+    width: 0px;
+    height: 8vh;
     background-color: #FF8B8B;
 }
 
+#instr_options_trash > p {
+    margin: auto;
+    padding: 2vh;
+    font-size: 2vh;
+    font-weight: bold;
+}
+
+#evaluate_architecture_button{
+    float: left;
+    font-size: 2vh;
+}
+
+
+
+
+
+
+
+
+
+
 
 /* Tooltip container */
-.tooltip { 
+/*.tooltip { 
     position: relative;
 } 
+*/
 
 /* Tooltip text */
-.tooltip.tooltiptext {
+/*.tooltip.tooltiptext {
     visibility: hidden;
     width: 150px;
     background-color: #DCC5C1;
@@ -172,17 +226,15 @@
     padding: 10px;
     border-radius: 6px;
 
-    /* Position the tooltip text - see examples below! */
     position: absolute;
     z-index: 1;
 
     opacity: 0;
     transition: opacity 0.3s;
-}
-
+}*/
 
 /* Show the tooltip text when you mouse over the tooltip container */
-.tooltip:hover .tooltiptext {
+/*.tooltip:hover .tooltiptext {
     opacity: 1;
     visibility: visible;
 }
@@ -191,4 +243,4 @@
     content: "";
     clear: both;
     display: table;
-}
+}*/

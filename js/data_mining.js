@@ -599,7 +599,7 @@ class DataMining{
                         left: panelBoundingRect.width / 27};
 
         // this.margin = {top: 20, right: 20, bottom: 30, left:35};
-        this.width = panelBoundingRect.width / 1.7 - this.margin.left - this.margin.right;
+        this.width = panelBoundingRect.width / 1.8 - this.margin.left - this.margin.right;
         this.height = panelBoundingRect.height / 1.65 - this.margin.top - this.margin.bottom;
 
         // Create feature space display options
@@ -2355,10 +2355,10 @@ class DataMining{
 
         let referenceBoundingRect = d3.select("#tradespace_plot_container").node().getBoundingClientRect();
 
-        let titleSize = referenceBoundingRect.height / 20;
-        let messageSize = referenceBoundingRect.height / 23;
-        let messageLineHeight = referenceBoundingRect.height / 11;
-        let buttonMargin = referenceBoundingRect.height / 25;
+        let titleSize = referenceBoundingRect.height / 21;
+        let messageSize = referenceBoundingRect.height / 25;
+        let messageLineHeight = referenceBoundingRect.height / 12;
+        let buttonMargin = referenceBoundingRect.height / 44;
 
         // EXPERIMENT 
         PubSub.publish(EXPERIMENT_TUTORIAL_EVENT, "generalization_suggestion");    
@@ -2395,7 +2395,7 @@ class DataMining{
         // EXPERIMENT
         PubSub.publish(EXPERIMENT_EVENT, {key:"generalization_run"});
 
-        let buttonsStyle = "width: 80%; float: left; margin-top: "+ buttonMargin +"px; margin-bottom: "+ buttonMargin +"px; font-size: "+ (messageSize - 2) +"px;";
+        let buttonsStyle = "width: 84%; float: left; margin-top: "+ buttonMargin +"px; margin-bottom: "+ buttonMargin +"px; font-size: "+ (messageSize - 2) +"px;";
         let buttonsList = [];
         for(let i = 0; i < features.length; i++){
             let description = features[i].description;
@@ -2624,7 +2624,7 @@ class DataMining{
             .attr("y", vennDiagramBoundingRect.height / 1.4)
             .attr("font-size", vennDiagramBoundingRect.height / 14.5 + "px")
             .attr("fill","brown")
-            .text("Features:" + highlighted );
+            .text("Feature:" + highlighted );
 
         svg.append("text")
             .attr("id","venn_diag_int_text")
