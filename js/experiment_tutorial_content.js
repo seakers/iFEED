@@ -134,7 +134,7 @@ function loadTutorialContent(){
         {
             name: "tutorial-ifeed-intro-general-condition",
             object: undefined, 
-            content: "<p>Now that we have covered the basic information about the problem, "
+            content: "<p>Now that we have covered the basic information about the design problem, "
                     +"we will go over different parts of iFEED and explain how to use it to analyze the data.</p>"
                     +"<p>iFEED is a tool that supports the discovery of the key knowledge on what constitutes good designs.</p>", 
             callback: null,
@@ -142,7 +142,7 @@ function loadTutorialContent(){
         {
             name: "tutorial-ifeed-intro-design-inspection-only",
             object: undefined, 
-            content: "<p>Now that we have covered the basic information about the problem, "
+            content: "<p>Now that we have covered the basic information about the design problem, "
                     +"we will go over the main components of the interface, and explain the task to be performed using the interface.</p>", 
             callback: null,
         },
@@ -167,7 +167,7 @@ function loadTutorialContent(){
             name: "tutorial-ifeed-inspecting-design",
             object: null,
             content: "If you hover the mouse over an architecture on the scatter plot, "
-                    +"the relevant information will be displayed on the \"Inspect Design\" tab.", 
+                    +"the relevant information will be displayed on the \"Inspect Design\" tab below.", 
             callback: function(currentStep){
                 document.getElementById('tab1').click();
                 PubSub.publish(INSPECT_ARCH, tutorial.problem.data[1039]);
@@ -312,7 +312,6 @@ function loadTutorialContent(){
                     +"<ul><li>OCE_SPEC is assigned to LEO-600-polar</li>"
                     +"<li>AERO_LID and CHEM_UVSPEC are assigned together in the same orbit</li>"
                     +"<li>Orbit SSO-800-PM is empty</li>"
-                    +"<li>HYP_ERB is assigned to either LEO-600-polar or SSO-600-AM</li>"
                     +"</ul>"
                     +"<p>Some of these features are better than others in explaining the target designs. "
                     +"We use two different criteria to define the \"goodness\" of a feature.</p>", 
@@ -326,7 +325,6 @@ function loadTutorialContent(){
                     +"<ul><li>OCE_SPEC is assigned to LEO-600-polar</li>"
                     +"<li>AERO_LID and CHEM_UVSPEC are assigned together in the same orbit</li>"
                     +"<li>Orbit SSO-800-PM is empty</li>"
-                    +"<li>HYP_ERB is assigned to either LEO-600-polar or SSO-600-AM</li>"
                     +"</ul>"
                     +"<p>Some of these features are better than others in explaining the target designs. "
                     +"We use two different criteria to define the \"goodness\" of a feature.</p>", 
@@ -392,8 +390,7 @@ function loadTutorialContent(){
             object: null,
             content: "<p>However, you may notice that many of the purple dots (target designs covered by the feature) have also disappeared. "
                     +"Only a small portion of the targets are in purple color now.</p>"
-                    +"<p>Therefore, feature B is too specific, meaning that it only accounts for a small number of targets. "
-                    +"Or you can say that the coverage of target designs has decreased. </p>", 
+                    +"<p>Therefore, feature B is too specific, meaning that it only accounts for a small number of targets.</p>", 
             callback: null,
         }, 
         {
@@ -457,8 +454,7 @@ function loadTutorialContent(){
             name: "tutorial-ifeed-feature-space-plot-mouse-over-2",
             object: d3.select('.tradespace_plot.figure').node(),
             content: "<p>First, a group of dots on the scatter plot is highlighted in pink and purple color. </p>"
-                    +"<p>Again, pink and purple dots represent designs have the feature that you are currently inspecting "
-                    +"(purple is the overlap between pink and blue)</p>", 
+                    +"<p></p>", 
             callback: function(currentStep){
                 experiment.feature_application.update_feature_application("temp", tutorial_feature_example_f);
             }
@@ -528,19 +524,19 @@ function loadTutorialContent(){
             name: "tutorial-ifeed-feature-application-interaction-intro-v1",
             object: null, 
             content: "<p>The feature graph not only acts as a visualization, but also as an interface for "
-                    +"interactively modifying existing features or defining new ones.</p>",
+                    +"interactively modifying existing features.</p>",
         }, 
         { 
             name: "tutorial-ifeed-feature-application-interaction-intro-v2",
             object: null, 
             content: "<p>In this task, the feature graph not only acts as a visualization, but also as an interface for "
-                    +"interactively modifying existing features or defining new ones.</p>",
+                    +"interactively modifying existing features.</p>",
         }, 
         { 
             name: "tutorial-ifeed-feature-application-interaction-drag-and-drop",
             object: null,
             content: "<p>You can move an individual node and place it under a different parent node using drag and drop. "
-                    +"When you drag each node, temporary pink circles will appear around all other logical connective nodes. "
+                    +"When you drag each node, temporary blue circles will appear around all other logical connective nodes. "
                     +"If you drop a node in one of those circles, the node will be added under that particular logical connective.</p>"
                     +"<p>To continue, try moving one node and placing it under a different parent node. </p>",
             callback: function(currentStep){
@@ -711,16 +707,15 @@ function loadTutorialContent(){
             name: "tutorial-ifeed-feature-application-interaction-context-menu-generalize-feature-4",
             object: null,
             content: "<p>The popup shows different suggestions on how the current feature may be "
-                    +" simplified by generalizing the knowledge represented by it."
-                    +"<p>For example, the notion that \"AERO_POL and HYP_IMAG should not be assigned to SSO-800-DD orbit\" "
-                    +"may be generalized to \"Low-power instruments should not be assigned to SSO-800-DD orbit\" "
-                    +"(AERO_POL and HYP_IMAG both have low power requirements). </p>",
+                    +" simplified by generalizing the knowledge represented by it. </p>"
+                    +"<p>While these suggestions may not always improve coverage or specificity, it may help "
+                    +"gain new insights that are otherwise difficult to identify. </p>",
         }, 
         { 
             name: "tutorial-ifeed-feature-application-interaction-context-menu-generalize-feature-5",
             object: null,
-            content: "<p>Among the suggested generalizations, you can select the one that seems to be the most useful. "
-                    +"You may also choose to not accept any of the suggestions.</p>"
+            content: "<p>Among the suggested generalizations, you can select the one that seems to be the most useful.</p>"
+                    +"<p>You may also choose to not accept any of the suggestions by clicking the cancel button.</p>"
                     +"<p>To continue, click one of the suggestions provided.</p>",
             
             callback: function(currentStep){
@@ -749,24 +744,25 @@ function loadTutorialContent(){
             name: "tutorial-ifeed-feature-application-interaction-context-menu-generalize-feature-6",
             object: d3.select('#feature_application_panel').node(),
             content: "<p>Note that the generalization is applied to the current feature. </p>"
-                    +"<p>Generalization of knowledge may be helpful in finding useful knowledge that may otherwise be difficult to identify.</p>",
+                    +"<p>It is recommended to use this capability extensively during the task, as it may be helpful in "
+                    +"identifying new, hidden insights.</p>",
         }, 
 
 //////////// End Generalization ///////////////////////////////////////////////////////////////////////////
         { 
             name: "tutorial-ifeed-feature-application-interaction-context-menu-other",
             object: null,
-            content: "<p>Other possible actions that can be applied to the node of a feature tree include \"Add parent branch\", \"Deactivate\" and \"Delete\". "
-                    +"These options are used to add a parent node, deactivate the current node, and to delete the node, respectively. </p>"
-                    +"<p>You can try different options later, as you use the interactive graph during the task.</p>",
+            content: "<p>There exist other options you can choose from when you right-click on each node. </p>"
+                    +"<p>These include \"Add parent branch\", \"Deactivate\" and \"Delete\". </p>"
+                    +"<p>Feel free to explore and use these options later during the task.</p>",
         }, 
 
 //////////// Interactive search ///////////////////////////////////////////////////////////////////////////
         { 
             name: "tutorial-ifeed-feature-interactive-intro",
             object: d3.select('#feature_space_display_options_container').node(), 
-            content: "<p>While you can test different features by manually modifying features, "
-                    +"there are also automatic helper functions that improve the currently selected feature. </p>",
+            content: "<p>While you can modify individual features to improve coverage and specificity, "
+                    +"there are also automatic helper functions that can be used to speed up the process. </p>",
             callback: function(currentStep){
                 document.getElementById('tab3').click();
                 experiment.feature_application.clear_feature_application();
@@ -777,8 +773,8 @@ function loadTutorialContent(){
             object: d3.select('.feature_space_interaction.localSearch.container').node(),
             content: "<p>First, you can turn on the \"Auto search\" option.</p>"
                     +"<p>While it is on, a data mining search will be initiated whenever you select (click) a feature. </p>"
-                    +"<p>The data mining algorithm will add an additional base feature and improve either "
-                    +"the specificity or the coverage of the selected feature.</p>"
+                    +"<p>The data mining algorithm will try to improve either the specificity or coverage by "
+                    +"adding an additional condition to the selected feature.</p>"
                     +"<p>To continue, turn on the \"Auto search\" option.</p>",
             callback: function(currentStep){
                 document.getElementById('tab3').click();
@@ -825,7 +821,7 @@ function loadTutorialContent(){
                     +"<p>While this option is on, generalization search will be initiated whenever you select (click)"
                     +" a feature. </p>"
                     +"<p>While the final outcome is equivalent to initiating the generalization search manually from the feature graph, "
-                    +"This option allows running generalization on the background without the user having to initiate the search.</p>",
+                    +"This option allows running generalization on the background without the user having to initiate the search manually.</p>",
             callback: function(currentStep){
                 document.getElementById('tab3').click();
                 experiment.feature_application.clear_feature_application();
@@ -864,60 +860,41 @@ function loadTutorialContent(){
 ///////////////////////////////////////////////////////////////////////////////////////////////////////
 //////////// Learning Task ///////////////////////////////////////////////////////////////////////////
         { 
-            name: "learning-task-intro-1-general-condition",
+            name: "learning-task-intro-1",
             object: undefined,
             content: "<p>In this step, you are given 25 minutes to analyze a dataset which contains 6,655 alternative architectures "
-                    +"of an Earth-observing satellite system.</p>"
-                    +"<p>Your goal is to identify and record as many features as possible that: "
-                    +"<br> (1) are shared by <b>at least 70% of the target designs (coverage of 0.7 or higher)</b>"
-                    +"<br> (2) and <b>maximizes both coverage and specificity.</b></p>" 
-                    +"<p>Use the interactive concept graph provided in a separate window to record any interesting features that you find.</p>",
-        }, 
-        { 
-            name: "learning-task-intro-1-design-inspection-only",
-            object: undefined,
-            content: "<p>In this step, you are given 25 minutes to analyze a dataset which contains 6,655 alternative architectures "
-                    +"of an Earth-observing satellite system.</p>"
-                    +"<p>Your goal is to identify and record as many features as possible that: "
-                    +"<br> (1) are shared by <b>at least 70% of the target designs (coverage of 0.7 or higher)</b>"
-                    +"<br> (2) and <b>maximizes both coverage and specificity.</b></p>" 
-                    +"<p>You can write down any notes on the paper provided by the experimenter.</p>"
-                    +"<p>If you haven't received a piece of paper, please ask the experiment to provide one.</p>",
+                    +"of an Earth-observing satellite system. </p>"
+                    +"<p>After the 25-minute data analysis session, you will be asked to answer a series of questions about the data.</p>"
+                    +"<p>The questions will ask you to identify or utilize the features that are shared by the target designs. </p>",
         }, 
         { 
             name: "learning-task-intro-2",
             object: undefined,
-            content: "<p>After the 25-minute data analysis session, you will be asked to answer a series of questions about "
-                    +"the given design problem and the dataset.</p>"
-                    +"<p>Your answer to these questions will be used as a measure of how much you have learned during the data analysis session.</p>",
+            content: "<p>In order to solve the problems that will be given after this task, "
+                    +"try to identify and record the best feature that: "
+                    +"<br> (1) is shared by <b>at least 70% of the target designs (coverage of 0.7 or higher)</b>"
+                    +"<br> (2) and <b>maximizes both coverage and specificity.</b></p>" 
+                    +"<p>Use the concept map page provided in a separate window to record the feature that you find.</p>",
         },
         { 
-            name: "learning-task-intro-3-general-condition",
+            name: "learning-task-intro-3",
             object: undefined,
-            content: "<p>As you answer the questions, you will only have access to the information you record in the interactive graph "
-                    +"(separate window), and you will not be able to use iFEED.</p>"
-                    +"<p>Therefore, try to record as much information as possible on the interactive graph.</p>",
-            callback: null,
-        },
-        { 
-            name: "learning-task-intro-3-design-inspection-only",
-            object: undefined,
-            content: "<p>As you answer the questions, you will only have access to the note you write on the paper, "
-                    +"and you will not have any access to the actual data.</p>"
-                    +"<p>Therefore, try to record as much information as possible during this task.</p>",
+            content: "<p>As you answer the questions, you will only have access to the information you record in the concept map page "
+                    +"(separate window), and you will not have a direct access to the data.</p>"
+                    +"<p>Therefore, try to record any feature that you feel may be useful.</p>",
             callback: null,
         },
         { 
             name: "learning-task-intro-4-resource_tab",
             object: d3.select('#support_panel').node(),
             content: "<p>The Resources tab contains several resources that you can utilize throughout the data analysis task.</p>"
-                +"<p>You can use \"View task goal\" option to review what you are asked to do in a given step.</p>"
-                +"<p>You can use \"Open instruments and orbits information\" option to view detailed descriptions and other information about the "
+                +"<p>\"View task goal\" shows the goal you are asked to achieve during the task.</p>"
+                +"<p>\"Open instruments and orbits information\" shows detailed information about the "
                 +"candidate instruments and orbits.</p>"
-                +"<p>You can use \"View sample questions\" option to view some sample questions. This will be useful for "
-                +"getting some idea of what might be asked in the problemset given after the data analysis step.</p>"
-                +"<p>You can use \"View feature definition\" option to review the definition of features, as well as the concepts of "
-                +"coverage and specificity.</p>",
+                +"<p>\"View sample questions\" shows some sample questions. This will be useful for "
+                +"getting some idea of what might be asked in the problemset.</p>"
+                +"<p>\"View feature definition\" shows the definition of features, as well as the concepts of "
+                +"coverage and specificity. Use this option to review the definitions provided earlier.</p>",
             callback: function(currentStep){
                 document.getElementById('tab4').click();
             }
@@ -960,8 +937,8 @@ function loadTutorialContent(){
         { 
             name: "feature-synthesis-intro-2",
             object: undefined,
-            content: "<p>The goal in this part of the experiment is to define as many features as possible that: </p>"
-                    +"<p><b>(1) are shared by <b>at least 70% of the target designs (coverage of 0.7 or higher)</b></p>"
+            content: "<p>The goal in this part of the experiment is to define a feature that: </p>"
+                    +"<p><b>(1) is shared by <b>at least 70% of the target designs (coverage of 0.7 or higher)</b></p>"
                     +"<p><b>(2) and <b>maximizes both coverage and specificity.</b></p>",
             callback: function(){
                 document.getElementById('tab3').click();

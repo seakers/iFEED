@@ -209,11 +209,11 @@
 
     // PubSub.publish(LOAD_DATA, null);
 
-    // function select_fuzzy_pareto_front(rank){
-    //     problem.calculate_pareto_ranking([],20);
-    //     filter.apply_filter_expression("{paretoFront["+ rank +"]}");
-    //     tradespace_plot.toggle_selection_and_highlight();
-    // }
+    function select_fuzzy_pareto_front(rank){
+        problem.calculate_pareto_ranking([],20);
+        filter.apply_filter_expression("{paretoFront["+ rank +"]}");
+        tradespace_plot.toggle_selection_and_highlight();
+    }
 
     var experiment, tutorial;
     let firstSignInCallback = function (instance, toast, button, event, inputs) {

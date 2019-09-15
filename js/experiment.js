@@ -160,12 +160,13 @@ class Experiment{
         d3.select("#task_goal_view_button")
             .on("click", () => {
                 let title = "Data Analysis Task";
-                let message = "<p>Try to identify and record as many features as possible that "
-                    +"are shared by the target designs (highlighted in blue)</p>"
+                let message = "<p>Try to identify and record the best feature that "
+                    +"explains the target designs (highlighted in blue)</p>"
                     +"<p> </p>"
-                    +"<p>Look for the features that: </p>"
-                    +"<p><b>(1) are shared by <b>at least 70% of the target designs (coverage of 0.7 or higher)</b></p>"
-                    +"<p><b>(2) and <b>maximizes both coverage and specificity.</b></p>" 
+                    +"<p>Specifically, look for the feature that: </p>"
+                    +"<br> (1) is shared by <b>at least 70% of the target designs (coverage of 0.7 or higher)</b>"
+                    +"<br> (2) and <b>maximizes both coverage and specificity.</b></p>" 
+                    +"<p>Use the concept map page provided in a separate window to record the feature that you find.</p>",
                 that.display_task_goal(title, message);
             });
 
@@ -273,7 +274,7 @@ class Experiment{
         d3.select("#task_goal_view_button")
             .on("click", () => {
                 let title = "Feature Synthesis Task";
-                let message = "<p>Try to define as many features as possible that: "
+                let message = "<p>Try to define a feature that: "
                     +"<p><b>(1) are shared by <b>at least 70% of the target designs (coverage of 0.7 or higher)</b></p>"
                     +"<p><b>(2) and <b>maximizes both coverage and specificity.</b></p>"
 
