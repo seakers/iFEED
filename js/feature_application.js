@@ -762,7 +762,7 @@ class FeatureApplication{
 
                 // EXPERIMENT
                 if(that.experimentCondition){
-                    if(that.experimentCondition.indexOf("automated") !== -1){
+                    if(that.experimentCondition.indexOf("automated") !== -1 && that.experimentStage === "learning"){
                         return;
                     }
                 }
@@ -826,7 +826,7 @@ class FeatureApplication{
         // EXPERIMENT
         let pass = false;
         if(this.experimentCondition){
-            if(this.experimentCondition.indexOf("automated") !== -1){
+            if(this.experimentCondition.indexOf("automated") !== -1 && this.experimentStage === "learning"){
                 pass = true;
             }
         }
@@ -865,7 +865,7 @@ class FeatureApplication{
 
             // EXPERIMENT
             if(this.experimentCondition){
-                if(this.experimentCondition.indexOf("automated") !== -1){
+                if(this.experimentCondition.indexOf("automated") !== -1 && this.experimentStage === "learning"){
                     return;
                 }
             }
@@ -889,7 +889,7 @@ class FeatureApplication{
 
             // EXPERIMENT
             if(this.experimentCondition){
-                if(this.experimentCondition.indexOf("automated") !== -1){
+                if(this.experimentCondition.indexOf("automated") !== -1 && this.experimentStage === "learning"){
                     // No node selected (all nodes go back to the previous positions)
                     d3.selectAll('.nodeRange')
                         .on('mouseover', function(d){
