@@ -60,7 +60,7 @@ class EOSSAssigning extends Problem{
             input_num: 1,
             input_list: ["bitString"],
             input_type: "binary",
-            output_list: ['Science','Cost'],
+            output_list: ['Science','Cost (M)'],
             output_num: 2,
             output_obj: [1, -1], // 1 for lager-is-better, -1 for smaller-is-better
             // file_path: "EOSS_data_recalculated.csv",

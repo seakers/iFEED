@@ -552,7 +552,18 @@ function loadTutorialContent(){
                     +"tab reflect the changes in real time.</p>",
         }, 
         { 
-            name: "tutorial-ifeed-feature-application-interaction-context-menu",
+            name: "tutorial-ifeed-feature-application-interaction-context-menu-generalization-disabled",
+            object: d3.select('#feature_application').node(),
+            content: "<p>You can view the options for various actions by right-clicking on each node. "
+                    +"<p>There may be different set of options depending on the type of each node. "
+                    +"We will go over two of these options as examples. </p>", 
+            callback: function(currentStep){
+                document.getElementById('tab3').click();
+                experiment.feature_application.update_feature_application("direct-update", tutorial_feature_example_d);
+            }
+        }, 
+        { 
+            name: "tutorial-ifeed-feature-application-interaction-context-menu-generalization-enabled",
             object: d3.select('#feature_application').node(),
             content: "<p>You can view the options for various actions by right-clicking on each node. "
                     +"<p>There may be different set of options depending on the type of each node. "
@@ -859,6 +870,24 @@ function loadTutorialContent(){
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////
 //////////// Learning Task ///////////////////////////////////////////////////////////////////////////
+
+        // { 
+        //     name: "learning-task-intro-1",
+        //     object: undefined,
+        //     content: "<p>In this step, you will work on a data analysis task.</p>",
+
+
+        //             +"<p>Imagine you are a system architect trying to design an Earth-observing satellite system for "
+        //             +"climate monitoring. </p>"
+        //             +"<p>To understand</p>"
+        //             +"which contains 6,655 alternative architectures "
+        //             +"of an Earth-observing satellite system. </p>"
+        //             +"<p>After the 25-minute data analysis session, you will be asked to answer a series of questions about the data.</p>"
+        //             +"<p>The questions will ask you to identify or utilize the features that are shared by the target designs. </p>",
+        // }, 
+
+
+
         { 
             name: "learning-task-intro-1",
             object: undefined,
@@ -889,7 +918,7 @@ function loadTutorialContent(){
             object: d3.select('#support_panel').node(),
             content: "<p>The Resources tab contains several resources that you can utilize throughout the data analysis task.</p>"
                 +"<p>\"View task goal\" shows the goal you are asked to achieve during the task.</p>"
-                +"<p>\"Open instruments and orbits information\" shows detailed information about the "
+                +"<p>\"View instruments and orbits information\" shows detailed information about the "
                 +"candidate instruments and orbits.</p>"
                 +"<p>\"View sample questions\" shows some sample questions. This will be useful for "
                 +"getting some idea of what might be asked in the problemset.</p>"

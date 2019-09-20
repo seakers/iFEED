@@ -48,6 +48,8 @@ class DataMining{
         this.colourRangeRainbow = d3.range(0, 1, 1.0 / (this.coloursRainbow.length - 1));
         this.colourRangeRainbow.push(1);
 
+        this.blockEntityReset = false;
+
         //Create color gradient
         this.colorScaleRainbow = d3.scaleLinear()
             .domain(this.colourRangeRainbow)
@@ -221,6 +223,14 @@ class DataMining{
                 
                 } else if(content.type === "data.mining.problem.entities"){
                     let entities = {};
+
+                    if(that.blockEntityReset){
+                        console.log("Entity reset blocked");
+                        return;
+                    } else {
+                        console.log("Entity list received");
+                    }
+
                     if(that.metadata.problem === "ClimateCentric"){
                         entities = {leftSet: content.leftSet, rightSet: content.rightSet};
                         if(content.rightSet.length > that.metadata.problem_specific_params.orbit_list.length 
@@ -313,6 +323,8 @@ class DataMining{
     }
 
     async run(){
+        this.blockEntityReset = false;
+
         // Store the id's of all samples
         let selected = [];
         let non_selected = [];
@@ -361,6 +373,8 @@ class DataMining{
     }
 
     run_local_search(logic){
+        this.blockEntityReset = false;
+
         if(!logic){
             logic = "AND";
         }
@@ -2106,6 +2120,7 @@ class DataMining{
     }
 
     set_problem_parameters(){
+        let that = this;
         $.ajax({
             url: "/api/data-mining/set-problem-parameters",
             type: "POST",
@@ -2123,20 +2138,27 @@ class DataMining{
     }
 
     set_problem_generalized_concepts(){
-        $.ajax({
-            url: "/api/data-mining/set-problem-generalized-concepts",
-            type: "POST",
-            data: {
-                    problem: this.metadata.problem,  // ClimateCentric, GNC, etc
-                    params: JSON.stringify(this.metadata.problem_specific_params)
-                  },
-            async: false,
-            success: function (data, textStatus, jqXHR){},
-            error: function (jqXHR, textStatus, errorThrown)
-            {
-                alert("Error in calling set_problem_generalized_concepts()");
-            }
-        });    
+        let that = this;
+
+        this.blockEntityReset = true;
+        this.set_problem_parameters();
+
+        setTimeout(function() {
+            $.ajax({
+                url: "/api/data-mining/set-problem-generalized-concepts",
+                type: "POST",
+                data: {
+                        problem: that.metadata.problem,  // ClimateCentric, GNC, etc
+                        params: JSON.stringify(that.metadata.problem_specific_params)
+                      },
+                async: false,
+                success: function (data, textStatus, jqXHR){},
+                error: function (jqXHR, textStatus, errorThrown)
+                {
+                    alert("Error in calling set_problem_generalized_concepts()");
+                }
+            }); 
+        }, 500);
     }
 
     get_problem_parameters(){

@@ -311,6 +311,7 @@ class ExperimentTutorial{
                     "tutorial-ifeed-feature-intro-v2",
                     "tutorial-ifeed-feature-metric-coverage-scatter-plot-v2",
                     "tutorial-ifeed-feature-application-interaction-intro-v2",
+                    "tutorial-ifeed-feature-application-interaction-context-menu-generalization-enabled",
                     "tutorial-ifeed-feature-application-interaction-context-menu-generalize-feature",
                     "tutorial-ifeed-feature-interactive",
                 ];
@@ -332,6 +333,7 @@ class ExperimentTutorial{
                     "tutorial-ifeed-feature-intro-v2",
                     "tutorial-ifeed-feature-metric-coverage-scatter-plot-v2",
                     "tutorial-ifeed-feature-application-interaction-intro-v2",
+                    "tutorial-ifeed-feature-application-interaction-context-menu-generalization-disabled",
                 ];
             } 
             stageContent = this.filterContentByKeyword(stageContent, contentsToSkip);
