@@ -36,12 +36,22 @@ function loadTutorialContent(){
         {
             name: "tutorial-intro-task",
             object: undefined,
-            content: "<p>The design problem at hand is architecting a constellation of satellites for Earth observation.</p>"
-                    +"<p>Each architecture (we will use the term \"architecture\" and \"design\" interchangeably in this experiment) "
+            content: "<p>Now let's imagine that you are a system architect trying to design an Earth observing satellite system "
+                    +"for climate monitoring.</p>"
+                    +"<p>To run an architectural trade study, you plan to generate a large number of alternative architectures. Each architecture "
                     +"consists of multiple satellites carrying different payload to satisfy some "
-                    +"measurement requirements related to climate monitoring.</p>",
+                    +"pre-defined measurement objectives.</p>",
             callback: null,
         },
+        // {
+        //     name: "tutorial-intro-task",
+        //     object: undefined,
+        //     content: "<p>The design problem at hand is architecting a constellation of satellites for Earth observation.</p>"
+        //             +"<p>Each architecture (we will use the term \"architecture\" and \"design\" interchangeably in this experiment) "
+        //             +"consists of multiple satellites carrying different payload to satisfy some "
+        //             +"measurement requirements related to climate monitoring.</p>",
+        //     callback: null,
+        // },
         { 
             name: "tutorial-problem-formulation",
             object: d3.select('#support_panel').node(),
@@ -56,7 +66,7 @@ function loadTutorialContent(){
         {
             name: "tutorial-problem-formulation-candidate-orbits",
             object: null,
-            content: "<p>In total, there are 5 candidate orbits, and 12 candidate instruments that are considered in this problem. "
+            content: "<p>In total, we consider 5 candidate orbits, and 12 candidate instruments for this project. "
                     +"The following is the list of 5 candidate orbits.</p>"
                     +'<table class="tg">'
                     +'<tr><th class="tg-llyw">Candidate orbits</th><th class="tg-llyw">Description</th></tr>'
@@ -74,7 +84,7 @@ function loadTutorialContent(){
         {
             name: "tutorial-problem-formulation-candidate-instruments",
             object: d3.select('#support_panel').node(),
-            content: "<p>The following is the list of 12 candidate instruments considered in this problem. "
+            content: "<p>The following is the list of 12 candidate instruments. "
                     +"The instruments have been adapted from the NRC 2007 Earth Science Decadal Survey.</p>"
                     +'<table class="tg">'
                     +'<tr><th class="tg-r87d">Instrument</th><th class="tg-r87d">Description</th></tr>'
@@ -121,9 +131,10 @@ function loadTutorialContent(){
             object: d3.select('#support_panel').node(),
             content: "<p>Each architecture has corresponding science benefit score and cost. "
                     +"The science benefit score "
-                    +"is a number that tells us how much value each architecture brings to the climate monitoring community. </p>"
+                    +"is a number that is calculated based on how many of the measurement objectives are "
+                    +"satisfied by each architecture. </p>"
                     +"<p>The cost is a measure of how much it is going to cost (in million dollars) to design, implement, launch and operate "
-                    +"those systems.</p>"
+                    +"those systems (life-cycle cost).</p>"
                     +"<p>Naturally, low-cost and high-science designs are desirable.</p>",
             callback: function(currentStep){
                 document.getElementById('tab1').click();
@@ -131,21 +142,40 @@ function loadTutorialContent(){
         },
 
 //////////// iFEED ///////////////////////////////////////////////////////////////////////////
+
         {
             name: "tutorial-ifeed-intro-general-condition",
             object: undefined, 
-            content: "<p>Now that we have covered the basic information about the design problem, "
-                    +"we will go over different parts of iFEED and explain how to use it to analyze the data.</p>"
-                    +"<p>iFEED is a tool that supports the discovery of the key knowledge on what constitutes good designs.</p>", 
+            content: "<p>As the system architect, you want to find out what constitutes the designs that have high science and low cost. </p>"
+                    +"<p>You decide to use a software tool called iFEED to help you do this task. </p>"
+                    +"<p>iFEED is a tool that supports the discovery of the key knowledge on what good designs have in common.</p>"
+                    +"<p>The following tutorial will walk you through the basic interface and the capabilities of iFEED.</p>", 
             callback: null,
         },
+        // {
+        //     name: "tutorial-ifeed-intro-general-condition",
+        //     object: undefined, 
+        //     content: "<p>Now that we have covered the basic information about the design problem, "
+        //             +"we will go over different parts of iFEED and explain how to use it to analyze the data.</p>"
+        //             +"<p>iFEED is a tool that supports the discovery of the key knowledge on what constitutes good designs.</p>", 
+        //     callback: null,
+        // },
+
         {
             name: "tutorial-ifeed-intro-design-inspection-only",
             object: undefined, 
-            content: "<p>Now that we have covered the basic information about the design problem, "
-                    +"we will go over the main components of the interface, and explain the task to be performed using the interface.</p>", 
+            content: "<p>As the system architect, you want to find out what constitutes the designs that have high science and low cost. </p>"
+                    +"<p>You decide to use a software tool to do this task, and find out what good designs have in common.</p>"
+                    +"<p>The following tutorial will walk you through the basic interface.</p>", 
             callback: null,
         },
+        // {
+        //     name: "tutorial-ifeed-intro-design-inspection-only",
+        //     object: undefined, 
+        //     content: "<p>Now that we have covered the basic information about the design problem, "
+        //             +"we will go over the main components of the interface, and explain the task to be performed using the interface.</p>", 
+        //     callback: null,
+        // },
         {
             name: "tutorial-ifeed-scatter-plot",
             object: d3.select('.tradespace_plot.figure').node(),
@@ -307,7 +337,7 @@ function loadTutorialContent(){
         {
             name: "tutorial-ifeed-feature-intro-v1",
             object: undefined,
-            content: "<p>So far, we have been using the term \"feature\" to refer to the description of a pattern that can be found "
+            content: "<p>So far, we have been using the term \"feature\" to refer to the description of a common pattern that can be found "
                     +"among the target designs (highlighted in blue). Below are some examples of what features might look like:</p>"
                     +"<ul><li>OCE_SPEC is assigned to LEO-600-polar</li>"
                     +"<li>AERO_LID and CHEM_UVSPEC are assigned together in the same orbit</li>"
@@ -320,7 +350,7 @@ function loadTutorialContent(){
         { 
             name: "tutorial-ifeed-feature-intro-v2",
             object: undefined,
-            content: "<p>Now we introduce the term \"feature\". Feature is a description of a pattern that can be found "
+            content: "<p>Now we introduce the term \"feature\". Feature is a description of a common pattern that can be found "
                     +"among the target designs (highlighted in blue). Below are some examples of what features might look like:</p>"
                     +"<ul><li>OCE_SPEC is assigned to LEO-600-polar</li>"
                     +"<li>AERO_LID and CHEM_UVSPEC are assigned together in the same orbit</li>"
@@ -844,18 +874,16 @@ function loadTutorialContent(){
         { 
             name: "tutorial-ifeed-closing-general-condition",
             object: undefined,
-            content: "<p>We just covered all the capabilities of iFEED, and now you are ready to start the experiment. </p>"
-                    +"<p>The first part of the experiment will be conducted on a separate window, which will be loaded automatically "
+            content: "<p>We just covered all the capabilities of iFEED, and now you are ready to start learning about the actual data! </p>"
+                    +"<p>The next part of the experiment will be conducted on a separate window, which will be loaded automatically "
                     +"after clicking the next button below.</p>",
         },  
         { 
             name: "tutorial-ifeed-closing-design-inspection-only",
             object: undefined,
-            content: "<p>Your goal in this experiment is to identify and learn as many features as possible that have good "
-                    +"coverage and specificity. </p>"
-                    +"<p>To make it easier to see how different orbits and instruments are related, "
-                    +"we provide a visualization of the relevant concepts used in this problem. </p>"
-                    +"<p>Clicking the next button below will load the visualization.</p>",
+            content: "<p>Now you are ready to start learning about the actual data! </p>"
+                    +"<p>The next part of the experiment will be conducted on a separate window, which will be loaded automatically "
+                    +"after clicking the next button below.</p>",
         },  
         { 
             name: "tutorial-open-concept-map",
@@ -871,38 +899,31 @@ function loadTutorialContent(){
 ///////////////////////////////////////////////////////////////////////////////////////////////////////
 //////////// Learning Task ///////////////////////////////////////////////////////////////////////////
 
+        { 
+            name: "learning-task-intro-1",
+            object: undefined,
+            content: "<p>Now let's start analyzing some data. As the system architect, you are running an architectural study with 6,655 alternative designs "
+                    +"of an Earth-observing satellite system. </p>"
+                    +"<p>Again, you are looking for the common features among the target designs that have high science and low cost (highlighted in blue). "
+                    +"You will be given 25 minutes for this task.</p>"
+                    +"<p>After the 25-minute data analysis session, you will be asked to answer a series of questions about the data.</p>"
+                    +"<p>The questions will ask you to identify or utilize the features that are shared by the target designs. </p>",
+        }, 
         // { 
         //     name: "learning-task-intro-1",
         //     object: undefined,
-        //     content: "<p>In this step, you will work on a data analysis task.</p>",
-
-
-        //             +"<p>Imagine you are a system architect trying to design an Earth-observing satellite system for "
-        //             +"climate monitoring. </p>"
-        //             +"<p>To understand</p>"
-        //             +"which contains 6,655 alternative architectures "
+        //     content: "<p>In this step, you are given 25 minutes to analyze a dataset which contains 6,655 alternative architectures "
         //             +"of an Earth-observing satellite system. </p>"
         //             +"<p>After the 25-minute data analysis session, you will be asked to answer a series of questions about the data.</p>"
         //             +"<p>The questions will ask you to identify or utilize the features that are shared by the target designs. </p>",
         // }, 
-
-
-
-        { 
-            name: "learning-task-intro-1",
-            object: undefined,
-            content: "<p>In this step, you are given 25 minutes to analyze a dataset which contains 6,655 alternative architectures "
-                    +"of an Earth-observing satellite system. </p>"
-                    +"<p>After the 25-minute data analysis session, you will be asked to answer a series of questions about the data.</p>"
-                    +"<p>The questions will ask you to identify or utilize the features that are shared by the target designs. </p>",
-        }, 
         { 
             name: "learning-task-intro-2",
             object: undefined,
             content: "<p>In order to solve the problems that will be given after this task, "
-                    +"try to identify and record the best feature that: "
-                    +"<br> (1) is shared by <b>at least 70% of the target designs (coverage of 0.7 or higher)</b>"
-                    +"<br> (2) and <b>maximizes both coverage and specificity.</b></p>" 
+                    +"try to identify and record features that: "
+                    +"<br> (1) are shared by <b>at least 70% of the target designs (coverage of 0.7 or higher)</b>"
+                    +"<br> (2) and have <b>high coverage and specificity.</b></p>" 
                     +"<p>Use the concept map page provided in a separate window to record the feature that you find.</p>",
         },
         { 
