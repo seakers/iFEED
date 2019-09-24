@@ -38,20 +38,11 @@ function loadTutorialContent(){
             object: undefined,
             content: "<p>Now let's imagine that you are a system architect trying to design an Earth observing satellite system "
                     +"for climate monitoring.</p>"
-                    +"<p>To run an architectural trade study, you plan to generate a large number of alternative architectures. Each architecture "
+                    +"<p>To run an architectural trade study, you plan to generate and analyze a large number of alternative architectures. Each architecture "
                     +"consists of multiple satellites carrying different payload to satisfy some "
                     +"pre-defined measurement objectives.</p>",
             callback: null,
         },
-        // {
-        //     name: "tutorial-intro-task",
-        //     object: undefined,
-        //     content: "<p>The design problem at hand is architecting a constellation of satellites for Earth observation.</p>"
-        //             +"<p>Each architecture (we will use the term \"architecture\" and \"design\" interchangeably in this experiment) "
-        //             +"consists of multiple satellites carrying different payload to satisfy some "
-        //             +"measurement requirements related to climate monitoring.</p>",
-        //     callback: null,
-        // },
         { 
             name: "tutorial-problem-formulation",
             object: d3.select('#support_panel').node(),

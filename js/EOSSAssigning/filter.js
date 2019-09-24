@@ -713,26 +713,69 @@ class EOSSAssigningFilter extends Filter{
                 case "numOrbits":
                     number_input = filter_input_div.append('div')
                                                     .attr('class','filterInputDiv numInput')
-
-                    number_input.text("Input number of orbits (minimum 1, and maximum 5)");
+                    number_input.text("Input the number of orbits (fill in both fields to indicate the lower bound and the upper bound): ");
                     number_input.append("input")
                                 .attr("type","number")
+                                .attr("id","numInputLB")
+                                .style("width","80px")
+                                .on("change", function(){that.input_modification_callback();});
+
+                    number_input.append("input")
+                                .attr("type","number")
+                                .attr("id","numInputUB")
+                                .style("width","80px")
                                 .on("change", function(){that.input_modification_callback();});
 
                     this.input_modification_callback = () => {
-                        let num = d3.select('.filterInputDiv.numInput').select('input').node().value;
+                        disableApplyButton();
 
-                        if(num && !num.trim()){
-                            disableApplyButton();
-                            num = "[NUMBER]";
+                        let numberInputs = d3.select('.filterInputDiv.numInput').selectAll('input').nodes();
+                        let lb = null;
+                        let ub = null;
+                        if(numberInputs[0].value !== ""){
+                            lb = +numberInputs[0].value;
+                        }
+                        if(numberInputs[1].value !== ""){
+                            ub = +numberInputs[1].value;
+                        }
+
+                        let numText = null;
+                        let isRange = false;
+                        if(lb === null && ub === null){
+                            numText = "[NUMBER]";
+                        }else if(lb && ub === null){
+                            numText = "" + lb;
+                        }else if(ub && lb === null){
+                            numText = "" + ub;
                         }else{
+                            if(lb === ub){
+                                numText = "" + ub;
+                            }else{
+                                isRange = true;
+                                numText = "minimum " + lb + " and maximum " + ub;
+                            }
+                        }
+
+                        let newHelpText =  null;
+                        if(isRange){
+                            if(lb > ub){
+                                newHelpText = "INVALID INPUT: the lower bound must be smaller than the upper bound.";
+                            }
+                        }
+
+                        if(!newHelpText){
+                            if(numText === "1"){
+                                newHelpText = "Selects designs that assign instruments to only one orbit";
+                            }else{
+                                newHelpText = "Selects designs that assign instruments to "+ numText +" orbits";
+                            }
                             enableApplyButton();
                         }
-                        let newHelpText = helpText.replace('[NUMBER]', num);
+                        newHelpText = "<p>" + newHelpText + "</p>";
                         d3.select(".filter.hints.div").select('div').html(newHelpText);
                     }
                     break;
-                
+
                 case "numInstruments":
                     instrument_select_input = filter_input_div.append('div')
                                                         .attr('class','filterInputDiv instrumentInput');
@@ -2699,7 +2742,14 @@ class EOSSAssigningFilter extends Filter{
 
         this.numOrbits = (args, inputs) => {
             validInputCheck(args);
-            let numb = +args[2];
+            let nBounds = [];
+            if(args[2].length === 2){
+                nBounds.push( + args[2][0] );
+                nBounds.push( + args[2][1] );
+            }else{
+                nBounds.push( + args[2][0]);
+                nBounds.push( + args[2][0]);
+            }
             let out = false;
             let count = 0;
 
@@ -2711,7 +2761,7 @@ class EOSSAssigningFilter extends Filter{
                     }
                 }
             }
-            if(numb === count){
+            if(count >= nBounds[0] && count <= nBounds[1]){
                 out = true;
             }
             return out;
