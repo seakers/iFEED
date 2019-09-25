@@ -263,7 +263,15 @@ class Experiment{
         let allFeatures = this.data_mining.allFeatures;
         for(let i = 0; i < allFeatures.length; i++){
             let feature = allFeatures[i];
-            if(feature.pareto_ranking === 0){
+
+            let saveThisFeature = false;
+            if(this.treatmentConditionName.indexOf("manual") !== -1){
+                saveThisFeature = true;
+            } else if(feature.pareto_ranking === 0) {
+                saveThisFeature = true;
+            }
+
+            if(saveThisFeature){
                 let featureCopy = JSON.parse(JSON.stringify(feature));
                 featureCopy.name = null;
                 featureCopy.x = null;
