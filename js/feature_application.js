@@ -26,9 +26,9 @@ class FeatureApplication{
         this.i = 0;
 
         // top  right bottem left
-        this.margin = {left:70,right:20,top:10,bottom:20},
-        this.width = 2400 - this.margin.left - this.margin.right,
-        this.height = 910 - this.margin.top - this.margin.bottom;
+        this.margin = null;
+        this.width = null;
+        this.height = null;
 
         this.draggingNode = null;
         this.selectedNode = null;
@@ -140,21 +140,28 @@ class FeatureApplication{
     }
     
     draw_feature_application_tree(expression, updateOption){   
-        let margin = this.margin;
-        let width = this.width;
-        let height = this.height;
-        
-        this.tree = d3.tree().size([height, width]);
+
+        let boundingRect = d3.select('#feature_interactive_panel').node().getBoundingClientRect();
+
+        this.width = boundingRect.width * 2;
+        this.height = boundingRect.height * 0.85;
+
+        this.margin = {top: boundingRect.height / 30, 
+                        bottom: boundingRect.width / 30, 
+                        right: boundingRect.height / 30, 
+                        left: boundingRect.width / 10};
+
+        this.tree = d3.tree().size([this.height, this.width]);
 
         // d3.select('#feature_application_loader').style('display','none');
         d3.select('#feature_application').select('svg').remove();
 
         d3.select('#feature_application')
             .append('svg')
-            .attr('width', width + margin.left + margin.right)
-            .attr('height', height + margin.bottom + margin.top)
+            .attr('width', this.width + this.margin.left + this.margin.right)
+            .attr('height', this.height + this.margin.bottom + this.margin.top)
             .append('g')
-            .attr('transform','translate('+ margin.left + "," + margin.top + ")");
+            .attr('transform','translate('+ this.margin.left + "," + this.margin.top + ")");
 
         this.i = 0;
         this.data = null;
@@ -313,18 +320,21 @@ class FeatureApplication{
         let nodes = treeStructure.descendants();
         let links = treeStructure.descendants().slice(1);
 
-        // Normalize for fixed-depth.
+
+        let boundingRect = d3.select('#feature_interactive_panel').node().getBoundingClientRect();
+        let depthOffset = boundingRect.width / 5
+
         nodes.forEach(function(d) { 
             if(d.depth === 0){
                 if(d.data.name === "IF_THEN"){
-                    d.y = 60;
+                    d.y = depthOffset / 2;
                 }else{
                     d.y = 0;
                 }
             }else if(d.depth === 1){
-                d.y = 150;
+                d.y = depthOffset * 0.8;
             }else{
-                d.y = d.depth * 170;
+                d.y = d.depth * depthOffset;
             }
         });
 
@@ -366,7 +376,9 @@ class FeatureApplication{
             })
             .append('circle')
             .attr('class','nodeRange')
-            .attr('r',40)
+            .attr('r', ()=> {
+                return boundingRect.height / 26;
+            })
             .attr('opacity',0)
             .style('fill', '#2383FF');
 
@@ -393,7 +405,9 @@ class FeatureApplication{
             .style('opacity', 1.0);
         
         nodeUpdate.select("circle")
-            .attr("r", 9.5)
+            .attr('r', ()=> {
+                return boundingRect.height / 88;
+            })
             .style("fill", (d) => { 
                 return this.get_node_color(d);
              });
@@ -414,7 +428,9 @@ class FeatureApplication{
             .style("fill",(d) => {
                 return this.get_node_color(d);
             })
-            .style("font-size",23)
+            .style("font-size", ()=> {
+                return boundingRect.height / 47.8;
+            })
             .style("fill-opacity", 1);
 
         nodeUpdate.selectAll("tspan")
@@ -479,17 +495,17 @@ class FeatureApplication{
                 }
 
                 let tooltip_width, tooltip_height;
-                if(is_feature_name){
-                    tooltip_width = 450;
-                    tooltip_height = 140;
+                if(is_feature_name){ // Feature
+                    tooltip_width = boundingRect.width / 1.6;
+                    tooltip_height = boundingRect.width / 6.6;
 
                 } else {
-                    if(is_generalized_variable){
-                        tooltip_width = 450;
-                        tooltip_height = 180;
+                    if(is_generalized_variable){ // Generalized variable
+                        tooltip_width = boundingRect.width / 1.74;;
+                        tooltip_height = boundingRect.width / 6.0;
                     } else {
-                        tooltip_width = 450;
-                        tooltip_height = 70;
+                        tooltip_width = boundingRect.width / 1.74;;
+                        tooltip_height = boundingRect.width / 11;
                     }
                 }
 
@@ -542,23 +558,18 @@ class FeatureApplication{
                     })
                     .data([outputText]) 
                     .html(outputText)
-                    .style("padding","25px")
+                    .style("padding", () => {
+                        return boundingRect.height / 51 + "px";
+                    })
                     .style('color','#D5D5D5')
                     .style('word-wrap','break-word');   
 
                 fo.selectAll('p')
-                    .style("font-size","20px")
+                    .style("font-size", ()=> {
+                        return boundingRect.height / 51.3 + "px";
+                    })
                     .style("margin-top","0px");
             });
-
-        // Adjust the horizontal location of IF_THEN nodes
-        nodeUpdate.filter((d) => {
-            if(d.data.name === "IF_THEN"){
-                return true;
-            }else{
-                return false;
-            }        
-        }).select("text").attr("y", -25);
 
         // Transition exiting nodes to the parent's new position.
         let nodeExit = node.exit().transition()
@@ -600,7 +611,7 @@ class FeatureApplication{
                 return that.diagonal(o, o);
             })
             .style("stroke-width",function(d){
-                return 8;
+                return boundingRect.height / 95;
             })
             .style("fill-opacity", 0.94)
             .style('fill','none')
@@ -791,6 +802,15 @@ class FeatureApplication{
 
         linksToHide.select("text").style('opacity',0);
 
+        d3.selectAll('.nodeRange').filter((d) => {
+            if(d.type === 'leaf'){
+                return false;
+            }else{
+                // You can only add new nodes to logic nodes
+                return true;
+            }
+        }).style('opacity',0.2);
+
         this.select_treeNode_by_id(id).attr('pointer-events','none');
     }
 
@@ -814,6 +834,8 @@ class FeatureApplication{
 
             // Remove links that were generated temporarily
             d3.selectAll(".tempTreeLink").remove();  
+
+            let boundingRect = d3.select('#feature_interactive_panel').node().getBoundingClientRect();
             
             if(this.selectedNode){
                 let selectedNode = this.select_dataNode_by_id(this.selectedNode.id);
@@ -839,7 +861,9 @@ class FeatureApplication{
                     .on('mouseover', function(d){
                         that.selectedNode = that.select_treeNode_by_id(d.id).node().__data__;
                     })
-                    .attr('r',40);
+                    .attr('r', () => {
+                        return boundingRect.height / 26;
+                    });
             }
 
             let updateOption = {add_to_feature_space_plot: true, replace_equivalent_feature: true};
@@ -1662,10 +1686,11 @@ class FeatureApplication{
     }    
   
     updateTempConnector(nodeID, xCoord, yCoord){
-
     	let that = this;
         let data = [];
         let node = null;
+
+        let boundingRect = d3.select('#feature_interactive_panel').node().getBoundingClientRect();
 
         if (this.draggingNode != null && this.selectedNode != null) {
         	node = this.select_treeNode_by_id(nodeID).node().__data__;
@@ -1689,7 +1714,9 @@ class FeatureApplication{
             .attr('pointer-events', 'none')
             .style('fill','none')
             .style('stroke','red')
-            .style('stroke-width','3px');
+            .style("stroke-width",function(d){
+                return boundingRect.height / 125;
+            });
 
         // Transition nodes to their new position.
         let tempLinkUpdate = linkEnter.merge(link);

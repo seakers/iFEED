@@ -22,7 +22,7 @@ class ContextMenu {
             }, 
             'text': {
                 'fill': 'steelblue', 
-                'font-size': '17'
+                'font-size': null,
             }
         };      
         
@@ -50,12 +50,12 @@ class ContextMenu {
                         // {'value':'addIfThen','text':'Add if-then statement'},
                         // {'value':'duplicate','text':'Duplicate'},
                         {'value':'toggle-activation','text':'Activate/Deactivate'},
-                        {'value':'delete','text':'Delete'}
+                        {'value':'delete','text':'Delete'},
+                        {'value':'copyText','text':'Copy text description'}
                     ]
         };
 
         this.contextMenuSize = {
-            
             'logic':{'height':null,
                     'width':null,
                     'margin':0.15,
@@ -85,6 +85,9 @@ class ContextMenu {
         let logic = context.name;
         let depth = context.depth;    
         let deactivated = context.deactivated;
+
+        let boundingRect = d3.select('#feature_interactive_panel').node().getBoundingClientRect();
+        this.style.text['font-size'] = boundingRect.height / 51.2 + "";
 
         let hasChildren = null;
         if(context.children){
@@ -125,16 +128,13 @@ class ContextMenu {
         items = items.concat(this.contextItems['default']);
         
         let x,y;
-        let containerHeight = parseInt(d3.select("#feature_application_panel").select("svg").style("height"), 10);
-        let containerWidth = parseInt(d3.select("#feature_application_panel").style("width"), 10);
-
-        if(coord[0] < containerWidth * 1.00){
+        if(coord[0] < boundingRect.width * 1.00){
             x = coord[0] + 90;
         } else{
             x = coord[0] - 200;
         }
     
-        if(coord[1] < containerHeight * 0.6){
+        if(coord[1] < boundingRect.height * 0.6){
             y = coord[1] + 40;
         } else{
             if(type === "logic"){
@@ -219,6 +219,18 @@ class ContextMenu {
                 items.splice(index,1);
             }   
         }
+
+        // Remove 'copyText' option
+        if(type === 'logic'){
+            let index;
+            for(let i = 0; i < items.length; i++){
+                if(items[i].value === 'copyText'){
+                    index = i;
+                    break;
+                }
+            }
+            items.splice(index,1);
+        } 
 
         let size;
         if(type === "logic" && logic === "IF_THEN"){
@@ -405,7 +417,6 @@ class ContextMenu {
         let updateOption = {add_to_feature_space_plot: true, replace_equivalent_feature: true};
 
         if(node.type === 'logic'){
-
             switch(option) { // Logical connective node
                 case 'addChild':
                     if(isBeingModified){ // Cancel adding child node to the current logical connective node
@@ -473,6 +484,7 @@ class ContextMenu {
                 default:
                     break;
             }
+
         }else{
             switch(option) { // Leaf node
 
@@ -701,6 +713,18 @@ class ContextMenu {
                         }
                     }
                 }
+                break;
+
+            case 'copyText':
+                let feature_expression = feature_application.parse_tree(node);
+                let description = feature_application.label.get_feature_description(feature_expression);
+                copyStringToClipboard(description);
+
+                iziToast.info({
+                    title: 'Description has been copied to clipboard',
+                    message: '',
+                    position: 'topRight',
+                });
                 break;
 
             default:

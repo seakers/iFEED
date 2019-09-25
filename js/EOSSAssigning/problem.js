@@ -60,7 +60,7 @@ class EOSSAssigning extends Problem{
             input_num: 1,
             input_list: ["bitString"],
             input_type: "binary",
-            output_list: ['Science','Cost'],
+            output_list: ['Science','Cost (M)'],
             output_num: 2,
             output_obj: [1, -1], // 1 for lager-is-better, -1 for smaller-is-better
             // file_path: "EOSS_data_recalculated.csv",
@@ -126,6 +126,8 @@ class EOSSAssigning extends Problem{
             }
         });
 
+        this.load_resources_tab();
+
         this.orbit_num = this.orbit_list.length;
         this.instrument_num = this.instrument_list.length; 
 
@@ -176,6 +178,8 @@ class EOSSAssigning extends Problem{
             return;
         }
 
+        let that = this;
+
         // Remove previously-added content
         d3.select('#view1').selectAll('g').remove();
 
@@ -192,23 +196,26 @@ class EOSSAssigning extends Problem{
             bitString = data;
 
         }else{
+            let output_display_text = [];
             for(let i = 0; i < this.metadata.output_list.length; i++){
-                arch_info_display_outputs.append("p")
-                    .text((d) => {
-                        let out = this.metadata.output_list[i] + ": ";
-                        let val = data.outputs[i];    
-                        if (typeof val == "number"){
-                            if (val > 100){ 
-                                val = val.toFixed(2);
-                            }
-                            else{ 
-                                val = val.toFixed(4); 
-                            }
-                        }
-                        return out + val;
-                    })
-                    .style('font-size','20px');
+                let out = this.metadata.output_list[i] + ": ";
+                let val = data.outputs[i];    
+                if (typeof val == "number"){
+                    if (val > 100){ 
+                        val = val.toFixed(2);
+                    }
+                    else{ 
+                        val = val.toFixed(4); 
+                    }
+                }
+                output_display_text.push(out + val);
             }
+
+            arch_info_display_outputs.append("p")
+                .html((d) => {
+                    return output_display_text.join("&nbsp&nbsp | &nbsp&nbsp");
+                });
+
             bitString = this.booleanArray2String(data.inputs);
         }
         this.current_bitString = bitString;
@@ -225,7 +232,7 @@ class EOSSAssigning extends Problem{
                 }
             }
             // Store the name of the orbit and the assigned instruments
-            json_arch.push({"orbit":orbit,"children":assigned});
+            json_arch.push({"orbit":orbit, "children":assigned});
         }        
     
         let norb = json_arch.length;
@@ -247,44 +254,43 @@ class EOSSAssigning extends Problem{
         let table = supportPanel.append('div')
                                 .attr('id','arch_info_display_table_div')
                                 .append("table")
-                                .attr("id", "arch_info_display_table");
+                                .attr("id", "arch_info_display_table")
+                                .style("table-layout", "fixed")
+                                .style("width","100%");
+
+        let panelBoundingRect = d3.select("#support_panel").node().getBoundingClientRect();
 
         let columns = [];
         columns.push({columnName: "Orbit"});
-        
         for (let i = 0; i < maxNInst; i++) {
             let tmp = i + 1;
             columns.push({columnName: "Instrument " + tmp});
         }
 
         // create table header
-        table.append('thead').append('tr')
+        table.append('thead')
+            .append('tr')
             .selectAll('th')
-            .data(columns).enter()
+            .data(columns)
+            .enter()
             .append('th')
-            .attr("width", function (d) {
-                if (d.columnName == "orbit") {
-                    return "120px";
-                } else {
-                    return "70px";
-                }
-            })
+            .attr('class', 'arch_info_display_cell header')
             .text(function (d) {
                 return d.columnName;
-            })
-            .style("font-size", "13px");
-
-        let that = this;
+            });
 
         // create table body
         table.append('tbody')
             .selectAll('tr')
-            .data(json_arch).enter()
+            .data(json_arch)
+            .enter()
             .append('tr')
             .attr('class','arch_info_display_cell_container')
             .attr("name", function (d) {
                 return d.orbit;
-            })
+            });
+
+        table.select('tbody').selectAll('tr')
             .selectAll('td')
             .data(function (row, i) {
                 let thisRow = [];
@@ -295,7 +301,8 @@ class EOSSAssigning extends Problem{
                     thisRow.push(instObj);
                 }
                 return thisRow;
-            }).enter()
+            })
+            .enter()
             .append('td')
             .attr("name", function (d) {
                 return d.content;
@@ -310,13 +317,6 @@ class EOSSAssigning extends Problem{
                     return "arch_info_display_cell orbit not_draggable";
                 }else{
                     return "arch_info_display_cell instrument";
-                }
-            })
-            .attr("width", function (d, i) {
-                if (d.type === "orbit") {
-                    return "120px";
-                } else {
-                    return "70px";
                 }
             })
             .text((d) => {
@@ -337,6 +337,20 @@ class EOSSAssigning extends Problem{
                     return "right";
                 }else{
                     return "up";
+                }
+            });
+
+        table.selectAll('.arch_info_display_cell')
+            .style("height", () => {
+                return (panelBoundingRect.height / 21.6) + "px";
+            })
+            .style("font-size", () => {
+                if(maxNInst <= 6){
+                    return "0.7vw";
+                }else if(maxNInst <= 8){
+                    return "0.6vw";
+                }else{
+                    return "0.5vw";
                 }
             });
     }
@@ -441,27 +455,26 @@ class EOSSAssigning extends Problem{
     }
     
     display_instrument_options(){
-
         let that = this;
 
-        let container = d3.select('.column.c2').select('div');
+        // Remove feature interactive panel
+        d3.select('#feature_interactive_panel').remove();
 
-        container.selectAll('div').remove();
-        container.style('width','500px')
-                    .style('border-width','0px');
+        let variableOptionsPanel = d3.select('#content')
+            .append('div')   
+            .attr('id','variable_options_panel');
 
-        let instrOptions = container.insert("div", "#arch_info_display_outputs + *")
-                                        .attr('id','instr_options_display');
+        let panelBoundingRect = d3.select("#variable_options_panel").node().getBoundingClientRect();
+
+        variableOptionsPanel.append('p')
+                .text('Candidate Instruments');
         
-        instrOptions.append('p')
-                .text('Candidate Instruments')
-                .style('margin','auto')
-                .style('font-weight','bold')
-                .style('font-size','16px');
-        
-        let table = instrOptions
+        let table = variableOptionsPanel
                 .append("table")
-                .attr("id", "instr_options_table");
+                .attr("id", "instr_options_table")
+                .style("width", () => {
+                    return panelBoundingRect.width * 0.85 + "px";
+                });
 
         let candidate_instruments = [];
         for(let i = 0; i < Math.round(this.instrument_num / 2); i++){
@@ -487,11 +500,11 @@ class EOSSAssigning extends Problem{
                 })
                 .enter()
                 .append('td')
+                .attr("width", () => {
+                    return panelBoundingRect.width * 0.38 + "px";
+                })
                 .attr("name", function (d) {
                     return d;
-                })
-                .attr("width", function (d, i) {
-                    return "150px";
                 })
                 .attr('class',function(d){
                     return 'arch_info_display_cell candidates';
@@ -500,21 +513,19 @@ class EOSSAssigning extends Problem{
                     return that.label.actualName2DisplayName(d,"instrument")
                 });    
         
-
         $('.arch_info_display_cell.candidates').draggable({
             connectWith: '.arch_info_display_cell.orbit',
             helper: 'clone',
             cursor: 'pointer'
         });    
 
-        instrOptions.append('div')
+        variableOptionsPanel.append('div')
                 .attr('id','instr_options_trash')
+                .style('width', ()=> {
+                    return panelBoundingRect.width * 0.85 + "px";
+                })
                 .append('p')
-                .style('margin','auto')
-                .style('padding','40px')
-                .text('Drag here to remove')
-                .style('font-size','23px')
-                .style('font-weight','bold');
+                .text('Drag here to remove');
 
         $('#instr_options_trash').droppable({
             accept: '.arch_info_display_cell.instrument',
@@ -589,5 +600,66 @@ class EOSSAssigning extends Problem{
                 alert("error");
             }
         });        
-    }   
+    } 
+
+    load_resources_tab(){
+
+        d3.select("#view4").select("g").remove();
+
+        let tab = d3.select('#view4').append('g');
+
+        let helpButtonsContainer = tab.append('div')
+            .style("width","100%")
+            .style("padding","1vw");
+
+        // helpButtonsContainer
+        //     .append("div")
+        //     .append("button")
+        //     .attr("id", "task_goal_view_button")
+        //     .on("click", () => {
+        //         iziToast.info({
+        //             drag: true,
+        //             timeout: true,
+        //             close: true,
+        //             title: "Tutorial",
+        //             titleSize: 28,
+        //             message: "<p>Tutorial is in progress. During the actual tasks, the main goal of each task will be displayed here.</p>"
+        //                     +"<p></p>",
+        //             messageSize: 22,
+        //             position: 'topCenter',
+        //             timeout: 45000,
+        //         });
+        //     })
+        //     .text("View task goal");
+
+        helpButtonsContainer
+            .append("div")
+            .append("button")
+            .attr("id","variable_description_material_link")
+            .on("click", () => {
+                window.open('instruments_and_orbits_resource.html', '_blank');
+            })
+            .text("View instruments and orbits information");
+
+        helpButtonsContainer
+            .append("div")
+            .append("button")
+            .attr("id", "coverage_and_specificity_explanation_link")
+            .on("click", () => {
+                window.open('coverage_and_specificity.html', '_blank'); 
+            })
+            .text("View feature definition (coverage and specificity)");
+
+        helpButtonsContainer.selectAll("div")
+            .style("float", "left")
+            .style("margin-right", "2vh")
+            .style("margin-top", "2vh");
+
+        helpButtonsContainer.selectAll("button")
+            .style("width", "15vw")
+            .style("height", "8vh")
+            .style("padding", "1vh")
+            .style("font-size", "1.8vh")
+            .style("font-weight", "bold");
+    }  
 }

@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<style type="text/css">
+
+	#content{
+		padding: 30px;
+	}
+
+	.textContainer {
+		width: 100%;
+		float:left;
+		margin-bottom: 4vh;
+		padding: 3vh;
+	}
+
+	.textContainer > div {
+		width: 60vw; 
+		height: 20vh; 
+		float:left
+	}
+
+	p, li{
+		font-size: 2.5vh;
+	}
+
+	img {
+		float: left;
+		width: 20vw;
+		margin-left: 4vw;
+	}
+
+</style>
+
+<head>
+    <title>Feature definition</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <script src="js/lib/jquery.js" type="text/javascript"></script>
+    <script src="js/lib/jquery-ui.min.js"></script>
+    
+    <script src="js/lib/d3v5.min.js"></script>
+    <script src="js/lib/d3-selection-multi.min.js" type="text/javascript"></script>
+    <script src="js/lib/d3-shape.v1.min.js"></script>
+    <script src="js/lib/d3-path.v1.min.js"></script>
+</head>
+
+<body>
+
+	<div id='content'>
+	    <div id="feature_definition" class="textContainer">
+	    	<h1>Definition of a feature</h1>
+
+			<p>Feature is a description of a pattern that can be found among the target designs (highlighted in blue). 
+			Below are some examples of what features might look like: </p>
+            
+            <ul><li>OCE_SPEC is assigned to LEO-600-polar</li>
+            <li>AERO_LID and CHEM_UVSPEC are assigned together in the same orbit</li>
+            <li>Orbit SSO-800-PM is empty</li>
+            <li>HYP_ERB is assigned to either LEO-600-polar or SSO-600-AM</li></ul>
+            
+            <p>Some of these features are better than others in explaining the target designs. 
+            We use two different criteria to define the goodness of a feature: Coverage and Specificity</p>
+
+	    </div>
+	    <div id="feature_coverage" class="textContainer">
+	    	<h1>Coverage</h1>
+
+	    	<div>
+	    		<p>The Venn diagram on the right shows the relative sizes of different sets of designs. </p>
+				<p>The blue circle represents the set of designs that are marked as the targets. 
+				The red circle represents the set of designs that satisfy a certain feature. </p>
+				<p>Coverage is defined as: (# of designs in the intersection) / (# of designs in the target)</p>
+				<p>A feature with high coverage means that it can explain most of the target designs. 
+				The Venn diagram shown on the right corresponds to high coverage, as the intersection covers most of the target (blue circle).</p>
+	    	</div>
+	    	<img src="img/venndiagram_coverage.png">
+	    </div>
+	    <div id="feature_specificity" class="textContainer">
+	    	<h1>Specificity</h1>
+
+	    	<div>
+				<p>Specificity is defined as: (# of designs in the intersection) / (# of designs that have the feature)</p>
+				<p>A feature with high specificity means that most of the designs with the feature are in the target. 
+				The Venn diagram on the right corresponds to high specificity, as the intersection covers most of the designs with the selected feature (pink circlr).</p>
+	    	</div>
+	    	<img src="img/venndiagram_precision.png">
+
+	    </div>
+	    <div id="feature_summary" class="textContainer">
+	    	<h1>Summary</h1>
+
+	    	<div>
+				<p>An ideal feature would have both high coverage and high specificity, 
+				as shown on the Venn diagram on the right.</p>
+				<p>This feature has both high coverage and high specificity, as the feature covers most of the target designs and 
+				does not cover other non-target designs. </p>
+				<p>In other words, the intersection covers most of the blue circle as well as the red circle.</p>
+
+				<p>The key is finding the right balance between these two criteria. During the task, try to look for features that:</p>
+                <p> <b>(1) are shared by at least 70% of the target designs (coverage of 0.7 or higher)</b></p>
+                <p> <b>(2) and maximizes both coverage and specificity.</b></p>
+
+	    	</div>
+	    	<img src="img/venndiagram_ideal.png">
+	    </div>
+
+	</div>
+
+	<script>
+
+
+
+	</script>
+
+</body>
+</html>

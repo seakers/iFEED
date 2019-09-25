@@ -6,10 +6,10 @@
 #feature_space_display_options_container{
   float: left;
   width: 100%;
-  height: 50px;
+  height: 7vh;
   border-bottom: solid;
   border-width: 1px;
-  margin-bottom: 15px;
+  margin-bottom: 3vh;
 }
 
 .feature_space.interaction.container{
@@ -19,9 +19,9 @@
 
 .feature_space.interaction.textbox{
   float: left;
-  width: 52%;
-  font-size: 18px;
-  margin-top: 7px;
+  width: 60%;
+  font-size: 1.7vh;
+  margin-top: 1vh;
 }
 
 .feature_space.interaction.toggle {
@@ -29,11 +29,11 @@
   -moz-appearance: none;
   appearance: none;
   float: left;
-  width: 55px;
-  height: 30px;
+  width: 2.8vw;
+  height: 3vh;
   display: inline-block;
   position: relative;
-  border-radius: 50px;
+  border-radius: 3vh;
   overflow: hidden;
   outline: none;
   border: none;
@@ -47,11 +47,11 @@
   display: block;
   position: absolute;
   z-index: 2;
-  width: 27px;
-  height: 27px;
+  width: 1.5vw;
+  height: 2.6vh;
   background: #fff;
-  left: 2px;
-  top: 2px;
+  left: 0.05vw;
+  top: 0.2vh;
   border-radius: 50%;
   font: 10px/28px Helvetica;
   text-transform: uppercase;
@@ -71,40 +71,39 @@
 }
 
 .feature_space.interaction.toggle:checked:before {
-  left: 26px;
+  left: 1.25vw;
 }
 
 .feature_space.interaction.complexityFilter.minRange > select{
-    margin-left: 15px;
-    margin-top: 7px;
+    margin-left: 0px;
+    margin-top: 0.7vh;
 }
 
 .feature_space.interaction.complexityFilter.maxRange > select{
-    margin-left: 15px;
-    margin-top: 7px;
+    margin-left: 0px;
+    margin-top: 0.7vh;
 }
 
 .feature_space.interaction.restoreButton.button{
     width: 80%;
-    height: 35px;
-    font-size: 16px;
+    height: 4vh;
+    font-size: 1.5vh;
 }
 
-.feature_plot.venn_diagram{
+.feature_plot.venn_diagram {
     float:left;
     background-color:#E7E7E7;
-    height: 280px;
-    width: 310px;
-    margin-left: 80px;
-    margin-top: 15px;
-    padding:15px;
+    height: 23vh;
+    width: 15vw;
+    margin-left: 3vw;
+    margin-top: 0vh;
+    padding: 0.9vh;
 }
 
-.feature_plot.venn_daigram > div{
-    /*font-family:sans-serif;*/
-    margin-left: 3px;
-    font-size: 17px;
-    width:100%;
+.feature_plot.venn_diagram > div {
+    margin-left: 0.5vw;
+    font-size: 1.6vh;
+    width: 100%;
 }
 
 

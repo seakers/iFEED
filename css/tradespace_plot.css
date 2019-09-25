@@ -1,211 +1,140 @@
-.title{
-    width:100%;
-    margin-top:15px;
-    margin-bottom:20px;
-    text-align:center;
+
+
+#content {
+    display: grid;
+    grid-template-columns: [c1] 11% [c2] 48% [c3] 39% [c4];
+    grid-template-rows: [r1] 3vh [r2] 47vh [r3] 46vh [r4];
+    grid-column-gap: 10px;
+    /*grid-template-columns: 100px 50px 100px;*/
+    grid-row-gap: 12px;
+}
+
+#status_display_bar{
+    grid-column: c1 / c4;
+    grid-row: r1 / r2;
+}
+
+#tradespace_plot_container{
+    grid-column: c2 / c3;
+    grid-row: r2 / r3;
+}
+
+#tradespace_plot_options_container{
+    grid-column: c1 / c2;
+    grid-row: r2 / r3;
+    border-style: solid;
+    border-width: 1px;
+}
+
+#support_panel{
+    grid-column: c1 / c3;
+    grid-row: r3 / r4;
+}
+
+#feature_interactive_panel{
+    grid-column: c3 / c4;
+    grid-row: r2 / r4;
+}
+
+/* --- Experiment - design synthesis task ---*/
+#variable_options_panel{  
+    grid-column: c3 / c4;
+    grid-row: r3 / r4;
+}
+/*------------------------------------------*/
+
+#status_display_bar > div{
     float:left;
-}
-
-.title > h2{
-    width:250px;
-    margin:auto;
-    font-size:14px;
-}
-
-#content{
-    width: 2400px; 
-    height: 1300px; 
-    margin:auto;
-}
-
-#status_display{
-    float:left;
-    width:100%;
-    height:30px;
-    margin-top:10px;
-    margin-bottom:10px;
-}
-
-#status_display > div{
-    float:left;
-    width:270px;
-    height:25px;
+    width: 23%;
+    height: 100%;
 }
 
 .status_display.key {
-    font-size:18px; 
-    line-height:25px;
-    height: 25px; 
+    font-size: 1.1vw; 
+    margin-left: 1vw;
+    margin-top: 0.3vw;
     float:left;
-    margin-left: 1px;
 }
 
 .status_display.value {
-    width:50px;
-    text-align: center;
-    line-height:25px;
-    margin-left:3px;
-    font-size:18px; 
-    height: 25px; 
+    width: 25%;
+    /*text-align: center;*/
+    margin-left: 1vw;
+    font-size: 1.1vw; 
+    height: 100%;
+    padding: 0.5vh;
     float:left;
     background-color: #D5D5D5;
 }
 
-
-.column.c1{
-    float:left;
-    width:1240px;
-    height:1000px;      
-}
-
-.row.c1.r1{
-    width: 100%;
-    height: 540px;
-    float:left;
-    margin-bottom:15px;
-}
-
 .tradespace_plot.figure{
-    border-style:solid;
-    border-width:3.3px;
-    width: 960px;
-    height: 540px;
-    margin:0 0 0 0;
-    float:left;
     position: relative;
+    border-style:solid;
+    border-width:1.7px;
+    width: 100%;
+    height: 100%;
+    margin:0 0 0 0;
 }
 
-.tradespace_plot.options{
-    float:left;
-    margin-left:10px;
-    width: 240px;
-    height: 540px;
-    border:1px black double;
+#tradespace_plot_options_inner_container {
+    width: 80%;
+    margin: auto;
 }
 
-.tradespace_plot.options > div{
-    width: 200px;
-    margin:auto;
+#tradespace_plot_options_inner_container > div{
+    margin-top: 2vh;
+    font-size: 0.88vw;
 }
 
-#plot_options{
-    margin-top: 40px;
+#plot_options > div {
+    margin-bottom: 1vh;
 }
 
-#plot_options > div{
-    margin-top: 7px;
-}
-
-#interaction_modes{
-    margin-top:20px;
+#interaction_modes {
     background: #D2D2D2;
-    padding:10px;
+    padding: 1vh;
 }
 
-#selection_options{
-    margin-top:20px;
+#interaction_modes > .interaction_modes_option{
+    margin-top: 0.2vh;
+    font-size: 0.7vw;
 }
 
 #selection_options > button{
-    width:180px;
-    margin-top: 10px;
-    margin-left: 5px;
+    width: 100%;
+    font-size: 0.6vw;
+    margin-top: 0.8vh;
 }
 
-.row.c1.r2{
-    float:left;
-    width:1240px;
-}
 
-.row.c1.r2 > div{
-    width:1212px;
-    float:left;
+
+#support_panel{
+    width: 100%;
     border-style:solid;
-    border-width:1ps;
-    font-weight:300;
-    min-height:480px;
+    border-width: 1px;
+    height: 100%;
+    margin-left: 1px;
     overflow-y:scroll;
 }
 
-.column.c2{
-    width: 1160px;
-    height: 1050px;
-    float:left;
-}
-
-.column.c2 > div{
+#feature_interactive_panel{
     width: 100%;
     height: 100%;
-    border-style:solid;
-    border-width:1px;
-    float:left;
+    border-style: solid;
+    border-width: 1px;
 }
 
-#arch_info_display_outputs{
-    width:70%;
-    height:120px;
-    float:left;
-    margin-bottom: 5px;
-}
-
-#run_design_local_search{
-    float:left;
-    font-size:18px;
-    margin-right: 660px;
-    margin-bottom: 10px;
-}
-
-#evaluate_architecture_button{
-    float:left;
-    font-size:18px;
+.tradespace_plot.axisLabel{
+    font-size: 0.9vw;
 }
 
 
-#arch_info_display_table_div{
-    float:left;
-    width:95%;
-}
-
-.arch_info_display_cell{
-    border: 1px solid black;
-    padding: 10px;
-    vertical-align: central;
-    font-size:15px;
-}
-
-.arch_info_display_cell.instrument:hover{
-    background-color: #EEEEEE;
-}
-
-#instr_options_display{
-    float:left;
-    width:360px;
-    margin-left: 0%;
-    margin-top: 510px;
-    margin-bottom: 10px;
-    background-color: #E6E6E6;
-    padding:20px;
-}
-
-#instr_options_table{
-    width:340px;
-    float:left;
-    margin-top:20px;
-    border-spacing: 10px;
-}
-
-#instr_options_trash{
-    float:left;
-    width:320px;
-    margin-top:10px;
-    margin-left:10px;
-    height:125px;
-    background-color: #FF8B8B;
+.tradespace_plot.axis > .tick{
+    font-size: 0.8vw;
 }
 
 .axis path,
 .axis line {
-    
     fill: none;
     stroke: #000;
     shape-rendering: crispEdges;
@@ -216,14 +145,118 @@
     stroke-width: 0;
 }
 
+#arch_info_display_outputs{
+    width: 70%;
+    height: 6vh;
+    float: left;
+    margin-bottom: 3vh;
+}
+
+#arch_info_display_outputs > p {
+    font-size: 2.0vh;
+}
+
+#arch_info_display_table_div{
+    float:left;
+    width: 100%;
+}
+
+.arch_info_display_cell:not(.header){
+    border: 1px solid black;
+    padding: 0.6vh;
+    vertical-align: central;
+}
+
+.arch_info_display_cell.instrument:hover{
+    background-color: #EEEEEE;
+}
+
+
+
+
+
+
+
+
+#variable_options_panel{
+    width: 46%;
+    height: 90%;
+    background-color: #E6E6E6;
+    position: relative;
+}
+
+/*#instr_options_display{
+    float:left;
+    width:360px;
+    margin-left: 0%;
+    margin-top: 510px;
+    margin-bottom: 10px;
+    background-color: #E6E6E6;
+    padding:20px;
+}*/
+
+#variable_options_panel > p {
+    width: 80%;
+    margin-left: 2vh;
+    margin-top: 2vh;
+    margin-bottom: 1vh;
+    font-size: 2.4vh
+    font-weight: bold;
+    float: left;
+}
+
+#instr_options_table{
+    width: 0px;
+    float: left;
+    margin-top: 0vh;
+    margin-left: 1vh;
+    border-spacing: 1.1vh;
+    table-layout: fixed;
+}
+
+.arch_info_display_cell.candidates{
+    font-size: 1.4vh;
+}
+
+#instr_options_trash{
+    float:left;
+    margin-left: 2vh;
+    margin-top: 1.6vh;
+    width: 0px;
+    height: 8vh;
+    background-color: #FF8B8B;
+}
+
+#instr_options_trash > p {
+    margin: auto;
+    padding: 2vh;
+    font-size: 2vh;
+    font-weight: bold;
+}
+
+#evaluate_architecture_button{
+    float: left;
+    font-size: 2vh;
+}
+
+
+
+
+
+
+
+
+
+
 
 /* Tooltip container */
-.tooltip { 
+/*.tooltip { 
     position: relative;
 } 
+*/
 
 /* Tooltip text */
-.tooltip.tooltiptext {
+/*.tooltip.tooltiptext {
     visibility: hidden;
     width: 150px;
     background-color: #DCC5C1;
@@ -232,24 +265,21 @@
     padding: 10px;
     border-radius: 6px;
 
-    /* Position the tooltip text - see examples below! */
     position: absolute;
     z-index: 1;
 
     opacity: 0;
     transition: opacity 0.3s;
-}
-
+}*/
 
 /* Show the tooltip text when you mouse over the tooltip container */
-.tooltip:hover .tooltiptext {
+/*.tooltip:hover .tooltiptext {
     opacity: 1;
     visibility: visible;
 }
-
 
 .clearfix::after {
     content: "";
     clear: both;
     display: table;
-}
+}*/

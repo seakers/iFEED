@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<style type="text/css">
+	table.tableizer-table {
+		font-size: 1.8vh;
+		border: 1px solid #CCC; 
+		font-family: Arial, Helvetica, sans-serif;
+	} 
+	.tableizer-table td {
+		padding: 1.0vh;
+		margin: 0.1vh;
+		border: 1px solid #CCC;
+	}
+	.tableizer-table th {
+		background-color: #104E8B; 
+		color: #FFF;
+		font-weight: bold;
+		padding: 0.5vh;
+	}
+
+</style>
+
+<head>
+    <title>Instruments and Orbits Information</title>
+</head>
+
+<body>
+
+	<table class="tableizer-table">
+	<thead><tr class="tableizer-firstrow"><th>Instrument</th><th>Concept</th><th>Intent</th><th>Mass (kg)</th><th>Power (W)</th><th>Average data rate (Mbps)</th><th>Spectral-region</th><th>Illumination</th><th>All-weather</th><th>Day-Night</th><th>Geometry</th><th>Thermal-control</th></tr></thead><tbody>
+	 <tr><td>OCE_SPEC</td><td>Imaging spectrometer for ocean color</td><td>Imaging multi-spectral radiometers -passive optical-</td><td>137</td><td>132</td><td>12</td><td>opt-VNIR</td><td>Passive</td><td>no</td><td>Only-day</td><td>nadir</td><td>Passive-radiators</td></tr>
+	 <tr><td>AERO_POL</td><td>Polarimeter for shape and size of aerosols</td><td>Imaging multi-spectral radiometers -passive optical-</td><td>132</td><td>152</td><td>15.5</td><td>opt-VNIR</td><td>Passive</td><td>no</td><td>Only-day</td><td>nadir</td><td>Passive-radiators</td></tr>
+	 <tr><td>AERO_LID</td><td>Laser altimeter for aerosols and cloud properties combined with a DIAL for ozone</td><td>Laser altimeters</td><td>515</td><td>658</td><td>11.1</td><td>opt-VNIR</td><td>Active</td><td>no</td><td>Day-and-night</td><td>nadir</td><td>Passive-radiators</td></tr>
+	 <tr><td>HYP_ERB</td><td>Suite of three pushbroom hyperspectral spectrometers for reflected solar SW Earth radiation budget + infrared FTS for SW+LW</td><td>Earth radiation budget radiometers</td><td>238</td><td>387</td><td>160</td><td>opt-SWIR+LWIR</td><td>Passive</td><td>no</td><td>Only-day</td><td>nadir</td><td>Active-cryocooler</td></tr>
+	 <tr><td>CPR_RAD</td><td>Dual-frequency clouds and precipitation radar</td><td>Cloud profile and rain radars</td><td>480</td><td>700</td><td>20</td><td>MW-Ku</td><td>Active</td><td>yes</td><td>Day-and-night</td><td>slant</td><td>Passive-radiators</td></tr>
+	 <tr><td>VEG_INSAR</td><td>Vegetation and deformation repeat pass interferometric L-band SAR</td><td>Imaging MW radars -SAR-</td><td>400</td><td>500</td><td>60</td><td>MW-L</td><td>Active</td><td>yes</td><td>Day-and-night</td><td>slant</td><td>Passive-radiators</td></tr>
+	 <tr><td>VEG_LID</td><td>Vegetation full waveform 532nm laser altimeter, 1064nm also being studied for ice</td><td>Laser altimeters</td><td>200</td><td>500</td><td>1</td><td>opt-NIR</td><td>Active</td><td>no</td><td>Day-and-night</td><td>nadir</td><td>Passive-radiators</td></tr>
+	 <tr><td>CHEM_UVSPEC</td><td>A modified version of OMI with improved HSR, swath</td><td>Atmospheric chemistry: IR passive limb sounders</td><td>46</td><td>56</td><td>0.77</td><td>opt-UV</td><td>Passive</td><td>no</td><td>Only-day</td><td>nadir</td><td>Passive-radiators</td></tr>
+	 <tr><td>CHEM_SWIRSPEC</td><td>LEO Atmospheric chemistry</td><td>Imaging multi-spectral radiometers -passive optical-</td><td>250</td><td>208</td><td>40</td><td>opt-SWIR</td><td>Passive</td><td>no</td><td>Only-day</td><td>nadir</td><td>Active-cryocooler</td></tr>
+	 <tr><td>HYP_IMAG</td><td>High spatial resolution hyperspectral imager 8-12 um similar to ASTER surface composition</td><td>Imaging multi-spectral radiometers -passive optical-</td><td>99</td><td>78</td><td>65</td><td>opt-TIR</td><td>Passive</td><td>no</td><td>Day-and-night</td><td>nadir</td><td>Passive-radiators</td></tr>
+	 <tr><td>HIRES_SOUND</td><td>High resolution IR sounder</td><td>IR Atmospheric temperature and humidity sounders</td><td>316</td><td>457</td><td>7.5</td><td>opt-SWIR</td><td>Passive</td><td>no</td><td>Day-and-night</td><td>nadir</td><td>Active-cryocooler</td></tr>
+	 <tr><td>SAR_ALTIM</td><td>Wide-swath altimetry</td><td>Radar altimeter</td><td>300</td><td>300</td><td>10</td><td>MW-Ku</td><td>Active</td><td>yes</td><td>Day-and-night</td><td>slant</td><td>Passive-radiators</td></tr>
+	</tbody></table>
+
+
+	<table class="tableizer-table" style="margin-top: 50px">
+	<thead><tr class="tableizer-firstrow"><th>Orbit</th><th>Inclination</th><th>Altitude (km)</th><th>Local time of the ascending node</th></tr></thead><tbody>
+	 <tr><td>LEO-600-polar</td><td>Polar</td><td>600</td><td>N/A</td></tr>
+	 <tr><td>SSO-600-AM</td><td>SSO</td><td>600</td><td>AM</td></tr>
+	 <tr><td>SSO-600-DD</td><td>SSO</td><td>600</td><td>Dawn-Dusk</td></tr>
+	 <tr><td>SSO-800-DD</td><td>SSO</td><td>800</td><td>Dawn-Dusk</td></tr>
+	 <tr><td>SSO-800-PM</td><td>SSO</td><td>800</td><td>PM</td></tr>
+	</tbody></table>
+
+</body>
+</html>
