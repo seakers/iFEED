@@ -827,7 +827,6 @@ class TradespacePlot{
     }
 
     show_hidden_archs(){
-
         this.data.forEach( (point) => {
             if(point.hidden){
                 point.hidden = false;
@@ -846,10 +845,12 @@ class TradespacePlot{
 
     hide_selection(){
         this.data.forEach( (point) => {
-            point.highlighted = false;
-            point.selected = false;
-            point.hidden = true;
-            this.setPointColor(point);
+            if(point.selected){
+                point.highlighted = false;
+                point.selected = false;
+                point.hidden = true;
+                this.setPointColor(point);
+            }
         }); 
         this.drawPoints(this.context, false);
 
