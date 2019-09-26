@@ -2137,11 +2137,15 @@ class DataMining{
         });    
     }
 
-    set_problem_generalized_concepts(){
+    set_problem_generalized_concepts(blockEntityReset){
         let that = this;
 
-        this.blockEntityReset = true;
-        this.set_problem_parameters();
+        if(blockEntityReset){
+            this.blockEntityReset = true;
+            this.set_problem_parameters();
+        } else {
+            this.blockEntityReset = false;
+        }
 
         setTimeout(function() {
             $.ajax({

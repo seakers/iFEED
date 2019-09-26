@@ -103,7 +103,7 @@ function loadTutorialContent(){
             name: "tutorial-problem-formulation-variable-detail-information",
             object: d3.select("#variable_description_material_link").node(),
             content: "<p>More detailed information about each instrument can be viewed on a separate page.</p>"
-                        +"<p>To continue, try clicking the button \"Open instruments and orbits information\"</p>",
+                        +"<p>To continue, try clicking the button \"View instruments and orbits information\"</p>",
             callback: function(currentStep){
                 document.getElementById('tab4').click();
                 tutorial.start_tutorial_event_listener("variable_description_material_opened", currentStep);
@@ -426,6 +426,13 @@ function loadTutorialContent(){
                     +"Therefore, the key is finding the right balance between those two criteria. </p>", 
             callback: null,
         }, 
+        {
+            name: "tutorial-ifeed-feature-metric-tradeoff",
+            object: null,
+            content: "<p>One useful thing to note is that achieving high coverage can be done with a very simple feature.</p>"
+                    +"<p>On the other hand, achieving high specificity often requires combining multiple features.</p>", 
+            callback: null,
+        }, 
 
 //////////// Feature space plot ///////////////////////////////////////////////////////////////////////////
         { 
@@ -694,7 +701,7 @@ function loadTutorialContent(){
             content: "<p>To run generalization, you can right-click on any of the nodes and select \"Generalize this feature\" option.</p>"
                     +"<p>When the root node (the leftmost node) is used to initiate generalization, the search algorithm will use the whole feature. "
                     +"When other nodes are used to initiate generalization, the search will be focused on simplifying only the selected node. </p>"
-                    +"<p>To continue, right-click on the root node and select \"Generalize this feature\" option.</p>",
+                    +"<p>To continue, right-click on <br>the root node (leftmost node)</br> and select \"Generalize this feature\" option.</p>",
             callback: function(currentStep){
                 document.getElementById('tab3').click();
 
@@ -740,13 +747,14 @@ function loadTutorialContent(){
             object: null,
             content: "<p>The popup shows different suggestions on how the current feature may be "
                     +" simplified by generalizing the knowledge represented by it. </p>"
-                    +"<p>While these suggestions may not always improve coverage or specificity, it may help "
-                    +"gain new insights that are otherwise difficult to identify. </p>",
+                    +"<p>Note that, while these suggestions may not always improve coverage or specificity, it may help "
+                    +"simplify the feature and thus make it easier to gain new insights. </p>",
         }, 
         { 
             name: "tutorial-ifeed-feature-application-interaction-context-menu-generalize-feature-5",
             object: null,
             content: "<p>Among the suggested generalizations, you can select the one that seems to be the most useful.</p>"
+                    +"<p>Useful generalization would simplify the feature without sacrificing specificity or coverage too much.</p>"
                     +"<p>You may also choose to not accept any of the suggestions by clicking the cancel button.</p>"
                     +"<p>To continue, click one of the suggestions provided.</p>",
             
@@ -900,14 +908,6 @@ function loadTutorialContent(){
                     +"<p>After the 25-minute data analysis session, you will be asked to answer a series of questions about the data.</p>"
                     +"<p>The questions will ask you to identify or utilize the features that are shared by the target designs. </p>",
         }, 
-        // { 
-        //     name: "learning-task-intro-1",
-        //     object: undefined,
-        //     content: "<p>In this step, you are given 25 minutes to analyze a dataset which contains 6,655 alternative architectures "
-        //             +"of an Earth-observing satellite system. </p>"
-        //             +"<p>After the 25-minute data analysis session, you will be asked to answer a series of questions about the data.</p>"
-        //             +"<p>The questions will ask you to identify or utilize the features that are shared by the target designs. </p>",
-        // }, 
         { 
             name: "learning-task-intro-2",
             object: undefined,
