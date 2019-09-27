@@ -143,15 +143,6 @@ function loadTutorialContent(){
                     +"<p>The following tutorial will walk you through the basic interface and the capabilities of iFEED.</p>", 
             callback: null,
         },
-        // {
-        //     name: "tutorial-ifeed-intro-general-condition",
-        //     object: undefined, 
-        //     content: "<p>Now that we have covered the basic information about the design problem, "
-        //             +"we will go over different parts of iFEED and explain how to use it to analyze the data.</p>"
-        //             +"<p>iFEED is a tool that supports the discovery of the key knowledge on what constitutes good designs.</p>", 
-        //     callback: null,
-        // },
-
         {
             name: "tutorial-ifeed-intro-design-inspection-only",
             object: undefined, 
@@ -160,13 +151,6 @@ function loadTutorialContent(){
                     +"<p>The following tutorial will walk you through the basic interface.</p>", 
             callback: null,
         },
-        // {
-        //     name: "tutorial-ifeed-intro-design-inspection-only",
-        //     object: undefined, 
-        //     content: "<p>Now that we have covered the basic information about the design problem, "
-        //             +"we will go over the main components of the interface, and explain the task to be performed using the interface.</p>", 
-        //     callback: null,
-        // },
         {
             name: "tutorial-ifeed-scatter-plot",
             object: d3.select('.tradespace_plot.figure').node(),
@@ -426,13 +410,13 @@ function loadTutorialContent(){
                     +"Therefore, the key is finding the right balance between those two criteria. </p>", 
             callback: null,
         }, 
-        {
-            name: "tutorial-ifeed-feature-metric-tradeoff",
-            object: null,
-            content: "<p>One useful thing to note is that achieving high coverage can be done with a very simple feature.</p>"
-                    +"<p>On the other hand, achieving high specificity often requires combining multiple features.</p>", 
-            callback: null,
-        }, 
+        // {
+        //     name: "tutorial-ifeed-feature-metric-tradeoff",
+        //     object: null,
+        //     content: "<p>One useful thing to note is that achieving high coverage can be done with a very simple feature.</p>"
+        //             +"<p>On the other hand, achieving high specificity often requires combining multiple features.</p>", 
+        //     callback: null,
+        // }, 
 
 //////////// Feature space plot ///////////////////////////////////////////////////////////////////////////
         { 
@@ -688,7 +672,7 @@ function loadTutorialContent(){
             name: "tutorial-ifeed-feature-application-interaction-context-menu-generalize-feature-1",
             object: null,
             content: "<p>Another option that we will explore is called \"Generalize this feature\" option.</p>"
-                    +"<p>This option triggers a search for a more compact and general knowledge. It may help extracting information "
+                    +"<p>This option triggers a search for a more compact and general knowledge. It helps extracting information "
                     +"in a more useful form than what is represented in the current feature.</p>",
             callback: function(currentStep){
                 document.getElementById('tab3').click();
@@ -701,7 +685,7 @@ function loadTutorialContent(){
             content: "<p>To run generalization, you can right-click on any of the nodes and select \"Generalize this feature\" option.</p>"
                     +"<p>When the root node (the leftmost node) is used to initiate generalization, the search algorithm will use the whole feature. "
                     +"When other nodes are used to initiate generalization, the search will be focused on simplifying only the selected node. </p>"
-                    +"<p>To continue, right-click on <br>the root node (leftmost node)</br> and select \"Generalize this feature\" option.</p>",
+                    +"<p>To continue, right-click on <b>the root node (leftmost node)</b> and select \"Generalize this feature\" option.</p>",
             callback: function(currentStep){
                 document.getElementById('tab3').click();
 
@@ -747,14 +731,14 @@ function loadTutorialContent(){
             object: null,
             content: "<p>The popup shows different suggestions on how the current feature may be "
                     +" simplified by generalizing the knowledge represented by it. </p>"
-                    +"<p>Note that, while these suggestions may not always improve coverage or specificity, it may help "
+                    +"<p>Note that, while these suggestions may not always improve coverage or specificity, it helps "
                     +"simplify the feature and thus make it easier to gain new insights. </p>",
         }, 
         { 
             name: "tutorial-ifeed-feature-application-interaction-context-menu-generalize-feature-5",
             object: null,
-            content: "<p>Among the suggested generalizations, you can select the one that seems to be the most useful.</p>"
-                    +"<p>Useful generalization would simplify the feature without sacrificing specificity or coverage too much.</p>"
+            content: "<p>Among the suggested generalizations, you can select the one that seems to be the most useful. "
+                    +"Useful generalization should simplify the feature without sacrificing specificity or coverage too much.</p>"
                     +"<p>You may also choose to not accept any of the suggestions by clicking the cancel button.</p>"
                     +"<p>To continue, click one of the suggestions provided.</p>",
             
@@ -783,9 +767,8 @@ function loadTutorialContent(){
         { 
             name: "tutorial-ifeed-feature-application-interaction-context-menu-generalize-feature-6",
             object: d3.select('#feature_application_panel').node(),
-            content: "<p>Note that the generalization is applied to the current feature. </p>"
-                    +"<p>It is recommended to use this capability extensively during the task, as it may be helpful in "
-                    +"identifying new, hidden insights.</p>",
+            content: "<p>It is recommended that you use this capability extensively during the task, "
+                    +"as it helps simplify a feature and thus make it easier to identify new, hidden insights.</p>",
         }, 
 
 //////////// End Generalization ///////////////////////////////////////////////////////////////////////////
@@ -846,8 +829,8 @@ function loadTutorialContent(){
             object: d3.selectAll('#support_panel').node(),
             content: "However, as the search algorithm is greedy, the improvements in coverage and specificity "
                     +"that can be achieved using this approach is limited."
-                    +"<p>A recommended strategy is to start from a feature with good coverage, and progressively improve specificity"
-                    +" using the auto search.</p>"
+                    +"<p><b>A recommended strategy is to start from a feature with good coverage, and progressively improve specificity"
+                    +" using the auto search.</b></p>"
                     +"<p>Note that as you run auto search repeatedly, old features will become faint or deleted to prevent "
                     +"the plot from being too cluttered.</p>",
             callback: function(currentStep){
@@ -858,10 +841,8 @@ function loadTutorialContent(){
             name: "tutorial-ifeed-feature-interactive-generalization-1",
             object: d3.select('.feature_space_interaction.generalization.container').node(), 
             content: "<p>Another helper function is called \"Generalization suggestions.\" </p>"
-                    +"<p>While this option is on, generalization search will be initiated whenever you select (click)"
-                    +" a feature. </p>"
-                    +"<p>While the final outcome is equivalent to initiating the generalization search manually from the feature graph, "
-                    +"This option allows running generalization on the background without the user having to initiate the search manually.</p>",
+                    +"<p>While this option is on, generalization search will automatically be initiated whenever you select (click)"
+                    +" a feature. </p>",
             callback: function(currentStep){
                 document.getElementById('tab3').click();
                 experiment.feature_application.clear_feature_application();
@@ -984,6 +965,13 @@ function loadTutorialContent(){
             callback: function(){
                 document.getElementById('tab3').click();
             }
+        }, 
+        {
+            name: "feature-synthesis-intro-3",
+            object: null,
+            content: "<p>One useful thing to note is that achieving high coverage can be done with a very simple feature.</p>"
+                    +"<p>On the other hand, achieving high specificity often requires combining multiple conditions.</p>", 
+            callback: null,
         }, 
         {
             name: "feature-synthesis-intro-filter-setting-v1",
