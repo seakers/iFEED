@@ -7,7 +7,7 @@ function loadTutorialContent(){
             name: "tutorial-intro-opening-general-condition",
             object: null, 
             content: "<p>In this experiment, you will use a web-based data analysis tool called iFEED. "
-                    +"It is a program developed to help engineers extract and learn useful information during tradespace exploration. </p>"
+                    +"It is a program developed to help engineers <b>extract and learn useful information during tradespace exploration. </b></p>"
                     +"<p>This tutorial will walk you through the capabilities of iFEED and explain how you can use them to analyze data.</p>"
                     +"<p>After this tutorial is finished, you will use the tool to analyze a given dataset. "
                     +"Then, you will be asked to answer a series of questions to test how much you have learned from analyzing the data. </p>", 
@@ -25,7 +25,7 @@ function loadTutorialContent(){
         {
             name: "tutorial-intro-timer",
             object: d3.select('#timer').node(), 
-            content: "<p>The elapsed time is shown here. We expect this tutorial to take no more than 20 minutes.</p>"
+            content: "<p>The elapsed time is shown here. We expect this tutorial to take <b>no more than 20 minutes.</b></p>"
                     +"<p>For certain tasks during this experiment, there may be time limits. "
                     +"In such cases, the remaining time will be displayed here.</p>",
             callback: function(currentStep){
@@ -36,8 +36,8 @@ function loadTutorialContent(){
         {
             name: "tutorial-intro-task",
             object: undefined,
-            content: "<p>Now let's imagine that you are a system architect trying to design an Earth observing satellite system "
-                    +"for climate monitoring.</p>"
+            content: "<p>Now let's imagine that you are <b>a system architect trying to design an Earth observing satellite system "
+                    +"for climate monitoring.</b></p>"
                     +"<p>To run an architectural trade study, you plan to generate and analyze a large number of alternative architectures. Each architecture "
                     +"consists of multiple satellites carrying different payload to satisfy some "
                     +"pre-defined measurement objectives.</p>",
@@ -47,9 +47,9 @@ function loadTutorialContent(){
             name: "tutorial-problem-formulation",
             object: d3.select('#support_panel').node(),
             content: "<p>The diagram here shows how each architecture is defined. </p>"
-                    +"<p>The architecture is defined by assigning a set of remote-sensing instruments "
+                    +"<p>The architecture is defined by <b>assigning a set of remote-sensing instruments "
                     +"(e.g. altimeter, radiometer, spectrometers, etc.) to spacecraft, "
-                    +"which will fly in different orbits (determined by the altitude above the Earth, inclination with respect to the Equator, etc.).</p>"
+                    +"which will fly in different orbits </b>(determined by the altitude above the Earth, inclination with respect to the Equator, etc.).</p>"
                     +"<p>In the diagram, each row represents one spacecraft flying in the specified orbit. "
                     +"The columns represent what measurement instruments are onboard each of those spacecraft.</p>",
             callback: null,
@@ -139,7 +139,7 @@ function loadTutorialContent(){
             object: undefined, 
             content: "<p>As the system architect, you want to <b>find out what constitutes the designs that have high science and low cost.</b></p>"
                     +"<p>You decide to use a software tool called iFEED to help you do this task. </p>"
-                    +"<p>iFEED is a tool that <b>supports the discovery of the key knowledge on what good designs have in common.</b></p>"
+                    +"<p>iFEED is a tool that supports the discovery of the key knowledge on what good designs have in common.</p>"
                     +"<p>The following tutorial will walk you through the basic interface and the capabilities of iFEED.</p>", 
             callback: null,
         },
