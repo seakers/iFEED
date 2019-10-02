@@ -120,7 +120,7 @@ function loadTutorialContent(){
         {
             name: "tutorial-problem-formulation-objectives",
             object: d3.select('#support_panel').node(),
-            content: "<p>Each architecture has corresponding science benefit score and cost. "
+            content: "<p><b>Each architecture has corresponding science benefit score and cost. </b>"
                     +"The science benefit score "
                     +"is a number that is calculated based on how many of the measurement objectives are "
                     +"satisfied by each architecture. </p>"
@@ -137,17 +137,17 @@ function loadTutorialContent(){
         {
             name: "tutorial-ifeed-intro-general-condition",
             object: undefined, 
-            content: "<p>As the system architect, you want to find out what constitutes the designs that have high science and low cost. </p>"
+            content: "<p>As the system architect, you want to <b>find out what constitutes the designs that have high science and low cost.</b></p>"
                     +"<p>You decide to use a software tool called iFEED to help you do this task. </p>"
-                    +"<p>iFEED is a tool that supports the discovery of the key knowledge on what good designs have in common.</p>"
+                    +"<p>iFEED is a tool that <b>supports the discovery of the key knowledge on what good designs have in common.</b></p>"
                     +"<p>The following tutorial will walk you through the basic interface and the capabilities of iFEED.</p>", 
             callback: null,
         },
         {
             name: "tutorial-ifeed-intro-design-inspection-only",
             object: undefined, 
-            content: "<p>As the system architect, you want to find out what constitutes the designs that have high science and low cost. </p>"
-                    +"<p>You decide to use a software tool to do this task, and find out what good designs have in common.</p>"
+            content: "<p>As the system architect, you want to <b>find out what constitutes the designs that have high science and low cost.</b></p>"
+                    +"<p>You decide to use a software tool to do this task, and <b>find out what good designs have in common.</b></p>"
                     +"<p>The following tutorial will walk you through the basic interface.</p>", 
             callback: null,
         },
@@ -162,8 +162,8 @@ function loadTutorialContent(){
             name: "tutorial-ifeed-target-region",
             object: null,
             content: "<p>In a given task, a group of dots will be highlighted in a light blue color. "
-                    +"These dots represent the target designs that you need to investigate. </p>"
-                    +"<p>The goal here is to find patterns that are shared uniquely by these architectures. </p>"
+                    +"These dots represent <b>the target designs that you need to investigate.</b></p>"
+                    +"<p>The goal here is to <b>find patterns that are shared uniquely by these architectures. </b></p>"
                     +"<p>Learning what constitutes good architectures is useful, as you can learn more about the design problem and "
                     +"the model used to evaluate the architectures.</p>",
             callback: function(currentStep){},
@@ -219,8 +219,8 @@ function loadTutorialContent(){
         {
             name: "tutorial-ifeed-filter-present",
             object: d3.select('#support_panel').node(),
-            content: "The filter \"Present\" is used to selectively highlight designs that contain a specific instrument. "
-                    +"It takes in one instrument as an argument, and selects all designs that use the specified instrument.", 
+            content: "<p>The filter \"Present\" is used to <b>selectively highlight designs that contain a specific instrument. </b>"
+                    +"It takes in one instrument as an argument, and selects all designs that use the specified instrument.</p>", 
             callback: null,
         },
         {
@@ -234,7 +234,7 @@ function loadTutorialContent(){
             object: d3.select('#support_panel').node(),
             content: "<p>From the dropdown menu, you can select an instrument as an argument to the filter.</p>"
                     +"<p>Note that the first 12 options are actual instrument names. </p>"
-                    +"<p>You can also select an instrument class, which represents one or more instruments "
+                    +"<p><b>You can also select an instrument class, which represents one or more instruments </b>"
                     +"(e.g. CPR_RAD, VEG_INSAR, and SAR_ALTIM are all radars).</p>", 
             callback: null,
         },
@@ -252,10 +252,10 @@ function loadTutorialContent(){
             name: "tutorial-ifeed-filter-present-outcome",
             object: d3.select('.tradespace_plot.figure').node(),
             content: "<p>Take a look at the scatter plot, and note that some dots have turned pink or purple. "
-                    +"These dots are all the architectures that have the feature you just defined. In other words, these architectures "
+                    +"These dots are all <b>the architectures that have the feature you just defined.</b> In other words, these architectures "
                     +"use the instrument [PLACEHOLDER]. </p>"
-                    +"<p>The pink dots represent designs that have the feature, but are not in the target region. "
-                    +"The purple dots represent designs that have the feature and are inside the target region (highlighted in blue). </p>",
+                    +"<p>The pink dots represent <b>designs that have the feature, but are not in the target region. </b>"
+                    +"The purple dots represent <b>designs that have the feature and are inside the target region (highlighted in blue).</b></p>",
             callback: function(currentStep){
                 document.getElementById('tab2').click();
                 let keywords = [d3.select('.filterInputDiv.instrumentInput').select('select').node().value];
@@ -275,7 +275,7 @@ function loadTutorialContent(){
         {
             name: "tutorial-ifeed-filter-inOrbit-apply",
             object: null,
-            content: "<p>\"InOrbit\" is used to selectively highlight designs that assign a specific instrument(s) to a given orbit. </p>"
+            content: "<p>\"InOrbit\" is used to <b>selectively highlight designs that assign a specific instrument(s) to a given orbit.</b></p>"
                     +"<p>It takes in one orbit and one or more instruments as arguments. "
                     +"If more than one instrument are given, then it highlights all designs "
                     +"that assign all those instruments into the specified orbit.</p>"
@@ -312,14 +312,14 @@ function loadTutorialContent(){
         {
             name: "tutorial-ifeed-feature-intro-v1",
             object: undefined,
-            content: "<p>So far, we have been using the term \"feature\" to refer to the description of a common pattern that can be found "
-                    +"among the target designs (highlighted in blue). Below are some examples of what features might look like:</p>"
+            content: "<p>So far, we have been using the term \"feature\" to refer to <b>the description of a common pattern that can be found "
+                    +"among the target designs (highlighted in blue).</b> Below are some examples of what features might look like:</p>"
                     +"<ul><li>OCE_SPEC is assigned to LEO-600-polar</li>"
                     +"<li>AERO_LID and CHEM_UVSPEC are assigned together in the same orbit</li>"
                     +"<li>Orbit SSO-800-PM is empty</li>"
                     +"</ul>"
                     +"<p>Some of these features are better than others in explaining the target designs. "
-                    +"We use two different criteria to define the \"goodness\" of a feature.</p>", 
+                    +"<b>We use two different criteria to define the \"goodness\" of a feature.</b></p>", 
             callback: null
         }, 
         { 
@@ -338,7 +338,7 @@ function loadTutorialContent(){
         {
             name: "tutorial-ifeed-feature-metric-coverage",
             object: undefined,
-            content: "<p>The first metric we use to define the \"goodness\" of a feature is called the coverage of a feature.</p>",
+            content: "<p>The first metric we use to define the \"goodness\" of a feature is called the <b>coverage</b> of a feature.</p>",
             callback: null,
         }, 
         {
@@ -347,8 +347,8 @@ function loadTutorialContent(){
             content: "<p>The architectures currently highlighted in pink and purple represent architectures "
                     +"that \"do not assign HYP_ERB to any orbit\". "
                     +"Let\'s call this feature A.</p>" 
-                    +"<p>Note that many of the target designs share feature A (as indicated by the large number of purple dots). "
-                    +"We say that this feature has a good coverage of target designs. Such good coverage is desired in a good feature.</p>", 
+                    +"<p>Note that <b>many of the target designs share feature A (as indicated by the large number of purple dots).</b> "
+                    +"We say that this feature has a <b>good coverage</b> of target designs. Such good coverage is desired in a good feature.</p>", 
             callback: function(currentStep){
                 experiment.feature_application.update_feature_application("direct-update", tutorial_feature_example_e);
             },
@@ -370,8 +370,8 @@ function loadTutorialContent(){
         { 
             name: "tutorial-ifeed-feature-metric-coverage-insufficiency",
             object: null,
-            content: "<p>However, feature A is not necessarily what we are looking for. It is too general, meaning that it also applies to "
-                    +"many of the non-target designs as well (as indicated by the large number of pink dots). "
+            content: "<p>However, feature A is not necessarily what we are looking for. It is too general, meaning that <b>it also applies to "
+                    +"many of the non-target designs as well </b>(as indicated by the large number of pink dots). "
                     +"This leads us to the next criterion used to define a good feature.</p>", 
             callback: null,
         }, 
@@ -382,9 +382,9 @@ function loadTutorialContent(){
                     +"\"AERO_LID and HYP_ERB are never used, and SAR_ALTIM is assigned to at least one of the orbits.\" "
                     +"Let\'s call this feature B.</p>"
                     +"<p>If you look closely, you will find that many of the pink dots have disappeared. "
-                    +"This is good becuase we wanted to find a feature that uniquely describes the target region "
-                    +"and does not cover the non-target region. </p>"
-                    +"<p>We say that feature B is specific to the target region, and this is the second criterion "
+                    +"This is good becuase we wanted to find <b>a feature that uniquely describes the target region "
+                    +"and does not cover the non-target region.</b></p>"
+                    +"<p>We say that feature B is <b>specific</b> to the target region, and this is the second criterion "
                     +"that we require from a good feature.</p>",
             callback: function(currentStep){
                 experiment.feature_application.update_feature_application("direct-update", tutorial_feature_example_f);
@@ -401,10 +401,10 @@ function loadTutorialContent(){
         {
             name: "tutorial-ifeed-feature-metric-tradeoff",
             object: null,
-            content: "<p>As you may have noticed, there are two conflicting criteria that we are seeking from a good feature: </p>"
-                    +"<ol><li>Coverage (The feature should cover a large area of the target region - maximize the number of purple dots)</li>"
-                    +"<li>Specificity (The feature should be specific enough, so that it does not cover the non-target region - minimize the number of pink dots)</li></ol>"
-                    +"<p>As we have seen in the previous example, there is a trade-off between these two conditions. </p>"
+            content: "<p>As you may have noticed, there are <b>two conflicting criteria that we are seeking from a good feature: </b></p>"
+                    +"<ol><li><b>Coverage (The feature should cover a large area of the target region - maximize the number of purple dots)</b></li>"
+                    +"<li><b>Specificity (The feature should be specific enough, so that it does not cover the non-target region - minimize the number of pink dots)</b></li></ol>"
+                    +"<p>As we have seen in the previous example, there is a <b>trade-off between these two conditions. </b></p>"
                     +"<p>If you try to make a feature cover more targets, you might make it too general, and make it cover non-target designs as well (too many pink dots). </p>"
                     +"<p>On the other hand, if you try to make a feature too specific, it may not cover many target designs (too few purple dots). "
                     +"Therefore, the key is finding the right balance between those two criteria. </p>", 
@@ -535,8 +535,8 @@ function loadTutorialContent(){
         { 
             name: "tutorial-ifeed-feature-application-interaction-intro-v1",
             object: null, 
-            content: "<p>The feature graph not only acts as a visualization, but also as an interface for "
-                    +"interactively modifying existing features.</p>",
+            content: "<p>The feature graph not only acts as a visualization, but also as <b>an interface for "
+                    +"interactively modifying existing features.</b></p>",
         }, 
         { 
             name: "tutorial-ifeed-feature-application-interaction-intro-v2",
@@ -547,7 +547,7 @@ function loadTutorialContent(){
         { 
             name: "tutorial-ifeed-feature-application-interaction-drag-and-drop",
             object: null,
-            content: "<p>You can move an individual node and place it under a different parent node using drag and drop. "
+            content: "<p>You can <b>move an individual node and place it under a different parent node using drag and drop. </b>"
                     +"When you drag each node, temporary blue circles will appear around all other logical connective nodes. "
                     +"If you drop a node in one of those circles, the node will be added under that particular logical connective.</p>"
                     +"<p>To continue, try moving one node and placing it under a different parent node. </p>",
@@ -566,7 +566,7 @@ function loadTutorialContent(){
         { 
             name: "tutorial-ifeed-feature-application-interaction-context-menu-generalization-disabled",
             object: d3.select('#feature_application').node(),
-            content: "<p>You can view the options for various actions by right-clicking on each node. "
+            content: "<p>You can <b>view the options for various actions by right-clicking on each node. </b>"
                     +"<p>There may be different set of options depending on the type of each node. "
                     +"We will go over two of these options as examples. </p>", 
             callback: function(currentStep){
@@ -601,14 +601,14 @@ function loadTutorialContent(){
         { 
             name: "tutorial-ifeed-feature-application-interaction-context-menu-add-child-2",
             object: null,
-            content: "<p>Note that the color of the logical connective node turned orange. This indicates when you add a condition, "
-                    +"it will be added under this parent node.</p>",
+            content: "<p>Note that the color of the logical connective node turned orange. <b>This indicates when you add a condition, "
+                    +"it will be added under this parent node.</b></p>",
         }, 
         { 
             name: "tutorial-ifeed-feature-application-interaction-context-menu-add-child-3",
             object: d3.selectAll('#support_panel').node(),
-            content: "<p>Note that the title of the tab (highlighted in orange) changed to \"Feature addition mode\". This indicates that when you apply a filter, "
-                    +"it will be added as a condition under the selected logical connective node. </p>"
+            content: "<p>Note that the title of the tab (highlighted in orange) changed to \"Feature addition mode\". This indicates that <b>when you apply a filter, "
+                    +"it will be added as a condition under the selected logical connective node. </b></p>"
                     +"<p>To add a new condition, simply define a filter and click the button \"Add new condition\".</p>"
                     +"<p>(To continue, define a new filter by clicking \"Add new condition\" button)</p>",
             callback: function(currentStep){
@@ -672,7 +672,7 @@ function loadTutorialContent(){
             name: "tutorial-ifeed-feature-application-interaction-context-menu-generalize-feature-1",
             object: null,
             content: "<p>Another option that we will explore is called \"Generalize this feature\" option.</p>"
-                    +"<p>This option triggers a search for a more compact and general knowledge. It helps extracting information "
+                    +"<p>This option triggers <b>a search for a more compact and general knowledge.</b> It helps extracting information "
                     +"in a more useful form than what is represented in the current feature.</p>",
             callback: function(currentStep){
                 document.getElementById('tab3').click();
@@ -683,8 +683,8 @@ function loadTutorialContent(){
             name: "tutorial-ifeed-feature-application-interaction-context-menu-generalize-feature-2",
             object: null,
             content: "<p>To run generalization, you can right-click on any of the nodes and select \"Generalize this feature\" option.</p>"
-                    +"<p>When the root node (the leftmost node) is used to initiate generalization, the search algorithm will use the whole feature. "
-                    +"When other nodes are used to initiate generalization, the search will be focused on simplifying only the selected node. </p>"
+                    +"<p><b>When the root node (the leftmost node) is used to initiate generalization, the search algorithm will use the whole feature.</b>"
+                    +"<b>When other nodes are used to initiate generalization, the search will be focused on simplifying only the selected node. </b></p>"
                     +"<p>To continue, right-click on <b>the root node (leftmost node)</b> and select \"Generalize this feature\" option.</p>",
             callback: function(currentStep){
                 document.getElementById('tab3').click();
@@ -729,16 +729,16 @@ function loadTutorialContent(){
         { 
             name: "tutorial-ifeed-feature-application-interaction-context-menu-generalize-feature-4",
             object: null,
-            content: "<p>The popup shows different suggestions on how the current feature may be "
-                    +" simplified by generalizing the knowledge represented by it. </p>"
-                    +"<p>Note that, while these suggestions may not always improve coverage or specificity, it helps "
-                    +"simplify the feature and thus make it easier to gain new insights. </p>",
+            content: "<p>The popup shows different suggestions on <b>how the current feature may be "
+                    +" simplified by generalizing the knowledge represented by it. </b></p>"
+                    +"<p>Note that, while these suggestions may not always improve coverage or specificity, it <b>helps "
+                    +"simplify the feature and thus make it easier to gain new insights. </b></p>",
         }, 
         { 
             name: "tutorial-ifeed-feature-application-interaction-context-menu-generalize-feature-5",
             object: null,
             content: "<p>Among the suggested generalizations, you can select the one that seems to be the most useful. "
-                    +"Useful generalization should simplify the feature without sacrificing specificity or coverage too much.</p>"
+                    +"Useful generalization should <b>simplify the feature without sacrificing specificity or coverage too much.</b></p>"
                     +"<p>You may also choose to not accept any of the suggestions by clicking the cancel button.</p>"
                     +"<p>To continue, click one of the suggestions provided.</p>",
             
@@ -795,9 +795,9 @@ function loadTutorialContent(){
             name: "tutorial-ifeed-feature-interactive-local-search-1",
             object: d3.select('.feature_space_interaction.localSearch.container').node(),
             content: "<p>First, you can turn on the \"Auto search\" option.</p>"
-                    +"<p>While this option is on, a data mining search will be initiated whenever you select (click) a feature. </p>"
-                    +"<p>The data mining algorithm will try to improve either the specificity or coverage by "
-                    +"adding an additional condition to the selected feature.</p>"
+                    +"<p><b>While this option is on, a data mining search will be initiated whenever you select (click) a feature. </b></p>"
+                    +"<p>The data mining algorithm will try to <b>improve either the specificity or coverage by "
+                    +"adding an additional condition to the selected feature (thus making the feature more complex).</b></p>"
                     +"<p>To continue, turn on the \"Auto search\" option.</p>",
             callback: function(currentStep){
                 document.getElementById('tab3').click();
@@ -817,8 +817,8 @@ function loadTutorialContent(){
         { 
             name: "tutorial-ifeed-feature-interactive-local-search-3",
             object: d3.selectAll('#support_panel').node(),
-            content: "<p>Note that some crosses appeared in the plot. These crosses represent new features "
-                    +"that are obtained by adding a new condition to the selected feature.</p>"
+            content: "<p>Note that some crosses appeared in the plot. <b>These crosses represent new features "
+                    +"that are obtained by adding a new condition to the selected feature.</b></p>"
                     +"<p>You can use the auto search iteratively to explore the feature space quickly. </p>",
             callback: function(currentStep){
                 document.getElementById('tab3').click();
@@ -828,8 +828,8 @@ function loadTutorialContent(){
             name: "tutorial-ifeed-feature-interactive-generalization-1",
             object: d3.select('.feature_space_interaction.generalization.container').node(), 
             content: "<p>Another helper function is called \"Generalization suggestions.\" </p>"
-                    +"<p>While this option is turned on, generalization search will automatically be initiated whenever you select (click)"
-                    +" a feature. </p>",
+                    +"<p>While this option is turned on, <b>generalization search will automatically be initiated whenever you select (click)"
+                    +" a feature. </b></p>",
             callback: function(currentStep){
                 document.getElementById('tab3').click();
                 experiment.feature_application.clear_feature_application();
