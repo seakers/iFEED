@@ -795,7 +795,7 @@ function loadTutorialContent(){
             name: "tutorial-ifeed-feature-interactive-local-search-1",
             object: d3.select('.feature_space_interaction.localSearch.container').node(),
             content: "<p>First, you can turn on the \"Auto search\" option.</p>"
-                    +"<p>While it is on, a data mining search will be initiated whenever you select (click) a feature. </p>"
+                    +"<p>While this option is on, a data mining search will be initiated whenever you select (click) a feature. </p>"
                     +"<p>The data mining algorithm will try to improve either the specificity or coverage by "
                     +"adding an additional condition to the selected feature.</p>"
                     +"<p>To continue, turn on the \"Auto search\" option.</p>",
@@ -825,27 +825,24 @@ function loadTutorialContent(){
             }
         }, 
         { 
-            name: "tutorial-ifeed-feature-interactive-local-search-4",
-            object: d3.selectAll('#support_panel').node(),
-            content: "However, as the search algorithm is greedy, the improvements in coverage and specificity "
-                    +"that can be achieved using this approach is limited."
-                    +"<p><b>A recommended strategy is to start from a feature with good coverage, and progressively improve specificity"
-                    +" using the auto search.</b></p>"
-                    +"<p>Note that as you run auto search repeatedly, old features will become faint or deleted to prevent "
-                    +"the plot from being too cluttered.</p>",
-            callback: function(currentStep){
-                document.getElementById('tab3').click();
-            }
-        }, 
-        { 
             name: "tutorial-ifeed-feature-interactive-generalization-1",
             object: d3.select('.feature_space_interaction.generalization.container').node(), 
             content: "<p>Another helper function is called \"Generalization suggestions.\" </p>"
-                    +"<p>While this option is on, generalization search will automatically be initiated whenever you select (click)"
+                    +"<p>While this option is turned on, generalization search will automatically be initiated whenever you select (click)"
                     +" a feature. </p>",
             callback: function(currentStep){
                 document.getElementById('tab3').click();
                 experiment.feature_application.clear_feature_application();
+            }
+        }, 
+        { 
+            name: "tutorial-ifeed-feature-interactive-strategy",
+            object: d3.selectAll('#support_panel').node(),
+            content: "<p>A recommended strategy is to <b>start from a feature with good coverage, and progressively improve specificity "
+                    +" using the auto search option.</b></p>"
+                    +"<p>In the mean time, you can use <b>generalization to simplify the features.</b></p>",
+            callback: function(currentStep){
+                document.getElementById('tab3').click();
             }
         }, 
 
@@ -969,8 +966,8 @@ function loadTutorialContent(){
         {
             name: "feature-synthesis-intro-3",
             object: null,
-            content: "<p>One useful thing to note is that achieving high coverage can be done with a very simple feature.</p>"
-                    +"<p>On the other hand, achieving high specificity often requires combining multiple conditions.</p>", 
+            content: "<p>One useful thing to note is that achieving <b>high coverage can be done with a very simple feature.</b></p>"
+                    +"<p>On the other hand, achieving <b>high specificity often requires combining multiple conditions.</b></p>", 
             callback: null,
         }, 
         {
