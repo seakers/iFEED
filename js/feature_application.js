@@ -51,7 +51,7 @@ class FeatureApplication{
 
         PubSub.subscribe(INSPECT_ARCH, (msg, data) => {
             // Update the color of the feature application tree
-            // this.update_base_feature_satisfaction(data);
+            this.update_base_feature_satisfaction(data);
         });   
 
         PubSub.subscribe(UPDATE_FEATURE_APPLICATION, (msg, data) => {
