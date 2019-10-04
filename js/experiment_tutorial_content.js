@@ -889,11 +889,13 @@ function loadTutorialContent(){
         { 
             name: "learning-task-intro-2",
             object: undefined,
-            content: "<p>In order to solve the problems that will be given after this task, "
-                    +"try to identify and record features that: "
-                    +"<br> (1) are shared by <b>at least 70% of the target designs (coverage of 0.7 or higher)</b>"
-                    +"<br> (2) and have <b>high coverage and specificity.</b></p>" 
-                    +"<p>Use the concept map page provided in a separate window to record the feature that you find.</p>",
+            content: "<p>To prepare for the problem set, try to identify and record as many features "
+                    +"as possible that are shared by the target designs.</p>"
+                    +"<p>You may use the following as a guideline on what features to look for:"
+                    +"<br> (1) features that are shared by <b>at least 70% of the target designs (coverage of 0.7 or higher)</b>"
+                    +"<br> (2) features with <b>high coverage and specificity</b>" 
+                    +"<br> (3) features that <b>can be easily interpreted</b></p>"
+                    +"<p>Use the concept map page provided in a separate window to record the common features that you find.</p>",
         },
         { 
             name: "learning-task-intro-3",

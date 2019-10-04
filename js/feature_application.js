@@ -307,7 +307,7 @@ class FeatureApplication{
             return;
         }    
         
-        let duration = d3.event && d3.event.altKey ? 6000 : 400;
+        let duration = d3.event && d3.event.altKey ? 6000 : 100;
         let margin = this.margin;
 
         // Set root node
