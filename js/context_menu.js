@@ -90,9 +90,6 @@ class ContextMenu {
         let depth = context.depth;    
         let deactivated = context.deactivated;
 
-        let boundingRect = d3.select('#feature_interactive_panel').node().getBoundingClientRect();
-        this.style.text['font-size'] = boundingRect.height / 51.2 + "";
-
         let hasChildren = null;
         if(context.children){
             hasChildren = context.children.length !== 0;
@@ -131,26 +128,8 @@ class ContextMenu {
         }        
         items = items.concat(this.contextItems['default']);
         
-        let x,y;
-        if(coord[0] < boundingRect.width * 1.00){
-            x = coord[0] + 90;
-        } else{
-            x = coord[0] - 200;
-        }
-    
-        if(coord[1] < boundingRect.height * 0.6){
-            y = coord[1] + 40;
-        } else{
-            if(type === "logic"){
-                y = coord[1] - 150;               
-            }else{
-                y = coord[1]  - 250;
-            }
-        }
-
         d3.selectAll('#tooltip_g').remove();
         d3.select('.context-menu').remove();
-        this.scaleItems(context,items);
         
         // If the node is a logical connective, remove the 'addParent' and 'addIfThen' options. 
         // If the node is the root node, then keep the option 'addParent'
@@ -265,6 +244,52 @@ class ContextMenu {
             }
         }
 
+
+        // EXPERIMENT
+        if(this.experimentCondition){
+            if(this.experimentCondition.indexOf("automated") !== -1 && this.experimentStage === "learning"){
+                // Remove all except for copyText option
+                let newItems = [];
+                for(let i = 0; i < items.length; i++){
+                    if(items[i].value === 'copyText'){
+                        newItems.push(items[i]);
+                        break;
+                    }
+                }
+                items = newItems;
+            }
+        }
+
+        // Scale the size of the context menu box
+        this.scaleItems(context,items);
+
+        let boundingRect = d3.select('#feature_interactive_panel').node().getBoundingClientRect();
+        this.style.text['font-size'] = boundingRect.height / 51.2 + "";
+
+        let x,y;
+        if(coord[0] < boundingRect.width * 1.00){
+            x = coord[0] + 90;
+        } else{
+            x = coord[0] - 200;
+        }
+    
+        if(coord[1] < boundingRect.height * 0.6){
+            y = coord[1] + 40;
+        } else{
+            if(type === "logic"){
+                y = coord[1] - 150;               
+            }else{
+                y = coord[1]  - 250;
+            }
+        }
+
+        // EXPERIMENT
+        if(this.experimentCondition){
+            if(this.experimentCondition.indexOf("automated") !== -1 && this.experimentStage === "learning"){
+                y = coord[1] - 23;
+            }
+        }
+
         let size;
         if(type === "logic" && logic === "IF_THEN"){
             size = this.contextMenuSize["ifThen"];
@@ -365,43 +390,40 @@ class ContextMenu {
             type = "ifThen";
         }         
         
-        if(!this.contextMenuSize[type]['scaled']){
+        let temp = d3.select('#feature_application')
+            .select('svg')
+            .select('g')
+            .selectAll('.tmp')
+            .data(items)
+            .enter()
+            .append('text')
+            .text(function(d){ return d.text; });
 
-            let temp = d3.select('#feature_application')
-                .select('svg')
-                .select('g')
-                .selectAll('.tmp')
-                .data(items)
-                .enter()
-                .append('text')
-                .text(function(d){ return d.text; });
+        temp.attr('x', -1000)
+            .attr('y', -1000)
+            .attr('class', 'tmp');
 
-            temp.attr('x', -1000)
-                .attr('y', -1000)
-                .attr('class', 'tmp');
+        temp.styles(this.style.text);
 
-            temp.styles(this.style.text);
+        let z = d3.select('#feature_application')
+            .select('svg')
+            .select('g')
+            .selectAll('.tmp')
+            .nodes()
+            .map(function(x){ return x.getBBox(); });
+        
+        let width = d3.max(z.map(function(x){ return x.width; }));
+        let margin = this.marginRatio * width;
+        width =  width + 2 * margin;
+        let height = d3.max(z.map(function(x){ return x.height + margin / 2; }));
 
-            let z = d3.select('#feature_application')
-                .select('svg')
-                .select('g')
-                .selectAll('.tmp')
-                .nodes()
-                .map(function(x){ return x.getBBox(); });
-            
-            let width = d3.max(z.map(function(x){ return x.width; }));
-            let margin = this.marginRatio * width;
-            width =  width + 2 * margin;
-            let height = d3.max(z.map(function(x){ return x.height + margin / 2; }));
+        this.contextMenuSize[type]['width'] = width;
+        this.contextMenuSize[type]['height'] = height;
+        this.contextMenuSize[type]['margin'] = margin;
+        this.contextMenuSize[type]['scaled'] = true;
 
-            this.contextMenuSize[type]['width'] = width;
-            this.contextMenuSize[type]['height'] = height;
-            this.contextMenuSize[type]['margin'] = margin;
-            this.contextMenuSize[type]['scaled'] = true;
-
-            // cleanup
-            d3.select('#feature_application').selectAll('.tmp').remove();                        
-        }
+        // cleanup
+        d3.select('#feature_application').selectAll('.tmp').remove();                        
     }
     
     ContextMenuAction(context, option){

@@ -149,6 +149,7 @@ class FeatureApplication{
             this.experimentStage = data.stage;
             this.experimentCondition = data.condition;
             this.experimentGeneralizationEnabled = data.generalization;
+            this.contextMenu = new ContextMenu(this);
         });  
     }
     
@@ -759,14 +760,6 @@ class FeatureApplication{
 
         d3.selectAll('.treeNode')
             .on('contextmenu', (d) => { 
-
-                // EXPERIMENT
-                if(that.experimentCondition){
-                    if(that.experimentCondition.indexOf("automated") !== -1 && that.experimentStage === "learning"){
-                        return;
-                    }
-                }
-
                 d3.event.preventDefault();
                 let context = d.type;
                 let mouse_pos = d3.mouse(d3.select("#feature_application_panel").select('svg').select('g').node());

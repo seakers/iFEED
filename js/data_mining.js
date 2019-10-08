@@ -198,9 +198,13 @@ class DataMining{
                                 PubSub.publish(EXPERIMENT_EVENT, {key:"generalization_run"});
                                 
                                 this.feature_application.end_loading_animation();
-                                this.show_generalization_suggestion(content.features);
-                            }
 
+                                if(content.userInitiated){
+                                    this.show_generalization_suggestion(content.features);
+                                } else {
+                                    this.ask_generalization_suggestion(content.features);
+                                }   
+                            }
                         }else{
                             that.add_new_features(content.features, true);
                         }
@@ -208,13 +212,17 @@ class DataMining{
                     }else{
                         if(content.searchMethod === "generalization"){
                             if(content.userInitiated){
+                                let referenceBoundingRect = d3.select("#tradespace_plot_container").node().getBoundingClientRect();
+                                let titleSize = referenceBoundingRect.height / 21;
+                                let messageSize = referenceBoundingRect.height / 25;
+
                                 this.feature_application.end_loading_animation();
                                 this.feature_application.update_feature_application('restore', null);
                                 iziToast.warning({
                                     title: 'Generalization not found',
-                                    titleSize: 22,
+                                    titleSize: titleSize,
                                     message: 'No appropriate generalization is found.',
-                                    messageSize: 18,
+                                    messageSize: messageSize,
                                     position: 'topLeft',
                                 });
                             }
@@ -1540,6 +1548,8 @@ class DataMining{
 
         // EXPERIMENT
         PubSub.publish(EXPERIMENT_EVENT, {key:"feature_viewed"});
+
+        iziToast.destroy();
     }
 
     feature_mouseover(d){
@@ -2364,6 +2374,39 @@ class DataMining{
             {
                 alert("Error in calling import_feature_data()");
             }
+        });
+    }
+
+    ask_generalization_suggestion(features){
+        let that = this;
+
+        if(document.querySelector('.iziToast')){
+            return;
+        }
+
+        let referenceBoundingRect = d3.select("#tradespace_plot_container").node().getBoundingClientRect();
+        let titleSize = referenceBoundingRect.height / 25;
+        let buttonMargin = referenceBoundingRect.height / 44;
+        
+        let buttonsList = [];
+        let buttonsStyle = "";
+        let okButton = ['<button style="'+ buttonsStyle +'"><b>Confirm</b></button>', function (instance, toast) {
+            that.show_generalization_suggestion(features);
+            instance.hide({transitionOut: 'fadeOutUp',}, toast, 'buttonName');
+        }, true];
+        buttonsList.push(okButton);
+        
+        let cancelButton = ['<button style="'+ buttonsStyle +'"><b>Cancel</b></button>', function (instance, toast) {
+            instance.hide({transitionOut: 'fadeOutUp'}, toast, 'buttonName');
+        }, true];
+        buttonsList.push(cancelButton);
+
+        iziToast.warning({
+            title: 'Would you like to view generalizations of the current feature?',
+            titleSize: titleSize,
+            message: "",
+            buttons: buttonsList,
+            position: 'topLeft',
         });
     }
 
