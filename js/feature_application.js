@@ -427,7 +427,7 @@ class FeatureApplication{
              });
 
         nodeUpdate.select("text")
-            .attr("x", function(d) { return d.children || d._children ? -15 : 15; })
+            .attr("x", function(d) { return d.children || d._children ? -11 : 11; })
             .attr("text-anchor", function(d) { return d.children || d._children ? "end" : "start"; })
             .selectAll("text > tspan")
             .html((d) => {
