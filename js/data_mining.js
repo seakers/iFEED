@@ -2407,6 +2407,7 @@ class DataMining{
             message: "",
             buttons: buttonsList,
             position: 'topLeft',
+            timeout: 15000,
         });
     }
 

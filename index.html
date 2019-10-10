@@ -245,7 +245,7 @@
             tutorial = new ExperimentTutorial(problem, tradespace_plot, filter, data_mining, feature_application, label, experiment);
             
             // Add sufficient time delay so that tutorial starts after the data has been fully loaded
-            setTimeout(() => { PubSub.publish(EXPERIMENT_TUTORIAL_START, null);}, 10000);
+            setTimeout(() => { PubSub.publish(EXPERIMENT_TUTORIAL_START, null);}, 5000);
 
         }else{
             iziToast.error({
