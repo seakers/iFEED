@@ -105,7 +105,7 @@ class DataMining{
     openWebsocketConnection(){
         // Make a new websocket connection
         let that = this;
-        this.ws = new WebSocket("wss://www.selva-research.com/api/daphne")
+        this.ws = new WebSocket("wss://www.selva-research.com/api/eoss/ws")
         // this.ws = new WebSocket("wss://selva-research.engr.tamu.edu/api/daphne")
         // this.ws = new WebSocket("ws://localhost:8080/api/daphne");
 
@@ -368,7 +368,7 @@ class DataMining{
         let that = this;
         let output;
         $.ajax({
-            url: "/api/data-mining/get-driving-features-with-generalization",
+            url: "/api/eoss/analyst/get-driving-features-with-generalization",
             type: "POST",
             data: {
                     problem: this.metadata.problem,  // eoss or gnc
@@ -396,7 +396,7 @@ class DataMining{
 
         let output;
         $.ajax({
-            url: "/api/data-mining/get-driving-features-epsilon-moea",
+            url: "/api/eoss/analyst/get-driving-features-epsilon-moea",
             type: "POST",
             data: {
                     problem: this.metadata.problem,  // eoss or gnc
@@ -423,7 +423,7 @@ class DataMining{
     get_driving_features(selected, non_selected, support_threshold, confidence_threshold, lift_threshold){
         let output;
         $.ajax({
-            url: "/api/data-mining/get-driving-features",
+            url: "/api/eoss/analyst/get-driving-features",
             type: "POST",
             data: {
                     problem: this.metadata.problem,  // eoss or gnc
@@ -458,7 +458,7 @@ class DataMining{
 
         let output;
         $.ajax({
-            url: "/api/data-mining/get-marginal-driving-features",
+            url: "/api/eoss/analyst/get-marginal-driving-features",
             type: "POST",
             data: {
                     problem: this.metadata.problem,  // eoss or gnc
@@ -516,7 +516,7 @@ class DataMining{
 
         let that = this;
         $.ajax({
-            url: "/api/data-mining/generalize-feature",
+            url: "/api/eoss/analyst/generalize-feature",
             type: "POST",
             data: {
                     problem: this.metadata.problem,  // eoss or gnc
@@ -1739,7 +1739,7 @@ class DataMining{
 
         let cluster_result = null;
         $.ajax({
-            url: "/api/data-mining/cluster-data",
+            url: "/api/eoss/analyst/cluster-data",
             type: "POST",
             data: {ID: "cluster-data",
                     param: param,
@@ -1880,7 +1880,7 @@ class DataMining{
 
         let cluster_result = null;
         $.ajax({
-            url: "/api/data-mining/cluster-data",
+            url: "/api/eoss/analyst/cluster-data",
             type: "POST",
             data: {ID: "cluster-data",
                     param: param,
@@ -1979,7 +1979,7 @@ class DataMining{
 
         let complexity = [];
         $.ajax({
-            url: "/api/data-mining/compute-complexity-of-features",
+            url: "/api/eoss/analyst/compute-complexity-of-features",
             type: "POST",
             data: {
                     expressions: JSON.stringify(expressions),
@@ -2001,7 +2001,7 @@ class DataMining{
     set_problem_parameters(){
         let that = this;
         $.ajax({
-            url: "/api/data-mining/set-problem-parameters",
+            url: "/api/eoss/analyst/set-problem-parameters",
             type: "POST",
             data: {
                     problem: this.metadata.problem,  // ClimateCentric, GNC, etc
@@ -2024,7 +2024,7 @@ class DataMining{
 
         setTimeout(function() {
             $.ajax({
-                url: "/api/data-mining/set-problem-generalized-concepts",
+                url: "/api/eoss/analyst/set-problem-generalized-concepts",
                 type: "POST",
                 data: {
                         problem: that.metadata.problem,  // ClimateCentric, GNC, etc
@@ -2043,7 +2043,7 @@ class DataMining{
     get_problem_parameters(){
         let that = this;
         $.ajax({
-            url: "/api/data-mining/get-problem-parameters",
+            url: "/api/eoss/analyst/get-problem-parameters",
             type: "POST",
             data: {
                     problem: that.metadata.problem,  // ClimateCentric, GNC, etc
@@ -2098,7 +2098,7 @@ class DataMining{
 
     stop_search(){
         $.ajax({
-            url: "/api/data-mining/stop-search",
+            url: "/api/eoss/analyst/stop-search",
             type: "POST",
             data: {},
             async: false,
@@ -2112,7 +2112,7 @@ class DataMining{
         this.initialize();
 
         $.ajax({
-            url: "/api/data-mining/import-target-selection",
+            url: "/api/eoss/analyst/import-target-selection",
             type: "POST",
             data: {
                     filename: filename,
@@ -2165,7 +2165,7 @@ class DataMining{
         }
 
         $.ajax({
-            url: "/api/data-mining/export-target-selection",
+            url: "/api/eoss/analyst/export-target-selection",
             type: "POST",
             data: {
                     problem: this.metadata.problem,  // eoss or gnc
@@ -2199,7 +2199,7 @@ class DataMining{
         }
 
         $.ajax({
-            url: "/api/data-mining/import-feature-data",
+            url: "/api/eoss/analyst/import-feature-data",
             type: "POST",
             data: {
                     filename_data: filename_data,  // ClimateCentric, GNC, etc

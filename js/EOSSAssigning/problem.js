@@ -73,7 +73,7 @@ class EOSSAssigning extends Problem{
 
         let that = this;
         $.ajax({
-            url: "/api/daphne/set-problem",
+            url: "/api/eoss/data/set-problem",
             type: "POST",
             data: {
                 problem: that.metadata.problem,
@@ -93,7 +93,7 @@ class EOSSAssigning extends Problem{
         this.current_bitString = null;
 
         $.ajax({
-            url: "/api/vassar/get-orbit-list",
+            url: "/api/eoss/engineer/get-orbit-list",
             type: "POST",
             async: false,
             data: {
@@ -110,7 +110,7 @@ class EOSSAssigning extends Problem{
         });
 
         $.ajax({
-            url: "/api/vassar/get-instrument-list",
+            url: "/api/eoss/engineer/get-instrument-list",
             type: "POST",
             async: false,
             data: {
@@ -583,7 +583,7 @@ class EOSSAssigning extends Problem{
     evaluate_architecture(inputs){
         let that = this;
         $.ajax({
-            url: "/api/vassar/evaluate-architecture",
+            url: "/api/eoss/engineer/evaluate-architecture",
             type: "POST",
             data: {
                     inputs: JSON.stringify(inputs),
