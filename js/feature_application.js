@@ -1915,7 +1915,7 @@ class FeatureApplication{
         let that = this;
 
         $.ajax({
-            url: "/api/data-mining/convert-to-CNF",
+            url: "/api/eoss/analyst/convert-to-CNF",
             type: "POST",
             data: {
                     expression: feature,
@@ -1938,7 +1938,7 @@ class FeatureApplication{
         let that = this;
 
         $.ajax({
-            url: "/api/data-mining/simplify-feature-expression",
+            url: "/api/eoss/analyst/simplify-feature-expression",
             type: "POST",
             data: {
                     problem: that.metadata.problem,
@@ -1962,7 +1962,7 @@ class FeatureApplication{
         let that = this;
 
         $.ajax({
-            url: "/api/data-mining/convert-to-DNF",
+            url: "/api/eoss/analyst/convert-to-DNF",
             type: "POST",
             data: {
                     expression: feature,
@@ -1986,7 +1986,7 @@ class FeatureApplication{
         let complexity = "";
 
         $.ajax({
-            url: "/api/data-mining/compute-complexity",
+            url: "/api/eoss/analyst/compute-complexity",
             type: "POST",
             data: {
                     expression: feature,
@@ -2009,7 +2009,7 @@ class FeatureApplication{
         let complexity = "";
         
         $.ajax({
-            url: "/api/data-mining/compute-typicality",
+            url: "/api/eoss/analyst/compute-typicality",
             type: "POST",
             data: {
                     input: JSON.stringify(input),
