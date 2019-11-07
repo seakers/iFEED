@@ -309,7 +309,14 @@ class Experiment{
         this.save_data(learning_task_data);
 
         this.stage = "learning_end";
-        setTimeout(() => { PubSub.publish(EXPERIMENT_TUTORIAL_START, null);}, 300);
+
+        // Generate sign in message
+        let title = "This is the end of the data analysis session. Please go to Concept Map tab and click the \"Submit network\" button. Follow the instructions provided in that page.";
+        let message = "";
+        let key = "ldne";
+        this.generateSignInMessage(() => {
+            setTimeout(() => { PubSub.publish(EXPERIMENT_TUTORIAL_START, null);}, 500);
+        }, title, message, key);
     }
 
     load_feature_synthesis_task(){
@@ -421,10 +428,16 @@ class Experiment{
         this.save_data(feature_synthesis_task_data);
 
         this.stage = "design_synthesis";
-        this.generateSignInMessage(() => {
-            that.load_design_synthesis_task();
-            setTimeout(() => { PubSub.publish(EXPERIMENT_TUTORIAL_START, null);}, 300);
-        });
+
+        this.load_design_synthesis_task();
+        setTimeout(() => { 
+            PubSub.publish(EXPERIMENT_TUTORIAL_START, null);
+        }, 2000);
+
+        // this.generateSignInMessage(() => {
+        //     that.load_design_synthesis_task();
+        //     setTimeout(() => { PubSub.publish(EXPERIMENT_TUTORIAL_START, null);}, 300);
+        // });
         return;
     }
 
@@ -529,7 +542,7 @@ class Experiment{
 
         d3.select('#messageContainer')
             .append('h2')
-            .text("Now please go back to the survey page and finish the rest of the survey")
+            .text("Now please go back to the Qualtrics survey page and finish the rest of the survey.")
             .style("width","1200px")
             .style("margin","auto");
 
@@ -677,10 +690,14 @@ class Experiment{
         return array;
     }
 
-    generateSignInMessage(callback, title, message){
+    generateSignInMessage(callback, title, message, passcode){
         let that = this;
         if(this.clock){
             this.clock.stop();
+        }
+
+        if(!passcode){
+            passcode = "ifde";
         }
 
         let textInput = '<input type="text" style="width: 300px">';
@@ -702,7 +719,6 @@ class Experiment{
             if(input === passcode){
                 callback();
                 instance.hide({ transitionOut: 'fadeOut' }, toast, 'button');
-
             }else{
                 iziToast.error({
                     title: 'Error',
@@ -1017,8 +1033,6 @@ class Clock{
         this.timeinterval = setInterval(updateClock, 1000);
     }
 }
-
-let passcode = "ifde";
 
 let fuzzy_pareto_front_8_mid_538 = "559,591,602,614,633,674,688,716,746,757,770,802,820,827,830,1083,1084,1085,1089,1090,1091,1093,"
 +"1095,1097,1102,1104,1106,1108,1110,1112,1113,1114,1116,1117,1118,1121,1122,1123,1126,1127,1128,1129,1130,1131,1132,1133,1134,1135,"

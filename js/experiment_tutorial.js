@@ -52,11 +52,23 @@ class ExperimentTutorial{
         this.problem.metadata.file_path = "ClimateCentric_050819.csv";
         PubSub.publish(LOAD_DATA, null);
 
+        this.generateSignInMessageForLearningTask();
+    }
+
+    generateSignInMessageForLearningTask(){
+        this.intro.exit();
+
+        let that = this;
+
         // Generate sign in message
-        that.experiment.generateSignInMessage(() => {
+        let title = "To continue, type in a passcode provided in the Concept Map tab";
+        let message = "(participant ID: "+ that.participantID +")";
+        let key = "ltst";
+
+        this.experiment.generateSignInMessage(() => {
             that.experiment.load_learning_task();
-            setTimeout(() => { PubSub.publish(EXPERIMENT_TUTORIAL_START, null);}, 300);
-        });
+            setTimeout(() => { PubSub.publish(EXPERIMENT_TUTORIAL_START, null);}, 2000);
+        }, title, message, key);
     }
 
     start_tutorial(){
@@ -205,11 +217,8 @@ class ExperimentTutorial{
                 that.problem.metadata.file_path = "ClimateCentric_050819.csv";
                 PubSub.publish(LOAD_DATA, null);
 
-                // Generate sign in message
-                that.experiment.generateSignInMessage(() => {
-                    that.experiment.load_learning_task();
-                    setTimeout(() => { PubSub.publish(EXPERIMENT_TUTORIAL_START, null);}, 2000);
-                });
+                // Generate sign-in message for starting learning task
+                that.generateSignInMessageForLearningTask();
 
             }else if(stage === "learning"){
                 that.intro.exit();
@@ -220,10 +229,17 @@ class ExperimentTutorial{
                 //window.open("https://cornell.qualtrics.com/jfe/form/SV_9vJTd6y3Pzri3s1", '_blank');
 
                 //Move onto the next stage
+                // that.experiment.load_feature_synthesis_task();
+                // setTimeout(() => { PubSub.publish(EXPERIMENT_TUTORIAL_START, null);}, 2000);
+
+                let title ="Please type in the passcode displayed on the Qualtrics page after solving all problems.";
+                let message = "";
+                let passcode = "psfn";
+
                 that.experiment.generateSignInMessage(() => {
                     that.experiment.load_feature_synthesis_task();
                     setTimeout(() => { PubSub.publish(EXPERIMENT_TUTORIAL_START, null);}, 2000);
-                });
+                }, title, message, passcode);
 
             }else if(stage === "feature_synthesis"){
                 that.intro.exit();

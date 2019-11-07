@@ -181,7 +181,7 @@ function loadTutorialContent(){
         {
             name: "tutorial-ifeed-inspecting-design-2",
             object: d3.selectAll('#support_panel').node(),
-            content: "The displayed information contains the science benefit score and the cost, as well as a figure that shows "
+            content: "The displayed information contains the science benefit score and cost, as well as a figure that shows "
                     +"which set of instruments are assigned to each orbit.", 
             callback: function(currentStep){
                 document.getElementById('tab1').click();
@@ -865,7 +865,9 @@ function loadTutorialContent(){
         { 
             name: "tutorial-open-concept-map",
             object: undefined, 
-            content: "<p>Participant ID: "+ experiment.participantID +"</p>" ,
+            content: "<p>Copy and paste the participant ID on the newly opened tab and continue with the tutorial on that page.</p>"
+                    +"<p>Participant ID: "+ experiment.participantID +"</p>"
+                    +"<p></p>",
             callback: function(currentStep){
                 window.open("https://www.selva-research.com/ifeed-experiment-conceptmap/", '_blank');
                 experiment.clock.stop();
@@ -881,7 +883,7 @@ function loadTutorialContent(){
             object: undefined,
             content: "<p>Now let's start analyzing some data. As the system architect, you are running an architectural study with 6,655 alternative designs "
                     +"of an Earth-observing satellite system. </p>"
-                    +"<p>Again, you are looking for the common features among the target designs that have high science and low cost (highlighted in blue). "
+                    +"<p>You are looking for the common features among the target designs that have high science and low cost (highlighted in blue). "
                     +"You will be given 25 minutes for this task.</p>"
                     +"<p>After the 25-minute data analysis session, you will be asked to answer a series of questions about the data.</p>"
                     +"<p>The questions will ask you to identify or utilize the features that are shared by the target designs. </p>",
@@ -924,7 +926,7 @@ function loadTutorialContent(){
             name: "learning-task-intro-4",
             object: undefined,
             content: "<p>The 25-minute data analysis session will begin now.</p>"
-                    +"<p>If you have any question, please ask the experimenter before closing this window.</p>"
+                    +"<p></p>"
         },
         { 
             name: "learning-task-end",
@@ -932,7 +934,7 @@ function loadTutorialContent(){
             content: "<p>This is the end of the data analysis session. </p>"
                     +"<p>Now you will be asked to answer a series of questions to test how much you have learned.</p>"
                     +"<p>Please copy the participant ID (<b>"+ experiment.participantID +"</b>) "
-                    +"and paste it into the survey page, which will be loaded when you click the finish button below</p>",
+                    +"and paste it into the survey page.</p>",
         },
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////
