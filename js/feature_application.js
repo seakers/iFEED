@@ -294,7 +294,7 @@ class FeatureApplication{
             return;
         }    
         
-        let duration = d3.event && d3.event.altKey ? 6000 : 400;
+        let duration = d3.event && d3.event.altKey ? 6000 : 100;
         let margin = this.margin;
 
         // Set root node
@@ -413,7 +413,7 @@ class FeatureApplication{
              });
 
         nodeUpdate.select("text")
-            .attr("x", function(d) { return d.children || d._children ? -10 : 10; })
+            .attr("x", function(d) { return d.children || d._children ? -11 : 11; })
             .attr("text-anchor", function(d) { return d.children || d._children ? "end" : "start"; })
             .selectAll("text > tspan")
             .html((d) => {

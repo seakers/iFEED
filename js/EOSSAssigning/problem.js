@@ -560,26 +560,6 @@ class EOSSAssigning extends Problem{
         return input;
     }
     
-    get_critique(architecture) {
-                
-        $.ajax({
-            url: "/api/critic/criticize-architecture",
-            type: "POST",
-            data: {
-                    inputs: JSON.stringify(architecture.inputs),
-                  },
-            async: false,
-            success: function (data, textStatus, jqXHR)
-            {
-                let critique = data;
-            },
-            error: function (jqXHR, textStatus, errorThrown)
-            {
-                alert("error");
-            }
-        });
-    }
-    
     evaluate_architecture(inputs){
         let that = this;
         $.ajax({
