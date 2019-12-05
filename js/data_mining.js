@@ -1342,7 +1342,7 @@ class DataMining{
                 .attr("class", "axisLabel axisObjects axis-x")
                 .attr("y", -6)
                 .style("text-anchor", "end")
-                .text('Specificity')
+                .text('Precision')
                 .style('font-size','1.7vh');
 
             // y-axis
@@ -1356,7 +1356,7 @@ class DataMining{
                 .attr("y", 6)
                 .attr("dy", ".71em")
                 .style("text-anchor", "end")
-                .text('Coverage')
+                .text('Recall')
                 .style('font-size','1.7vh');
 
             d3.selectAll(".feature_plot.figure").selectAll(".axisObjects")
@@ -2426,7 +2426,7 @@ class DataMining{
 
         let message = "";
         if(this.currentFeature){
-            message = "(current feature - coverage: " + round_num(this.currentFeature.metrics[3]) + ", specificity: " + round_num(this.currentFeature.metrics[2]) + ")";
+            message = "(current feature - recall: " + round_num(this.currentFeature.metrics[3]) + ", precision: " + round_num(this.currentFeature.metrics[2]) + ")";
         }
 
         let referenceBoundingRect = d3.select("#tradespace_plot_container").node().getBoundingClientRect();
@@ -2475,7 +2475,7 @@ class DataMining{
             description = that.label.pp_generalization_description(description);
             description = description.replace("\" to \"", "\"</p> <p>to</p> <p>\"")
             description = "<p>" + description + "</p>";
-            description += "<p>(coverage: "+ round_num(features[i].metrics[3]) + ", specificity: " + round_num(features[i].metrics[2]) +")</p>";
+            description += "<p>(recall: "+ round_num(features[i].metrics[3]) + ", precision: " + round_num(features[i].metrics[2]) +")</p>";
             
             let button = ['<button style="'+ buttonsStyle +'"><b>'+ description +'</b></button>', function (instance, toast) {
 

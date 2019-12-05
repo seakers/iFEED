@@ -207,53 +207,42 @@
     }
     detectBrowser();
 
-    // PubSub.publish(LOAD_DATA, null);
-
-    // function select_fuzzy_pareto_front(rank){
-    //     problem.calculate_pareto_ranking([],20);
-    //     filter.apply_filter_expression("{paretoFront["+ rank +"]}");
-    //     tradespace_plot.toggle_selection_and_highlight();
-    // }
-
-    var experiment, tutorial;
     let firstSignInCallback = function (instance, toast, button, event, inputs) {
         let input = inputs[0].value;
-        let valid = false;
-        let treatmentCondition = null;
 
-        let passcode = "ifde";
+        setTimeout(() => { 
+            PubSub.publish(LOAD_DATA, null);
+        }, 1000);
 
-        if(input.indexOf(passcode) !== -1){
-            if(input.length === passcode.length + 1){
-                let treatmentConditionStr = input.substring(passcode.length);
-                if(!isNaN(treatmentConditionStr)){
-                    treatmentCondition = + treatmentConditionStr;
-                    if(treatmentCondition >= 0 && treatmentCondition <= 6){
-                        valid = true;
-                    }
-                }
-
-            }else if(input === passcode){
-                valid = true;
-                treatmentCondition = undefined;
+        let callback = function(){};
+        if(input === "1" || input === "MKE"){
+            callback = () => {
+                select_archs_using_ids(fuzzy_pareto_front_8_mid_538);
+                setTimeout(() => { 
+                    data_mining.allFeatures = [];
+                    data_mining.display_features([]);
+                }, 2000);   
             }
-        }
-        
-        if(valid){
-            instance.hide({ transitionOut: 'fadeOut' }, toast, 'button');
-            experiment = new Experiment(problem, tradespace_plot, filter, data_mining, feature_application, label, treatmentCondition);
-            tutorial = new ExperimentTutorial(problem, tradespace_plot, filter, data_mining, feature_application, label, experiment);
-            
-            // Add sufficient time delay so that tutorial starts after the data has been fully loaded
-            setTimeout(() => { PubSub.publish(EXPERIMENT_TUTORIAL_START, null);}, 5000);
 
-        }else{
-            iziToast.error({
-                title: 'Error',
-                message: "Invalid passcode",
-                position: 'topRight'
-            });
-        }
+        }else if(input === "2" || input === "AKE"){
+            callback = () => {
+                data_mining.import_feature_data("6655_AOSMOEA_ruleset_fuzzy8_24_7500", true, true);
+
+                // Disable filter
+                d3.select("#tab2").text('-');
+                d3.select("#view2").selectAll('g').remove();
+            }
+        }else if(input === "3" || input === "IKE"){
+            callback = () => {
+                data_mining.import_feature_data("6655_epsilonMOEA_ruleset_fuzzy8_24_7500", true, false);
+            }
+        } 
+
+        setTimeout(() => { 
+            callback();
+        }, 6000);
+
+        instance.hide({ transitionOut: 'fadeOut' }, toast, 'button');
     }
     
     iziToast.question({
@@ -265,8 +254,8 @@
         id: 'question',
         color: 'blue',
         progressBar: false,
-        title: "Type in a passcode to start the experiment",
-        message: "(Please ask the experimenter to provide the passcode)",
+        title: "Select mode",
+        message: "1) MKE; 2) AKE; 3) IKE",
         position: 'center',
         inputs: [
             ['<input type="text" style="width: 300px">', 'change', function (instance, toast, select, event) {}],
@@ -275,6 +264,26 @@
             ['<button id="iziToast_button_confirm" style="width: 80px; margin-left: 10px; margin-right: 10px; float: left;"><b>Confirm</b></button>', firstSignInCallback, false], // true to focus
         ],
     });
+
+
+    function select_archs_using_ids(target_ids_string){
+        let target_ids_split = target_ids_string.split(',');
+        let target_ids =[];
+        for(let i = 0; i < target_ids_split.length; i++){
+            let id = + target_ids_split[i];
+            target_ids.push(id);
+        }
+
+        let selected_data = [];
+        tradespace_plot.data.forEach((d) => {
+            if(target_ids.indexOf(d.id) !== -1){
+                d.selected = true;
+                selected_data.push(d);
+            }
+        })
+        tradespace_plot.update(true);
+        PubSub.publish(SELECTION_UPDATED, selected_data);  
+    }
 
 </script>
 
