@@ -222,6 +222,7 @@
                     data_mining.allFeatures = [];
                     data_mining.display_features([]);
                 }, 2000);   
+                document.title = 'MKE_iFEED'; 
             }
 
         }else if(input === "2" || input === "AKE"){
@@ -231,10 +232,12 @@
                 // Disable filter
                 d3.select("#tab2").text('-');
                 d3.select("#view2").selectAll('g').remove();
+                document.title = 'AKE_iFEED'; 
             }
         }else if(input === "3" || input === "IKE"){
             callback = () => {
                 data_mining.import_feature_data("6655_epsilonMOEA_ruleset_fuzzy8_24_7500", true, false);
+                document.title = 'IKE_iFEED'; 
             }
         } 
 
@@ -283,6 +286,12 @@
         })
         tradespace_plot.update(true);
         PubSub.publish(SELECTION_UPDATED, selected_data);  
+    }
+
+    function refresh(){
+        feature_application.end_loading_animation();
+        data_mining.set_problem_generalized_concepts(true);
+        data_mining.openWebsocketConnection();
     }
 
 </script>
